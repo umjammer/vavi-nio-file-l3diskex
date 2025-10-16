@@ -1,0 +1,88 @@
+/*
+ * Copyright (c) 2025 by Naohide Sano, All rights reserved.
+ *
+ * Programmed by Naohide Sano
+ */
+
+package l3diskex.ui.dirItem;
+
+import java.util.ResourceBundle;
+import javax.swing.BoxLayout;
+import javax.swing.JCheckBox;
+
+import l3diskex.basicfmt.BasicFmt.DiskBasic;
+import l3diskex.basicfmt.DiskBasicDirItem.DiskBasicDirItemAttr;
+import l3diskex.basicfmt.DiskBasicDirItemAmiga;
+import l3diskex.basicfmt.DiskBasicDirItemMSX;
+import l3diskex.basicfmt.DiskBasicError;
+import l3diskex.ui.IntNameBox;
+import l3diskex.ui.UiDirItem;
+
+import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_UNKNOWN;
+import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_HIDDEN_MASK;
+import static l3diskex.basicfmt.DiskBasicDirItemMSX.TYPE_NAME_MS_HIDDEN;
+import static l3diskex.basicfmt.DiskBasicDirItemMSX.gTypeNameMS_l;
+import static l3diskex.ui.dirItem.UiDirItemTFDOS.IDC_CHECK_HIDDEN;
+
+
+/**
+ * UiDirItemMSX.
+ *
+ * @author <a href="mailto:umjammer@gmail.com">Naohide Sano</a> (nsano)
+ * @version 0.00 2025-10-20 nsano initial version <br>
+ */
+public class UiDirItemMSX extends UiDirItem {
+
+    private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
+
+    DiskBasicDirItemMSX dirItem;
+
+    /* -- */
+    /*  Dialog helpers                                                        */
+    /* -- */
+
+    /** ダイアログ表示前にファイルの属性を設定 */
+    @Override
+    public void setFileTypeForAttrDialog(int showFlags,
+                                         String name,
+                                         int[] fileType1,
+                                         int[] fileType2) {
+        // C++ implementation is empty – keep it that way
+    }
+
+    /** ダイアログ内の属性部分のレイアウトを作成 */
+    @Override
+    public void createControlsForAttrDialog(IntNameBox parent,
+                                            int showFlags,
+                                            String filePath,
+                                            BoxLayout sizer,
+                                            Object flags) {
+
+        int fileType1 = dirItem.getFileAttr().getType();
+        int fileType2 = 0;
+
+        setFileTypeForAttrDialog(showFlags, filePath, new int[]{fileType1}, new int[]{fileType2});
+
+        BoxLayout staType1 =
+                new BoxLayout(new BoxLayout(parent, wxID_ANY, "File Attributes"), wxVERTICAL);
+
+        JCheckBox chkHidden = new JCheckBox(parent, IDC_CHECK_HIDDEN,
+                rb.getString(gTypeNameMS_l[TYPE_NAME_MS_HIDDEN]));
+        chkHidden.setValue((fileType1 & FILE_TYPE_HIDDEN_MASK.getValue()) != 0);
+
+        staType1.add(chkHidden, flags);
+        sizer.add(staType1, flags);
+    }
+
+    /** 機種依存の属性を設定する */
+    @Override
+    public boolean setAttrInAttrDialog(IntNameBox parent,
+                                       DiskBasicDirItemAttr attr,
+                                       DiskBasicError errinfo) {
+
+        JCheckBox chkHidden = (JCheckBox) parent.getComponent(IDC_CHECK_HIDDEN);
+        int val = chkHidden.isSelected() ? FILE_TYPE_HIDDEN_MASK.getValue() : 0;
+        attr.setFileAttr(FORMAT_TYPE_UNKNOWN, val, 0);
+        return true;
+    }
+}

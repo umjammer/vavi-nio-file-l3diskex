@@ -1,0 +1,49 @@
+/*
+ * Copyright (c) 2025 by Naohide Sano, All rights reserved.
+ *
+ * Programmed by Naohide Sano
+ */
+
+package l3diskex.ui.dirItem;
+
+import javax.swing.BoxLayout;
+
+import l3diskex.basicfmt.DiskBasicDirItem.DiskBasicDirItemAttr;
+import l3diskex.basicfmt.DiskBasicDirItemVFAT;
+import l3diskex.basicfmt.DiskBasicError;
+import l3diskex.ui.IntNameBox;
+import l3diskex.ui.UiDirItem;
+
+
+/**
+ * UiDirItemVFAT.
+ *
+ * @author <a href="mailto:umjammer@gmail.com">Naohide Sano</a> (nsano)
+ * @version 0.00 2025-10-19 nsano initial version <br>
+ */
+public class UiDirItemVFAT extends UiDirItem {
+
+    DiskBasicDirItemVFAT dirItem;
+
+    /// ダイアログ内の属性部分のレイアウトを作成
+    @Override
+    public void createControlsForAttrDialog(IntNameBox parent, int show_flags, String file_path, BoxLayout sizer, Object flags) {
+        // int[] is used to pass int by reference
+        int[] file_type_1 = new int[] {dirItem.getFileAttr().getType()};
+        int[] file_type_2 = new int[1];
+
+        dirItem.setFileTypeForAttrDialog(show_flags, file_path, file_type_1, file_type_2);
+
+        // 属性チェックボックスを作成
+        dirItem.CreateControlsSubForAttrDialog(parent, show_flags, sizer, flags, file_type_1[0]);
+    }
+
+    /// 機種依存の属性を設定する
+    @Override
+    public boolean setAttrInAttrDialog(IntNameBox parent, DiskBasicDirItemAttr attr, DiskBasicError errinfo) {
+        // 属性
+        dirItem.SetAttrSubInAttrDialog(parent, attr);
+
+        return true;
+    }
+}
