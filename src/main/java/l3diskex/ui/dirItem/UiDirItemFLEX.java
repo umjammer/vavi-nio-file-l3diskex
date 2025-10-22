@@ -6,7 +6,6 @@
 
 package l3diskex.ui.dirItem;
 
-import java.awt.Component;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
@@ -69,6 +68,7 @@ public class UiDirItemFLEX extends UiDirItem {
     public static final int IDC_CHECK_ATTR1 = 51;
 
     /// 属性を変更した際に呼ばれるコールバック
+    @Override
     public void changeTypeInAttrDialog(IntNameBox parent) {
     }
 

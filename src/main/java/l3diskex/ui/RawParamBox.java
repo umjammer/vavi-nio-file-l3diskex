@@ -16,8 +16,8 @@ public class RawParamBox extends JDialog {
 
     /* ----------  PRIVATE DATA  ---------- */
 
-    private int type;
-    private int maxvalue;
+    private final int type;
+    private final int maxvalue;
 
     private JTextField txtValue;     // corresponds to wxTextCtrl
     private JComboBox<String> comValue; // corresponds to wxChoice
@@ -152,7 +152,7 @@ public class RawParamBox extends JDialog {
             int sel = comValue.getSelectedIndex();
             val = 128L * (1 << sel);
         }
-        return (int) val;
+        return val;
     }
 
     /* ----------  PRIVATE HELPERS  ---------- */

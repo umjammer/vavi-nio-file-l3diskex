@@ -54,16 +54,16 @@ public class DiskBasicTypeFalcom extends DiskBasicType<DirectoryFalcom> {
         fatAvailability.empty();
 //        fatAvailability.setCount(basic.getFatEndGroup() + 1, FAT_AVAIL_FREE);
 
-        final List<DiskBasicDirItem<DirectoryFalcom>> items = dir.getCurrentItems(null);
+        List<DiskBasicDirItem<DirectoryFalcom>> items = dir.getCurrentItems(null);
         for (int idx = 0; items != null && idx < items.size(); idx++) {
             DiskBasicDirItem<DirectoryFalcom> item = items.get(idx);
             if (item == null || !item.isUsed()) continue;
 
             // グループ番号のマップを調べる
-            final DiskBasicGroups groups = item.getGroups();
+            DiskBasicGroups groups = item.getGroups();
             int count = groups.count();
             for (int n = 0; n < count; n++) {
-                final DiskBasicGroupItem group = groups.itemPtr(n);
+                DiskBasicGroupItem group = groups.itemPtr(n);
                 int gnum = group.group;
                 if (gnum <= basic.getFatEndGroup()) {
                     if (n + 1 == count) {
@@ -102,13 +102,13 @@ public class DiskBasicTypeFalcom extends DiskBasicType<DirectoryFalcom> {
 
     /// セクタデータを埋めた後の個別処理
     @Override
-    public boolean additionalProcessOnFormatted(final DiskBasicIdentifiedData data) {
+    public boolean additionalProcessOnFormatted(DiskBasicIdentifiedData data) {
         return true;
     }
 
     /// ファイルの最終セクタのデータサイズを求める
     @Override
-    public int calcDataSizeOnLastSector(DiskBasicDirItem<DirectoryFalcom> item, InputStream istream, OutputStream ostream, final byte[] sector_buffer, int sectorOffsrt, int sector_size, int remain_size) {
+    public int calcDataSizeOnLastSector(DiskBasicDirItem<DirectoryFalcom> item, InputStream istream, OutputStream ostream, byte[] sector_buffer, int sectorOffsrt, int sector_size, int remain_size) {
         return remain_size;
     }
 

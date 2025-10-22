@@ -177,17 +177,17 @@ public class IntNameValidatorFile {
             /* 2. first character check  */
             else if (!ContainsIncludedCharactersAtFirst(val, invchr)) {
                 errormsg = String.format("The char '%s' is not able to use in the first of %s.",
-                                         invchr.toString(), subject);
+                        invchr, subject);
             }
             /* 3. all character check  */
             else if (!ContainsIncludedCharacters(val, invchr)) {
                 errormsg = String.format("The char '%s' is not able to use in %s.",
-                                         invchr.toString(), subject);
+                        invchr, subject);
             }
             /* 4. duplicated character check  */
             else if (!ContainsDuplicatedCharacters(val, invchr)) {
                 errormsg = String.format("The char '%s' contains illegal characters.",
-                                         invchr.toString());
+                        invchr);
             }
             /* 5. final error handling – mimicking the wxWidgets logic  */
             if (!errormsg.isEmpty()) {
@@ -211,8 +211,8 @@ public class IntNameValidatorFile {
     /* 4.  DateTimeValidator class                                        */
     /* ------------------------------------------------------------------ */
     public static class DateTimeValidator extends Validator {
-        private boolean m_is_time;
-        private boolean m_require;
+        private final boolean m_is_time;
+        private final boolean m_require;
 
         public DateTimeValidator(boolean is_time, boolean required) {
             m_is_time = is_time;

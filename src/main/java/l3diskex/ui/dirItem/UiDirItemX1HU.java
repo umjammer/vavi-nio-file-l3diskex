@@ -6,7 +6,6 @@
 
 package l3diskex.ui.dirItem;
 
-import java.awt.Choice;
 import java.awt.GridLayout;
 import java.time.LocalDateTime;
 import java.util.ResourceBundle;
@@ -17,8 +16,6 @@ import javax.swing.JComboBox;
 import l3diskex.Utils;
 import l3diskex.basicfmt.DiskBasicDirItem.DiskBasicDirItemAttr;
 import l3diskex.basicfmt.DiskBasicDirItemX1HU;
-import l3diskex.basicfmt.DiskBasicDirItemXDOS;
-import l3diskex.basicfmt.DiskBasicDirItemXDOS.XdosSubTypeT;
 import l3diskex.basicfmt.DiskBasicError;
 import l3diskex.ui.IntNameBox;
 import l3diskex.ui.UiDirItem;
@@ -44,10 +41,6 @@ import static l3diskex.basicfmt.DiskBasicDirItemX1HU.TYPE_NAME_X1HU_READ_ONLY;
 import static l3diskex.basicfmt.DiskBasicDirItemX1HU.TYPE_NAME_X1HU_SWORD;
 import static l3diskex.basicfmt.DiskBasicDirItemX1HU.gTypeNameX1HU_1;
 import static l3diskex.basicfmt.DiskBasicDirItemX1HU.gTypeNameX1HU_2;
-import static l3diskex.basicfmt.DiskBasicDirItemXDOS.convStrToUserFileType;
-import static l3diskex.basicfmt.DiskBasicDirItemXDOS.gTypeNameXDOS1;
-import static l3diskex.basicfmt.DiskBasicDirItemXDOS.gTypeNameXDOS2;
-import static l3diskex.basicfmt.DiskBasicDirItemXDOS.xdosSubTypes;
 import static l3diskex.ui.IntNameBox.INTNAME_NEW_FILE;
 import static l3diskex.ui.dirItem.UiDirItemFLEX.IDC_CHECK_ATTR1;
 

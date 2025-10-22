@@ -60,10 +60,10 @@ public class DiskBasicDirItemFLEX extends DiskBasicDirItem<DirectoryFlex> {
     }
 
     /// ディレクトリデータ */
-    private DiskBasicDirData<DirectoryFlex> m_data;
+    private final DiskBasicDirData<DirectoryFlex> m_data;
 
     /// ランダムアクセスファイルのインデックス(FSM)のグループ番号 */
-    private List<Integer> m_random_group_nums = new ArrayList<>();
+    private final List<Integer> m_random_group_nums = new ArrayList<>();
 
     /// ファイル名を格納する位置を返す */
     @Override
@@ -225,7 +225,7 @@ public class DiskBasicDirItemFLEX extends DiskBasicDirItem<DirectoryFlex> {
         for(int i=0; i<=en_type_name_flex.TYPE_NAME_FLEX_RANDOM.ordinal(); i++) {
             // Assumes gTypeNameFLEX is translated to a map or array of pairs
             if ((val & (int) Utils.valueAt(gTypeNameFLEX, i)) != 0) {
-                if (str.length() > 0) str.append(", ");
+                if (!str.isEmpty()) str.append(", ");
                 str.append(Utils.keyAt(gTypeNameFLEX, i)); // wxGetTranslation is omitted, using raw string
             }
         }

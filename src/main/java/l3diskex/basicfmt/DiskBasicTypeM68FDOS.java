@@ -36,9 +36,9 @@ public class DiskBasicTypeM68FDOS extends DiskBasicTypeMZBase {
 
     private static final int directory_m68fdos_t_SIZE = 19; // Placeholder for sizeof(directory_m68fdos_t)
 
-    private DiskBasicBitMLMap m_bitmap = new DiskBasicBitMLMap();
-    private TempData temp = new TempData(); // Used in AccessFile
-    private DiskBasicAvailability fat_availability = new DiskBasicAvailability(); // Used in CalcDiskFreeSize
+    private final DiskBasicBitMLMap m_bitmap = new DiskBasicBitMLMap();
+    private final TempData temp = new TempData(); // Used in AccessFile
+    private final DiskBasicAvailability fat_availability = new DiskBasicAvailability(); // Used in CalcDiskFreeSize
 
     public DiskBasicTypeM68FDOS(DiskBasic basic, DiskBasicFat fat, DiskBasicDir dir) {
         super(basic, fat, dir);
@@ -87,7 +87,7 @@ public class DiskBasicTypeM68FDOS extends DiskBasicTypeMZBase {
         // Given the C++ code: mask = 1 << (pos & 7); pos = (pos >> 3);
         // It implies 'num' is implicitly related to 'pos' before the calculation.
         // Assuming 'pos' is num/1 for simplicity based on the logic:
-        int p = (int) num;
+        int p = num;
         mask[0] = 1 << (p & 7);
         pos[0] = (p >> 3);
     }
@@ -119,7 +119,7 @@ public class DiskBasicTypeM68FDOS extends DiskBasicTypeMZBase {
     /// 空きFAT位置を返す
     @Override
     public int getEmptyGroupNumber() {
-        int found = (int) INVALID_GROUP_NUMBER;
+        int found = INVALID_GROUP_NUMBER;
         for (int grp_num = 0; grp_num <= basic.getFatEndGroup(); grp_num++) {
             if (!isUsedGroupNumber(grp_num)) {
                 found = grp_num;
@@ -253,7 +253,7 @@ public class DiskBasicTypeM68FDOS extends DiskBasicTypeMZBase {
     /// 使用可能なディスクサイズを得る
     @Override
     public void getUsableDiskSize(int[] disk_size, int[] group_size) {
-        group_size[0] = (int) basic.diskBasicParam.getFatEndGroup() + 1 - dataStartGroup;
+        group_size[0] = basic.diskBasicParam.getFatEndGroup() + 1 - dataStartGroup;
         disk_size[0] = group_size[0] * basic.getSectorSize() * basic.diskBasicParam.getSectorsPerGroup();
     }
 
@@ -283,7 +283,7 @@ public class DiskBasicTypeM68FDOS extends DiskBasicTypeMZBase {
         }
 
         // ディレクトリエントリのグループ
-        final List<DiskBasicDirItem> items = dir.getCurrentItems(null);
+        List<DiskBasicDirItem> items = dir.getCurrentItems(null);
         if (items != null) {
             for (int idx = 0; idx < items.size(); idx++) {
                 DiskBasicDirItem item = items.get(idx);
@@ -292,7 +292,7 @@ public class DiskBasicTypeM68FDOS extends DiskBasicTypeMZBase {
                 // グループ番号のマップを調べる
                 int gcnt = item.getGroupCount();
                 if (gcnt > 0) {
-                    final DiskBasicGroupItem gitem = item.getGroup(gcnt - 1);
+                    DiskBasicGroupItem gitem = item.getGroup(gcnt - 1);
                     int gnum = gitem.group;
                     if (gnum <= basic.diskBasicParam.getFatEndGroup()) {
                         fat_availability.set(gnum, FatAvailability.FAT_AVAIL_USED_LAST.getValue());
@@ -391,7 +391,7 @@ public class DiskBasicTypeM68FDOS extends DiskBasicTypeMZBase {
 
         //	DiskBasicDirItemM68FDOS ditem = (DiskBasicDirItemM68FDOS)item;
 
-        int limit = (int) basic.diskBasicParam.getFatEndGroup() + 1;
+        int limit = basic.diskBasicParam.getFatEndGroup() + 1;
         while (remain > 0 && limit >= 0) {
             // 使用しているか
             boolean used_group = isUsedGroupNumber(group_num);
@@ -437,7 +437,7 @@ public class DiskBasicTypeM68FDOS extends DiskBasicTypeMZBase {
     /// セクタデータを埋めた後の個別処理
     /// フォーマット FAT予約済みをセット
     @Override
-    public boolean additionalProcessOnFormatted(final DiskBasicIdentifiedData data) {
+    public boolean additionalProcessOnFormatted(DiskBasicIdentifiedData data) {
         DiskImageSector sector;
 
         //
@@ -532,7 +532,7 @@ public class DiskBasicTypeM68FDOS extends DiskBasicTypeMZBase {
      * @return >=0 : 処理したサイズ  -1:比較不一致  -2:セクタがおかしい
      */
     @Override
-    public int accessFile(int fileunit_num, DiskBasicDirItem item, InputStream istream, OutputStream ostream, final byte[] sector_buffer, int sector_size, int remain_size, int sector_num, int sector_end) {
+    public int accessFile(int fileunit_num, DiskBasicDirItem item, InputStream istream, OutputStream ostream, byte[] sector_buffer, int sector_size, int remain_size, int sector_num, int sector_end) {
         boolean need_chain = item.needChainInData();
 
         if (need_chain) {
@@ -629,7 +629,7 @@ public class DiskBasicTypeM68FDOS extends DiskBasicTypeMZBase {
 
         // 次のセクタ番号を書く
         if (need_chain) {
-            int next_sector = (int) next_group * basic.getSectorsPerGroup();
+            int next_sector = next_group * basic.getSectorsPerGroup();
             if (next_sector >= 0) {
                 // bigendien
                 buffer[data_size] = (byte) ((next_sector >> 8) & 0xff);
@@ -655,6 +655,6 @@ public class DiskBasicTypeM68FDOS extends DiskBasicTypeMZBase {
 
     /// IPLや管理エリアの属性をセット
     @Override
-    public void setIdentifiedData(final DiskBasicIdentifiedData data) {
+    public void setIdentifiedData(DiskBasicIdentifiedData data) {
     }
 }

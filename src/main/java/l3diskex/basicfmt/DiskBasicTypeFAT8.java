@@ -143,7 +143,7 @@ public class DiskBasicTypeFAT8<T extends DirectoryT> extends DiskBasicType<T> {
             // ファイルサイズはセクタサイズ境界なので要計算
             if (item.needCheckEofCode()) {
                 // 終端コードの1つ前までを出力
-                byte eofCode = (byte) basic.invertUint8(basic.diskBasicParam.getTextTerminateCode());
+                byte eofCode = basic.invertUint8(basic.diskBasicParam.getTextTerminateCode());
                 // ランダムアクセス時は除く
                 int len = sectorSize - 1;
                 for (; len >= 0; len--) {

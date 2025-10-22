@@ -112,7 +112,7 @@ public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
         };
     }
 
-    private DiskBasicDirData<DirectoryMz> m_data = new DiskBasicDirData<>();
+    private final DiskBasicDirData<DirectoryMz> m_data = new DiskBasicDirData<>();
 
     public DiskBasicDirItemMZ(DiskBasic basic) {
         super(basic);
@@ -167,12 +167,12 @@ public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
 
     @Override
     protected void setFileType1(int val) {
-        m_data.data().type = (byte)basic.invertUint8((byte) val);
+        m_data.data().type = basic.invertUint8((byte) val);
     }
 
     @Override
     protected void setFileType2(int val) {
-        m_data.data().type2 = (byte)basic.invertUint8((byte) val);
+        m_data.data().type2 = basic.invertUint8((byte) val);
     }
 
     @Override
@@ -292,7 +292,7 @@ public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
 
     @Override
     protected void setFileSizeBase(int val) {
-        m_data.data().fileSize = (short)basic.invertAndOrderUint16((short) val);
+        m_data.data().fileSize = basic.invertAndOrderUint16((short) val);
     }
 
     @Override
@@ -349,7 +349,7 @@ public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
                 // Need to mock data reading and byte order
                 for (int i = 0; i < brd.maps.length; i++) {
                     // Assuming basic.InvertAndOrderUint16 handles byte order and inversion
-                    brd.maps[i] = (short)basic.invertAndOrderUint16((short) ((buffer[i*2+1] & 0xFF) | ((buffer[i*2] & 0xFF) << 8)));
+                    brd.maps[i] = basic.invertAndOrderUint16((short) ((buffer[i*2+1] & 0xFF) | ((buffer[i*2] & 0xFF) << 8)));
                 }
 
                 group_num[0] = basic.invertAndOrderUint16(brd.maps[brd.pos]);
@@ -405,10 +405,10 @@ public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
 
         // BCD decoding
         return LocalDate.of(
-                (int) (((inverted_ymd >> 20) & 0x0f) * 10 + ((inverted_ymd >> 16) & 0x0f) +
-                                     (tm.getYear() < 80 ? 100 : 0)),
-                (int) (((inverted_ymd >> 15) & 1) * 10 + ((inverted_ymd >> 11) & 0x0f) - 1),
-                (int) (((inverted_ymd >> 9) & 3) * 10 + ((inverted_ymd >> 5) & 0x0f))
+                ((inverted_ymd >> 20) & 0x0f) * 10 + ((inverted_ymd >> 16) & 0x0f) +
+                                     (tm.getYear() < 80 ? 100 : 0),
+                ((inverted_ymd >> 15) & 1) * 10 + ((inverted_ymd >> 11) & 0x0f) - 1,
+                ((inverted_ymd >> 9) & 3) * 10 + ((inverted_ymd >> 5) & 0x0f)
         );
     }
 
@@ -419,8 +419,8 @@ public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
         int inverted_hms = basic.invertUint32(hms);
 
         return LocalTime.of(
-                (int)(((inverted_hms >> 11) & 3) * 10 + ((inverted_hms >> 7) & 0x0f)),
-                (int)(((inverted_hms >> 4) & 0x7) * 10 + (inverted_hms & 0x0f)),
+                ((inverted_hms >> 11) & 3) * 10 + ((inverted_hms >> 7) & 0x0f),
+                ((inverted_hms >> 4) & 0x7) * 10 + (inverted_hms & 0x0f),
                 0);
     }
 
@@ -443,12 +443,12 @@ public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
         if (tm.getYear() < 0 || tm.getMonth().ordinal() < -1) return;
 
         int tmp = (m_data.data().dateTime[0] & 0xFF) << 16 | (m_data.data().dateTime[1] & 0xFF) << 8 | (m_data.data().dateTime[2] & 0xFF);
-        int inverted_tmp = (int)basic.invertUint32(tmp);
+        int inverted_tmp = basic.invertUint32(tmp);
         inverted_tmp &= 0x1f;
         inverted_tmp |= (((tm.getYear() / 10) % 10) << 20) | ((tm.getYear() % 10) << 16);
         inverted_tmp |= ((((tm.getMonth().ordinal() + 1) / 10) & 1) << 15) | (((tm.getMonth().ordinal() + 1) % 10) << 11);
         inverted_tmp |= (((tm.getDayOfMonth() / 10) & 3) << 9) | ((tm.getDayOfMonth() % 10) << 5);
-        int final_tmp = (int)basic.invertUint32(inverted_tmp);
+        int final_tmp = basic.invertUint32(inverted_tmp);
 
         m_data.data().dateTime[0] = (byte)(final_tmp >> 16);
         m_data.data().dateTime[1] = (byte)(final_tmp >> 8);
@@ -456,15 +456,15 @@ public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
     }
 
     @Override
-    public void setFileCreateTime(final LocalDateTime tm) {
+    public void setFileCreateTime(LocalDateTime tm) {
         if (tm.getHour() < 0 || tm.getMinute() < 0) return;
 
         int tmp = (m_data.data().dateTime[2] & 0xFF) << 8 | (m_data.data().dateTime[3] & 0xFF);
-        int inverted_tmp = (int)basic.invertUint32(tmp & 0xFFFF_FFFF);
+        int inverted_tmp = basic.invertUint32(tmp & 0xFFFF_FFFF);
         inverted_tmp &= ~0x1fff;
         inverted_tmp |= (((tm.getHour() / 10) & 3) << 11) | ((tm.getHour() % 10) << 7);
         inverted_tmp |= (((tm.getMinute() / 10) & 7) << 4) | (tm.getMinute() % 10);
-        int final_tmp = (int)basic.invertUint32(inverted_tmp & 0xFFFF_FFFF);
+        int final_tmp = basic.invertUint32(inverted_tmp & 0xFFFF_FFFF);
 
         m_data.data().dateTime[2] = (byte)(final_tmp >> 8);
         m_data.data().dateTime[3] = (byte)(final_tmp & 0xff);
@@ -482,12 +482,12 @@ public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
 
     @Override
     public void setStartAddress(int val) {
-        m_data.data().loadAddr = (short)basic.invertAndOrderUint16((short) val);
+        m_data.data().loadAddr = basic.invertAndOrderUint16((short) val);
     }
 
     @Override
     public void setExecuteAddress(int val) {
-        m_data.data().execAddr = (short)basic.invertAndOrderUint16((short) val);
+        m_data.data().execAddr = basic.invertAndOrderUint16((short) val);
     }
 
     @Override
@@ -501,7 +501,7 @@ public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
     }
 
     @Override
-    public boolean copyData(final DirectoryMz val) {
+    public boolean copyData(DirectoryMz val) {
         return m_data.copy(val, getDataSize());
     }
 
@@ -517,7 +517,7 @@ public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
 
     @Override
     public void setStartGroup(int fileunit_num, int val, int size) {
-        int sval = (int)(val * basic.getSectorsPerGroup());
+        int sval = val * basic.getSectorsPerGroup();
         sval = basic.invertAndOrderUint16((short) sval);
         m_data.data().startSector = (short)sval;
     }
@@ -540,7 +540,7 @@ public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
     @Override
     public void getExtraGroups(List<Integer> arr) {
         if (getFileType1() == FILETYPE_MZ_BRD) {
-            arr.add((int)getStartGroup(0));
+            arr.add(getStartGroup(0));
         }
     }
 
@@ -593,7 +593,7 @@ public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
     }
 
     @Override
-    public int convOriginalTypeFromFileName(final String filename) {
+    public int convOriginalTypeFromFileName(String filename) {
         int[] t1 = new int[1];
         if (!isContainAttrByExtension(filename, Globals.gTypeNameMZ, TYPE_NAME_MZ_OBJ, TYPE_NAME_MZ_DIR, null, t1, null)) {
             t1[0] = FILETYPE_MZ_BSD;
@@ -625,13 +625,13 @@ public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
         return val;
     }
 
-    public void setFileTypeForAttrDialog(int show_flags, final String name, int[] file_type_1, int[] file_type_2) {
+    public void setFileTypeForAttrDialog(int show_flags, String name, int[] file_type_1, int[] file_type_2) {
         if ((show_flags & 1) != 0) { // INTNAME_NEW_FILE is assumed to be 1
             file_type_1[0] = convOriginalTypeFromFileName(name);
         }
     }
 
-    public boolean validateFileName(final JWindow parent, final String filename, String[] errormsg) {
+    public boolean validateFileName(JWindow parent, String filename, String[] errormsg) {
         if (filename.isEmpty()) {
             errormsg[0] = rb.getString(gDiskBasicErrorMsgs[ERR_FILENAME_EMPTY]);
             return false;

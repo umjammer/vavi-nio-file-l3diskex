@@ -34,13 +34,13 @@ public class UiCdListCtrl {
         }
 
         public void Set(int n_row, int n_icon, String n_value) {
-            this.row = (int) n_row;
+            this.row = n_row;
             this.icon = n_icon;
             this.value = n_value;
         }
 
         public void Set(int n_row, String n_value) {
-            this.row = (int) n_row;
+            this.row = n_row;
             this.value = n_value;
         }
 

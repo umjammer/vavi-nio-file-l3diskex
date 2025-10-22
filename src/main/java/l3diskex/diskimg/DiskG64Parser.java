@@ -144,7 +144,7 @@ public class DiskG64Parser extends DiskImageParser {
 
                 bitpos += 5;
             }
-            outdata[(int) outpos] = (byte) adat;
+            outdata[outpos] = (byte) adat;
             outpos++;
         }
         return outpos;
@@ -223,7 +223,7 @@ public class DiskG64Parser extends DiskImageParser {
             }
 
             /* Data GCR – usually 325 bytes (2600 bits) */
-            len = (int) decodeGCR(indata, inpos, 2600, outdata, outpos, outsize - outpos);
+            len = decodeGCR(indata, inpos, 2600, outdata, outpos, outsize - outpos);
             sectorDatas.add(Arrays.copyOfRange(outdata, outpos, outpos + len));
             inpos += 325;
             outpos += len;
@@ -342,7 +342,7 @@ public class DiskG64Parser extends DiskImageParser {
                     disk_number,
                     hasHalfTrack ? (pos & 1) : 0,
                     d88OffsetPos,
-                    (int) d88Offset,
+                    d88Offset,
                     disk);
             if (offset < 0) {
                 return -1;

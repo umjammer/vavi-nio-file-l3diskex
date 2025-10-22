@@ -427,7 +427,7 @@ public class BasicCommon {
         @Override
         public DirectoryCpm clone() {
             return new DirectoryCpm();
-        };
+        }
     }
 
     /**
@@ -1028,7 +1028,7 @@ public class BasicCommon {
          * @return 一致する位置 or -1
          * 名前が一致するか
          */
-        public static int indexOf(final Map<String, Object> list, final String str) {
+        public static int indexOf(Map<String, Object> list, String str) {
             int match = -1;
             int i = 0;
             for (Map.Entry<String, Object> e : list.entrySet()) {
@@ -1047,7 +1047,7 @@ public class BasicCommon {
          * @return 一致する位置 or -1
          * 値が一致するか
          */
-        public static int indexOf(final Map<String, Object> list, int val) {
+        public static int indexOf(Map<String, Object> list, int val) {
             int match = -1;
             int i = 0;
             for (Map.Entry<String, Object> e : list.entrySet()) {
@@ -1076,7 +1076,7 @@ public class BasicCommon {
             this.optional = 0;
         }
 
-        public DiskBasicFileName(final String nName, int nOptional) {
+        public DiskBasicFileName(String nName, int nOptional) {
             this.name = nName;
             this.optional = nOptional;
         }
@@ -1093,7 +1093,7 @@ public class BasicCommon {
         /**
          * ファイル名
          */
-        public void setName(final String val) {
+        public void setName(String val) {
             this.name = val;
         }
 
@@ -1122,7 +1122,7 @@ public class BasicCommon {
         /** 共通属性 enum #en_file_type_mask の値の組み合わせ */
         private int type;
         /** 本来の属性 */
-        private int[] origin = new int[3];
+        private final int[] origin = new int[3];
 
         public DiskBasicFileType() {
             format = DiskBasicFormatType.FORMAT_TYPE_UNKNOWN;
@@ -1297,7 +1297,7 @@ public class BasicCommon {
             userData = null;
         }
 
-        public DiskBasicGroupItem(final DiskBasicGroupItem src) {
+        public DiskBasicGroupItem(DiskBasicGroupItem src) {
             group = src.group;
             next = src.next;
             track = src.track;
@@ -1315,7 +1315,7 @@ public class BasicCommon {
         /**
          * 代入
          */
-        public DiskBasicGroupItem set(final DiskBasicGroupItem src) {
+        public DiskBasicGroupItem set(DiskBasicGroupItem src) {
             group = src.group;
             next = src.next;
             track = src.track;
@@ -1462,7 +1462,7 @@ public class BasicCommon {
     public static class DiskBasicGroups {
 
         /** グループ番号のリスト */
-        private DiskBasicGroupItems items;
+        private final DiskBasicGroupItems items;
         /** グループ数 */
         private int nums;
         /** グループ内の占有サイズ (int) */
@@ -1525,7 +1525,7 @@ public class BasicCommon {
          * @param nItem アイテム
          * 追加
          */
-        public void add(final DiskBasicGroupItem nItem) {
+        public void add(DiskBasicGroupItem nItem) {
             items.add(new DiskBasicGroupItem(nItem)); // Add a copy to maintain ownership semantics
         }
 
@@ -1533,7 +1533,7 @@ public class BasicCommon {
          * @param nItems アイテムリスト
          * 追加
          */
-        public void add(final DiskBasicGroups nItems) {
+        public void add(DiskBasicGroups nItems) {
             for (int i = 0; i < nItems.count(); i++) {
                 items.add(new DiskBasicGroupItem(nItems.item(i)));
             }
@@ -1642,7 +1642,7 @@ public class BasicCommon {
          */
         public int addSize(int val) {
             size += val;
-            return (int) size;
+            return size;
         }
 
         /**
@@ -1690,23 +1690,23 @@ public class BasicCommon {
             mType = Type.TYPE_UNKNOWN;
         }
 
-        public KeyValItem(final String key, int val) {
+        public KeyValItem(String key, int val) {
             set(key, val);
         }
 
-        public KeyValItem(final String key, byte val, boolean invert) {
+        public KeyValItem(String key, byte val, boolean invert) {
             set(key, val, invert);
         }
 
-        public KeyValItem(final String key, short val, boolean bigEndian, boolean invert) {
+        public KeyValItem(String key, short val, boolean bigEndian, boolean invert) {
             set(key, val, bigEndian, invert);
         }
 
-        public KeyValItem(final String key, int val, boolean bigEndian, boolean invert) {
+        public KeyValItem(String key, int val, boolean bigEndian, boolean invert) {
             set(key, val, bigEndian, invert);
         }
 
-        public KeyValItem(final String key, final Object val, int size, boolean invert) {
+        public KeyValItem(String key, Object val, int size, boolean invert) {
             if (val instanceof byte[]) {
                 set(key, (byte[]) val, size, invert);
             } else {
@@ -1716,7 +1716,7 @@ public class BasicCommon {
             }
         }
 
-        public KeyValItem(final String key, boolean val) {
+        public KeyValItem(String key, boolean val) {
             set(key, val);
         }
 
@@ -1734,7 +1734,7 @@ public class BasicCommon {
          * @param key キー名
          * @param val 値
          */
-        public void set(final String key, int val) {
+        public void set(String key, int val) {
             clear();
             mKey = key;
             mValue = new byte[Integer.BYTES];
@@ -1751,14 +1751,14 @@ public class BasicCommon {
          * @param val    値 (byte)
          * @param invert 値を反転するか
          */
-        public void set(final String key, byte val, boolean invert) {
+        public void set(String key, byte val, boolean invert) {
             clear();
             mKey = key;
             mValue = new byte[Byte.BYTES];
             mValue[0] = val;
             mSize = Byte.BYTES;
             mType = Type.TYPE_UINT8;
-            if (invert) CommonUtil.memInvert(mValue, (int) mSize);
+            if (invert) CommonUtil.memInvert(mValue, mSize);
         }
 
         /**
@@ -1769,14 +1769,14 @@ public class BasicCommon {
          * @param bigEndian 値がビッグエンディアンか
          * @param invert    値を反転するか
          */
-        public void set(final String key, short val, boolean bigEndian, boolean invert) {
+        public void set(String key, short val, boolean bigEndian, boolean invert) {
             clear();
             mKey = key;
             mValue = new byte[Short.BYTES];
             CommonUtil.writeUint16(mValue, val, bigEndian);
             mSize = Short.BYTES;
             mType = Type.TYPE_UINT16;
-            if (invert) CommonUtil.memInvert(mValue, (int) mSize);
+            if (invert) CommonUtil.memInvert(mValue, mSize);
         }
 
         /**
@@ -1787,14 +1787,14 @@ public class BasicCommon {
          * @param bigEndian 値がビッグエンディアンか
          * @param invert    値を反転するか
          */
-        public void set(final String key, int val, boolean bigEndian, boolean invert) {
+        public void set(String key, int val, boolean bigEndian, boolean invert) {
             clear();
             mKey = key;
             mValue = new byte[Integer.BYTES];
             CommonUtil.writeUint32(mValue, val, bigEndian);
             mSize = Integer.BYTES;
             mType = Type.TYPE_UINT32;
-            if (invert) CommonUtil.memInvert(mValue, (int) mSize);
+            if (invert) CommonUtil.memInvert(mValue, mSize);
         }
 
         /**
@@ -1805,15 +1805,15 @@ public class BasicCommon {
          * @param size   配列サイズ
          * @param invert 値を反転するか
          */
-        public void set(final String key, final byte[] val, int size, boolean invert) {
+        public void set(String key, byte[] val, int size, boolean invert) {
             clear();
             mKey = key;
-            mValue = new byte[(int) size + 1]; // +1 for C-style string termination, though not used in the logic
-            System.arraycopy(val, 0, mValue, 0, (int) size);
-            mValue[(int) size] = 0; // Null terminator
+            mValue = new byte[size + 1]; // +1 for C-style string termination, though not used in the logic
+            System.arraycopy(val, 0, mValue, 0, size);
+            mValue[size] = 0; // Null terminator
             mSize = size;
             mType = Type.TYPE_STRING;
-            if (invert) CommonUtil.memInvert(mValue, (int) mSize);
+            if (invert) CommonUtil.memInvert(mValue, mSize);
         }
 
         /**
@@ -1822,7 +1822,7 @@ public class BasicCommon {
          * @param key キー名
          * @param val 値
          */
-        public void set(final String key, boolean val) {
+        public void set(String key, boolean val) {
             clear();
             mKey = key;
             mValue = new byte[1];
@@ -1851,7 +1851,7 @@ public class BasicCommon {
                 case TYPE_UINT32:
                     // Reading back the int (assuming little endian)
                     int uint32Val = ((mValue[3] & 0xFF) << 24) | ((mValue[2] & 0xFF) << 16) | ((mValue[1] & 0xFF) << 8) | (mValue[0] & 0xFF);
-                    return String.format("0x%08x", (int) uint32Val); // Format as 8 hex digits
+                    return String.format("0x%08x", uint32Val); // Format as 8 hex digits
                 case TYPE_STRING:
                     StringBuilder sb = new StringBuilder();
                     for (int i = 0; i < mSize; i++) {
@@ -1935,7 +1935,7 @@ public class BasicCommon {
          * @param key キー名
          * @param val 値
          */
-        public void add(final String key, int val) {
+        public void add(String key, int val) {
             super.add(new KeyValItem(key, val));
         }
 
@@ -1946,7 +1946,7 @@ public class BasicCommon {
          * @param val    値 (byte)
          * @param invert 値を反転するか
          */
-        public void add(final String key, byte val, boolean invert) {
+        public void add(String key, byte val, boolean invert) {
             super.add(new KeyValItem(key, val, invert));
         }
 
@@ -1958,7 +1958,7 @@ public class BasicCommon {
          * @param bigEndian 値がビッグエンディアンか
          * @param invert    値を反転するか
          */
-        public void add(final String key, short val, boolean bigEndian, boolean invert) {
+        public void add(String key, short val, boolean bigEndian, boolean invert) {
             super.add(new KeyValItem(key, val, bigEndian, invert));
         }
 
@@ -1970,7 +1970,7 @@ public class BasicCommon {
          * @param bigEndian 値がビッグエンディアンか
          * @param invert    値を反転するか
          */
-        public void add(final String key, int val, boolean bigEndian, boolean invert) {
+        public void add(String key, int val, boolean bigEndian, boolean invert) {
             super.add(new KeyValItem(key, val, bigEndian, invert));
         }
 
@@ -1982,11 +1982,11 @@ public class BasicCommon {
          * @param size   配列サイズ
          * @param invert 値を反転するか
          */
-        public void add(final String key, final byte[] val, int size, boolean invert) {
+        public void add(String key, byte[] val, int size, boolean invert) {
             super.add(new KeyValItem(key, val, size, invert));
         }
 
-        public void add(final String key, final byte[] val, int size) {
+        public void add(String key, byte[] val, int size) {
             add(key, val, size, false);
         }
 
@@ -1996,7 +1996,7 @@ public class BasicCommon {
          * @param key キー名
          * @param val 値
          */
-        public void add(final String key, boolean val) {
+        public void add(String key, boolean val) {
             super.add(new KeyValItem(key, val));
         }
     }

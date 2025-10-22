@@ -235,7 +235,7 @@ abstract class DiskBasicDirItemFAT8<T extends DirectoryT> extends DiskBasicDirIt
         // 8bit FAT
         boolean rc = true;
         // Assuming GetStartGroup returns int (mapped to int or int in Java, using int here if group numbers are small)
-        int group_num = (int)getStartGroup(fileunit_num);
+        int group_num = getStartGroup(fileunit_num);
         boolean working = true;
         int limit = basic.getFatEndGroup() + 1; // Assuming GetFatEndGroup returns int
 

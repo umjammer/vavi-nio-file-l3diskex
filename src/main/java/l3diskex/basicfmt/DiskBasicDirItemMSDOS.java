@@ -290,7 +290,7 @@ public class DiskBasicDirItemMSDOS extends DiskBasicDirItem<DirectoryMs> {
         // And wxGetTranslation is a utility function
         for(int i = 0; i <= TYPE_NAME_MS_ARCHIVE; i++) {
             if ((ftype & (int) Utils.valueAt(gTypeNameMS, i)) != 0) {
-                if (attr.length() > 0) attr.append(", ");
+                if (!attr.isEmpty()) attr.append(", ");
                 attr.append(Utils.keyAt(gTypeNameMS, i)); // Simplified translation lookup
             }
         }
@@ -438,7 +438,7 @@ public class DiskBasicDirItemMSDOS extends DiskBasicDirItem<DirectoryMs> {
         int ftype = getFileAttr().getType();
         // MS-DOS
         GetFileAttrStrSub(ftype, attr);
-        if (attr.length() == 0) {
+        if (attr.isEmpty()) {
             attr.append("---");
         }
         return attr.toString();
@@ -945,7 +945,7 @@ class DiskBasicDirItemVFAT extends DiskBasicDirItemMSDOS {
         // MS-DOS VFAT
         if ((getFileAttr().getOrigin() & FILETYPE_MASK_MS_LFN) == FILETYPE_MASK_MS_LFN) {
             // int File Name entry
-            if (attr.length() > 0) attr.append(", ");
+            if (!attr.isEmpty()) attr.append(", ");
             // attr.append(wxGetTranslation(gTypeNameMS[TYPE_NAME_MS_LFN].name)); // int file name
             attr.append(Utils.keyAt(gTypeNameMS, TYPE_NAME_MS_LFN)); // Simplified translation lookup
         } else {
@@ -953,7 +953,7 @@ class DiskBasicDirItemVFAT extends DiskBasicDirItemMSDOS {
             GetFileAttrStrSub(ftype, attr);
         }
 
-        if (attr.length() == 0) {
+        if (attr.isEmpty()) {
             attr.append("---");
         }
         return attr.toString();

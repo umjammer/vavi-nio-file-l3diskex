@@ -90,8 +90,8 @@ public class DiskBasicTypeL32D extends DiskBasicTypeFAT8 {
         max_group = max_group * 2 - 1;
 
         for (int i = 0; i <= max_group; i++) {
-            int i2 = (int) (i / grps_per_trk);
-            int i4 = (int) (i / grps_per_trk / 2);
+            int i2 = i / grps_per_trk;
+            int i4 = i / grps_per_trk / 2;
             int num;
             if ((i2 & 1) == 0) {
                 num = managed_start_group - ((i4 + 1) * grps_per_trk) + (i % grps_per_trk);

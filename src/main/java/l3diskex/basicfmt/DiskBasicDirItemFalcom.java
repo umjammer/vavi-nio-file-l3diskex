@@ -20,7 +20,7 @@ import l3diskex.diskimg.DiskParam.SectorParam;
 public class DiskBasicDirItemFalcom extends DiskBasicDirItem<DirectoryFalcom> {
 
     /** Directory data. */
-    private DiskBasicDirData<DirectoryFalcom> m_data = new DiskBasicDirData<>();
+    private final DiskBasicDirData<DirectoryFalcom> m_data = new DiskBasicDirData<>();
 
     /* ------------------------------------------------------------------ *
      *  Constructors                                                     *
@@ -90,7 +90,7 @@ public class DiskBasicDirItemFalcom extends DiskBasicDirItem<DirectoryFalcom> {
     @Override
     public boolean delete() {
         // Delete is simply marking the first byte as the delete code.
-        m_data.fill(basic.invertUint8((byte) basic.diskBasicParam.getDeleteCode()), 1);
+        m_data.fill(basic.invertUint8(basic.diskBasicParam.getDeleteCode()), 1);
         used(false);
         return true;
     }

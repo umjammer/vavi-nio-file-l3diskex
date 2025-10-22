@@ -23,11 +23,11 @@ public class DiskWriter extends DiskWriteOptions {
             "", "d88", "plain", null
     };
 
-    private String m_file_path;
-    private DiskImage p_image;
+    private final String m_file_path;
+    private final DiskImage p_image;
     private OutputStream p_ostream;
     private boolean m_ownstream;
-    private DiskResult p_result;
+    private final DiskResult p_result;
 
     // 拡張子をさがす
     private int CanSaveDiskByExt(int disk_number, int side_number) {

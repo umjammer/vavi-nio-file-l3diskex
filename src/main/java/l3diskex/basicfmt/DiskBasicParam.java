@@ -29,7 +29,7 @@ public class DiskBasicParam extends DiskBasicParamBase {
         }
 
         /** 共通パラメータ関連のロード */
-        public boolean load(final Node node, final String name, final String value, final String locale_name, DiskBasicParamBase param, StringBuilder errmsgs) {
+        public boolean load(Node node, String name, String value, String locale_name, DiskBasicParamBase param, StringBuilder errmsgs) {
             boolean valid = true;
             if (name.equals("SectorsPerGroup")) {
                 param.setSectorsPerGroup(Integer.parseInt(value));
@@ -191,7 +191,7 @@ public class DiskBasicParam extends DiskBasicParamBase {
         List<DiskBasicFormat> content;
 
         /** DiskBasicFormatエレメントのロード */
-        public boolean load(Node node, final String locale_name, StringBuilder errmsgs) {
+        public boolean load(Node node, String locale_name, StringBuilder errmsgs) {
             boolean valid = false;
             while (node != null && !valid) {
                 if (node.getLocalName().equals("DiskBasicFormats")) {
@@ -621,12 +621,12 @@ public class DiskBasicParam extends DiskBasicParamBase {
     }
 
     /** BASICカテゴリ名 */
-    public void setBasicCategoryNames(final ArrayList<String> arr) {
+    public void setBasicCategoryNames(ArrayList<String> arr) {
         basicCategoryNames = arr;
     }
 
     /** BASIC種類 */
-    public void setFormatType(final DiskBasicFormat val) {
+    public void setFormatType(DiskBasicFormat val) {
         formatType = val;
     }
 
@@ -706,7 +706,7 @@ public class DiskBasicParam extends DiskBasicParamBase {
     }
 
     /** 予約済みグループ番号 */
-    public void setReservedGroups(final List<Integer> arr) {
+    public void setReservedGroups(List<Integer> arr) {
         reservedGroups = arr;
     }
 
@@ -736,7 +736,7 @@ public class DiskBasicParam extends DiskBasicParamBase {
     }
 
     /** ソフトウェアセクタスキュー(セクタ間隔) */
-    public void setSectorSkewMap(final List<Integer> arr) {
+    public void setSectorSkewMap(List<Integer> arr) {
         sectorSkew.set(arr);
     }
 
@@ -779,7 +779,7 @@ public class DiskBasicParam extends DiskBasicParamBase {
     }
 
     /** 説明 */
-    public void setBasicDescription(final String str) {
+    public void setBasicDescription(String str) {
         basicDescription = str;
     }
 
@@ -789,7 +789,7 @@ public class DiskBasicParam extends DiskBasicParamBase {
     }
 
     /** BASICカテゴリ名を追加 */
-    public void addBasicCategoryName(final String str) {
+    public void addBasicCategoryName(String str) {
         if (!basicCategoryNames.contains(str)) {
             basicCategoryNames.add(str);
         }
@@ -805,12 +805,12 @@ public class DiskBasicParam extends DiskBasicParamBase {
     }
 
     /** BASICカテゴリ名が存在するか */
-    public boolean findBasicCategoryName(final String str) {
+    public boolean findBasicCategoryName(String str) {
         return (basicCategoryNames.contains(str));
     }
 
     /** ReservedGroupsエレメントをロード */
-    public boolean loadReservedGroupsInTypes(final Node node, final String locale_name, StringBuilder errmsgs) {
+    public boolean loadReservedGroupsInTypes(Node node, String locale_name, StringBuilder errmsgs) {
         Node citemnode = node.getFirstChild();
         while (citemnode != null) {
             if (citemnode.getLocalName().equals("Group")) {
@@ -835,7 +835,7 @@ public class DiskBasicParam extends DiskBasicParamBase {
     }
 
     /** SectorSkewMapエレメントをロード */
-    public boolean loadSectorSkewMap(final Node node) {
+    public boolean loadSectorSkewMap(Node node) {
         // Implementation based on basicparam.cpp logic
         List<Integer> map = new ArrayList<>();
         Node cnode = node.getFirstChild();
@@ -852,7 +852,7 @@ public class DiskBasicParam extends DiskBasicParamBase {
     }
 
     /** SectorsPerTrackエレメントをロード */
-    public boolean loadNumSectorsMap(Node node, final String val) {
+    public boolean loadNumSectorsMap(Node node, String val) {
         int sec_param = getSectorsPerTrackOnBasic();
         List<NumSectorsParam> sec_params = sectorsPerTrackOnBasicList();
 
@@ -880,7 +880,7 @@ public class DiskBasicParam extends DiskBasicParamBase {
     }
 
     /** Categoriesエレメントのロード */
-    public boolean loadCategories(Node node, final String locale_name, StringBuilder errmsgs) {
+    public boolean loadCategories(Node node, String locale_name, StringBuilder errmsgs) {
         // Implementation based on basicparam.cpp logic
         boolean valid = true;
         Node item = node.getFirstChild(); // Placeholder for GetChildren
@@ -901,7 +901,7 @@ public class DiskBasicParam extends DiskBasicParamBase {
     }
 
     /** 説明文でソート */
-    public static int sortByDescription(final DiskBasicParam item1, final DiskBasicParam item2) {
+    public static int sortByDescription(DiskBasicParam item1, DiskBasicParam item2) {
         return item1.getBasicDescription().compareTo(item2.getBasicDescription());
     }
 
@@ -911,7 +911,7 @@ public class DiskBasicParam extends DiskBasicParamBase {
         List<DiskBasicParam> content = new ArrayList<>();
 
         /** DiskBasicTypeエレメントのロード */
-        public boolean load(Node node, final String locale_name, DiskBasicFormats formats, StringBuilder errmsgs) {
+        public boolean load(Node node, String locale_name, DiskBasicFormats formats, StringBuilder errmsgs) {
             // Implementation based on basicparam.cpp logic
             boolean valid = false;
             Node currentNode = node;
@@ -1065,7 +1065,7 @@ public class DiskBasicParam extends DiskBasicParamBase {
          * @param n_basic_type タイプ名
          * @return 一致したパラメータ
          */
-        public DiskBasicParam find(final String n_category, final String n_basic_type) {
+        public DiskBasicParam find(String n_category, String n_basic_type) {
             DiskBasicParam match_item = null;
             for (DiskBasicParam item : content) {
                 if (n_category.isEmpty() || item.findBasicCategoryName(n_category)) {
@@ -1085,7 +1085,7 @@ public class DiskBasicParam extends DiskBasicParamBase {
          * @param n_basic_types タイプ名リスト
          * @return 一致したパラメータ
          */
-        public DiskBasicParam find(final String n_category, final List<DiskParamName> n_basic_types) {
+        public DiskBasicParam find(String n_category, List<DiskParamName> n_basic_types) {
             DiskBasicParam match_item = null;
             for (int i = 0; i < n_basic_types.size() && match_item == null; i++) { // Placeholder for DiskParamNames logic
                 match_item = find(n_category, n_basic_types.get(i).getName());
@@ -1103,7 +1103,7 @@ public class DiskBasicParam extends DiskBasicParamBase {
          * @param n_sectors    セクタ数/トラック -1の場合は検索条件からはずす
          * @return 一致したパラメータ
          */
-        public DiskBasicParam find(final String n_category, final String n_basic_type, int n_sides, int n_sectors) {
+        public DiskBasicParam find(String n_category, String n_basic_type, int n_sides, int n_sectors) {
             DiskBasicParam match_item = null;
             // カテゴリ、タイプで一致するか
             match_item = find(n_category, n_basic_type);
@@ -1130,7 +1130,7 @@ public class DiskBasicParam extends DiskBasicParamBase {
          * @param n_types        [out] 一致したタイプリスト
          * @return リストの数
          */
-        public int findTypes(final List<Integer> n_format_types, DiskBasicParams n_types) {
+        public int findTypes(List<Integer> n_format_types, DiskBasicParams n_types) {
             n_types.content.clear();
             for (DiskBasicParam item : this.content) {
                 for (int format_type_val : n_format_types) {
@@ -1150,7 +1150,7 @@ public class DiskBasicParam extends DiskBasicParamBase {
          * @param n_type_names    [out] タイプ名リスト
          * @return リストの数
          */
-        public int findNames(final String n_category_name, List<String> n_type_names) {
+        public int findNames(String n_category_name, List<String> n_type_names) {
             n_type_names.clear();
             for (DiskBasicParam item : this.content) {
                 if (item.findBasicCategoryName(n_category_name)) {
@@ -1253,7 +1253,7 @@ class DiskBasicParamBase {
     }
 
     /** 設定 */
-    public void setBasicParamBase(final DiskBasicParamBase src) {
+    public void setBasicParamBase(DiskBasicParamBase src) {
         this.sectorsPerGroup = src.sectorsPerGroup;
         this.groupFinalCode = src.groupFinalCode;
         this.groupSystemCode = src.groupSystemCode;
@@ -1517,12 +1517,12 @@ class DiskBasicParamBase {
     }
 
     /** 特別な属性 */
-    public void setSpecialAttributes(final MyAttributes arr) {
+    public void setSpecialAttributes(MyAttributes arr) {
         specialAttrs = arr;
     }
 
     /** 拡張子と属性の関係 */
-    public void setAttributesByExtension(final MyAttributes arr) {
+    public void setAttributesByExtension(MyAttributes arr) {
         attrsByExtension = arr;
     }
 
@@ -1557,12 +1557,12 @@ class DiskBasicParamBase {
     }
 
     /** ファイル名に設定できるルール */
-    public void setValidFileName(final ValidNameRule str) {
+    public void setValidFileName(ValidNameRule str) {
         validFileName = str;
     }
 
     /** ボリューム名に設定できるルール */
-    public void setValidVolumeName(final ValidNameRule str) {
+    public void setValidVolumeName(ValidNameRule str) {
         validVolumeName = str;
     }
 
@@ -1587,12 +1587,12 @@ class DiskBasicParamBase {
     }
 
     /** 固有のパラメータ */
-    public void setVariousParam(final String key, final Object val) {
+    public void setVariousParam(String key, Object val) {
         variousParams.put(key, val);
     }
 
     /** 固有のパラメータ */
-    public void setVariousParams(final HashMap<String, Object> val) {
+    public void setVariousParams(HashMap<String, Object> val) {
         variousParams = val;
     }
 }

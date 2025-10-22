@@ -19,7 +19,7 @@ import l3diskex.diskimg.DiskParam.SectorParam;
 public class DiskBasicDirItemMDOS extends DiskBasicDirItem<DirectoryMdos> {
 
     /** ディレクトリデータ */
-    private DiskBasicDirData<DirectoryMdos> m_data = new DiskBasicDirData<>();
+    private final DiskBasicDirData<DirectoryMdos> m_data = new DiskBasicDirData<>();
 
     /** ファイル名を格納する位置を返す */
     @Override
@@ -86,7 +86,7 @@ public class DiskBasicDirItemMDOS extends DiskBasicDirItem<DirectoryMdos> {
         super(basic, n_sector, n_secpos, n_data);
         m_data.attach(n_data);
     }
-    public DiskBasicDirItemMDOS(DiskBasic basic, int n_num, final DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, final SectorParam n_next, boolean[] n_unuse) throws IOException {
+    public DiskBasicDirItemMDOS(DiskBasic basic, int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, SectorParam n_next, boolean[] n_unuse) throws IOException {
         super(basic, n_num, n_gitem, n_sector, n_secpos, n_data, n_next, n_unuse);
         m_data.attach(n_data);
         boolean is_unuse = n_unuse[0];
@@ -99,7 +99,7 @@ public class DiskBasicDirItemMDOS extends DiskBasicDirItem<DirectoryMdos> {
 
     /** アイテムへのポインタを設定 */
     @Override
-    public void setDataPtr(int n_num, final DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, final SectorParam n_next) throws IOException {
+    public void setDataPtr(int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, SectorParam n_next) throws IOException {
         super.setDataPtr(n_num, n_gitem, n_sector, n_secpos, n_data, n_next);
         m_data.attach(n_data);
     }
@@ -262,7 +262,7 @@ public class DiskBasicDirItemMDOS extends DiskBasicDirItem<DirectoryMdos> {
 
     /** アイテムをコピー */
     @Override
-    public boolean copyData(final DirectoryMdos val) {
+    public boolean copyData(DirectoryMdos val) {
         return m_data.copy(val);
     }
 
@@ -278,14 +278,14 @@ public class DiskBasicDirItemMDOS extends DiskBasicDirItem<DirectoryMdos> {
 
     /** ファイル名から属性を決定する */
     @Override
-    public int convFileTypeFromFileName(final String filename) {
+    public int convFileTypeFromFileName(String filename) {
         int ftype = FILE_TYPE_BINARY_MASK;
         return ftype;
     }
 
     /** ファイル名から属性を決定する */
     @Override
-    public int convOriginalTypeFromFileName(final String filename) {
+    public int convOriginalTypeFromFileName(String filename) {
         int t1 = 0;
         return t1;
     }

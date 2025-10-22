@@ -118,7 +118,7 @@ public class DiskBasicTypeMZFDOS extends DiskBasicTypeMZBase {
     }
 
     // Temp buffer for data access operations (simulating C++ member)
-    private DiskBasicTempData temp = new DiskBasicTempData();
+    private final DiskBasicTempData temp = new DiskBasicTempData();
 
     public DiskBasicTypeMZFDOS(DiskBasic basic, DiskBasicFat fat, DiskBasicDir dir) {
         super(basic, fat, dir);

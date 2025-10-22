@@ -18,8 +18,8 @@ public class DiskSTRParser extends DiskImageParser {
     /*  */
     static class Expand2FIFOBuffer extends FIFOBuffer {
         private int m_last_pos;
-        private int[] m_istr_pos = new int[9];
-        private int[] m_estr_pos = new int[9];
+        private final int[] m_istr_pos = new int[9];
+        private final int[] m_estr_pos = new int[9];
 
         public Expand2FIFOBuffer() {
             super();
@@ -68,8 +68,8 @@ public class DiskSTRParser extends DiskImageParser {
 
     /* -------- */
 
-    private int          m_compress_type;      // 0 = normal, 1 = X1, 2 = X2, 3 = X3
-    private Expand2FIFOBuffer m_estream;       // used by Xx/XX functions
+    private final int          m_compress_type;      // 0 = normal, 1 = X1, 2 = X2, 3 = X3
+    private final Expand2FIFOBuffer m_estream;       // used by Xx/XX functions
 
     /* -------- */
 

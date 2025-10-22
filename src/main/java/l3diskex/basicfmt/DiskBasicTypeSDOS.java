@@ -77,7 +77,7 @@ public class DiskBasicTypeSDOS extends DiskBasicType<DirectorySdos> {
         DiskImageSector sector = basic.getSectorFromSectorPos(0);
         if (sector != null) {
             String id = basic.diskBasicParam.getVariousStringParam("IPLCompareString");
-            if (id != null && id.length() > 0) {
+            if (id != null && !id.isEmpty()) {
                 byte[] idBytes = id.getBytes();
                 if (sector.find(idBytes, idBytes.length) >= 0) {
                     validRatio = 1.0;

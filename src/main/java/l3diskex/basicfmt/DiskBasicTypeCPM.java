@@ -76,7 +76,7 @@ public class DiskBasicTypeCPM extends DiskBasicType<DirectoryCpm> {
                     paramStr = basic.diskBasicParam.getVariousStringParam("IPLString");
                     break;
             }
-            if (paramStr != null && paramStr.length() > 0) {
+            if (paramStr != null && !paramStr.isEmpty()) {
                 // Assuming To8BitData() is equivalent to getting bytes in platform default encoding (or similar)
                 istr = paramStr.getBytes(StandardCharsets.ISO_8859_1); // Using a placeholder encoding
             }
@@ -146,7 +146,7 @@ public class DiskBasicTypeCPM extends DiskBasicType<DirectoryCpm> {
      */
     @Override
     public void getUsableDiskSize(int[] disk_size, int[] group_size) {
-        if (group_size.length > 0) group_size[0] = (int) (basic.getFatEndGroup() + 1);
+        if (group_size.length > 0) group_size[0] = basic.getFatEndGroup() + 1;
         if (disk_size.length > 0) disk_size[0] = group_size[0] * basic.getSectorSize() * basic.getSectorsPerGroup();
     }
 
@@ -202,7 +202,7 @@ public class DiskBasicTypeCPM extends DiskBasicType<DirectoryCpm> {
      */
     @Override
     public void setGroupNumber(int num, int val) {
-        fatAvailability.Set(num, (int) (val != 0 ? FAT_AVAIL_USED.getValue() : FAT_AVAIL_FREE.getValue()));
+        fatAvailability.Set(num, val != 0 ? FAT_AVAIL_USED.getValue() : FAT_AVAIL_FREE.getValue());
     }
 
     /**

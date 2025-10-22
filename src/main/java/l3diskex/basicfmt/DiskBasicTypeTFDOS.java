@@ -38,10 +38,10 @@ public class DiskBasicTypeTFDOS extends DiskBasicTypeMZBase<DirectoryTfdos> {
     }
 
     private boolean is_base_compatible;
-    private DiskBasic basic;
-    private DiskBasicFat fat;
-    private DiskBasicDir<DirectoryTfdos> dir;
-    private TempData temp = new TempData(); // Assuming TempData is a class for temporary data manipulation
+    private final DiskBasic basic;
+    private final DiskBasicFat fat;
+    private final DiskBasicDir<DirectoryTfdos> dir;
+    private final TempData temp = new TempData(); // Assuming TempData is a class for temporary data manipulation
 
     public DiskBasicTypeTFDOS(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryTfdos> dir) {
         super(basic, fat, dir);
@@ -311,7 +311,7 @@ public class DiskBasicTypeTFDOS extends DiskBasicTypeMZBase<DirectoryTfdos> {
                 // BASEコンパチの場合、TABコード($14 -> $09)変換
                 temp.setSize(TEMP_DATA_SIZE);
                 while (osize > 0) {
-                    int len = (int) istream.read(temp.getData(), 0, temp.getSize());
+                    int len = istream.read(temp.getData(), 0, temp.getSize());
                     if (len <= 0) break;
 
                     // TABコード($14 -> $09)変換
@@ -353,7 +353,7 @@ public class DiskBasicTypeTFDOS extends DiskBasicTypeMZBase<DirectoryTfdos> {
                 // BASEコンパチの場合、TABコード($09 -> $14)変換
                 temp.setSize(TEMP_DATA_SIZE);
                 while (osize > 0) {
-                    int len = (int) istream.read(temp.getData(), 0, temp.getSize());
+                    int len = istream.read(temp.getData(), 0, temp.getSize());
                     if (len <= 0) break;
 
                     // TABコード($09 -> $14)変換
@@ -410,7 +410,7 @@ public class DiskBasicTypeTFDOS extends DiskBasicTypeMZBase<DirectoryTfdos> {
      * セクタデータを埋めた後の個別処理
      */
     @Override
-    public boolean additionalProcessOnFormatted(final DiskBasicIdentifiedData data) {
+    public boolean additionalProcessOnFormatted(DiskBasicIdentifiedData data) {
         // IPL
         DiskImageSector sector = basic.getSectorFromSectorPos(0);
         if (sector != null) {
@@ -435,7 +435,7 @@ public class DiskBasicTypeTFDOS extends DiskBasicTypeMZBase<DirectoryTfdos> {
 
                 // 自動実行はなし (auto_start starts at 0xf0)
                 for (int i = 0; i < 0x10; i++) {
-                    sectorBuffer[0xf0 + i] = (byte) basic.invertUint8((byte) 0x0d);
+                    sectorBuffer[0xf0 + i] = basic.invertUint8((byte) 0x0d);
                 }
             }
         }
@@ -595,7 +595,7 @@ public class DiskBasicTypeTFDOS extends DiskBasicTypeMZBase<DirectoryTfdos> {
      * IPLや管理エリアの属性をセット
      */
     @Override
-    public void setIdentifiedData(final DiskBasicIdentifiedData data) {
+    public void setIdentifiedData(DiskBasicIdentifiedData data) {
         // FATエリア
         DiskBasicFatBuffer fatbuf = fat.getDiskBasicFatBuffer(0, 0);
         if (fatbuf == null) return;
@@ -623,7 +623,7 @@ public class DiskBasicTypeTFDOS extends DiskBasicTypeMZBase<DirectoryTfdos> {
         // volume number
         if (fmt.HasVolumeNumber()) {
             // volume_num at 0xc0
-            fatBuffer[0xc0] = (byte) basic.invertUint8((byte) (data.getVolumeNumber() & 0xff));
+            fatBuffer[0xc0] = basic.invertUint8((byte) (data.getVolumeNumber() & 0xff));
         }
     }
 }

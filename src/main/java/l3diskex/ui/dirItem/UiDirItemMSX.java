@@ -10,9 +10,7 @@ import java.util.ResourceBundle;
 import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
 
-import l3diskex.basicfmt.BasicFmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasicDirItem.DiskBasicDirItemAttr;
-import l3diskex.basicfmt.DiskBasicDirItemAmiga;
 import l3diskex.basicfmt.DiskBasicDirItemMSX;
 import l3diskex.basicfmt.DiskBasicError;
 import l3diskex.ui.IntNameBox;

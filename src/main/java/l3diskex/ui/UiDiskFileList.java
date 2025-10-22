@@ -3,8 +3,6 @@ package l3diskex.ui;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Point;
-import java.time.Instant;
-import java.time.ZoneId;
 import java.util.Comparator;
 import javax.swing.BoxLayout;
 import javax.swing.DefaultListModel;
@@ -14,7 +12,6 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JPanel;
-import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
 import javax.swing.JWindow;
 import javax.swing.ListModel;
@@ -79,22 +76,22 @@ public class UiDiskFileList {
         public boolean IsOk() { return value != wxNOT_FOUND; }
     }
 
-    private JComponent parent;
-    private UiDiskFrame frame;
+    private final JComponent parent;
+    private final UiDiskFrame frame;
 
-    private JTextArea textAttr;
-    private JButton btnChange;
-    private JLabel lblCharCode;
-    private JComboBox comCharCode;
+    private final JTextArea textAttr;
+    private final JButton btnChange;
+    private final JLabel lblCharCode;
+    private final JComboBox comCharCode;
     private UiDiskFileListCtrl listCtrl;
-    private JPanel szrButtons;
+    private final JPanel szrButtons;
     private MyMenu menuPopup;
-    private JMenu menuColumnPopup;
+    private final JMenu menuColumnPopup;
 
-    private DiskBasic m_current_basic;
+    private final DiskBasic m_current_basic;
     private boolean m_initialized;
-    private boolean m_disk_selecting;
-    private MyFileListItem m_dragging_item;
+    private final boolean m_disk_selecting;
+    private final MyFileListItem m_dragging_item;
 
     public UiDiskFileList(UiDiskFrame parentframe, JComponent parentwindow) {
         // Constructor logic translation
@@ -415,7 +412,7 @@ public class UiDiskFileList {
 }
 
 class UiDiskFileListStoreModel extends DefaultListModel {
-    private UiDiskFrame frame;
+    private final UiDiskFrame frame;
     private UiDiskFileList ctrl;
 
     public UiDiskFileListStoreModel(UiDiskFrame parentframe, JWindow parent) {
@@ -443,8 +440,8 @@ class UiDiskFileListStoreModel extends DefaultListModel {
         if (ctrl.GetListCtrl() == null || ctrl.GetListCtrl().FindColumn(col, idx) == 0) return 0;
 
         int cmp = 0;
-        int i1 = (int) GetItemData(item1);
-        int i2 = (int) GetItemData(item2);
+        int i1 = GetItemData(item1);
+        int i2 = GetItemData(item2);
         int dir = ascending ? 1 : -1;
         switch (idx[0]) {
             case UiDiskFileList.LISTCOL_NAME:
@@ -648,7 +645,7 @@ class UiDiskFileListCtrl extends UICListCtrl {
 
     // wxCALLBACK Compare equivalent (Comparator for indices)
     public static class ListCompare implements Comparator<Long> {
-        private FileListSortExp exp;
+        private final FileListSortExp exp;
         public ListCompare(FileListSortExp exp) { this.exp = exp; }
 
         @Override

@@ -36,8 +36,8 @@ class DiskD88Parser extends DiskImageParser {
      * Offsets for D88 Parsing
      */
     static class DiskD88ParseOffset {
-        private int num;
-        private int offset; // C++ wxUint32
+        private final int num;
+        private final int offset; // C++ wxUint32
         private int size;
 
         public DiskD88ParseOffset() {
@@ -46,7 +46,7 @@ class DiskD88Parser extends DiskImageParser {
             size	= 0;
         }
 
-        public DiskD88ParseOffset(final DiskD88ParseOffset src) {
+        public DiskD88ParseOffset(DiskD88ParseOffset src) {
             num		= src.num;
             offset	= src.offset;
             size	= src.size;
@@ -463,7 +463,7 @@ class DiskD88Parser extends DiskImageParser {
      * @retval  1 警告あり
      */
     @Override
-    public int parse(InputStream istream, final DiskParam disk_param) throws IOException {
+    public int parse(InputStream istream, DiskParam disk_param) throws IOException {
         long read_size = 0;
         long stream_size = istream.available();
         int disk_number = file.count();
@@ -486,7 +486,7 @@ class DiskD88Parser extends DiskImageParser {
     }
 
     @Override
-    public int check(InputStream istream, final List<DiskTypeHint> disk_hints, final DiskParam disk_param, List<DiskParam> disk_params, DiskParam manual_param) {
+    public int check(InputStream istream, List<DiskTypeHint> disk_hints, DiskParam disk_param, List<DiskParam> disk_params, DiskParam manual_param) {
         return -1;
     }
 

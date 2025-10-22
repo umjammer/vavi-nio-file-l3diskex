@@ -211,7 +211,7 @@ public class DiskDmkParser extends DiskImageParser {
         sector.clearModify();
 
         // このセクタデータのサイズを返す
-        return (int) sector.getSize();
+        return sector.getSize();
     }
 
     // トラックデータの作成

@@ -136,14 +136,14 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
 
             for (int map_idx = 0; map_idx < size() && bytes < map_bytes; map_idx++) {
                 byte[] buf = get(map_idx).getBuffer();
-                int size = (int) get(map_idx).getSize();
+                int size = get(map_idx).getSize();
 
                 for (int pos = 0; pos < size && lsn <= end_lsn && bytes < map_bytes; pos++) {
                     for (int bit = 0; bit < 8 && lsn <= end_lsn && bytes < map_bytes; bit++) {
                         boolean used = ((buf[pos] & (0x80 >> bit)) != 0);
                         for (int i = 0; i < secs_per_bit && lsn <= end_lsn; i++) {
                             if (!used) {
-                                fat.Add(FatAvailability.FAT_AVAIL_FREE.getValue(), (int) sector_size, 1);
+                                fat.Add(FatAvailability.FAT_AVAIL_FREE.getValue(), sector_size, 1);
                             } else {
                                 fat.Add(FatAvailability.FAT_AVAIL_USED.getValue(), 0, 0);
                             }
@@ -211,7 +211,7 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
     }
 
     private os9_ident_t os9_ident;
-    private OS9AllocMap alloc_map = new OS9AllocMap();
+    private final OS9AllocMap alloc_map = new OS9AllocMap();
     protected DiskBasic basic;
     protected DiskBasicFat fat;
     protected DiskBasicDir<DirectoryOs9> dir;
@@ -230,6 +230,7 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
     /// @return 1.0       正常
     /// @return 0.0 - 1.0 警告あり
     /// @return <0.0      エラーあり
+    @Override
     public double parseParamOnDisk(boolean is_formatting) {
         if (is_formatting) return 1.0;
 
@@ -262,7 +263,7 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
 
         // total groups
         int lval = os9_ident.DD_TOT.l;
-        ival = (int) lval;
+        ival = lval;
         logger.log(Level.INFO, "OS9: DD_TOT: Total Sectors: %d", ival);
         if (ival < 1) {
             return -1.0;
@@ -294,16 +295,16 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
 
         // disk format
         ival = os9_ident.DD_FMT;
-        String sval = new String("");
-        sval = String.valueOf(sval + ((ival & 1) != 0 ? "double side" : "single side"));
-        sval = String.valueOf(sval + ((ival & 2) != 0 ? ", double density" : ", single density"));
-        if ((ival & 4) != 0) sval = String.valueOf(sval + (", double track (96/135TPI)"));
-        if ((ival & 8) != 0) sval = String.valueOf(sval + (", quad track density (192TPI)"));
-        if ((ival & 16) != 0) sval = String.valueOf(sval + (", octal track density (384TPI)"));
+        String sval = "";
+        sval = sval + ((ival & 1) != 0 ? "double side" : "single side");
+        sval = sval + ((ival & 2) != 0 ? ", double density" : ", single density");
+        if ((ival & 4) != 0) sval = sval + (", double track (96/135TPI)");
+        if ((ival & 8) != 0) sval = sval + (", quad track density (192TPI)");
+        if ((ival & 16) != 0) sval = sval + (", octal track density (384TPI)");
         logger.log(Level.INFO, "OS9: DD_FMT: 0x%x (%s)", ival, sval);
 
         // tracks per side
-        ival = (int) (basic.getFatEndGroup() + 1) / basic.getSectorsPerTrackOnBasic() / basic.getSidesPerDiskOnBasic();
+        ival = (basic.getFatEndGroup() + 1) / basic.getSectorsPerTrackOnBasic() / basic.getSidesPerDiskOnBasic();
         basic.setTracksPerSideOnBasic(ival);
 
         // root directory
@@ -346,6 +347,7 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
     }
 
     /// Allocation Mapの開始位置を得る（ダイアログ用）
+    @Override
     public void getStartNumOnFat(int[] track_num, int[] side_num, int[] sector_num) {
         int map_lsn = alloc_map.GetMapStartLSN();
         getNumFromSectorPos(map_lsn, track_num, side_num, sector_num);
@@ -360,8 +362,9 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
     }
 
     /// タイトル名（ダイアログ用）
+    @Override
     public String getTitleForFat() {
-        return String.valueOf("Allocation Map"); // Assuming _() is a macro for localization
+        return "Allocation Map"; // Assuming _() is a macro for localization
     }
 
     /**
@@ -575,7 +578,7 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
     /// 使用可能なディスクサイズを得る
     @Override
     public void getUsableDiskSize(int[] disk_size, int[] group_size) {
-        group_size[0] = (int) basic.getFatEndGroup() + 1;
+        group_size[0] = basic.getFatEndGroup() + 1;
         disk_size[0] = group_size[0] * basic.getSectorSize();
     }
 
@@ -609,7 +612,7 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
         // free_groups = (int)grps;
     }
 
-    private DiskBasicAvailability fat_availability = new DiskBasicAvailability();
+    private final DiskBasicAvailability fat_availability = new DiskBasicAvailability();
 
     /// 使用状態を設定する
     ///
@@ -725,7 +728,7 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
         }
         int start_seg_idx = seg_idx + 1;
 
-        int file_size = (int) fd.GetSIZ();
+        int file_size = fd.GetSIZ();
         data_size += file_size;
 
         // 新規作成でDD_BITが2以上のとき
@@ -736,7 +739,7 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
         int lsn = 0;
         int prev_lsn = 0;
         int seg_cnt = 0; // wxUint16
-        int limit = (int) basic.getFatEndGroup() + 1;
+        int limit = basic.getFatEndGroup() + 1;
         while (file_size < data_size && limit >= 0 && rc == 0) {
             int start = 0;
             if (is_first_lsn) {
@@ -817,13 +820,13 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
     /// グループ番号からセクタ番号を得る
     @Override
     public int getStartSectorFromGroup(int group_num) {
-        return (int) group_num;
+        return group_num;
     }
 
     /// グループ番号から最終セクタ番号を得る
     @Override
     public int getEndSectorFromGroup(int group_num, int next_group, int sector_start, int sector_size, int remain_size) {
-        return (int) group_num;
+        return group_num;
     }
 
     /// データ領域の開始セクタを計算
@@ -903,7 +906,7 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
         );
 
         // ファイルサイズはエントリ２つ分
-        item.setFileSize((int) item.getDataSize() * 2);
+        item.setFileSize(item.getDataSize() * 2);
 
         // カレントと親ディレクトリのエントリを作成する
         DiskBasicGroupItem gitem = group_items.item(0);
@@ -922,7 +925,7 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
             // 親がルート
             newitem.setStartGroup(0, os9_ident.DD_DIR.getOs9Lsn());
         }
-        newitem.setFileNamePlain(String.valueOf(".."));
+        newitem.setFileNamePlain("..");
         // newitem->SetFileAttr(FILE_TYPE_DIRECTORY_MASK);
 
         // カレント
@@ -934,7 +937,7 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
 
         current_item.clearData();
         current_item.setStartGroup(0, item.getStartGroup(0));
-        current_item.setFileNamePlain(String.valueOf("."));
+        current_item.setFileNamePlain(".");
         // newitem->SetFileAttr(FILE_TYPE_DIRECTORY_MASK);
 
         // ディレクトリサイズを更新
@@ -969,8 +972,8 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
         basic.diskBasicParam.setFatEndGroup(total_lsn - 1);
 
         int map_lsn = 1;
-        int root_start_lsn = (int) (basic.diskBasicParam.getDirStartSector() - 1);
-        int root_end_lsn = (int) (basic.diskBasicParam.getDirEndSector() - 1);
+        int root_start_lsn = basic.diskBasicParam.getDirStartSector() - 1;
+        int root_end_lsn = basic.diskBasicParam.getDirEndSector() - 1;
         int ival;
 
         //
@@ -1140,7 +1143,7 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
         // volume label
         byte[] buf = new byte[os9_ident.DD_NAM.length + 1];
         DiskBasicDirItemOS9.decodeString(buf, os9_ident.DD_NAM.length, os9_ident.DD_NAM, os9_ident.DD_NAM.length);
-        String vol = String.valueOf(new String(buf, 0, os9_ident.DD_NAM.length));
+        String vol = new String(buf, 0, os9_ident.DD_NAM.length);
         data.setVolumeName(vol);
         data.setVolumeNameMaxLength(os9_ident.DD_NAM.length);
     }

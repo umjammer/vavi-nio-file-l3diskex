@@ -3,8 +3,6 @@ package l3diskex.basicfmt;
 import java.io.IOException;
 import java.io.InputStream;
 
-import javax.xml.crypto.Data;
-
 import l3diskex.Parambase.MyAttribute;
 import l3diskex.Utils;
 import l3diskex.basicfmt.BasicCommon.DirectoryN88;
@@ -153,7 +151,7 @@ public class DiskBasicDirItemN88 extends DiskBasicDirItemFAT8<DirectoryN88> {
     @Override
     public boolean delete() {
         // 削除はエントリの先頭にコードを入れるだけ
-        mData.fill((byte)basic.diskBasicParam.getDeleteCode(), 1);
+        mData.fill(basic.diskBasicParam.getDeleteCode(), 1);
         used(false);
         return true;
     }
@@ -332,7 +330,7 @@ public class DiskBasicDirItemN88 extends DiskBasicDirItemFAT8<DirectoryN88> {
 
     @Override
     public void clearData() {
-        mData.fill((byte)basic.diskBasicParam.getFillCodeOnDir(), getDataSize());
+        mData.fill(basic.diskBasicParam.getFillCodeOnDir(), getDataSize());
         mData.data().type = 0;
     }
 

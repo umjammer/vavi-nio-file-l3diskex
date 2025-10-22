@@ -175,7 +175,7 @@ public class DiskJV3Parser extends DiskImageParser {
             }
 
             // ディスクを追加
-            final DiskParam disk_param = disk.calcMajorNumber();
+            DiskParam disk_param = disk.calcMajorNumber();
             if (disk_param != null) {
                 disk.setDensity(disk_param.getParamDensity());
             }
@@ -188,7 +188,7 @@ public class DiskJV3Parser extends DiskImageParser {
             // delete disk is not necessary in Java, rely on GC.
         }
 
-        return (int) d88_offset;
+        return d88_offset;
     }
 
     /**

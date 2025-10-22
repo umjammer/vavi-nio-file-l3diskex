@@ -115,7 +115,7 @@ public class BasicFmt {
     /// DISK BASIC list for each disk
     public static class DiskBasics {
 
-        private ArrayList<DiskBasic> basics;
+        private final ArrayList<DiskBasic> basics;
 
         public DiskBasics() {
             basics = new ArrayList<>();
@@ -180,8 +180,8 @@ public class BasicFmt {
         private boolean mAssigned;
         private boolean mForcely;
 
-        private DiskBasicFat fat;
-        private DiskBasicDir dir;
+        private final DiskBasicFat fat;
+        private final DiskBasicDir dir;
         private DiskBasicType type;
 
         private int selectedSide;
@@ -190,9 +190,9 @@ public class BasicFmt {
         private int skippedTrack;
 
         private String charCode;
-        private CharCodes codes;
+        private final CharCodes codes;
 
-        private DiskBasicError errinfo;
+        private final DiskBasicError errinfo;
 
         public DiskBasic() {
             super();
@@ -838,7 +838,7 @@ public class BasicFmt {
 
             int[] remain = {item.getFileSize()};
             if (remain[0] == 0) {
-                remain[0] = (int) gitems.getSize();
+                remain[0] = gitems.getSize();
             }
 
             if (!type.prepareToAccessFile(fileunitNum, item, istream, ostream, remain, gitems, errinfo)) {

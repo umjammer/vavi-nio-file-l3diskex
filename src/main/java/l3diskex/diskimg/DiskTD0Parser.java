@@ -59,7 +59,7 @@ public class DiskTD0Parser extends DiskImageParser {
     /* --- */
     /*  Private data members                                                   */
     /* --- */
-    private boolean m_isCompressed;     // TODO: Advanced compress version is not supported.
+    private final boolean m_isCompressed;     // TODO: Advanced compress version is not supported.
 
     /* --- */
     /*  Helper methods (private)                                               */

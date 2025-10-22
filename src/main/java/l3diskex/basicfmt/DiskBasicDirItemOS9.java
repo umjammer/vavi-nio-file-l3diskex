@@ -98,7 +98,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
             public Os9Cdate cdate = new Os9Cdate();
         }
 
-        private DiskBasicDirItemOS9FD(final DiskBasicDirItemOS9FD src) {
+        private DiskBasicDirItemOS9FD(DiskBasicDirItemOS9FD src) {
             // Private copy constructor
         }
 
@@ -116,7 +116,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
         /**
          * 複製
          */
-        public void Dup(final DiskBasicDirItemOS9FD src) {
+        public void Dup(DiskBasicDirItemOS9FD src) {
             sector = src.sector;
             m_mylsn = src.m_mylsn;
             if (src.m_fd_ownmake) {
@@ -312,7 +312,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
         /**
          * 更新日付をセット
          */
-        public void SetDAT(final Os9Date val) {
+        public void SetDAT(Os9Date val) {
             if (p_fd != null) {
                 p_fd.fdDat = val;
             }
@@ -321,7 +321,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
         /**
          * 更新日付をセット
          */
-        public void SetDAT(final Os9Cdate val) {
+        public void SetDAT(Os9Cdate val) {
             if (p_fd != null) {
                 p_fd.fdDat.yy = val.yy;
                 p_fd.fdDat.mm = val.mm;
@@ -339,7 +339,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
         /**
          * 作成日付をセット
          */
-        public void SetDCR(final Os9Cdate val) {
+        public void SetDCR(Os9Cdate val) {
             if (p_fd != null) {
                 p_fd.fdDcr = val;
             }
@@ -361,7 +361,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
      * 複製
      */
     @Override
-    public void dup(final DiskBasicDirItem src) {
+    public void dup(DiskBasicDirItem src) {
         super.dup(src);
         // Cast to the derived type
         if (src instanceof DiskBasicDirItemOS9) {
@@ -385,11 +385,11 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     /**
      * ユーザID(プロパティダイアログ用)
      */
-    private short m_owner_id; // byte
+    private final short m_owner_id; // byte
     /**
      * グループID(プロパティダイアログ用)
      */
-    private short m_group_id; // byte
+    private final short m_group_id; // byte
 
     /**
      * ファイル名を格納する位置を返す
@@ -452,7 +452,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     /**
      * インポート時ダイアログ表示前にファイルの属性を設定
      */
-    public void setFileTypeForAttrDialog(int show_flags, final String name, int[] file_type_1) {
+    public void setFileTypeForAttrDialog(int show_flags, String name, int[] file_type_1) {
         // Assuming INTNAME_NEW_FILE is a defined constant
         final int INTNAME_NEW_FILE = 0x01;
         if ((show_flags & INTNAME_NEW_FILE) != 0) {
@@ -484,7 +484,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     /**
      * 日付を変換
      */
-    public LocalDate convDateToTm(final Os9Cdate date) {
+    public LocalDate convDateToTm(Os9Cdate date) {
         return LocalDate.of(
                 (date.yy % 100) +
                         (date.yy % 100) < 80 ? 100 : 0,
@@ -495,7 +495,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     /**
      * 時間を変換
      */
-    public LocalTime convTimeToTm(final Os9Date time) {
+    public LocalTime convTimeToTm(Os9Date time) {
         return LocalTime.of(
                 time.hh,
                 time.mi,
@@ -505,7 +505,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     /**
      * 日付に変換
      */
-    public void convTmToDate(final LocalDateTime tm, Os9Cdate date) {
+    public void convTmToDate(LocalDateTime tm, Os9Cdate date) {
         date.yy = (byte) (tm.getYear() % 100);
         date.mm = (byte) (tm.getMonth().ordinal() + 1);
         date.dd = (byte) tm.getDayOfMonth();
@@ -514,7 +514,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     /**
      * 時間に変換
      */
-    public void convTmToTime(final LocalDateTime tm, Os9Date time) {
+    public void convTmToTime(LocalDateTime tm, Os9Date time) {
         time.hh = (byte) tm.getHour();
         time.mi = (byte) tm.getMinute();
     }
@@ -537,7 +537,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     }
 
     // Constructor 3
-    public DiskBasicDirItemOS9(DiskBasic basic, int n_num, final DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, final SectorParam n_next, boolean[] n_unuse) {
+    public DiskBasicDirItemOS9(DiskBasic basic, int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, SectorParam n_next, boolean[] n_unuse) {
         super(basic, n_num, n_gitem, n_sector, n_secpos, n_data, n_next, n_unuse);
         m_data.attach(n_data);
         m_owner_id = 0;
@@ -571,7 +571,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     /**
      * アイテムへのポインタを設定
      */
-    public void SetDataPtr(int n_num, final DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, final SectorParam n_next) throws IOException {
+    public void SetDataPtr(int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, SectorParam n_next) throws IOException {
         super.setDataPtr(n_num, n_gitem, n_sector, n_secpos, n_data, n_next);
 
         m_data.attach(n_data);
@@ -607,7 +607,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
      * 属性を設定
      */
     @Override
-    public void setFileAttr(final DiskBasicFileType file_type) {
+    public void setFileAttr(DiskBasicFileType file_type) {
 
         int ftype = file_type.getType();
         if (ftype == -1) return;
@@ -786,7 +786,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     /**
      * 作成日付をセット
      */
-    public void SetFileCreateDate(final LocalDateTime tm) {
+    public void SetFileCreateDate(LocalDateTime tm) {
         if (fd.IsValid() && tm.getYear() >= 0 && tm.getMonth().ordinal() >= 0) {
             Os9Cdate date = new Os9Cdate();
             convTmToDate(tm, date);
@@ -846,7 +846,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
      * 更新日付を設定
      */
     @Override
-    public void setFileModifyDate(final LocalDateTime tm) {
+    public void setFileModifyDate(LocalDateTime tm) {
         if (fd.IsValid() && tm.getYear() >= 0 && tm.getMonth().ordinal() >= -1) {
             Os9Cdate date = new Os9Cdate();
             convTmToDate(tm, date);
@@ -858,7 +858,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
      * 更新時間を設定
      */
     @Override
-    public void setFileModifyTime(final LocalDateTime tm) {
+    public void setFileModifyTime(LocalDateTime tm) {
         if (fd.IsValid() && tm.getHour() >= 0 && tm.getMinute() >= -1) {
             Os9Date time = fd.GetDAT();
             convTmToTime(tm, time);
@@ -1018,7 +1018,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
      * アイテムをコピー
      */
     @Override
-    public boolean copyData(final DirectoryOs9 val) {
+    public boolean copyData(DirectoryOs9 val) {
         return m_data.copy(val, getDataSize());
     }
 
@@ -1034,10 +1034,10 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
      * アイテムをコピー
      */
     @Override
-    public void copyItem(final DiskBasicDirItem<DirectoryOs9> src) {
+    public void copyItem(DiskBasicDirItem<DirectoryOs9> src) {
         super.copyItem(src);
-        final DiskBasicDirItemOS9 srcOs9 = (DiskBasicDirItemOS9) src;
-        final DiskBasicDirItemOS9FD src_fd = srcOs9.getFD();
+        DiskBasicDirItemOS9 srcOs9 = (DiskBasicDirItemOS9) src;
+        DiskBasicDirItemOS9FD src_fd = srcOs9.getFD();
         fd.SetATT(src_fd.GetATT());
         fd.SetOWN(src_fd.GetOWN());
         fd.SetSIZ(src_fd.GetSIZ());
@@ -1071,7 +1071,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     /**
      * 文字列の最後のMSBをセット
      */
-    public static int encodeString(byte[] dst, int dlen, final String src, int slen) {
+    public static int encodeString(byte[] dst, int dlen, String src, int slen) {
         // memset(dst, 0, dlen);
         // int len = dlen > slen ? slen : dlen;
         // memcpy(dst, src, len);
@@ -1138,7 +1138,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
      * ファイル名から属性を決定する
      */
     @Override
-    public int convOriginalTypeFromFileName(final String filename) {
+    public int convOriginalTypeFromFileName(String filename) {
         final int FILE_TYPE_BINARY_MASK = 0x04;
 
         int t1 = 0;
@@ -1176,10 +1176,10 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
         vals.add("DE_Reserved", m_data.data().deReserved);
         vals.add("DE_LSN", m_data.data().deLsn.getOs9Lsn());
 
-        final DiskBasicDirItemOS9FD cfd = getFDConst();
+        DiskBasicDirItemOS9FD cfd = getFDConst();
         if (!cfd.IsValid()) return;
 
-        final DirectoryOs9Fd fd_data = cfd.GetFD();
+        DirectoryOs9Fd fd_data = cfd.GetFD();
 
         vals.add("FD_ATT", fd_data.fdAtt);
         vals.add("FD_OWN", (byte) fd_data.fdOwn, true);

@@ -218,7 +218,7 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> implemen
      */
     @Override
     protected void setFileType1(int val) {
-        m_data.data().type = (byte)basic.invertUint8((byte) val);
+        m_data.data().type = basic.invertUint8((byte) val);
     }
 
     /**
@@ -408,15 +408,15 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> implemen
             str.append(rb.getString(gTypeNameCPM_2[EnTypeNameCPM2.TYPE_NAME_CPM_ASCII.getValue()]));
         }
         if ((val & FILE_TYPE_READONLY_MASK.getValue()) != 0) {
-            if (str.length() > 0) str.append(", ");
+            if (!str.isEmpty()) str.append(", ");
             str.append(rb.getString(gTypeNameCPM[EnTypeNameCPM.TYPE_NAME_CPM_READ_ONLY.getValue()]));
         }
         if ((val & FILE_TYPE_SYSTEM_MASK.getValue()) != 0) {
-            if (str.length() > 0) str.append(", ");
+            if (!str.isEmpty()) str.append(", ");
             str.append(rb.getString(gTypeNameCPM[EnTypeNameCPM.TYPE_NAME_CPM_SYSTEM.getValue()]));
         }
         if ((val & FILE_TYPE_ARCHIVE_MASK.getValue()) != 0) {
-            if (str.length() > 0) str.append(", ");
+            if (!str.isEmpty()) str.append(", ");
             str.append(rb.getString(gTypeNameCPM[EnTypeNameCPM.TYPE_NAME_CPM_ARCHIVE.getValue()]));
         }
         return str.toString();

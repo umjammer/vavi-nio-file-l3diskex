@@ -850,7 +850,7 @@ logger.log(Level.ERROR, e.toString(), e);
         getNativeFileName(name, nl, ext, el);
         System.arraycopy(name, 0, filename, 0, Math.min(length, nl[0]));
         if (el[0] > 0 && (nl[0] + el[0] + 1) < length) {
-            filename[nl[0]] = (byte)basic.diskBasicParam.getExtensionPreCode();
+            filename[nl[0]] = basic.diskBasicParam.getExtensionPreCode();
             nl[0]++;
             System.arraycopy(ext, 0, filename, nl[0], el[0]);
         }
@@ -1512,7 +1512,7 @@ logger.log(Level.ERROR, e.toString(), e);
     }
 
     public byte getEofCode() {
-        return (byte)basic.diskBasicParam.getTextTerminateCode();
+        return basic.diskBasicParam.getTextTerminateCode();
     }
 
     public boolean needChainInData() {
@@ -2091,7 +2091,7 @@ logger.log(Level.ERROR, e.toString(), e);
             }
         }
 
-        private SectorInfo[] s;
+        private final SectorInfo[] s;
 
         public DirItemSectorBoundary() {
             s = new SectorInfo[2];

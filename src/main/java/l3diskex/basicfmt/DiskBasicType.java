@@ -46,6 +46,7 @@ public abstract class DiskBasicType<T extends DirectoryT>  {
         public int getSize() { return size; }
         @Override
         public void setSize(int size) { this.size = size; }
+        @Override
         public void invertData(boolean inverted) {}
     }
 
@@ -203,9 +204,9 @@ public abstract class DiskBasicType<T extends DirectoryT>  {
     }
 
     public static class SectorsPerTrack {
-        private int numOfTracks;
-        private int numOfSectors;
-        private int totalSectors;
+        private final int numOfTracks;
+        private final int numOfSectors;
+        private final int totalSectors;
         private SectorSkewBase ssmap;
 
         public SectorsPerTrack() {
@@ -379,9 +380,9 @@ public abstract class DiskBasicType<T extends DirectoryT>  {
 
         int sed = secsPerTrk * sides / secsPerGrp;
         if (sed == 0) return INVALID_GROUP_NUMBER;
-        int groupMax = (int)(basic.diskBasicParam.getFatEndGroup() / sed) + 1;
-        int groupManage = (int)(managedStartGroup / sed);
-        int groupStart = (int)(currGroup / sed);
+        int groupMax = (basic.diskBasicParam.getFatEndGroup() / sed) + 1;
+        int groupManage = managedStartGroup / sed;
+        int groupStart = currGroup / sed;
         int groupEnd;
         int dir;
         int sst = 0;
@@ -492,7 +493,7 @@ public abstract class DiskBasicType<T extends DirectoryT>  {
         return assignDirectory(true, groupItems, dirItem);
     }
 
-    public double checkDirectory(boolean isRoot, final DiskBasicGroups groupItems) throws IOException {
+    public double checkDirectory(boolean isRoot, DiskBasicGroups groupItems) throws IOException {
         boolean valid = true;
         boolean[] last = {false};
         int nUsedItems = 0;
@@ -505,7 +506,7 @@ public abstract class DiskBasicType<T extends DirectoryT>  {
         DiskBasicDirItem<T> nitem = dir.newItem(null, 0, null);
 
         for (int idx = 0; idx < groupItems.count() && finish >= -1; idx++) {
-            final DiskBasicGroupItem gitem = groupItems.itemPtr(idx);
+            DiskBasicGroupItem gitem = groupItems.itemPtr(idx);
             int grpNum = gitem.group;
             int trkNum = gitem.track;
             int sidNum = gitem.side;
@@ -516,7 +517,7 @@ public abstract class DiskBasicType<T extends DirectoryT>  {
                 valid = false;
                 break;
             }
-            final DiskBasicGroupItem nextGitem = idx + 1 < groupItems.count() ? groupItems.itemPtr(idx + 1) : null;
+            DiskBasicGroupItem nextGitem = idx + 1 < groupItems.count() ? groupItems.itemPtr(idx + 1) : null;
 
             for (int secNum = gitem.sectorStart; secNum <= gitem.sectorEnd && finish >= -1; secNum++) {
                 DiskImageSector sector = track.getSector(secNum);
@@ -588,7 +589,7 @@ public abstract class DiskBasicType<T extends DirectoryT>  {
         return validRatio;
     }
 
-    public boolean isEmptyDirectory(boolean isRoot, final DiskBasicGroups groupItems) throws IOException {
+    public boolean isEmptyDirectory(boolean isRoot, DiskBasicGroups groupItems) throws IOException {
         boolean valid = true;
         boolean last = false;
         int indexNumber = 0;
@@ -599,7 +600,7 @@ public abstract class DiskBasicType<T extends DirectoryT>  {
         DiskBasicDirItem<T> nitem = dir.newItem(null, 0, null);
 
         for (int idx = 0; idx < groupItems.count() && finish >= -1; idx++) {
-            final DiskBasicGroupItem gitem = groupItems.itemPtr(idx);
+            DiskBasicGroupItem gitem = groupItems.itemPtr(idx);
             int grpNum = gitem.group;
             int trkNum = gitem.track;
             int sidNum = gitem.side;
@@ -610,7 +611,7 @@ public abstract class DiskBasicType<T extends DirectoryT>  {
                 valid = false;
                 break;
             }
-            final DiskBasicGroupItem nextGitem = idx + 1 < groupItems.count() ? groupItems.itemPtr(idx + 1) : null;
+            DiskBasicGroupItem nextGitem = idx + 1 < groupItems.count() ? groupItems.itemPtr(idx + 1) : null;
 
             for (int secNum = gitem.sectorStart; secNum <= gitem.sectorEnd && valid && !last && finish >= -1; secNum++) {
                 DiskImageSector sector = track.getSector(secNum);
@@ -668,7 +669,7 @@ public abstract class DiskBasicType<T extends DirectoryT>  {
         return valid;
     }
 
-    public boolean assignDirectory(boolean isRoot, final DiskBasicGroups groupItems, DiskBasicDirItem<T> dirItem) throws IOException {
+    public boolean assignDirectory(boolean isRoot, DiskBasicGroups groupItems, DiskBasicDirItem<T> dirItem) throws IOException {
         int indexNumber = 0;
         int[] pos = {0};
         boolean[] unuse = {false};
@@ -676,7 +677,7 @@ public abstract class DiskBasicType<T extends DirectoryT>  {
         int finish = 0;
         int prevGrpNum = -1;
         for (int idx = 0; idx < groupItems.count() && finish >= -1; idx++) {
-            final DiskBasicGroupItem gitem = groupItems.itemPtr(idx);
+            DiskBasicGroupItem gitem = groupItems.itemPtr(idx);
             int grpNum = gitem.group;
             int trkNum = gitem.track;
             int sidNum = gitem.side;
@@ -686,7 +687,7 @@ public abstract class DiskBasicType<T extends DirectoryT>  {
             if (track == null) {
                 continue;
             }
-            final DiskBasicGroupItem nextGitem = idx + 1 < groupItems.count() ? groupItems.itemPtr(idx + 1) : null;
+            DiskBasicGroupItem nextGitem = idx + 1 < groupItems.count() ? groupItems.itemPtr(idx + 1) : null;
 
             for (int secNum = gitem.sectorStart; secNum <= gitem.sectorEnd && finish >= -1; secNum++) {
                 DiskImageSector sector = track.getSector(secNum);
@@ -755,7 +756,7 @@ public abstract class DiskBasicType<T extends DirectoryT>  {
         int finish = 0;
         int prevGrpNum = -1;
         for (int idx = 0; idx < groupItems.count() && finish >= -1 && rc >= 0; idx++) {
-            final DiskBasicGroupItem gitem = groupItems.item(idx);
+            DiskBasicGroupItem gitem = groupItems.item(idx);
             int grpNum = gitem.group;
             int trkNum = gitem.track;
             int sidNum = gitem.side;
@@ -767,7 +768,7 @@ public abstract class DiskBasicType<T extends DirectoryT>  {
                 rc = -2;
                 break;
             }
-            final DiskBasicGroupItem nextGitem = idx + 1 < groupItems.count() ? groupItems.itemPtr(idx + 1) : null;
+            DiskBasicGroupItem nextGitem = idx + 1 < groupItems.count() ? groupItems.itemPtr(idx + 1) : null;
             for (int secNum = gitem.sectorStart; secNum <= gitem.sectorEnd && finish >= -1 && rc >= 0; secNum++) {
                 DiskImageSector sector = basic.getSector(trkNum, sidNum, secNum);
                 if (sector == null) {
@@ -954,13 +955,13 @@ public abstract class DiskBasicType<T extends DirectoryT>  {
     }
 
     public int getStartSectorFromGroup(int groupNum) {
-        return (int)groupNum * basic.getSectorsPerGroup();
+        return groupNum * basic.getSectorsPerGroup();
     }
 
     public int getEndSectorFromGroup(int groupNum, int nextGroup, int sectorStart, int sectorSize, int remainSize) {
         int sectorEnd = sectorStart + basic.getSectorsPerGroup() - 1;
         if (nextGroup >= basic.diskBasicParam.getGroupFinalCode()) {
-            sectorEnd = sectorStart + (int)(nextGroup - basic.diskBasicParam.getGroupFinalCode());
+            sectorEnd = sectorStart + (nextGroup - basic.diskBasicParam.getGroupFinalCode());
         }
         return sectorEnd;
     }
@@ -1115,9 +1116,9 @@ public abstract class DiskBasicType<T extends DirectoryT>  {
 
     public void releaseDirectoryItem(DiskBasicDirItem<T> item) {}
 
-    public void additionalProcessOnMadeDirectory(DiskBasicDirItem<T> item, DiskBasicGroups groupItems, final DiskBasicDirItem<T> parentItem) throws IOException {}
+    public void additionalProcessOnMadeDirectory(DiskBasicDirItem<T> item, DiskBasicGroups groupItems, DiskBasicDirItem<T> parentItem) throws IOException {}
 
-    public boolean additionalProcessOnExpandedDirectory(DiskBasicDirItem<T> item, DiskBasicGroups groupItems, final DiskBasicDirItem<T> parentItem) { return true; }
+    public boolean additionalProcessOnExpandedDirectory(DiskBasicDirItem<T> item, DiskBasicGroups groupItems, DiskBasicDirItem<T> parentItem) { return true; }
 
     public boolean supportFormatting() { return true; }
 
@@ -1127,7 +1128,7 @@ public abstract class DiskBasicType<T extends DirectoryT>  {
 
     public boolean additionalProcessOnFormatted(DiskBasicIdentifiedData data) throws IOException { return true; }
 
-    public int calcDataSizeOnLastSector(DiskBasicDirItem<T> item, InputStream istream, OutputStream ostream, final byte[] sectorBuffer, int sectorOffsrt, int sectorSize, int remainSize) throws IOException {
+    public int calcDataSizeOnLastSector(DiskBasicDirItem<T> item, InputStream istream, OutputStream ostream, byte[] sectorBuffer, int sectorOffsrt, int sectorSize, int remainSize) throws IOException {
         return remainSize;
     }
 
@@ -1135,7 +1136,7 @@ public abstract class DiskBasicType<T extends DirectoryT>  {
         return true;
     }
 
-    public int accessFile(int fileunitNum, DiskBasicDirItem<T> item, InputStream istream, OutputStream ostream, final byte[] sectorBuffer, int sectorSize, int remainSize, int sectorNum, int sectorEnd) throws IOException {
+    public int accessFile(int fileunitNum, DiskBasicDirItem<T> item, InputStream istream, OutputStream ostream, byte[] sectorBuffer, int sectorSize, int remainSize, int sectorNum, int sectorEnd) throws IOException {
         int modifiedSize = sectorSize;
         if (remainSize <= sectorSize) {
             modifiedSize = calcDataSizeOnLastSector(item, istream, ostream, sectorBuffer, 0, sectorSize, remainSize);
@@ -1224,7 +1225,7 @@ public abstract class DiskBasicType<T extends DirectoryT>  {
 
     public boolean supportDeleting() { return true; }
 
-    public void deleteGroups(final DiskBasicGroups groupItems) throws IOException {
+    public void deleteGroups(DiskBasicGroups groupItems) throws IOException {
         for (DiskBasicGroupItem item : groupItems.getItems()) {
             deleteGroupNumber(item.group);
         }
@@ -1238,7 +1239,7 @@ public abstract class DiskBasicType<T extends DirectoryT>  {
 
     public void getIdentifiedData(DiskBasicIdentifiedData data) {}
 
-    public void setIdentifiedData(final DiskBasicIdentifiedData data) {}
+    public void setIdentifiedData(DiskBasicIdentifiedData data) {}
 
     public void setManagedStartGroup(int val) { managedStartGroup = val; }
 }

@@ -55,7 +55,7 @@ public class Main {
         private int modCnt;
 
         /* Temporary directories list */
-        private java.util.List<String> tmpDirs = new ArrayList<>();
+        private final java.util.List<String> tmpDirs = new ArrayList<>();
 
         /* Constructor */
         public UiDiskApp() {
@@ -169,10 +169,10 @@ public class Main {
     /* -- */
     public static class UiDiskPanel extends JSplitPane {
 
-        private UiDiskFrame frame;
+        private final UiDiskFrame frame;
 
-        private UiDiskList lpanel;
-        private UiDiskRPanel rpanel;
+        private final UiDiskList lpanel;
+        private final UiDiskRPanel rpanel;
 
         public UiDiskPanel(UiDiskFrame parent) {
             super(JSplitPane.HORIZONTAL_SPLIT, true);
@@ -256,8 +256,8 @@ public class Main {
     /** */
     public static class UiDiskPanelDropTarget extends TransferHandler {
 
-        private UiDiskPanel parent;
-        private UiDiskFrame frame;
+        private final UiDiskPanel parent;
+        private final UiDiskFrame frame;
 
         public UiDiskPanelDropTarget(UiDiskFrame parentFrame, UiDiskPanel parentWindow) {
             this.parent = parentWindow;
@@ -348,13 +348,12 @@ public class Main {
             iconLabel.setPreferredSize(new Dimension(64, 64));
 
             // Right panel – text
-            StringBuilder sb = new StringBuilder();
-            sb.append(APPLICATION_FULLNAME).append(", Version ").append(APPLICATION_VERSION);
-            sb.append(" \"").append(PLATFORM).append("\"").append("\n\n");
-            sb.append("using ").append(System.getProperty("java.version")).append("\n\n");
-            sb.append(APP_COPYRIGHT);
+            String sb = APPLICATION_FULLNAME + ", Version " + APPLICATION_VERSION +
+                    " \"" + PLATFORM + "\"" + "\n\n" +
+                    "using " + System.getProperty("java.version") + "\n\n" +
+                    APP_COPYRIGHT;
 
-            JLabel textLabel = new JLabel("<html>" + sb.toString().replace("\n", "<br>") + "</html>");
+            JLabel textLabel = new JLabel("<html>" + sb.replace("\n", "<br>") + "</html>");
 
             // Assemble
             JPanel left = new JPanel();

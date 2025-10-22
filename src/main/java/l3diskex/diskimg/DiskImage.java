@@ -904,7 +904,7 @@ public abstract class DiskImage {
                 if (track == null) continue;
                 int pos = track.getOffsetPos();
                 if (pos < 0 || pos >= limitPos) continue;
-                int size = (int) track.getSize();
+                int size = track.getSize();
                 if (size > 0) {
                     setOffset(pos, maxOffset);
                 } else {
@@ -1100,14 +1100,14 @@ public abstract class DiskImage {
             DiskParticular.uniqueTracks(trackNumberMax - trackNumberMin + 1, sidesPerDisk, diskSingleType, singles);
 
             tracksPerSide = tracks != null ? (trackNumberMax - trackNumberMin + 1) : 0;
-            sectorSize = (int) sectorMasize;
-            interleave = (int) interleaveMax;
+            sectorSize = sectorMasize;
+            interleave = interleaveMax;
 
             if (sidesPerDisk > 1 && sectorNumberMinSide1 != 0x7fffffff && sectorNumberMaxSide0 < sectorNumberMinSide1) {
                 numberingSector = 1;
                 int secNumMaj = 0;
                 secNumMaj = IntHashMapUtil.getMaxKeyOnMaxValue(sectorNumbersMap[0]);
-                sectorsPerTrack = (int) secNumMaj;
+                sectorsPerTrack = secNumMaj;
             } else {
                 numberingSector = 0;
                 int[] secNumMaj = new int[2];

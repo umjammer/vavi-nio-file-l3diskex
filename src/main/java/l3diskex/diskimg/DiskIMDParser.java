@@ -219,10 +219,10 @@ public class DiskIMDParser extends DiskImageParser {
             track.calcInterleave();
         }
         if (result.getValid() >= 0) {
-            track.setSize((int)d88TrackSize);
+            track.setSize(d88TrackSize);
             track.setSideNumber(track.getMajorIDH());
             disk.add(track);
-            disk.setOffset(offsetPos, (int)offset);
+            disk.setOffset(offsetPos, offset);
         } else {
             // track would be discarded (garbage‑collected)
         }
@@ -255,11 +255,11 @@ public class DiskIMDParser extends DiskImageParser {
             d88OffsetPos++;
             if (d88OffsetPos >= limitOffsetPos) {
                 result.setError(DiskResult.ERRV_OVERFLOW_SIZE,
-                                  diskNumber, (int)d88Offset);
+                                  diskNumber, d88Offset);
             }
         }
 
-        disk.setSize((int)d88Offset);
+        disk.setSize(d88Offset);
 
         if (result.getValid() >= 0) {
             DiskParam diskParam = disk.calcMajorNumber();

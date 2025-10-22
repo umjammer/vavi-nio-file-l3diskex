@@ -44,7 +44,7 @@ public class DiskBasicDirItemFP extends DiskBasicDirItemFAT8<DirectoryFp> {
     public static final int DATATYPE_MASK_FP_READ_ONLY = 0xf0;
     public static final int DATATYPE_MASK_FP_READ_WRITE = 0x0f;
 
-    private DiskBasicDirData<DirectoryFp> m_data;
+    private final DiskBasicDirData<DirectoryFp> m_data;
 
     // Constructors
     private DiskBasicDirItemFP() {
@@ -279,7 +279,7 @@ public class DiskBasicDirItemFP extends DiskBasicDirItemFAT8<DirectoryFp> {
             attrStr += ", ";
             attrStr += G_TYPE_NAME_FP_2[TYPE_NAME_FP_READ_WRITE];
         }
-        final String finalAttrStr = attrStr;
+        String finalAttrStr = attrStr;
         return finalAttrStr;
     }
 

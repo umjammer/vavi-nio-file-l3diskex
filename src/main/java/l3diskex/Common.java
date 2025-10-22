@@ -97,7 +97,7 @@ public class Common {
     public static void mem_copy(byte[] src, int slen, byte fill, byte[] dst, int dlen) {
         int copyLen = Math.min(slen, dlen);
         // fill destination with fill
-        Arrays.fill(dst, (byte) fill);
+        Arrays.fill(dst, fill);
         // copy actual data
         System.arraycopy(src, 0, dst, 0, copyLen);
     }

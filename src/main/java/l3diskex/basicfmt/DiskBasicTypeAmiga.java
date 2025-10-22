@@ -43,7 +43,7 @@ public class DiskBasicTypeAmiga extends DiskBasicType<DirectoryAmiga> {
     static class AmigaBootBlock {
 
         public static final int SIZE = 512;
-        private ByteBuffer buffer;
+        private final ByteBuffer buffer;
 
         public AmigaBootBlock(ByteBuffer buffer) {
             this.buffer = buffer.order(ByteOrder.BIG_ENDIAN);
@@ -62,11 +62,11 @@ public class DiskBasicTypeAmiga extends DiskBasicType<DirectoryAmiga> {
         }
 
         public void setCheckSum(int value) {
-            buffer.putInt(4, (int) value);
+            buffer.putInt(4, value);
         }
 
         public void setRootBlock(int value) {
-            buffer.putInt(8, (int) value);
+            buffer.putInt(8, value);
         }
 
         public void setType(byte[] type) {
@@ -77,8 +77,8 @@ public class DiskBasicTypeAmiga extends DiskBasicType<DirectoryAmiga> {
 
     static class AmigaBitmapBlock {
 
-        private ByteBuffer buffer;
-        private int blockSize;
+        private final ByteBuffer buffer;
+        private final int blockSize;
 
         public AmigaBitmapBlock(ByteBuffer buffer, int blockSize) {
             this.buffer = buffer.order(ByteOrder.BIG_ENDIAN);
@@ -95,7 +95,7 @@ public class DiskBasicTypeAmiga extends DiskBasicType<DirectoryAmiga> {
         }
 
         public void setCheckSum(int value) {
-            buffer.putInt(0, (int) value);
+            buffer.putInt(0, value);
         }
     }
 
@@ -103,10 +103,10 @@ public class DiskBasicTypeAmiga extends DiskBasicType<DirectoryAmiga> {
 
     static class AmigaOneBitmap {
 
-        private int m_block_num;
-        private int m_block_size;
-        private AmigaBitmapBlock m_map;
-        private ByteBuffer m_map_buffer;
+        private final int m_block_num;
+        private final int m_block_size;
+        private final AmigaBitmapBlock m_map;
+        private final ByteBuffer m_map_buffer;
 
         public AmigaOneBitmap() {
             m_block_num = 0;
@@ -123,8 +123,8 @@ public class DiskBasicTypeAmiga extends DiskBasicType<DirectoryAmiga> {
         }
 
         public void Modify(int block_num, boolean use) {
-            int pos = (int) (block_num >> 5);
-            int bit = (int) (block_num & 0x1f);
+            int pos = block_num >> 5;
+            int bit = block_num & 0x1f;
             int dat = (1 << bit);
             dat = Integer.reverseBytes(dat);
 
@@ -155,8 +155,8 @@ public class DiskBasicTypeAmiga extends DiskBasicType<DirectoryAmiga> {
             if (block_num >= GetBlockNums()) {
                 block_num = GetBlockNums() - 1;
             }
-            int pos = (int) (block_num >> 5);
-            int bit = (int) (block_num & 0x1f);
+            int pos = block_num >> 5;
+            int bit = block_num & 0x1f;
 
             ByteBuffer mapBuf = m_map.getMapBuffer();
 
@@ -486,7 +486,7 @@ public class DiskBasicTypeAmiga extends DiskBasicType<DirectoryAmiga> {
     }
 
     @Override
-    public boolean assignDirectory(boolean is_root, final DiskBasicGroups group_items, DiskBasicDirItem<DirectoryAmiga> dir_item) throws IOException {
+    public boolean assignDirectory(boolean is_root, DiskBasicGroups group_items, DiskBasicDirItem<DirectoryAmiga> dir_item) throws IOException {
         boolean sts = super.assignDirectory(is_root, group_items, dir_item);
         DiskBasicDirItemAmiga.renumberInDirectory(basic, dir_item.getChildren());
         return sts;
@@ -535,13 +535,13 @@ public class DiskBasicTypeAmiga extends DiskBasicType<DirectoryAmiga> {
         }
 
         if (m_root.blockNum < fatAvailability.size()) {
-            fatAvailability.set((int) m_root.blockNum, FAT_AVAIL_SYSTEM.getValue());
+            fatAvailability.set(m_root.blockNum, FAT_AVAIL_SYSTEM.getValue());
         }
 
         for (int i = 0; i < m_bitmap.size(); i++) {
             AmigaOneBitmap item = m_bitmap.get(i);
             if (item.GetBlockNumber() < fatAvailability.size()) {
-                fatAvailability.set((int) item.GetBlockNumber(), FAT_AVAIL_SYSTEM.getValue());
+                fatAvailability.set(item.GetBlockNumber(), FAT_AVAIL_SYSTEM.getValue());
             }
         }
     }
@@ -572,7 +572,7 @@ public class DiskBasicTypeAmiga extends DiskBasicType<DirectoryAmiga> {
         int groups = 0;
 
         DiskBasicDirItemAmiga aitem = (DiskBasicDirItemAmiga) item;
-        int block_nums = (int) aitem.getDataBlockNums();
+        int block_nums = aitem.getDataBlockNums();
         int block_idx = block_nums - 1;
         int extension = -1;
         int header_block_num = aitem.getStartGroup(fileunit_num);
@@ -607,7 +607,7 @@ public class DiskBasicTypeAmiga extends DiskBasicType<DirectoryAmiga> {
 
                 sector.fill((byte) 0);
                 aitem.InitForExtensionBlock(header_block_num);
-                block_nums = (int) aitem.getDataBlockNums();
+                block_nums = aitem.getDataBlockNums();
                 block_idx = block_nums - 1;
 
                 extension++;
@@ -657,12 +657,12 @@ public class DiskBasicTypeAmiga extends DiskBasicType<DirectoryAmiga> {
 
     @Override
     public int getStartSectorFromGroup(int group_num) {
-        return (int) group_num;
+        return group_num;
     }
 
     @Override
     public int getEndSectorFromGroup(int group_num, int next_group, int sector_start, int sector_size, int remain_size) {
-        return (int) group_num;
+        return group_num;
     }
 
     @Override
@@ -709,7 +709,7 @@ public class DiskBasicTypeAmiga extends DiskBasicType<DirectoryAmiga> {
 
             int limit = basic.getFatEndGroup() + 1;
             int[] tables = aparent.getBlockTable();
-            int nums = (int) aparent.getDataBlockNums();
+            int nums = aparent.getDataBlockNums();
 
             if (items == null) {
                 parent.createChildren();
@@ -752,7 +752,7 @@ public class DiskBasicTypeAmiga extends DiskBasicType<DirectoryAmiga> {
 
     // format
     @Override
-    public boolean additionalProcessOnFormatted(final DiskBasicIdentifiedData data) throws IOException {
+    public boolean additionalProcessOnFormatted(DiskBasicIdentifiedData data) throws IOException {
         DiskImageSector sector;
 
         boolean is_ffs = basic.diskBasicParam.getVariousBoolParam(KEY_FAST_FILE_SYSTEM);
@@ -961,11 +961,11 @@ public class DiskBasicTypeAmiga extends DiskBasicType<DirectoryAmiga> {
             DiskBasicDirItemAmiga aitem = (DiskBasicDirItemAmiga) item;
 
             preBuffer.putInt(0, FILETYPE_MASK_AMIGA_DATA);
-            preBuffer.putInt(8, (int) aitem.getStartGroup(0));
+            preBuffer.putInt(8, aitem.getStartGroup(0));
             preBuffer.putInt(12, seq_num + 1);
             int val = (remain > size ? size : remain);
-            preBuffer.putInt(16, (int) val);
-            preBuffer.putInt(20, (int) next_group);
+            preBuffer.putInt(16, val);
+            preBuffer.putInt(20, next_group);
         }
 
         return len;
@@ -1038,7 +1038,7 @@ public class DiskBasicTypeAmiga extends DiskBasicType<DirectoryAmiga> {
 
         int limit = basic.getFatEndGroup() + 1;
         int[] tables = aparent.getBlockTable();
-        int nums = (int) aparent.getDataBlockNums();
+        int nums = aparent.getDataBlockNums();
 
         DiskBasicDirItemAmiga.deleteItemInDirectory(basic, tables, nums, limit, parent.getChildren(), item);
 
@@ -1079,7 +1079,7 @@ public class DiskBasicTypeAmiga extends DiskBasicType<DirectoryAmiga> {
     }
 
     @Override
-    public void setIdentifiedData(final DiskBasicIdentifiedData data) {
+    public void setIdentifiedData(DiskBasicIdentifiedData data) {
         if (m_root.post == null) return;
 
         DiskBasicFormat fmt = basic.getFormatType();
@@ -1101,7 +1101,7 @@ public class DiskBasicTypeAmiga extends DiskBasicType<DirectoryAmiga> {
         ((DiskBasicDirItemAmiga) aroot).updateCheckSum();
     }
 
-    public void setModifyDateTime(final LocalDateTime tm) {
+    public void setModifyDateTime(LocalDateTime tm) {
         int[] days = new int[1];
         int[] mins = new int[1];
         int[] ticks = new int[1];
@@ -1114,7 +1114,7 @@ public class DiskBasicTypeAmiga extends DiskBasicType<DirectoryAmiga> {
         r.rTicks = ticks[0];
     }
 
-    public void setVolumeDateTime(final LocalDateTime tm) {
+    public void setVolumeDateTime(LocalDateTime tm) {
         int[] days = new int[1];
         int[] mins = new int[1];
         int[] ticks = new int[1];
@@ -1127,7 +1127,7 @@ public class DiskBasicTypeAmiga extends DiskBasicType<DirectoryAmiga> {
         r.vTicks = ticks[0];
     }
 
-    public void setCreateDateTime(final LocalDateTime tm) {
+    public void setCreateDateTime(LocalDateTime tm) {
         int[] days = new int[1];
         int[] mins = new int[1];
         int[] ticks = new int[1];

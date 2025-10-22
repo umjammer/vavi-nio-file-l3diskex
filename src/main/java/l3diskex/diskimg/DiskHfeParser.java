@@ -84,7 +84,7 @@ abstract class RunLengthLimitedParser {
         // このセクタデータのサイズを返す
         return sector.getSize();
     }
-    protected abstract byte decodeData(final byte[] indata);
+    protected abstract byte decodeData(byte[] indata);
 
     public RunLengthLimitedParser() {
         disk = null;
@@ -360,7 +360,7 @@ class FormatMFMParser extends RunLengthLimitedParser {
     }
 
     @Override
-    protected byte decodeData(final byte[] indata) {
+    protected byte decodeData(byte[] indata) {
         // indata is 2 bytes (2 * wxUint8)
         if (indata.length < 2) return 0;
 
@@ -562,7 +562,7 @@ class FormatFMParser extends RunLengthLimitedParser {
     }
 
     @Override
-    protected byte decodeData(final byte[] indata) {
+    protected byte decodeData(byte[] indata) {
         // indata is 4 bytes (4 * wxUint8)
         if (indata.length < 4) return 0;
 
@@ -896,7 +896,7 @@ public class DiskHfeParser extends DiskImageParser {
 
         if (result.getValid() >= 0) {
             // ディスクを追加
-            final DiskParam disk_param = disk.calcMajorNumber();
+            DiskParam disk_param = disk.calcMajorNumber();
             if (disk_param != null) {
                 disk.setDensity(disk_param.getParamDensity());
             }
@@ -988,7 +988,7 @@ public class DiskHfeParser extends DiskImageParser {
      * HxC HFEファイルを解析
      */
     @Override
-    public int parse(InputStream istream, final DiskParam disk_param) throws IOException {
+    public int parse(InputStream istream, DiskParam disk_param) throws IOException {
         parseDisk(istream);
         return result.getValid();
     }

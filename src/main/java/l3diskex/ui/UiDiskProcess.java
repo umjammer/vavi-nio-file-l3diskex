@@ -38,8 +38,8 @@ class UiDiskProcess extends JFrame {
 
     /// 指定したファイルをインポート
     /// @param     paths     ファイルパスのリスト
-    /// @param [in,out] dir_basic 保存先のOS
-    /// @param [in,out] dir_item  保存先ディレクトリアイテム
+    /// @param dir_basic [in,out] 保存先のOS
+    /// @param dir_item  [in,out] 保存先ディレクトリアイテム
     /// @param     confirm   ディレクトリを含む場合に確認ダイアログを表示するか
     /// @param     start_msg 開始メッセージ
     /// @param     end_msg   終了メッセージ
@@ -97,8 +97,8 @@ class UiDiskProcess extends JFrame {
     /// @param data_dir      データフォルダ
     /// @param attr_dir      属性フォルダ
     /// @param names         ファイル名のリスト
-    /// @param [in,out] dir_basic 保存先のOS
-    /// @param [in,out] dir_item  保存先ディレクトリアイテム
+    /// @param dir_basic [in,out] 保存先のOS
+    /// @param dir_item  [in,out] 保存先ディレクトリアイテム
     /// @param depth         深さ
     /// @return  1 警告あり
     /// @return  0 正常
@@ -173,8 +173,8 @@ class UiDiskProcess extends JFrame {
     /// @param     full_data_path データファイルパス
     /// @param     full_attr_path 属性ファイルパス
     /// @param     file_name      ファイル名
-    /// @param [in,out] dir_basic      保存先のOS
-    /// @param [in,out] dir_item       保存先ディレクトリアイテム
+    /// @param dir_basic [in,out]      保存先のOS
+    /// @param dir_item  [in,out]      保存先ディレクトリアイテム
     /// @return  1 警告あり処理継続
     /// @return  0 正常
     /// @return -1 エラー継続不可
@@ -241,8 +241,8 @@ class UiDiskProcess extends JFrame {
     /// 指定したファイルを上書きでインポート
     /// @param item          保存するファイルのディレクトリアイテム（属性などを持っている）
     /// @param path          保存するデータファイルパス
-    /// @param [in,out] dir_basic 保存先のOS
-    /// @param [in,out] dir_item  保存先ディレクトリアイテム
+    /// @param dir_basic [in,out] 保存先のOS
+    /// @param dir_item  [in,out] 保存先ディレクトリアイテム
     /// @param start_msg     開始メッセージ
     /// @param end_msg       終了メッセージ
     /// @return true:OK false:Error
@@ -309,7 +309,7 @@ class UiDiskProcess extends JFrame {
     /// @param     dir_items   選択したリスト
     /// @param     data_dir    データファイル出力先フォルダ
     /// @param     attr_dir    属性ファイル出力先フォルダ
-    /// @param [in,out] file_object ファイルオブジェクト
+    /// @param file_object [in,out] ファイルオブジェクト
     /// @param     depth       深さ
     /// @return  1 警告あり
     /// @return  0 正常

@@ -174,7 +174,7 @@ public abstract class ResultInfo {
             if (maxrow < cnt) {
                 bufs.add(String.format(
                         Locale.getDefault(),
-                        "And have more %u messages...",
+                        "And have more %d messages...",
                         cnt - maxrow));
             }
             return bufs;

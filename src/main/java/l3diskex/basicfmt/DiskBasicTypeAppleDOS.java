@@ -144,7 +144,7 @@ public class DiskBasicTypeAppleDOS extends DiskBasicType<DirectoryApledos> {
         int sector_num = 0;
         int[] trk = new int[1];
         int[] sec = new int[1];
-        getNumFromSectorPosS((int) num, trk, sec);
+        getNumFromSectorPosS(num, trk, sec);
         track_num = trk[0];
         sector_num = sec[0];
         track_num -= basic.getTrackNumberBaseOnDisk();
@@ -218,7 +218,7 @@ public class DiskBasicTypeAppleDOS extends DiskBasicType<DirectoryApledos> {
         int new_num = INVALID_GROUP_NUMBER;
 
         int manage_track_num = basic.getManagedTrackNumber();
-        int curr_trk = (int) (curr_group / basic.getSectorsPerTrackOnBasic());
+        int curr_trk = curr_group / basic.getSectorsPerTrackOnBasic();
         int sta_trk = 0;
         int end_trk = 0;
         int ndir = 1;
@@ -408,8 +408,9 @@ public class DiskBasicTypeAppleDOS extends DiskBasicType<DirectoryApledos> {
     }
 
     /// Get usable disk size
+    @Override
     public void getUsableDiskSize(int[] disk_size, int[] group_size) {
-        group_size[0] = (int) (basic.getFatEndGroup() + 1);
+        group_size[0] = basic.getFatEndGroup() + 1;
         disk_size[0] = group_size[0] * basic.getSectorSize() / basic.diskBasicParam.getGroupsPerSector();
     }
 
@@ -517,13 +518,13 @@ public class DiskBasicTypeAppleDOS extends DiskBasicType<DirectoryApledos> {
     /// Get start sector number from group number
     @Override
     public int getStartSectorFromGroup(int group_num) {
-        return (int) group_num;
+        return group_num;
     }
 
     /// Get end sector number from group number
     @Override
     public int getEndSectorFromGroup(int group_num, int next_group, int sector_start, int sector_size, int remain_size) {
-        return (int) group_num;
+        return group_num;
     }
 
     /// Get track, side, sector numbers from sector position
@@ -727,7 +728,7 @@ public class DiskBasicTypeAppleDOS extends DiskBasicType<DirectoryApledos> {
                 // This logic is hard to translate directly without InputStream.GetLength()
                 // Assuming a way to get the length. Using 0 as a placeholder.
                 int length = 0; // Replace with actual istream length
-                remain_size = (int) (length % sector_size);
+                remain_size = length % sector_size;
             }
         }
         return remain_size;
@@ -885,8 +886,8 @@ public class DiskBasicTypeAppleDOS extends DiskBasicType<DirectoryApledos> {
 
     private void updateApledosPtr(byte[] buffer, ApledosPtr ptr) {
         if (buffer.length < 2) return;
-        buffer[0] = (byte) ptr.nextTrack;
-        buffer[1] = (byte) ptr.nextSector;
+        buffer[0] = ptr.nextTrack;
+        buffer[1] = ptr.nextSector;
     }
 
     private apledos_chain_t mapApledosChain(byte[] buffer) {

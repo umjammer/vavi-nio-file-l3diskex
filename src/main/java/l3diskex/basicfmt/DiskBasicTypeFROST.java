@@ -405,7 +405,7 @@ public class DiskBasicTypeFROST extends DiskBasicTypeFAT8 {
      */
     @Override
     public void fillSector(DiskImageTrack track, DiskImageSector sector) {
-        sector.fill((byte) basic.diskBasicParam.getFillCodeOnFormat());
+        sector.fill(basic.diskBasicParam.getFillCodeOnFormat());
     }
 
     /**

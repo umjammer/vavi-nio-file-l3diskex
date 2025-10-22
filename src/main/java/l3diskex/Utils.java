@@ -89,7 +89,7 @@ public final class Utils {
          * @param len Data size.
          * @param invert Invert data if true.
          */
-        public void setData(final byte[] data, int len, boolean invert) {
+        public void setData(byte[] data, int len, boolean invert) {
             setSize(len);
             System.arraycopy(data, 0, this.data, 0, this.size);
             if (invert) {
@@ -223,7 +223,7 @@ public final class Utils {
          * @param buf Data.
          * @param size Data size.
          */
-        public void appendData(final byte[] buf, int size) {
+        public void appendData(byte[] buf, int size) {
             if (m_size <= m_wpos + size) {
                 int new_size = m_size;
                 do {
@@ -319,7 +319,7 @@ public final class Utils {
      * Dump auxiliary class.
      */
     public static class Dump {
-        private CharCodes codes = new CharCodes();
+        private final CharCodes codes = new CharCodes();
 
         public Dump() {}
 
@@ -331,7 +331,7 @@ public final class Utils {
          * @param invert Invert data if true.
          * @return Number of dump lines.
          */
-        public int binary(final byte[] buffer, int bufsize, StringBuilder str, boolean invert) {
+        public int binary(byte[] buffer, int bufsize, StringBuilder str, boolean invert) {
             int rows = 0;
             int inv = invert ? 0xFF : 0;
             str.append("    :");
@@ -370,7 +370,7 @@ public final class Utils {
          * @param invert Invert data if true.
          * @return Number of dump lines (returns 0 in C++).
          */
-        public int ascii(final byte[] buffer, int bufsize, final String char_code, StringBuilder str, boolean invert) {
+        public int ascii(byte[] buffer, int bufsize, String char_code, StringBuilder str, boolean invert) {
             int inv = invert ? 0xFF : 0;
             codes.setMap(char_code);
 
@@ -417,7 +417,7 @@ public final class Utils {
          * @param invert Invert data if true.
          * @return Number of dump lines.
          */
-        public int text(final byte[] buffer, int bufsize, final String char_code, StringBuilder str, boolean invert) {
+        public int text(byte[] buffer, int bufsize, String char_code, StringBuilder str, boolean invert) {
             int inv = invert ? 0xFF : 0;
 
             codes.setMap(char_code);
@@ -536,7 +536,7 @@ public final class Utils {
      * @param date Date data (3 bytes).
      * @param time Time data (3 bytes).
      */
-    public static void convTmToDateTime(final LocalDateTime tm, byte[] date, byte[] time) {
+    public static void convTmToDateTime(LocalDateTime tm, byte[] date, byte[] time) {
         // tm.year is since 1900. MS-DOS format date stores:
         // date[0]: year LSB (bits 0-7)
         // date[1]: year MSB (bits 8-11) (4 bits), month (4 bits)
@@ -559,7 +559,7 @@ public final class Utils {
      * @param date Date data (3 bytes).
      * @param time Time data (3 bytes).
      */
-    public static LocalDateTime convDateTimeToTm(final byte[] date, final byte[] time) {
+    public static LocalDateTime convDateTimeToTm(byte[] date, byte[] time) {
         return LocalDateTime.of(
         // Year: date[0] (LSB) + ((date[1] & 0xf) << 8) (MSB 4 bits)
                 (date[0] & 0xFF) | ((date[1] & 0x0F) << 8),
@@ -580,7 +580,7 @@ public final class Utils {
      * @param date Date string.
      * @return true if successful.
      */
-    public static LocalDate convDateStrToTm(final String date) {
+    public static LocalDate convDateStrToTm(String date) {
         Pattern re = Pattern.compile("^([0-9]+)[/:.-]([0-9]+)[/:.-]([0-9]+)$");
         Matcher matcher = re.matcher(date);
 
@@ -611,7 +611,7 @@ public final class Utils {
      * @param time Time string.
      * @return true if successful.
      */
-    public static LocalTime convTimeStrToTm(final String time) {
+    public static LocalTime convTimeStrToTm(String time) {
         Pattern re1 = Pattern.compile("^([0-9]+)[/:.-]([0-9]+)[/:.-]([0-9]+)$");
         Pattern re2 = Pattern.compile("^([0-9]+)[/:.-]([0-9]+)$");
         Matcher matcher1 = re1.matcher(time);
@@ -652,7 +652,7 @@ public final class Utils {
      * @param yy Year (BCD).
      * @param mm Month (BCD).
      * @param dd Day (BCD).
-     * @param tm Time structure.
+     * @return Time structure.
      */
     public static LocalDate convYYMMDDToTm(byte yy, byte mm, byte dd) {
         int year = ((yy & 0xFF) >> 4) * 10 + ((yy & 0xFF) & 0xf);
@@ -674,7 +674,7 @@ public final class Utils {
      * @param mm Month (BCD).
      * @param dd Day (BCD).
      */
-    public static void convTmToYYMMDD(final LocalDateTime tm, byte[] yy, byte[] mm, byte[] dd) {
+    public static void convTmToYYMMDD(LocalDateTime tm, byte[] yy, byte[] mm, byte[] dd) {
         int year = tm.getYear() % 100; // Year since 1900, only last two digits
         int month = tm.getMonth().ordinal() + 1;
         int day = tm.getDayOfMonth();
@@ -689,7 +689,7 @@ public final class Utils {
      * @param tm Time structure.
      * @return Formatted date string.
      */
-    public static String formatYMDStr(final LocalDateTime tm) {
+    public static String formatYMDStr(LocalDateTime tm) {
         String yearStr = (tm.getYear() >= 0 ? String.format("%04d", tm.getYear() + 1900) : "----");
         String monthStr = (tm.getMonth().ordinal() >= -1 ? String.format("%02d", tm.getMonth().ordinal() + 1) : "--");
         String dayStr = (tm.getDayOfMonth() >= 0 ? String.format("%02d", tm.getDayOfMonth()) : "--");
@@ -701,7 +701,7 @@ public final class Utils {
      * @param tm Time structure.
      * @return Formatted time string.
      */
-    public static String formatHMSStr(final LocalDateTime tm) {
+    public static String formatHMSStr(LocalDateTime tm) {
         String hourStr = (tm.getHour() >= 0 ? String.format("%02d", tm.getHour()) : "--");
         String minStr = (tm.getMinute() >= 0 ? String.format("%02d", tm.getMinute()) : "--");
         String secStr = (tm.getSecond() >= 0 ? String.format("%02d", tm.getSecond()) : "--");
@@ -713,7 +713,7 @@ public final class Utils {
      * @param tm Time structure.
      * @return Formatted time string.
      */
-    public static String formatHMStr(final LocalDateTime tm) {
+    public static String formatHMStr(LocalDateTime tm) {
         String hourStr = (tm.getHour() >= 0 ? String.format("%02d", tm.getHour()) : "--");
         String minStr = (tm.getMinute() >= 0 ? String.format("%02d", tm.getMinute()) : "--");
         return hourStr + ":" + minStr;
@@ -725,7 +725,7 @@ public final class Utils {
      * @param val String value.
      * @return Integer value.
      */
-    public static int toInt(final String val) {
+    public static int toInt(String val) {
         long lval = 0;
         String h = val.toLowerCase();
         try {
@@ -749,7 +749,7 @@ public final class Utils {
      * @param val String value.
      * @return Boolean value.
      */
-    public static boolean toBool(final String val) {
+    public static boolean toBool(String val) {
         return val.equals("1") || val.equalsIgnoreCase("TRUE");
     }
 
@@ -758,7 +758,7 @@ public final class Utils {
      * @param sval String value.
      * @return Integer value or -1 on error.
      */
-    public static int convFromHexa(final String sval) {
+    public static int convFromHexa(String sval) {
         if (sval.startsWith("-")) return -1;
         try {
             long lval = Long.parseLong(sval, 16);
@@ -773,7 +773,7 @@ public final class Utils {
      * @param src Source string.
      * @param dst Destination string builder.
      */
-    public static void decodeEscape(final String src, StringBuilder dst) {
+    public static void decodeEscape(String src, StringBuilder dst) {
         String str = src;
         int i = 0;
 
@@ -816,7 +816,7 @@ public final class Utils {
      * @param dst Destination byte array.
      * @param len Destination buffer length.
      */
-    public static void decodeEscape(final String src, byte[] dst, int len) {
+    public static void decodeEscape(String src, byte[] dst, int len) {
         String str = src;
         int pos = 0;
         int i = 0;
@@ -869,7 +869,7 @@ public final class Utils {
      * @param len Data length.
      * @return Encoded string.
      */
-    public static String encodeEscape(final byte[] src, int len) {
+    public static String encodeEscape(byte[] src, int len) {
         StringBuilder rstr = new StringBuilder();
         for (int i = 0; i < len; i++) {
             int c = src[i] & 0xFF;
@@ -894,13 +894,13 @@ public final class Utils {
      * @param src File name string.
      * @return Decoded string.
      */
-    public static String decodeFileName(final String src) {
+    public static String decodeFileName(String src) {
         StringBuilder dst = new StringBuilder();
         int pos = 0;
 
         while (pos < src.length()) {
             boolean dec = false;
-            if (src.substring(pos, pos + 1).equals("%") && pos + 2 < src.length()) {
+            if (src.charAt(pos) == '%' && pos + 2 < src.length()) {
                 String sval = src.substring(pos + 1, pos + 3);
                 try {
                     int lval = Integer.parseInt(sval, 16);
@@ -925,7 +925,7 @@ public final class Utils {
      * @param src File name string.
      * @return Encoded string.
      */
-    public static String encodeFileName(final String src) {
+    public static String encodeFileName(String src) {
         StringBuilder str = new StringBuilder();
         for (int i = 0; i < src.length(); i++) {
             char c = src.charAt(i);
@@ -983,7 +983,7 @@ public final class Utils {
      * @param substr String to check.
      * @return Index of the match or -1.
      */
-    public static int indexOf(final String[] list, final String substr) {
+    public static int indexOf(String[] list, String substr) {
         int match = -1;
         for (int i = 0; i < list.length; i++) {
             if (substr.equals(list[i])) {
@@ -999,7 +999,7 @@ public final class Utils {
      * @param str String.
      * @return True if upper case count > lower case count.
      */
-    public static boolean isUpperString(final String str) {
+    public static boolean isUpperString(String str) {
         int u = 0;
         int l = 0;
         for (int i = 0; i < str.length(); i++) {
@@ -1103,7 +1103,7 @@ public final class Utils {
     }
 
     public static long getDaysSince1978(LocalDate tm) {
-        final LocalDate REFERENCE_DATE = LocalDate.of(1978, 1, 1);
+        LocalDate REFERENCE_DATE = LocalDate.of(1978, 1, 1);
         return ChronoUnit.DAYS.between(REFERENCE_DATE, tm);
     }
 }

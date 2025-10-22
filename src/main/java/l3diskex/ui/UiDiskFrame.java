@@ -35,7 +35,7 @@ public class UiDiskFrame extends UiDiskProcess {
     enum enEditorTypes {
         EDITOR_TYPE_BINARY,
         EDITOR_TYPE_TEXT,
-    };
+    }
 
     static class StatusCounter {
         private int m_current;
@@ -56,7 +56,7 @@ public class UiDiskFrame extends UiDiskProcess {
             m_message = "";
         }
 
-        public void Start(int count, final String message) {
+        public void Start(int count, String message) {
             m_current = 0;
             m_count = count;
             m_using = 1;
@@ -71,7 +71,7 @@ public class UiDiskFrame extends UiDiskProcess {
             m_current++;
         }
 
-        public void Finish(final String message) {
+        public void Finish(String message) {
             m_message = message;
             m_using = 3;
         }
@@ -101,8 +101,8 @@ public class UiDiskFrame extends UiDiskProcess {
 
     static class StatusCounters {
         private static final int StatusCountersMax = 3;
-        private StatusCounter[] m_sc;
-        private Object m_delay; // wxTimer placeholder
+        private final StatusCounter[] m_sc;
+        private final Object m_delay; // wxTimer placeholder
 
         public static final int IDT_STATUS_COUNTER = 555;
 
@@ -128,7 +128,7 @@ public class UiDiskFrame extends UiDiskProcess {
             }
         }
 
-        public int Start(int count, final String message) {
+        public int Start(int count, String message) {
             int decide = -1;
             for (int idx = 0; idx < StatusCountersMax; idx++) {
                 StatusCounter sc = m_sc[idx];
@@ -153,7 +153,7 @@ public class UiDiskFrame extends UiDiskProcess {
             m_sc[idx].Increase();
         }
 
-        public void Finish(int idx, final String message, WindowEvent owner) {
+        public void Finish(int idx, String message, WindowEvent owner) {
             if (idx < 0 || idx >= StatusCountersMax) idx = 0;
             m_sc[idx].Finish(message);
             // m_delay.SetOwner(owner, IDT_STATUS_COUNTER); // Mocked
@@ -183,21 +183,21 @@ public class UiDiskFrame extends UiDiskProcess {
     private MyMenu menuView;
     private MyMenu menuHelp;
 
-    private UiDiskPanel panel;
-    private UiDiskBinDumpFrame bindump_frame;
-    private UiDiskFatAreaFrame fatarea_frame;
+    private final UiDiskPanel panel;
+    private final UiDiskBinDumpFrame bindump_frame;
+    private final UiDiskFatAreaFrame fatarea_frame;
 
     private DiskImage p_image;
 
     private StatusCounters stat_counters;
 
-    private Utils.StopWatch m_sw_export;
-    private Utils.StopWatch m_sw_import;
+    private final Utils.StopWatch m_sw_export;
+    private final Utils.StopWatch m_sw_import;
 
     private static final int IDT_TOOLBAR = 500;
     private static final int TOOLBAR_STYLE = 0; // Mocked wxTB_FLAT | wxTB_DOCKABLE | wxTB_TEXT
 
-    public UiDiskFrame(final String title, final Dimension size) {
+    public UiDiskFrame(String title, Dimension size) {
         super();
 
         p_image = new DiskD88();
@@ -227,7 +227,7 @@ public class UiDiskFrame extends UiDiskProcess {
     }
 
     /// フレーム部の初期処理
-    public boolean Init(final String in_file) {
+    public boolean Init(String in_file) {
         boolean valid = false;
 
         if (in_file != null && !in_file.isEmpty()) {
@@ -513,10 +513,10 @@ public class UiDiskFrame extends UiDiskProcess {
         menuMode.AppendRadioItem(Global.IDM_RAWDISK_MODE, "Raw Disk Mode");
         menuMode.AppendSeparator();
         sm = new MyMenu();
-        final CharCodeChoice choice = Global.gCharCodeChoices.Find("main");
+        CharCodeChoice choice = Global.gCharCodeChoices.Find("main");
         if (choice != null) {
             for (int i = 0; i < choice.Count(); i++) {
-                final CharCodeMap map = choice.Item(i);
+                CharCodeMap map = choice.Item(i);
                 sm.AppendRadioItem(Global.IDM_CHAR_0 + i, map.GetDescription());
             }
         }
@@ -587,7 +587,7 @@ public class UiDiskFrame extends UiDiskProcess {
 
         final int wxITEM_NORMAL = 0;
         final int wxITEM_DROPDOWN = 1;
-        final Object wxNullBitmap = null;
+        Object wxNullBitmap = null;
 
         toolBar.AddTool(Global.IDM_NEW_FILE, "New",
                 toolBarBitmaps[fd_5inch_16_new], wxNullBitmap, wxITEM_NORMAL,
@@ -637,7 +637,7 @@ public class UiDiskFrame extends UiDiskProcess {
     // #ifdef USE_MENU_OPEN // void OnMenuOpen(JMenuEvent& event) { ... } #endif
 
     /// ドロップされたファイルを開く (Not in .h, but useful context)
-    public void OpenDroppedFile(final String path) {
+    public void OpenDroppedFile(String path) {
         if (!CloseDataFile()) return;
         PreOpenDataFile(path);
     }
@@ -809,22 +809,22 @@ public class UiDiskFrame extends UiDiskProcess {
     }
 
     /// ウィンドウ上のデータを更新 タイトルバーにファイルパスを表示
-    public void UpdateDataOnWindow(final String path, boolean keep) {
+    public void UpdateDataOnWindow(String path, boolean keep) {
         // Stub
     }
 
     /// 保存後のウィンドウ上のデータを更新
-    public void UpdateSavedDataOnWindow(final String path) {
+    public void UpdateSavedDataOnWindow(String path) {
         // Stub
     }
 
     /// ウィンドウ上のファイルパスを更新
-    public void UpdateFilePathOnWindow(final String path) {
+    public void UpdateFilePathOnWindow(String path) {
         // Stub
     }
 
     /// キャラクターコード選択
-    public void ChangeCharCode(final String name) {
+    public void ChangeCharCode(String name) {
         // Stub
     }
 
@@ -844,7 +844,7 @@ public class UiDiskFrame extends UiDiskProcess {
     }
 
     /// リストウィンドウのフォント変更
-    public void SetListFont(final Font font) {
+    public void SetListFont(Font font) {
         // Stub
     }
 
@@ -861,32 +861,37 @@ public class UiDiskFrame extends UiDiskProcess {
     // --- カウンター操作ヘルパー (mocked/internal) ---
 
     // These methods were not explicitly defined in the C++ but are used in the counter logic.
-    private int StartStatusCounter(int count, final String message) { return stat_counters.Start(count, message); }
+    private int StartStatusCounter(int count, String message) { return stat_counters.Start(count, message); }
     private void AppendStatusCounter(int id, int count) { stat_counters.Append(id, count); }
     private void IncreaseStatusCounter(int id) { stat_counters.Increase(id); }
-    private void FinishStatusCounter(int id, final String message) { stat_counters.Finish(id, message, null); } // Mocked EvtHandler is null
+    private void FinishStatusCounter(int id, String message) { stat_counters.Finish(id, message, null); } // Mocked EvtHandler is null
 
     /// エクスポート用カウンタを開始
-    public void StartExportCounter(int count, final String message) {
+    @Override
+    public void StartExportCounter(int count, String message) {
         m_sw_export.Start();
         m_sw_export.setID(StartStatusCounter(count, message));
     }
     /// エクスポート用カウンタの母数を追加
+    @Override
     public void AppendExportCounter(int count) {
         AppendStatusCounter(m_sw_export.getID(), count);
     }
     /// エクスポート用カウンタの数を＋１
+    @Override
     public void IncreaseExportCounter() {
         IncreaseStatusCounter(m_sw_export.getID());
     }
     /// エクスポート用カウンタのアイコンを時計にする
+    @Override
     public void BeginBusyCursorExportCounterIfNeed() {
         if (m_sw_export.Time() > 3000) {
             m_sw_export.busy();
         }
     }
     /// エクスポート用カウンタを終了
-    public void FinishExportCounter(final String message) {
+    @Override
+    public void FinishExportCounter(String message) {
         FinishStatusCounter(m_sw_export.getID(), message);
         m_sw_export.finish();
     }
@@ -896,30 +901,36 @@ public class UiDiskFrame extends UiDiskProcess {
     }
 
     /// インポート用カウンタを開始
-    public void StartImportCounter(int count, final String message) {
+    @Override
+    public void StartImportCounter(int count, String message) {
         m_sw_import.Start();
         m_sw_import.setID(StartStatusCounter(count, message));
     }
     /// インポート用カウンタの母数を追加
+    @Override
     public void AppendImportCounter(int count) {
         AppendStatusCounter(m_sw_import.getID(), count);
     }
     /// インポート用カウンタの数を＋１
+    @Override
     public void IncreaseImportCounter() {
         IncreaseStatusCounter(m_sw_import.getID());
     }
     /// インポート用カウンタのアイコンを時計にする
+    @Override
     public void BeginBusyCursorImportCounterIfNeed() {
         if (m_sw_import.Time() > 3000) {
             m_sw_import.busy();
         }
     }
     /// インポート用カウンタを終了
-    public void FinishImportCounter(final String message) {
+    @Override
+    public void FinishImportCounter(String message) {
         FinishStatusCounter(m_sw_import.getID(), message);
         m_sw_import.finish();
     }
     /// インポート用カウンタを再スタート
+    @Override
     public void RestartImportCounter() {
         m_sw_import.restart();
     }
@@ -927,7 +938,7 @@ public class UiDiskFrame extends UiDiskProcess {
     // --- その他のUI ---
 
     /// 指定ファイルを引数にして外部エディタを起動する
-    public static boolean OpenFileWithEditor(enEditorTypes editor_type, final Path file) {
+    public static boolean OpenFileWithEditor(enEditorTypes editor_type, Path file) {
         // Logic mocked
         return false;
     }
@@ -938,7 +949,7 @@ public class UiDiskFrame extends UiDiskProcess {
     public DiskImage GetDiskImage() { return p_image; }
 
     // --- Mocked methods for structural completeness (not found in CPP/Header are external or internal) ---
-    public boolean PreOpenDataFile(final String path) { return false; }
+    public boolean PreOpenDataFile(String path) { return false; }
     public boolean CloseDataFile() { return false; }
     public boolean CloseDataFile(boolean force) { return false; }
     public JToolBar GetToolBar() { return null; }
@@ -950,6 +961,7 @@ public class UiDiskFrame extends UiDiskProcess {
     public void ShowCreateFileDialog() {}
     public void ShowOpenFileDialog() {}
     public void ShowSaveFileDialog() {}
+    @Override
     public UiDiskList GetDiskListPanel() { return null; }
     public void ShowAddNewDiskDialog() {}
     public void ShowAddFileDialog() {}
@@ -973,9 +985,11 @@ public class UiDiskFrame extends UiDiskProcess {
     public void CloseBinDumpWindow() {}
     public void OpenFatAreaWindow() {}
     public void CloseFatAreaWindow() {}
+    @Override
     public UiDiskFileList GetFileListPanel() { return null; }
     public UiDiskRawPanel GetDiskRawPanel() { return null; }
     public boolean IsFormattableDisk() { return false; }
     public UiDiskList GetLPanel() { return null; }
+    @Override
     public boolean CanMakeDirectory(DiskBasic basic) { return false; }
 }

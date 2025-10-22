@@ -6,27 +6,18 @@
 
 package l3diskex.ui.dirItem;
 
-import java.awt.Choice;
 import java.awt.Dimension;
 import java.util.ResourceBundle;
 import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
 import javax.swing.JSpinner;
 
-import l3diskex.Utils;
 import l3diskex.basicfmt.DiskBasicDirItem.DiskBasicDirItemAttr;
-import l3diskex.basicfmt.DiskBasicDirItemSDOS;
 import l3diskex.basicfmt.DiskBasicDirItemTRSDOS;
 import l3diskex.basicfmt.DiskBasicError;
 import l3diskex.ui.IntNameBox;
 import l3diskex.ui.UiDirItem;
 
-import static l3diskex.basicfmt.DiskBasicDirItemSDOS.FILETYPE_SDOS_BAS1;
-import static l3diskex.basicfmt.DiskBasicDirItemSDOS.FILETYPE_SDOS_BAS2;
-import static l3diskex.basicfmt.DiskBasicDirItemSDOS.IDC_COMBO_TYPE1;
-import static l3diskex.basicfmt.DiskBasicDirItemSDOS.TYPE_NAME_SDOS_DAT;
-import static l3diskex.basicfmt.DiskBasicDirItemSDOS.TYPE_NAME_SDOS_OBJ;
-import static l3diskex.basicfmt.DiskBasicDirItemSDOS.gTypeNameSDOS_1;
 import static l3diskex.basicfmt.DiskBasicDirItemTRSDOS.FILETYPE_MASK_TRSDOS_ACCESS;
 import static l3diskex.basicfmt.DiskBasicDirItemTRSDOS.FILETYPE_MASK_TRSDOS_INUSE;
 import static l3diskex.basicfmt.DiskBasicDirItemTRSDOS.FILETYPE_MASK_TRSDOS_INVISIBLE;

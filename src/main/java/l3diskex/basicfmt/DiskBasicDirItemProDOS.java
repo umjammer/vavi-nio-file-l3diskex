@@ -140,9 +140,9 @@ public class DiskBasicDirItemProDOS extends DiskBasicDirItem<DirectoryProdos> {
 
     // --- ProDOSOneIndex (from basicdiritem_prodos.h/cpp) ---
     static class ProDOSOneIndex {
-        private byte[][] mBuf = new byte[2][];
-        private int mSize;
-        private int mGroupNum; // int
+        private final byte[][] mBuf = new byte[2][];
+        private final int mSize;
+        private final int mGroupNum; // int
 
         public ProDOSOneIndex() {
             mSize = 0;
@@ -234,7 +234,7 @@ public class DiskBasicDirItemProDOS extends DiskBasicDirItem<DirectoryProdos> {
 
     public final int mDirGroupNum; // int
 
-    private ProDOSIndex mIndex = new ProDOSIndex();
+    private final ProDOSIndex mIndex = new ProDOSIndex();
 
     // Assuming DiskBasicDirItem has constructors that take DiskBasic, etc.
     public DiskBasicDirItemProDOS(DiskBasic basic) {
@@ -687,7 +687,7 @@ public class DiskBasicDirItemProDOS extends DiskBasicDirItem<DirectoryProdos> {
                 }
 
                 group_num = next.nextBlock;
-                sector_pos = (int)group_num * basic.getSectorsPerGroup();
+                sector_pos = group_num * basic.getSectorsPerGroup();
             }
             calc_file_size += getFileSize();
         } else {
@@ -812,7 +812,7 @@ public class DiskBasicDirItemProDOS extends DiskBasicDirItem<DirectoryProdos> {
         switch(stype) {
             case FILETYPE_MASK_PRODOS_SAPLING:
             case FILETYPE_MASK_PRODOS_TREE:
-                arr.add((int)getStartGroup(0));
+                arr.add(getStartGroup(0));
                 break;
         }
     }

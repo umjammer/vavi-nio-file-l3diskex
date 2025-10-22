@@ -263,7 +263,7 @@ public class DiskPlainParser extends DiskImageParser {
 
         // ディスクテンプレート全体から探す
         for (int mag = 1; mag <= 2; mag++) {
-            boolean separator = (diskParams.size() == 0);
+            boolean separator = (diskParams.isEmpty());
             for (int i = 0; i < gDiskTemplates.count(); i++) {
                 DiskParam param = gDiskTemplates.item(i);
                 if (param != null) {
@@ -286,7 +286,7 @@ public class DiskPlainParser extends DiskImageParser {
         }
 
         // 候補がないとき、ディスクサイズからパラメータを計算
-        if (diskParams.size() == 0) {
+        if (diskParams.isEmpty()) {
             calcParamFromSize(streamSize, manualParam); // manualParam is passed by reference/mutable object
         }
 
@@ -299,20 +299,20 @@ public class DiskPlainParser extends DiskImageParser {
     // C++ method: void CalcParamFromSize(int disk_size, DiskParam &disk_param);
     protected void calcParamFromSize(int diskSize, DiskParam diskParam) {
         // セクタサイズヒント
-        final int[] secSizeHints = {
+        int[] secSizeHints = {
                 256, 128, 0
         };
         // セクタ数ヒント
-        final int[] secs256 = { 10, 16, 18, 0 };
-        final int[] secs512 = { 9, 10, 0 }; // Note: 512 is the size, but C++ code uses this for sec_size_idx=1 (128 bytes/sector)
-        final int[] secs1024 = { 4, 5, 0 }; // Note: 1024 is the size, but C++ code uses this for sec_size_idx=2 (0 bytes/sector, which seems wrong, but following the C++ logic)
+        int[] secs256 = { 10, 16, 18, 0 };
+        int[] secs512 = { 9, 10, 0 }; // Note: 512 is the size, but C++ code uses this for sec_size_idx=1 (128 bytes/sector)
+        int[] secs1024 = { 4, 5, 0 }; // Note: 1024 is the size, but C++ code uses this for sec_size_idx=2 (0 bytes/sector, which seems wrong, but following the C++ logic)
         // Correcting based on sec_size_hints: 0=256, 1=128, 2=0 (error in C++ logic for index 2, but following structure)
         // Re-analyzing C++: sec_size_hints are 256, 128, 0. The secs_hint array is indexed by sec_size_idx.
         // C++: const int secs256[] = {	10, 16, 18, 0 };
         // C++: const int secs512[] = {	9, 10, 0 };
         // C++: const int secs1024[] = { 4, 5, 0 };
         // This naming is confusing but I must follow the array assignment logic:
-        final int[][] secsHint = {
+        int[][] secsHint = {
                 secs256, // for secSizeHint 256
                 secs512, // for secSizeHint 128
                 secs1024, // for secSizeHint 0 (or a large size)
@@ -354,7 +354,7 @@ public class DiskPlainParser extends DiskImageParser {
         int desidedSides = 0;
         int desidedSectors = 0;
         boolean desided = false;
-        final int[] sectors = secsHint[desidedSecSizeIdx];
+        int[] sectors = secsHint[desidedSecSizeIdx];
 
         // Ensure sectors array is valid before loop
         if (sectors != null) {
@@ -387,7 +387,7 @@ public class DiskPlainParser extends DiskImageParser {
                 }
             }
             // トラック数で割る
-            final int[] ctracks = { 80, 77, 40, 35, 512, 511, 256, 255, 128, 127, 64, 63, 0 };
+            int[] ctracks = { 80, 77, 40, 35, 512, 511, 256, 255, 128, 127, 64, 63, 0 };
             ival = desidedAllSectors; // Reset ival for the check
             for (int t = 0; ctracks[t] != 0; t++) {
                 if (desidedAllSectors % ctracks[t] == 0) {

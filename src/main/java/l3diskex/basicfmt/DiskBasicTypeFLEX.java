@@ -256,11 +256,11 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
             flex_sir = flex;
         }
 
-        logger.log(Level.INFO, "FLEX: sir.max_track: %d", (int) (flex_sir.max_track & 0xff));
+        logger.log(Level.INFO, "FLEX: sir.max_track: %d", flex_sir.max_track & 0xff);
         if (flex_sir.max_track > 0) {
             basic.diskBasicParam.setTracksPerSideOnBasic((flex_sir.max_track & 0xff) + 1);
         }
-        logger.log(Level.INFO, "FLEX: sir.max_sector: %d", (int) (flex_sir.max_sector & 0xff));
+        logger.log(Level.INFO, "FLEX: sir.max_sector: %d", flex_sir.max_sector & 0xff);
         if (flex_sir.max_sector > 0) {
             basic.diskBasicParam.setSectorsPerTrackOnBasic((flex_sir.max_sector & 0xff) / basic.getSidesPerDiskOnBasic() / basic.diskBasicParam.getGroupsPerSector());
         }
@@ -388,7 +388,7 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
                 // error
                 break;
             }
-            if (sector_pos < (int) fatAvailability.count()) {
+            if (sector_pos < fatAvailability.count()) {
                 if (fatAvailability.Get(sector_pos) == FAT_AVAIL_FREE.getValue()) {
                     // 既に空きエリアにしているのに同じセクタにきている
                     // 無限ループしている？
@@ -421,7 +421,7 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
                 // 最後のグループ
                 int gcnt = item.getGroupCount();
                 if (gcnt > 0) {
-                    int gnum = item.getGroup((int) gcnt - 1).group;
+                    int gnum = item.getGroup(gcnt - 1).group;
                     if (gnum <= basic.diskBasicParam.getFatEndGroup()) {
                         fatAvailability.Set(gnum, FAT_AVAIL_USED_LAST.getValue());
                     }
@@ -825,7 +825,7 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
 
     /// フォーマット時セクタデータを埋めた後の個別処理 */
     @Override
-    public boolean additionalProcessOnFormatted(final DiskBasicIdentifiedData data) throws IOException {
+    public boolean additionalProcessOnFormatted(DiskBasicIdentifiedData data) throws IOException {
         // SIR area
         DiskImageSector sector = basic.getSectorFromSectorPos(2);
         if (sector == null) return false;
@@ -912,7 +912,7 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
 
     /// データの読み込み/比較処理
     @Override
-    public int accessFile(int fileunit_num, DiskBasicDirItem<DirectoryFlex> item, InputStream istream, OutputStream ostream, final byte[] sector_buffer, int sector_size, int remain_size, int sector_num, int sector_end) throws IOException {
+    public int accessFile(int fileunit_num, DiskBasicDirItem<DirectoryFlex> item, InputStream istream, OutputStream ostream, byte[] sector_buffer, int sector_size, int remain_size, int sector_num, int sector_end) throws IOException {
         byte[] buf = Arrays.copyOfRange(sector_buffer, 4, sector_buffer.length);
         int size = (sector_size - 4) < remain_size ? (sector_size - 4) : remain_size;
 
@@ -980,7 +980,7 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
     /// ファイル削除後の処理
     @Override
     public boolean additionalProcessOnDeletedFile(DiskBasicDirItem<DirectoryFlex> item) throws IOException {
-        DirectoryFlex d = (DirectoryFlex) item.getData();
+        DirectoryFlex d = item.getData();
 
         DiskImageSector sector;
         FlexPtr p;
@@ -1099,7 +1099,7 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
     @Override
     public void getIdentifiedData(DiskBasicIdentifiedData data) {
         // volume label
-        String vol = new String(flex_sir.volume_label, 0, flex_sir.volume_label.length);
+        String vol = new String(flex_sir.volume_label);
         data.setVolumeName(vol);
         data.setVolumeNameMaxLength(flex_sir.volume_label.length);
         // volume number
@@ -1116,7 +1116,7 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
 
     /// IPLや管理エリアの属性をセット */
     @Override
-    public void setIdentifiedData(final DiskBasicIdentifiedData data) {
+    public void setIdentifiedData(DiskBasicIdentifiedData data) {
         DiskBasicFormat fmt = basic.getFormatType();
 
         // volume label

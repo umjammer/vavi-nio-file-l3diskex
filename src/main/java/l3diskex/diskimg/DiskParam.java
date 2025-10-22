@@ -141,7 +141,7 @@ public class DiskParam {
     }
 
     public static class DiskParticular extends TrackParam {
-        private List<TrackParam> excludes;
+        private final List<TrackParam> excludes;
 
         public DiskParticular() {
             super();

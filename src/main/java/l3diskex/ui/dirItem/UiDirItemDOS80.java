@@ -6,26 +6,13 @@
 
 package l3diskex.ui.dirItem;
 
-import java.awt.Choice;
-import java.util.ResourceBundle;
 import javax.swing.BoxLayout;
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
 
-import l3diskex.Utils;
 import l3diskex.basicfmt.DiskBasicDirItem.DiskBasicDirItemAttr;
 import l3diskex.basicfmt.DiskBasicDirItemDOS80;
-import l3diskex.basicfmt.DiskBasicDirItemXDOS;
-import l3diskex.basicfmt.DiskBasicDirItemXDOS.XdosSubTypeT;
 import l3diskex.basicfmt.DiskBasicError;
 import l3diskex.ui.IntNameBox;
 import l3diskex.ui.UiDirItem;
-
-import static l3diskex.basicfmt.DiskBasicDirItemXDOS.convStrToUserFileType;
-import static l3diskex.basicfmt.DiskBasicDirItemXDOS.gTypeNameXDOS1;
-import static l3diskex.basicfmt.DiskBasicDirItemXDOS.gTypeNameXDOS2;
-import static l3diskex.basicfmt.DiskBasicDirItemXDOS.xdosSubTypes;
-import static l3diskex.ui.IntNameBox.INTNAME_NEW_FILE;
 
 
 /**

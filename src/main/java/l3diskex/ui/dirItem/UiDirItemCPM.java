@@ -122,12 +122,14 @@ public class UiDirItemCPM extends UiDirItem {
     /**
      * 属性を変更した際に呼ばれるコールバック
      */
+    @Override
     public void changeTypeInAttrDialog(IntNameBox parent) {
     }
 
     /**
      * 機種依存の属性を設定する
      */
+    @Override
     public boolean setAttrInAttrDialog(IntNameBox parent, DiskBasicDirItemAttr attr, DiskBasicError errinfo) {
         JSpinner spnUserId = (JSpinner)parent.getComponent(BasicDirItemCPM.IDC_SPIN_USERID);
         ButtonGroup radBinAsc = (ButtonGroup)parent.getComponent(BasicDirItemCPM.IDC_RADIO_BINASC);

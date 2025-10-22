@@ -69,7 +69,7 @@ public class DiskBasicTypeHU68K extends DiskBasicTypeMSDOS {
                         istr = "Human";
                         break;
                 }
-                if (istr != null && istr.length() > 0) {
+                if (istr != null && !istr.isEmpty()) {
                     found = sector.find(istr.getBytes(), istr.length());
                 }
                 if (found >= 0) {

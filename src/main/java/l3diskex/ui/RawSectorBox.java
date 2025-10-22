@@ -14,16 +14,16 @@ public class RawSectorBox extends JDialog {
     /*  PRIVATE FIELDS                                                   */
     /* ------------------------------------------------------------------ */
 
-    private JTextField txtID_C;
-    private JTextField txtID_H;
-    private JTextField txtID_R;
-    private JTextField txtID_N;
+    private final JTextField txtID_C;
+    private final JTextField txtID_H;
+    private final JTextField txtID_R;
+    private final JTextField txtID_N;
 
-    private JCheckBox chkDeleted;
-    private JCheckBox chkDensity;
+    private final JCheckBox chkDeleted;
+    private final JCheckBox chkDensity;
 
     private JTextField txtSecNums;   // may be null if hidden
-    private JTextField txtStatus;
+    private final JTextField txtStatus;
 
     private boolean okPressed = false;
 

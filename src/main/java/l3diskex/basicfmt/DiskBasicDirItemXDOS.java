@@ -558,12 +558,12 @@ public class DiskBasicDirItemXDOS extends DiskBasicDirItemXDOSBase<DirectoryXdos
 
     @Override
     public void setStartAddress(int val) {
-        mData.data().loadAddr = (short) basic.orderUint16((short) val);
+        mData.data().loadAddr = basic.orderUint16((short) val);
     }
 
     @Override
     public void setExecuteAddress(int val) {
-        mData.data().execAddr = (short) basic.orderUint16((short) val);
+        mData.data().execAddr = basic.orderUint16((short) val);
     }
 
     @Override

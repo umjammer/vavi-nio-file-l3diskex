@@ -50,17 +50,16 @@ import l3diskex.diskimg.DiskImageCreator;
 import l3diskex.diskimg.DiskParam;
 import l3diskex.diskimg.DiskResult;
 import vavi.util.win32.WAVE;
-import vavi.util.win32.WAVE.data;
 
 
 public class UiDiskList extends JTree {
 
     public static class DiskPositionData {
-        private int diskNum;
+        private final int diskNum;
         private int typeNum;
-        private int sideNum;
-        private int pos;
-        private boolean editable;
+        private final int sideNum;
+        private final int pos;
+        private final boolean editable;
         private boolean shown;
         private DiskBasicDirItem ditem;
 
@@ -121,8 +120,8 @@ public class UiDiskList extends JTree {
         }
     }
 
-    private JFrame parent;
-    private UiDiskFrame frame;
+    private final JFrame parent;
+    private final UiDiskFrame frame;
     private JPopupMenu popupMenu;
     private DiskImageDisk selectedDisk;
     private boolean diskSelecting;
@@ -175,6 +174,7 @@ public class UiDiskList extends JTree {
         setRootVisible(true);
         getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
         addTreeSelectionListener(new TreeSelectionListener() {
+            @Override
             public void valueChanged(TreeSelectionEvent e) {
                 DefaultMutableTreeNode node = (DefaultMutableTreeNode)getLastSelectedPathComponent();
                 if (node != null) {
@@ -186,6 +186,7 @@ public class UiDiskList extends JTree {
 
     private void setupKeyListener() {
         addKeyListener(new KeyAdapter() {
+            @Override
             public void keyPressed(KeyEvent e) {
                 switch(e.getKeyCode()) {
                     case KeyEvent.VK_ENTER:
@@ -383,7 +384,7 @@ public class UiDiskList extends JTree {
     }
 
     private void setNodeText(DefaultMutableTreeNode node, String text) {
-        ((DefaultTreeModel)getModel()).valueForPathChanged(new TreePath(node.getPath()), text);
+        getModel().valueForPathChanged(new TreePath(node.getPath()), text);
     }
 
     private void expandNode(DefaultMutableTreeNode node) {
@@ -562,6 +563,7 @@ public class UiDiskList extends JTree {
         ds.createDefaultDragGestureRecognizer(this,
                 DnDConstants.ACTION_COPY_OR_MOVE,
                 new DragGestureListener() {
+                    @Override
                     public void dragGestureRecognized(DragGestureEvent dge) {
                         ds.startDrag(dge, DragSource.DefaultCopyDrop, fileObj,
                                 new DragSourceAdapter());
@@ -613,7 +615,7 @@ public class UiDiskList extends JTree {
         int status = 0;
 
         // Export files
-        if (dirItems.size() > 0) {
+        if (!dirItems.isEmpty()) {
             DiskBasic basic = dirItems.get(0).getBasic();
             if (basic != null) {
                 status = frame.exportDataFiles(basic, dirItems, dataDir, attrDir,
@@ -1124,7 +1126,7 @@ public class UiDiskList extends JTree {
     }
 
     public boolean dropDataFiles(Object base, int x, int y, List<String> paths, boolean dir_included) {
-        if (paths.size() == 0) {
+        if (paths.isEmpty()) {
             return false;
         }
 

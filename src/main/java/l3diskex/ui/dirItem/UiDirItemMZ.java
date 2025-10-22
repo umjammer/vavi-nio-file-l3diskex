@@ -56,7 +56,7 @@ public class UiDirItemMZ extends UiDirItem {
     DiskBasicDirItemMZ dirItem;
 
     @Override
-    public void createControlsForAttrDialog(IntNameBox parent, int show_flags, final String file_path, BoxLayout sizer, Object flags) {
+    public void createControlsForAttrDialog(IntNameBox parent, int show_flags, String file_path, BoxLayout sizer, Object flags) {
         int type1 = dirItem.getFileType1();
         int type2 = dirItem.getFileType2();
 
@@ -134,7 +134,7 @@ public class UiDirItemMZ extends UiDirItem {
         }
     }
 
-    private int GetFileType1InAttrDialog(final IntNameBox parent) {
+    private int GetFileType1InAttrDialog(IntNameBox parent) {
         final int IDC_COMBO_TYPE1 = 51;
         JComboBox comType1 = (JComboBox) parent.getComponent(IDC_COMBO_TYPE1);
 
@@ -157,7 +157,7 @@ public class UiDirItemMZ extends UiDirItem {
     }
 
     @Override
-    public boolean setAttrInAttrDialog(final IntNameBox parent, DiskBasicDirItemAttr attr, DiskBasicError errinfo) {
+    public boolean setAttrInAttrDialog(IntNameBox parent, DiskBasicDirItemAttr attr, DiskBasicError errinfo) {
         final int IDC_CHECK_READONLY = 52;
         final int IDC_CHECK_SEAMLESS = 53;
         JCheckBox chkReadOnly = (JCheckBox)parent.getComponent(IDC_CHECK_READONLY);
@@ -177,7 +177,7 @@ public class UiDirItemMZ extends UiDirItem {
     }
 
     @Override
-    public boolean isFileValidSize(final IntNameBox parent, int size, int[] limit) {
+    public boolean isFileValidSize(IntNameBox parent, int size, int[] limit) {
         int limit_size = 0xffff;
         int file_type1 = GetFileType1InAttrDialog(parent);
         if (file_type1 == TYPE_NAME_MZ_BRD) {

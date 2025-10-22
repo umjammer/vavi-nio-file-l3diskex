@@ -178,8 +178,8 @@ public class DiskBasicDirItemAmiga extends DiskBasicDirItem<DirectoryAmiga> {
         }
     }
 
-    private DiskBasicDirData<DirectoryAmiga> m_data = new DiskBasicDirData<>();
-    private List<Integer> m_extension_list = new ArrayList<>(); // int[]
+    private final DiskBasicDirData<DirectoryAmiga> m_data = new DiskBasicDirData<>();
+    private final List<Integer> m_extension_list = new ArrayList<>(); // int[]
     private AmigaBlockPre m_temp_pre;
     private AmigaBlockPost m_temp_post;
     private AmigaDosTypes.AmigaChain m_chain = new AmigaDosTypes.AmigaChain();

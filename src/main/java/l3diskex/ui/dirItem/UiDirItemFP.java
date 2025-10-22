@@ -189,6 +189,7 @@ public class UiDirItemFP extends UiDirItem {
         return true;
     }
 
+    @Override
     public int getEndAddressInAttrDialog(IntNameBox parent) {
         ButtonGroup radType1 = (ButtonGroup)parent.getComponent(IDC_RADIO_TYPE1);
         ButtonGroup radType2 = (ButtonGroup)parent.getComponent(IDC_RADIO_TYPE2);

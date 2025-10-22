@@ -162,13 +162,14 @@ public class IntNameBox extends JDialog {
     }
 
     private static class LimitedDocument extends javax.swing.text.PlainDocument {
-        private int limit;
+        private final int limit;
 
         LimitedDocument(int limit) {
             super();
             this.limit = limit;
         }
 
+        @Override
         public void insertString(int offset, String str, javax.swing.text.AttributeSet attr)
                 throws javax.swing.text.BadLocationException {
             if (str == null) return;
@@ -242,8 +243,8 @@ public class IntNameBox extends JDialog {
     }
 
     private class DateTimeDocument extends PlainDocument {
-        private boolean isTime;
-        private boolean required;
+        private final boolean isTime;
+        private final boolean required;
 
         public DateTimeDocument(boolean isTime, boolean required) {
             this.isTime = isTime;
@@ -325,7 +326,7 @@ public class IntNameBox extends JDialog {
     public static String convFileSize(int val) {
         if (val >= 0) {
             NumberFormat nf = NumberFormat.getNumberInstance();
-            return String.format("%s (0x%x)", nf.format(val), (int)val);
+            return String.format("%s (0x%x)", nf.format(val), val);
         } else {
             return "---";
         }
@@ -338,7 +339,7 @@ public class IntNameBox extends JDialog {
             String str;
             if (val >= 0) {
                 NumberFormat nf = NumberFormat.getNumberInstance();
-                str = String.format("%s (0x%x)", nf.format(val), (int)val);
+                str = String.format("%s (0x%x)", nf.format(val), val);
             } else {
                 str = "---";
             }
@@ -350,7 +351,7 @@ public class IntNameBox extends JDialog {
             if (val >= 0) {
                 val = val * vals.getSizePerGroup();
                 NumberFormat nf = NumberFormat.getNumberInstance();
-                str = String.format("%s (0x%x)", nf.format(val), (int)val);
+                str = String.format("%s (0x%x)", nf.format(val), val);
             } else {
                 str = "---";
             }
@@ -402,12 +403,14 @@ public class IntNameBox extends JDialog {
 
     // Action listener implementations
     private class ChangeStartAddrListener implements ActionListener {
+        @Override
         public void actionPerformed(ActionEvent e) {
             calcEndAddress();
         }
     }
 
     private class ChangeIgnoreDateListener implements ActionListener {
+        @Override
         public void actionPerformed(ActionEvent e) {
             JCheckBox cb = (JCheckBox)e.getSource();
             changedIgnoreDate(cb.isSelected());
@@ -415,6 +418,7 @@ public class IntNameBox extends JDialog {
     }
 
     private class MyListSelectionListener implements ListSelectionListener {
+        @Override
         public void valueChanged(ListSelectionEvent e) {
             if (!e.getValueIsAdjusting()) {
                 int idx = lstGroups.getSelectedIndex();

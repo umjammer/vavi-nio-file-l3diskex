@@ -155,7 +155,7 @@ public class Disk2MGParser extends DiskPlainParser {
             diskParams.add(param);
         }
 
-        if (diskParams.size() == 0) {
+        if (diskParams.isEmpty()) {
             manualParam.setDiskParam(sides_per_disk, tracks_per_side, sectors_per_track,
                     sector_size, 0, 1, sd, pt);
             return 1;

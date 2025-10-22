@@ -105,7 +105,7 @@ public class DiskDIMParser extends DiskPlainParser {
 
             /* パラメータの計算値がディスクサイズの２倍なら表面にのみデータをセット */
             int dummySide = -1;
-            if ((int) data.length * 2 <= disk_param.calcDiskSize()) {
+            if (data.length * 2 <= disk_param.calcDiskSize()) {
                 dummySide = disk_param.getSideNumberBaseOnDisk() + 1;
             }
 
@@ -217,7 +217,7 @@ public class DiskDIMParser extends DiskPlainParser {
 
             /* ディスクテンプレートから探す（簡易） */
             if (disk_hints != null) {
-                for (int retry = 0; retry < 2 && disk_params.size() == 0; retry++) {
+                for (int retry = 0; retry < 2 && disk_params.isEmpty(); retry++) {
                     for (int i = 0; i < disk_hints.size(); i++) {
                         DiskTypeHint hint = disk_hints.get(i);
                         if (hint.getKind() != header.type) continue;
@@ -234,9 +234,9 @@ public class DiskDIMParser extends DiskPlainParser {
 
             /* その他に同じパラメータの候補を追加 */
             gDiskTemplates.find(sidesPerDisk, tracksPerSide, sectorsPerTrack,
-                    sectorSize, disk_params, disk_params.size() > 0);
+                    sectorSize, disk_params, !disk_params.isEmpty());
 
-            if (disk_params.size() == 0) {
+            if (disk_params.isEmpty()) {
                 manual_param.setDiskParam(
                         sidesPerDisk, tracksPerSide, sectorsPerTrack, sectorSize,
                         0, 1, new DiskParam().getSingles(),

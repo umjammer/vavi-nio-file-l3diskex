@@ -39,7 +39,7 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
     private static final int IDC_RADIO_TYPE1 = 51;
 
     // Placeholder for DiskBasicDirData<directory_frost_t>
-    private DiskBasicDirData<DirectoryFrost> m_data;
+    private final DiskBasicDirData<DirectoryFrost> m_data;
 
     public static final Map<String, Object> gTypeNameFROST_1 = new LinkedHashMap<>() {{
             put("BAS", FILETYPE_FROST_BAS);
@@ -279,7 +279,7 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
     @Override
     public int getFileSize() {
         int val = basic.orderUint16(m_data.data().size);
-        if (val == 0) val = (int) groups.getSize();
+        if (val == 0) val = groups.getSize();
         return val;
     }
 

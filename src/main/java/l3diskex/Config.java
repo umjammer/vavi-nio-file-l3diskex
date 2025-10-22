@@ -124,7 +124,7 @@ public class Config {
         // public void finalize() {} // Not good practice in modern Java
 
         // @name properties
-        public void SetFilePath(final String val) {
+        public void SetFilePath(String val) {
             mFilePath = Path.of(val).getParent().toString();
         }
 
@@ -132,7 +132,7 @@ public class Config {
             return mFilePath;
         }
 
-        public void SetExportFilePath(final String val, boolean is_dir) {
+        public void SetExportFilePath(String val, boolean is_dir) {
             if (is_dir) {
                 mExportFilePath = Path.of(val).toAbsolutePath().toString();
             } else {
@@ -148,7 +148,7 @@ public class Config {
             }
         }
 
-        public void AddRecentFile(final String val) {
+        public void AddRecentFile(String val) {
             Path fpath = Path.of(val);
             mFilePath = fpath.getParent().toString();
             // Check if the same file exists
@@ -167,14 +167,14 @@ public class Config {
         }
 
         public final String GetRecentFile() {
-            return mRecentFiles.size() > 0 ? mRecentFiles.get(0) : mFilePath;
+            return !mRecentFiles.isEmpty() ? mRecentFiles.get(0) : mFilePath;
         }
 
         public final List<String> GetRecentFiles() {
             return Collections.unmodifiableList(mRecentFiles);
         }
 
-        public void SetCharCode(final String val) {
+        public void SetCharCode(String val) {
             mCharCode = val;
         }
 
@@ -182,7 +182,7 @@ public class Config {
             return mCharCode;
         }
 
-        public void SetListFontName(final String val) {
+        public void SetListFontName(String val) {
             mListFontName = val;
         }
 
@@ -198,7 +198,7 @@ public class Config {
             return mListFontSize;
         }
 
-        public void SetDumpFontName(final String val) {
+        public void SetDumpFontName(String val) {
             mDumpFontName = val;
         }
 
@@ -310,7 +310,7 @@ public class Config {
             return mWindowHeight;
         }
 
-        public void SetTemporaryFolder(final String val) {
+        public void SetTemporaryFolder(String val) {
             mTemporaryFolder = Path.of(val).toAbsolutePath().toString();
         }
 
@@ -322,7 +322,7 @@ public class Config {
             mTemporaryFolder = "";
         }
 
-        public void SetBinaryEditor(final String val) {
+        public void SetBinaryEditor(String val) {
             mBinaryEditor = Path.of(val).toAbsolutePath().toString();
         }
 
@@ -330,7 +330,7 @@ public class Config {
             return mBinaryEditor;
         }
 
-        public void SetTextEditor(final String val) {
+        public void SetTextEditor(String val) {
             mTextEditor = Path.of(val).toAbsolutePath().toString();
         }
 
@@ -338,7 +338,7 @@ public class Config {
             return mTextEditor;
         }
 
-        public void SetLanguage(final String val) {
+        public void SetLanguage(String val) {
             mLanguage = val;
         }
 
@@ -375,7 +375,7 @@ public class Config {
 
         // No explicit destructor in Java
 
-        public void SetFileName(final String file) {
+        public void SetFileName(String file) {
             ini_file = file;
         }
 
@@ -503,7 +503,7 @@ public class Config {
             // so `delete ini;` is omitted.
         }
 
-        public void Load(final String file) {
+        public void Load(String file) {
             SetFileName(file);
             Load();
         }

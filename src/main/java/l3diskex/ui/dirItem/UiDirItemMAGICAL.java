@@ -9,17 +9,12 @@ package l3diskex.ui.dirItem;
 import java.awt.GridLayout;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.ResourceBundle;
 import javax.swing.BoxLayout;
-import javax.swing.ButtonGroup;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
-import javax.swing.JPanel;
-import javax.swing.JRadioButton;
 
 import l3diskex.basicfmt.DiskBasicDirItem.DiskBasicDirItemAttr;
-import l3diskex.basicfmt.DiskBasicDirItemFROST;
 import l3diskex.basicfmt.DiskBasicDirItemMAGICAL;
 import l3diskex.basicfmt.DiskBasicDirItemMAGICAL.en_data_type_magical;
 import l3diskex.basicfmt.DiskBasicDirItemMAGICAL.en_file_type_magical;
@@ -30,9 +25,6 @@ import l3diskex.basicfmt.DiskBasicError;
 import l3diskex.ui.IntNameBox;
 import l3diskex.ui.UiDirItem;
 
-import static l3diskex.basicfmt.DiskBasicDirItemFROST.FILETYPE_FROST_BAS;
-import static l3diskex.basicfmt.DiskBasicDirItemFROST.TYPE_NAME_FROST_UNKNOWN;
-import static l3diskex.basicfmt.DiskBasicDirItemFROST.gTypeNameFROST_1;
 import static l3diskex.basicfmt.DiskBasicDirItemMAGICAL.gTypeNameMAGICALMap;
 import static l3diskex.basicfmt.DiskBasicDirItemMAGICAL.gTypeNameMAGICAL_1;
 import static l3diskex.basicfmt.DiskBasicDirItemMAGICAL.gTypeNameMAGICAL_2;

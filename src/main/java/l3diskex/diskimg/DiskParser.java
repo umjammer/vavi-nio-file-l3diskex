@@ -22,11 +22,11 @@ public class DiskParser {
     /* -----------------------------------------------------------------
      *  Private data
      * ----------------------------------------------------------------- */
-    private Path filepath;      // replacement for Path
-    private InputStream stream;       // replacement for InputStream
-    private DiskImageFile file;          // parsed disk image
-    private DiskResult result;        // parsing result
-    private String imageType;    // image type string
+    private final Path filepath;      // replacement for Path
+    private final InputStream stream;       // replacement for InputStream
+    private final DiskImageFile file;          // parsed disk image
+    private final DiskResult result;        // parsing result
+    private final String imageType;    // image type string
 
     /* -----------------------------------------------------------------
      *  Constructors / Destructors

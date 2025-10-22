@@ -143,7 +143,7 @@ public class DiskVFDParser extends DiskImageParser {
         sector.clearModify();
 
         // このセクタデータのサイズを返す
-        return (int) sector.getSize();
+        return sector.getSize();
     }
 
     /// トラックデータの作成
@@ -236,7 +236,7 @@ public class DiskVFDParser extends DiskImageParser {
 
         if (this.result.getValid() >= 0) {
             // ディスクを追加
-            final DiskParam disk_param = disk.calcMajorNumber();
+            DiskParam disk_param = disk.calcMajorNumber();
             if (disk_param != null) {
                 disk.setDensity(disk_param.getParamDensity());
             }

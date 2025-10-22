@@ -130,7 +130,7 @@ public class DiskBasicDirItemC1541 extends DiskBasicDirItem<DirectoryC1541> {
         n = getFileNamePos(0, s, l);
         if (n != null && s[0] > 0) {
             int copySize = Math.min(s[0], size);
-            System.arraycopy(n, 0, filename, 0, (int)copySize);
+            System.arraycopy(n, 0, filename, 0, copySize);
         }
 
         length[0] = l[0];
@@ -231,7 +231,7 @@ public class DiskBasicDirItemC1541 extends DiskBasicDirItem<DirectoryC1541> {
         int[] s = {0}, l = {0};
         getFileNamePos(0, s, l);
 
-        return (int)s[0];
+        return s[0];
     }
 
     /// 属性を設定
@@ -290,9 +290,9 @@ public class DiskBasicDirItemC1541 extends DiskBasicDirItem<DirectoryC1541> {
     /// ファイルサイズを返す
     @Override
     public int getFileSize() {
-        int val = (int)groups.getSize();
+        int val = groups.getSize();
         if (val == 0) {
-            val = (int) getBlocks();
+            val = getBlocks();
             val *= (basic.getSectorSize() - 2);
         }
         return val;

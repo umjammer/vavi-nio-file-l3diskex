@@ -50,7 +50,7 @@ public class DiskBasicTypeMZ extends DiskBasicTypeMZBase {
         // Total size is 252 bytes
     }
 
-    private TempData temp = new TempData(); // Assuming TempData is a utility class for handling sector data/inversion
+    private final TempData temp = new TempData(); // Assuming TempData is a utility class for handling sector data/inversion
 
     public DiskBasicTypeMZ(DiskBasic basic, DiskBasicFat fat, DiskBasicDir dir) {
         super(basic, fat, dir);
@@ -79,7 +79,7 @@ public class DiskBasicTypeMZ extends DiskBasicTypeMZBase {
             return;
         }
         // FATには未使用使用テーブルがある
-        fatbuf.bit((int)pos, (byte)mask, val != 0, basic.isDataInverted());
+        fatbuf.bit(pos, (byte)mask, val != 0, basic.isDataInverted());
 
         // FATの使用済み最終クラスタ数を更新
         byte[] buf = fatbuf.getBuffer();
@@ -586,7 +586,7 @@ public class DiskBasicTypeMZ extends DiskBasicTypeMZBase {
             bb.put(1, (byte)(getSectorPosFromNum(1, 1, 1) / basic.getSectorsPerGroup()));
             // Offset 2 for 'used' short
             // 使用クラスタ数
-            bb.putShort(2, (short)bb.get(1)); // used = offset (assuming short casting is safe)
+            bb.putShort(2, bb.get(1)); // used = offset (assuming short casting is safe)
             // Offset 4 for 'all' short
             // 最大クラスタ数
             int all_groups = basic.getTracksPerSide() * basic.getSidesPerDiskOnBasic() * basic.getSectorsPerTrackOnBasic() / basic.getSectorsPerGroup();

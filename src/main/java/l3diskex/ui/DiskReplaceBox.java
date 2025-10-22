@@ -20,8 +20,8 @@ public class DiskReplaceBox extends JDialog {
     /*------------------------------
         Fields corresponding to the dialog widgets
     ------------------------------*/
-    private JCheckBox comDisk;
-    private List<DiskReplaceNumber> numDisk = new ArrayList<>();
+    private final JCheckBox comDisk;
+    private final List<DiskReplaceNumber> numDisk = new ArrayList<>();
 
     /*------------------------------
         Constants (IDs)

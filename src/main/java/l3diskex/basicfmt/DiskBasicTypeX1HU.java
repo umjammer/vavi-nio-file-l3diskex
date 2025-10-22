@@ -62,7 +62,7 @@ public class DiskBasicTypeX1HU extends DiskBasicType {
         // 8bit FAT + 8bit
         for(int i=0; i<fatbufs.size(); i++) {
             DiskBasicFatBuffer fatbuf = fatbufs.get(i);
-            int half_size = (int)(fatbuf.getSize() >> 1);
+            int half_size = fatbuf.getSize() >> 1;
             if (num < half_size) {
                 new_num = basic.invertUint8((byte) fatbuf.get(num));
                 if (basic.getFatEndGroup() >= 0x80) {
@@ -108,12 +108,12 @@ public class DiskBasicTypeX1HU extends DiskBasicType {
         }
 
         int end = basic.getFatEndGroup();
-        int[] tbl = new int[(int) end + 1];
+        int[] tbl = new int[end + 1];
         for (int i = 0; i < tbl.length; i++) tbl[i] = 0;
         for (int pos = 0; pos <= end; pos++) {
             int gnum = getGroupNumber(pos);
             if (gnum > 0 && gnum <= end) {
-                tbl[(int) gnum]++;
+                tbl[gnum]++;
             }
         }
         for (int i = 0; i < tbl.length; i++) {
@@ -162,7 +162,7 @@ public class DiskBasicTypeX1HU extends DiskBasicType {
         if (basic.getFatEndGroup() == 0) {
             int end = basic.getFatEndGroup();
             // calculate
-            basic.diskBasicParam.setFatEndGroup((int) end);
+            basic.diskBasicParam.setFatEndGroup(end);
         }
         return 1.0;
     }
@@ -207,7 +207,7 @@ public class DiskBasicTypeX1HU extends DiskBasicType {
         if (group_num > basic.diskBasicParam.getGroupSystemCode()) {
             group_num -= basic.diskBasicParam.getGroupFinalCode();
         }
-        return (int) (group_num * basic.getSectorsPerGroup());
+        return group_num * basic.getSectorsPerGroup();
     }
 
     /** グループ番号から最終セクタ番号を得る */

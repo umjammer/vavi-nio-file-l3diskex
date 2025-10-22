@@ -15,11 +15,11 @@ import java.awt.*;
 public class UiDiskRPanel extends JSplitPane {
 
     /* ------------- メンバ変数 ---------------------------- */
-    private Component parent;
-    private UiDiskFrame frame;
+    private final Component parent;
+    private final UiDiskFrame frame;
 
-    private UiDiskDiskAttr diskattr;
-    private UiDiskRBPanel  bpanel;   // 下部パネル
+    private final UiDiskDiskAttr diskattr;
+    private final UiDiskRBPanel  bpanel;   // 下部パネル
 
     /* ---------------- コンストラクタ -------------------- */
     public UiDiskRPanel(UiDiskFrame parentframe, Component parentwindow, int selected_window) {
@@ -83,12 +83,12 @@ public class UiDiskRPanel extends JSplitPane {
     public static class UiDiskRBPanel extends JSplitPane {
 
         /* ------------- メンバ変数 ---------------------------- */
-        private UiDiskRPanel parent;
-        private UiDiskFrame frame;
+        private final UiDiskRPanel parent;
+        private final UiDiskFrame frame;
 
-        private UiDiskFileList filelist;
-        private UiDiskRawPanel rawpanel;
-        private JPanel proppanel;   // 省略
+        private final UiDiskFileList filelist;
+        private final UiDiskRawPanel rawpanel;
+        private final JPanel proppanel;   // 省略
 
         /* ---------------- コンストラクタ -------------------- */
         public UiDiskRBPanel(UiDiskFrame parentframe, UiDiskRPanel parentwindow, int selected_window) {

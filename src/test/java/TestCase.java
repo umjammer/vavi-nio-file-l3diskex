@@ -9,8 +9,7 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import l3diskex.diskimg.DiskImage.DiskImageDisk;
-import l3diskex.diskimg.DiskImage.DiskImageDiskHeader;
+import l3diskex.diskimg.DiskImage;
 import l3diskex.diskimg.DiskImage.DiskImageFile;
 import l3diskex.diskimg.DiskParam;
 import l3diskex.diskimg.DiskParser;
@@ -45,22 +44,8 @@ public class TestCase {
 
     @Test
     void test2() throws Exception {
-        DiskImageFile file = new DiskImageFile() {
-            @Override
-            public DiskImageDisk newImageDisk(int nNum) {
-                return null;
-            }
-
-            @Override
-            public DiskImageDisk newImageDisk(int nNum, DiskParam nParam, String nDiskname, boolean nWriteProtect) {
-                return null;
-            }
-
-            @Override
-            public DiskImageDisk newImageDisk(int nNum, DiskImageDiskHeader nHeader) {
-                return null;
-            }
-        };
+        DiskImage diskImage =
+        DiskImageFile file = null;
         DiskResult result = new DiskResult();
         DiskParser parser = new DiskParser("example.d88", null, file, result);
 

@@ -37,14 +37,14 @@ public class UiDiskDiskAttr extends JPanel {
     /* -- */
     /*                              Fields                                    */
     /* -- */
-    private JComponent parent;          // parent window (JWindow equivalent)
-    private UiDiskFrame frame;          // reference to the main frame
+    private final JComponent parent;          // parent window (JWindow equivalent)
+    private final UiDiskFrame frame;          // reference to the main frame
 
-    private JTextArea   txtAttr;        // disk description area
-    private JButton     btnChange;      // “Change” button
-    private JComboBox<String> comDensity;  // density selector
-    private JCheckBox  chkWprotect;      // write‑protect checkbox
-    private JPanel      szrButtons;      // horizontal box for buttons
+    private final JTextArea   txtAttr;        // disk description area
+    private final JButton     btnChange;      // “Change” button
+    private final JComboBox<String> comDensity;  // density selector
+    private final JCheckBox  chkWprotect;      // write‑protect checkbox
+    private final JPanel      szrButtons;      // horizontal box for buttons
 
     private DiskImageDisk p_disk;        // current disk image
 

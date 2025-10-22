@@ -4,11 +4,6 @@
 
 package l3diskex.ui;
 
-import java.awt.FlowLayout;
-import java.awt.event.ActionEvent;
-import javax.swing.JDialog;
-import javax.swing.JPanel;
-
 
 import javax.swing.*;
 import java.awt.*;
@@ -28,7 +23,7 @@ public class FileSelBox extends JDialog {
     /* ------------------------------------------------------------
      *  1. メンバ変数
      * ------------------------------------------------------------ */
-    private JComboBox<String> comFile;      // ファイル選択用コンボボックス
+    private final JComboBox<String> comFile;      // ファイル選択用コンボボックス
 
     /* ------------------------------------------------------------
      *  2. 定数
@@ -151,8 +146,8 @@ public class FileSelBox extends JDialog {
 
     /** 1 つのファイル形式情報 */
     private static class FileFormat {
-        private String name;
-        private String description;
+        private final String name;
+        private final String description;
 
         public FileFormat(String name, String description) {
             this.name = name;

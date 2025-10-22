@@ -202,7 +202,7 @@ public class ConfigBox extends JDialog {
     }
 
     /*  GUI components  */
-    private Config ini;
+    private final Config ini;
 
     private JCheckBox chkTrimData;
     private JCheckBox chkShowDelFile;

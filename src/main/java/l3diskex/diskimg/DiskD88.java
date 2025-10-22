@@ -273,9 +273,9 @@ public class DiskD88 {
 
     static class DiskD88Sector extends DiskImageSector {
 
-        private DiskD88SectorHeader m_header = new DiskD88SectorHeader();
+        private final DiskD88SectorHeader m_header = new DiskD88SectorHeader();
         private byte[] data;
-        private DiskD88SectorHeader m_header_origin = new DiskD88SectorHeader();
+        private final DiskD88SectorHeader m_header_origin = new DiskD88SectorHeader();
         private byte[] data_origin;
 
         public DiskD88Sector(int n_num, DiskImageSectorHeader n_header, byte[] n_data) {
@@ -768,10 +768,10 @@ public class DiskD88 {
 
     public static class DiskD88Disk extends DiskImageDisk {
 
-        private DiskD88DiskHeader m_header = new DiskD88DiskHeader();
-        private DiskD88DiskHeader m_header_origin = new DiskD88DiskHeader();
+        private final DiskD88DiskHeader m_header = new DiskD88DiskHeader();
+        private final DiskD88DiskHeader m_header_origin = new DiskD88DiskHeader();
         private boolean m_modified;
-        private int m_offset_start;
+        private final int m_offset_start;
 
         public DiskD88Disk(DiskImageFile file, int n_num) {
             super(file, n_num);
@@ -878,6 +878,7 @@ public class DiskD88 {
             return m_header.getDiskSize();
         }
 
+        @Override
         public void setSize(int val) {
             m_header.setDiskSize(val);
         }
@@ -889,6 +890,7 @@ public class DiskD88 {
             return size;
         }
 
+        @Override
         public void setSizeWithoutHeader(int val) {
             m_header.setDiskSize(val + m_offset_start);
         }
@@ -898,10 +900,12 @@ public class DiskD88 {
             return m_header.getOffset(num);
         }
 
+        @Override
         public void setOffset(int num, int offset) {
             m_header.setOffset(num, offset);
         }
 
+        @Override
         public void setOffsetWithoutHeader(int num, int offset) {
             m_header.setOffset(num, offset + m_offset_start);
         }

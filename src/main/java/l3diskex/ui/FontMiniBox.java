@@ -24,21 +24,21 @@ public class FontMiniBox extends JDialog {
     /* ---------------------------------------------------------------- */
     /*  GUI components
      * ---------------------------------------------------------------- */
-    private JComboBox<String>   comFontName;
-    private JComboBox<String>   comFontSize;
-    private JButton             btnDefault;
+    private final JComboBox<String>   comFontName;
+    private final JComboBox<String>   comFontSize;
+    private final JButton             btnDefault;
 
     /* ---------------------------------------------------------------- */
     /*  Data containers – equivalent to ArrayList<String>
      * ---------------------------------------------------------------- */
-    private java.util.List<String> mFontNames = new ArrayList<>();
-    private java.util.List<String> mFontSizes = new ArrayList<>();
+    private final java.util.List<String> mFontNames = new ArrayList<>();
+    private final java.util.List<String> mFontSizes = new ArrayList<>();
 
     /* ---------------------------------------------------------------- */
     /*  Font data – the default font that is passed in, and the
      *  currently selected name/size.
      * ---------------------------------------------------------------- */
-    private Font               mDefaultFont;
+    private final Font               mDefaultFont;
     private String             mSelectedName;
     private int                mSelectedSize;
 
@@ -218,7 +218,7 @@ public class FontMiniBox extends JDialog {
             int val = Long.parseLong(sizeText);
             if (val < 1) val = 1;
             if (val > 99) val = 99;
-            mSelectedSize = (int) val;
+            mSelectedSize = val;
         } catch (NumberFormatException nfe) {
             mSelectedSize = 12;                 // fallback
         }

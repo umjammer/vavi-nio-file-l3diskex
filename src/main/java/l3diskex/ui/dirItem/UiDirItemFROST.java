@@ -20,7 +20,6 @@ import l3diskex.ui.IntNameBox;
 import l3diskex.ui.UiDirItem;
 
 import static l3diskex.basicfmt.DiskBasicDirItemFROST.FILETYPE_FROST_BAS;
-import static l3diskex.basicfmt.DiskBasicDirItemFROST.TYPE_NAME_FROST_UNKNOWN;
 import static l3diskex.basicfmt.DiskBasicDirItemFROST.gTypeNameFROST_1;
 
 

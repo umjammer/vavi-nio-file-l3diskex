@@ -317,7 +317,7 @@ public class BasicFat {
     public static class DiskBasicFatBuffer {
 
         /** バッファサイズ */
-        private int size;
+        private final int size;
         /** バッファポインタ（セクタ内の開始ポインタ）*/
         private final byte[] buffer;
 

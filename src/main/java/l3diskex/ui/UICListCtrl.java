@@ -119,13 +119,13 @@ public class UICListCtrl extends JList {
         }
     }
 
-    private UiDiskFrame frame;
-    private List<MyCListColumn> columns = new ArrayList<>();
-    private List<Integer> indexes = new ArrayList<>();
+    private final UiDiskFrame frame;
+    private final List<MyCListColumn> columns = new ArrayList<>();
+    private final List<Integer> indexes = new ArrayList<>();
     private int idOnFirstColumn;
-    private int iconSortDown;
-    private int iconSortUp;
-    private Config ini;
+    private final int iconSortDown;
+    private final int iconSortUp;
+    private final Config ini;
 
     public UICListCtrl(UiDiskFrame parentframe, Window parent, int id,
                        ListColumns[] columns, int iconSortDown, int iconSortUp,
@@ -200,7 +200,7 @@ public class UICListCtrl extends JList {
 }
 
 class MyCListRow {
-    private List<MyCListValue> values = new ArrayList<>();
+    private final List<MyCListValue> values = new ArrayList<>();
     private int data;
 
     public MyCListRow() {
@@ -299,7 +299,7 @@ class MyCListRows extends ArrayList<MyCListRow> {
             public int compare(MyCListRow item1, MyCListRow item2) {
                 int i1 = item1.getData();
                 int i2 = item2.getData();
-                return fnSortCallBack.compare((int)i1, (int)i2, sortData);
+                return fnSortCallBack.compare(i1, i2, sortData);
             }
         });
 
@@ -372,7 +372,7 @@ class MyCListCtrl extends JTable {
     }
 
     public void selectListItem(int item) {
-        setRowSelectionInterval((int)item, (int)item);
+        setRowSelectionInterval(item, item);
     }
 
     public void selectListRow(int row) {
@@ -384,7 +384,7 @@ class MyCListCtrl extends JTable {
     }
 
     public void unselectListItem(int item) {
-        removeRowSelectionInterval((int)item, (int)item);
+        removeRowSelectionInterval(item, item);
     }
 
     public int getListFocusedItem() {
@@ -392,12 +392,12 @@ class MyCListCtrl extends JTable {
     }
 
     public void focusListItem(int item) {
-        setRowSelectionInterval((int)item, (int)item);
-        scrollRectToVisible(getCellRect((int)item, 0, true));
+        setRowSelectionInterval(item, item);
+        scrollRectToVisible(getCellRect(item, 0, true));
     }
 
     public void editListItem(int item) {
-        editCellAt((int)item, 0);
+        editCellAt(item, 0);
     }
 
     public boolean deleteAllListItems() {
@@ -408,7 +408,7 @@ class MyCListCtrl extends JTable {
 
     public int getListItemData(int item) {
         TableModel model = getModel();
-        return (long)model.getValueAt((int)item, getColumnCount() - 1);
+        return (long)model.getValueAt(item, getColumnCount() - 1);
     }
 
     public int getListItemDataByRow(int row) {
@@ -459,6 +459,7 @@ class TableHeaderRenderer extends DefaultTableCellRenderer {
         return c;
     }
 
+    @Override
     public void setText(String text) {
         this.text = text;
     }
@@ -467,7 +468,7 @@ class TableHeaderRenderer extends DefaultTableCellRenderer {
 // ListCtrl event handling
 class ListEvent extends EventObject {
     public static final int COLUMN_SORTED = 1;
-    private int column;
+    private final int column;
 
     public ListEvent(int type, int column) {
         super(type);
@@ -487,12 +488,12 @@ enum ListColumnFormat {
 
 // filepath: ListColumns.java
 class ListColumns {
-    private String name;
-    private String label;
-    private int width;
-    private int align;
-    private boolean haveIcon;
-    private boolean sortable;
+    private final String name;
+    private final String label;
+    private final int width;
+    private final int align;
+    private final boolean haveIcon;
+    private final boolean sortable;
 
     public ListColumns(String name, String label, int width, int align, boolean haveIcon, boolean sortable) {
         this.name = name;

@@ -34,6 +34,7 @@ public class DiskBasicTypeL31S extends DiskBasicTypeFAT8F {
      * @param isFormatting {@code true} when formatting the disk.
      * @return 1.0 – success, 0.0–1.0 – warnings, <0.0 – error
      */
+    @Override
     public double parseParamOnDisk(boolean isFormatting) {
         if (basic.diskBasicParam.getFatEndGroup() == 0) {
             int endGroup = basic.diskBasicParam.getTracksPerSideOnBasic()

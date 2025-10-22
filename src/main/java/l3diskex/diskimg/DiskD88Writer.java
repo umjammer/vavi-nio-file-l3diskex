@@ -45,6 +45,7 @@ public class DiskD88Writer extends DiskImageWriter {
      * @param sideNumber Side number (ignored by this class).
      * @return 0 on success, negative value on failure.
      */
+    @Override
     public int ValidateDisk(DiskImage image, int diskNumber, int sideNumber) {
         p_result.clear();
         DiskImageFile file = image.getFile();
@@ -99,6 +100,7 @@ public class DiskD88Writer extends DiskImageWriter {
      * @param ostream   Destination stream
      * @return 0 on success, negative value on failure
      */
+    @Override
     public int SaveDisk(DiskImage image, int diskNumber, int sideNumber,
                         OutputStream ostream) {
         p_result.clear();

@@ -55,8 +55,8 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySdos> {
             put("???", FILETYPE_SDOS_UNKNOWN);
     }};
   
-    private DiskBasicDirData<DirectorySdos> m_data = new DiskBasicDirData<>();
-    private DirItemSectorBoundary m_sdata = new DirItemSectorBoundary();
+    private final DiskBasicDirData<DirectorySdos> m_data = new DiskBasicDirData<>();
+    private final DirItemSectorBoundary m_sdata = new DirItemSectorBoundary();
 
     // Constants for GUI component IDs (from cpp)
     public static final int IDC_COMBO_TYPE1 = 51;

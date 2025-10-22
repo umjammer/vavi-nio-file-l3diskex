@@ -55,7 +55,8 @@ public class DiskBasicDirItemMAGICAL extends DiskBasicDirItemXDOSBase<DirectoryM
         TYPE_NAME_MAGICAL_CGP,
         TYPE_NAME_MAGICAL_BGM,
         TYPE_NAME_MAGICAL_UNKNOWN,
-    };
+    }
+
     public enum en_file_type_magical {
         FILETYPE_MAGICAL_SYS(0x01),
         FILETYPE_MAGICAL_BAS(0x22),
@@ -77,14 +78,14 @@ public class DiskBasicDirItemMAGICAL extends DiskBasicDirItemXDOSBase<DirectoryM
         FILETYPE_MAGICAL_UNKNOWN(0x80);
         final int v;
         en_file_type_magical(int v) { this.v = v; }
-    };
+    }
 
     public enum en_type_name_magical_2 {
         TYPE_NAME_MAGICAL_READONLY,
         TYPE_NAME_MAGICAL_HIDDEN,
         TYPE_NAME_MAGICAL_SYSTEM,
         TYPE_NAME_MAGICAL_SUPER,
-    };
+    }
 
     public enum en_data_type_magical {
         DATATYPE_MAGICAL_MASK_b(0x00),
@@ -190,8 +191,8 @@ public class DiskBasicDirItemMAGICAL extends DiskBasicDirItemXDOSBase<DirectoryM
     };
 
 
-    private DiskBasicDirData<DirectoryMagical> m_data = new DiskBasicDirData<>();
-    private DirItemSectorBoundary m_sdata = new DirItemSectorBoundary();
+    private final DiskBasicDirData<DirectoryMagical> m_data = new DiskBasicDirData<>();
+    private final DirItemSectorBoundary m_sdata = new DirItemSectorBoundary();
 
     public DiskBasicDirItemMAGICAL(DiskBasic basic) {
         super(basic);

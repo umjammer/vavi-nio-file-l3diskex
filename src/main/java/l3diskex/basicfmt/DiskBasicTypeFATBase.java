@@ -98,7 +98,7 @@ public class DiskBasicTypeFATBase extends DiskBasicType {
     @Override
     public int calcManagedStartGroup() {
         managedStartGroup = 0;
-        return (int) managedStartGroup;
+        return managedStartGroup;
     }
 
     /**

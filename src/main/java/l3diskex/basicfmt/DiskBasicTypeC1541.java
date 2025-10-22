@@ -175,7 +175,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
          */
         public int getDiskName(byte[] buf, int len) {
             int copyLen = Math.min(len, m_bam.disk_name.length);
-            System.arraycopy(m_bam.disk_name, 0, buf, 0, (int)copyLen);
+            System.arraycopy(m_bam.disk_name, 0, buf, 0, copyLen);
             return m_bam.disk_name.length;
         }
 
@@ -184,7 +184,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
          */
         public void setDiskName(byte[] buf, int len) {
             int copyLen = Math.min(len, m_bam.disk_name.length);
-            System.arraycopy(buf, 0, m_bam.disk_name, 0, (int)copyLen);
+            System.arraycopy(buf, 0, m_bam.disk_name, 0, copyLen);
         }
 
         /**
@@ -229,9 +229,9 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
         }
     }
 
-    private C1541Bitmap c1541_bam = new C1541Bitmap();
-    private C1541SectorPosTrans sector_map = new C1541SectorPosTrans();
-    private DiskBasicTypeC1541.DataAccessor temp = new DataAccessor();
+    private final C1541Bitmap c1541_bam = new C1541Bitmap();
+    private final C1541SectorPosTrans sector_map = new C1541SectorPosTrans();
+    private final DiskBasicTypeC1541.DataAccessor temp = new DataAccessor();
 
     public DiskBasicTypeC1541(DiskBasic basic, DiskBasicFat fat, DiskBasicDir dir) {
         super(basic, fat, dir);
@@ -452,7 +452,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
             }
         }
 
-        file_size[0] += (int)group_items.count() * (basic.getSectorSize() - 2);
+        file_size[0] += group_items.count() * (basic.getSectorSize() - 2);
 
         size_remain[0] = 0;
         return 0;
@@ -463,7 +463,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
      */
     @Override
     public void getUsableDiskSize(int[] disk_size, int[] group_size) {
-        group_size[0] = (int)(basic.getFatEndGroup() + 1);
+        group_size[0] = basic.getFatEndGroup() + 1;
         disk_size[0] = group_size[0] * basic.getSectorSize();
     }
 
@@ -475,7 +475,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
         fatAvailability.empty();
 
         // BITMAP table
-        for (int sec_pos = 0; sec_pos <= (int)basic.getFatEndGroup(); sec_pos++) {
+        for (int sec_pos = 0; sec_pos <= basic.getFatEndGroup(); sec_pos++) {
             int[] trk_num = {0};
             int[] sec_num = {0};
             getNumFromSectorPosS(sec_pos, trk_num, sec_num);
@@ -509,7 +509,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
     public void setGroupNumber(int num, int val) {
         int[] trk_num = {0};
         int[] sec_num = {0};
-        getNumFromSectorPosS((int)num, trk_num, sec_num);
+        getNumFromSectorPosS(num, trk_num, sec_num);
         int trk_anum = trk_num[0] - basic.getTrackNumberBaseOnDisk();
         int sec_anum = sec_num[0] - basic.getSectorNumberBase();
         c1541_bam.modify(trk_anum, sec_anum, val != 0);
@@ -541,7 +541,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
 
     /** 空き位置を返す */
     private int getEmptyGroupNumberM(int method) {
-        final int[][] findtrkmap = {
+        int[][] findtrkmap = {
                 {0, 1, 2},
                 {2, 0, 1}
         };
@@ -717,7 +717,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
         // Directly manipulating the first two bytes of the sector buffer (C1541Ptr)
         int[] next_track_num = {0};
         int[] next_sector_num = {0};
-        getNumFromSectorPosS((int)append_group_num, next_track_num, next_sector_num);
+        getNumFromSectorPosS(append_group_num, next_track_num, next_sector_num);
 
         buffer[0] = (byte)(next_track_num[0] + C1541_START_TRACK_OFFSET);
         buffer[1] = (byte)(next_sector_num[0] + C1541_START_SECTOR_OFFSET);
@@ -805,7 +805,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
      */
     @Override
     public int getStartSectorFromGroup(int group_num) {
-        return (int)group_num;
+        return group_num;
     }
 
     /**
@@ -813,7 +813,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
      */
     @Override
     public int getEndSectorFromGroup(int group_num, int next_group, int sector_start, int sector_size, int remain_size) {
-        return (int)group_num;
+        return group_num;
     }
 
     /**
@@ -1103,7 +1103,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
         int bytes_per_group = basic.getSectorSize() - 2;
         DiskBasicGroups data_groups = item.getGroups();
 
-        int blocks = (int)data_groups.count();
+        int blocks = data_groups.count();
         int ss_max = blocks / 120;
         if (ss_max >= 6) {
             return;
@@ -1126,7 +1126,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
             }
             int[] track_num = {0};
             int[] side_num = {0};
-            DiskImageSector sector = basic.getSectorFromSectorPos((int)group_num, track_num, side_num);
+            DiskImageSector sector = basic.getSectorFromSectorPos(group_num, track_num, side_num);
             if (sector == null) {
                 return;
             }
@@ -1159,7 +1159,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
             side_sector.record_length = (byte)(rec_len & 0xff);
 
             int[] sec_num = {0};
-            getNumFromSectorPosS((int)group_num, track_num, sec_num);
+            getNumFromSectorPosS(group_num, track_num, sec_num);
             int tNum = track_num[0] + C1541_START_TRACK_OFFSET;
             int sNum = sec_num[0] + C1541_START_SECTOR_OFFSET;
 
@@ -1172,7 +1172,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
 
             // データへのポインタを設定
             for (int i = 0; i < 120 && data_pos < blocks; i++) {
-                getNumFromSectorPosS((int)data_groups.item(data_pos).group, track_num, sec_num);
+                getNumFromSectorPosS(data_groups.item(data_pos).group, track_num, sec_num);
                 tNum = track_num[0] + C1541_START_TRACK_OFFSET;
                 sNum = sec_num[0] + C1541_START_SECTOR_OFFSET;
 
@@ -1239,7 +1239,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
         // rtrim(name, sizeof(name), basic->GetDirSpaceCode());
         // For Java: manual trimming needed, or assume rtrim utility
         // For now, simple trimming:
-        int actualLen = (int)len;
+        int actualLen = len;
         while (actualLen > 0 && name[actualLen - 1] == basic.diskBasicParam.getDirSpaceCode()) {
             actualLen--;
         }

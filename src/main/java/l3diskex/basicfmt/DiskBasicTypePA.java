@@ -44,6 +44,6 @@ public class DiskBasicTypePA extends DiskBasicTypeN88 {
                     + (groupNum % sides) * grpPerTrk
                     + ((groupNum % grpPerSid) / sides);
 
-        return (int)(ngrp * basic.getSectorsPerGroup());
+        return ngrp * basic.getSectorsPerGroup();
     }
 }

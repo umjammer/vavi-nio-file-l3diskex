@@ -7,7 +7,6 @@ import java.time.LocalDate;
 
 import l3diskex.Utils;
 import l3diskex.basicfmt.BasicCommon.DirectoryCdos;
-import l3diskex.basicfmt.BasicCommon.DirectoryMz;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.BasicFat.DiskBasicFat;
 import l3diskex.basicfmt.BasicFat.DiskBasicFatBuffer;
@@ -168,7 +167,7 @@ public class DiskBasicTypeCDOS extends DiskBasicTypeMZBase<DirectoryCdos> {
         int gnum_start = 0;
         int gnum_end = ((basic.getManagedTrackNumber() + 1) * basic.getSectorsPerTrackOnBasic() * basic.getSidesPerDiskOnBasic());
         for(int gnum = gnum_start; gnum < gnum_end; gnum++) {
-            int pos = (int)gnum;
+            int pos = gnum;
             int[] mask = {0};
             int[] pos_arr = {pos};
             calcUsedGroupPos(gnum, pos_arr, mask);
@@ -179,7 +178,7 @@ public class DiskBasicTypeCDOS extends DiskBasicTypeMZBase<DirectoryCdos> {
         gnum_start = basic.getFatEndGroup() + 1;
         gnum_end = (0xb0 << 3);
         for(int gnum = gnum_start; gnum < gnum_end; gnum++) {
-            int pos = (int)gnum;
+            int pos = gnum;
             int[] mask = {0};
             int[] pos_arr = {pos};
             calcUsedGroupPos(gnum, pos_arr, mask);
@@ -602,7 +601,7 @@ public class DiskBasicTypeCDOS extends DiskBasicTypeMZBase<DirectoryCdos> {
     // Assuming a class to wrap the byte array and provide field access.
     // Since Java doesn't have packed structs, access will be via offsets.
     static class st_fat_cdos {
-        private byte[] data;
+        private final byte[] data;
         private static final int BITS_OFFSET = 0x00;
         private static final int BITS_SIZE = 0xae;
         private static final int EXDIR_OFFSET = BITS_OFFSET + BITS_SIZE;

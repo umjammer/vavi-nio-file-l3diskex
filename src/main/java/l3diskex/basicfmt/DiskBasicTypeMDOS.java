@@ -110,7 +110,7 @@ public class DiskBasicTypeMDOS extends DiskBasicTypeFAT16 {
                                         int sectorOffsrt, int sector_size,
                                         int remain_size) {
         if (item.needCheckEofCode()) {
-            byte eof_code = (byte) basic.invertUint8(basic.diskBasicParam.getTextTerminateCode());
+            byte eof_code = basic.invertUint8(basic.diskBasicParam.getTextTerminateCode());
             for (int len = 0; len < remain_size; len++) {
                 if (sector_buffer[len] == eof_code) {
                     remain_size = len;

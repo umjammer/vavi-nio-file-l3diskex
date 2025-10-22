@@ -22,7 +22,6 @@ import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JTextField;
-import javax.swing.JWindow;
 
 import l3diskex.diskimg.DiskImage.DiskImageDisk;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
@@ -43,14 +42,14 @@ import l3diskex.diskimg.DiskImage.DiskImageTrack;
 public class RawExpBox extends JDialog {
 
     /* -------------------- member variables -------------------- */
-    private JTextField[] txtTrack = new JTextField[2];
-    private JTextField[] txtSide = new JTextField[2];
-    private JTextField[] txtSector = new JTextField[2];
-    private JCheckBox chkInvData;
-    private JCheckBox chkRevSide;
+    private final JTextField[] txtTrack = new JTextField[2];
+    private final JTextField[] txtSide = new JTextField[2];
+    private final JTextField[] txtSector = new JTextField[2];
+    private final JCheckBox chkInvData;
+    private final JCheckBox chkRevSide;
 
-    private DiskImageDisk p_disk;
-    private int m_sel_side_num;
+    private final DiskImageDisk p_disk;
+    private final int m_sel_side_num;
 
     /* -------------------- constants (original enum) -------------------- */
     public static final int IDC_TEXT_TRACK_ST = 1;
@@ -174,21 +173,21 @@ public class RawExpBox extends JDialog {
         int val = 0;
         String str = txtTrack[num].GetValue();
         try { val = Long.parseLong(str); } catch (NumberFormatException e) {}
-        return (int)val;
+        return val;
     }
 
     public int GetSideNumber(int num) {
         int val = 0;
         String str = txtSide[num].GetValue();
         try { val = Long.parseLong(str); } catch (NumberFormatException e) {}
-        return (int)val;
+        return val;
     }
 
     public int GetSectorNumber(int num) {
         int val = 0;
         String str = txtSector[num].GetValue();
         try { val = Long.parseLong(str); } catch (NumberFormatException e) {}
-        return (int)val;
+        return val;
     }
 
     public boolean InvertData() {

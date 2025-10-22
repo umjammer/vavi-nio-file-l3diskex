@@ -4,7 +4,6 @@ import java.awt.Point;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JTree;
-import javax.swing.JWindow;
 import javax.swing.tree.TreeNode;
 
 

@@ -49,7 +49,7 @@ public class UiDirItemOS9 extends UiDirItem {
     /**
      * ダイアログ内の属性部分のレイアウトを作成
      */
-    public void CreateControlsForAttrDialog(IntNameBox parent, int show_flags, final String file_path, BoxLayout sizer, Object flags) {
+    public void CreateControlsForAttrDialog(IntNameBox parent, int show_flags, String file_path, BoxLayout sizer, Object flags) {
         int file_type_1 = dirItem.getFileType1Pos();
         // int file_type_2 = 0;
         int user_id = dirItem.GetUserID();
@@ -100,7 +100,7 @@ public class UiDirItemOS9 extends UiDirItem {
     /**
      * 機種依存の属性を設定する
      */
-    public boolean SetAttrInAttrDialog(final IntNameBox parent, DiskBasicDirItemAttr attr, DiskBasicError errinfo) {
+    public boolean SetAttrInAttrDialog(IntNameBox parent, DiskBasicDirItemAttr attr, DiskBasicError errinfo) {
         // Placeholder for getting values from dialog controls:
         boolean chkDirectoryValue = false;
         boolean chkSharableValue = false;
@@ -133,7 +133,7 @@ public class UiDirItemOS9 extends UiDirItem {
     /**
      * ダイアログ入力後のファイル名チェック
      */
-    public boolean ValidateFileName(final JWindow parent, final String filename, String errormsg) {
+    public boolean ValidateFileName(JWindow parent, String filename, String errormsg) {
         boolean valid = true;
         String name = filename;
         // ".",".."は設定できない

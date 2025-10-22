@@ -74,7 +74,7 @@ public class UiDirItemAppleDOS extends UiDirItem {
      * @param name        ファイル名
      * @param file_type_1 CreateControlsForAttrDialog()に渡す
      */
-    public void SetFileTypeForAttrDialog(int show_flags, final String name, int[] file_type_1) {
+    public void SetFileTypeForAttrDialog(int show_flags, String name, int[] file_type_1) {
         if ((show_flags & IntNameBox.INTNAME_NEW_FILE) != 0) {
             // 外部からインポート時
             // 拡張子で属性を設定する
@@ -106,7 +106,7 @@ public class UiDirItemAppleDOS extends UiDirItem {
      * @param flags
      */
     @Override
-    public void createControlsForAttrDialog(IntNameBox parent, int show_flags, final String file_path, BoxLayout sizer, Object flags) {
+    public void createControlsForAttrDialog(IntNameBox parent, int show_flags, String file_path, BoxLayout sizer, Object flags) {
         int[] file_type_1 = {dirItem.getFileType1()};
         JTextField radType1;
         JCheckBox chkReadOnly;
@@ -131,6 +131,7 @@ public class UiDirItemAppleDOS extends UiDirItem {
     }
 
     /** 属性を変更した際に呼ばれるコールバック */
+    @Override
     public void changeTypeInAttrDialog(IntNameBox parent) {
     }
 
@@ -143,7 +144,7 @@ public class UiDirItemAppleDOS extends UiDirItem {
      * @return true 成功
      */
     @Override
-    public boolean setAttrInAttrDialog(final IntNameBox parent, DiskBasicDirItemAttr attr, DiskBasicError errinfo) {
+    public boolean setAttrInAttrDialog(IntNameBox parent, DiskBasicDirItemAttr attr, DiskBasicError errinfo) {
         ButtonGroup radType1 = (ButtonGroup) parent.getComponent(IDC_RADIO_TYPE1);
         JCheckBox chkReadOnly = (JCheckBox) parent.getComponent(IDC_CHECK_READONLY);
 
@@ -186,7 +187,7 @@ public class UiDirItemAppleDOS extends UiDirItem {
      * @param errormsg エラーメッセージ
      * @return true 適正
      */
-    public boolean validateFileName(final JWindow parent, final String filename, String[] errormsg) {
+    public boolean validateFileName(JWindow parent, String filename, String[] errormsg) {
         //	Path fn(filename);
         //	if (fn.GetExt().IsEmpty()) {
         //		errormsg = wxGetTranslation(gDiskBasicErrorMsgs[DiskBasicError::ERR_FILEEXT_EMPTY]);
@@ -203,7 +204,8 @@ public class UiDirItemAppleDOS extends UiDirItem {
      * @param limit  [out] 制限サイズ
      * @return true 適正
      */
-    public boolean isFileValidSize(final IntNameBox parent, int size, int[] limit) {
+    @Override
+    public boolean isFileValidSize(IntNameBox parent, int size, int[] limit) {
         int limit_size = APLEDOS_TRACK_LIST_MAX * dirItem.getBasic().getSectorSize() - 1;
         if (limit != null && limit.length > 0) limit[0] = limit_size;
         return limit_size >= size;

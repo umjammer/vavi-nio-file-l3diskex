@@ -54,7 +54,7 @@ public class DiskBasicDirItemHU68K extends DiskBasicDirItemMSDOS {
     }
 
     /** The underlying data of this directory item. */
-    private BasicDirItemData m_data = new BasicDirItemData();
+    private final BasicDirItemData m_data = new BasicDirItemData();
 
     /*------------------------------------------------------------------
      *  Constructors

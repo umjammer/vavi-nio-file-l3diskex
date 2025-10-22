@@ -61,7 +61,7 @@ public class DiskBasicDirItemTFDOS extends DiskBasicDirItemMZBase<DirectoryTfdos
     public static final int DATATYPE_TFDOS_HIDDEN = 0x40;
     public static final int DATATYPE_TFDOS_READ_ONLY = 0x80;
 
-    private DiskBasicDirData<DirectoryTfdos> m_data;
+    private final DiskBasicDirData<DirectoryTfdos> m_data;
     public int m_show_flags;
 
     public DiskBasicDirItemTFDOS(DiskBasic basic) {
@@ -139,7 +139,7 @@ public class DiskBasicDirItemTFDOS extends DiskBasicDirItemMZBase<DirectoryTfdos
 
     @Override
     public boolean delete() {
-        m_data.fill((byte)basic.invertUint8(basic.diskBasicParam.getDeleteCode()), 1);
+        m_data.fill(basic.invertUint8(basic.diskBasicParam.getDeleteCode()), 1);
         used(false);
         return true;
     }
@@ -225,7 +225,7 @@ public class DiskBasicDirItemTFDOS extends DiskBasicDirItemMZBase<DirectoryTfdos
 
     @Override
     protected void setFileSizeBase(int val) {
-        m_data.data().fileSize = (short)basic.invertAndOrderUint16((short) val);
+        m_data.data().fileSize = basic.invertAndOrderUint16((short) val);
     }
 
     @Override
@@ -245,12 +245,12 @@ public class DiskBasicDirItemTFDOS extends DiskBasicDirItemMZBase<DirectoryTfdos
 
     @Override
     public void setStartAddress(int val) {
-        m_data.data().loadAddr = (short)basic.invertAndOrderUint16((short) val);
+        m_data.data().loadAddr = basic.invertAndOrderUint16((short) val);
     }
 
     @Override
     public void setExecuteAddress(int val) {
-        m_data.data().execAddr = (short)basic.invertAndOrderUint16((short) val);
+        m_data.data().execAddr = basic.invertAndOrderUint16((short) val);
     }
 
     @Override
@@ -277,7 +277,7 @@ public class DiskBasicDirItemTFDOS extends DiskBasicDirItemMZBase<DirectoryTfdos
 
     @Override
     public void setStartGroup(int fileunit_num, int val, int size) {
-        m_data.data().track = (byte)basic.invertUint8((byte) (val & 0xff));
+        m_data.data().track = basic.invertUint8((byte) (val & 0xff));
     }
 
     @Override

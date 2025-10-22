@@ -63,18 +63,18 @@ public class DiskParamBox extends JDialog {
     private JTextField txtDiskName;
     private JComboBox<String> comDensity;
     private JCheckBox chkWprotect;
-    private ButtonGroup[] radSingle = new ButtonGroup[4];
+    private final ButtonGroup[] radSingle = new ButtonGroup[4];
     private JTextField txtSingleSectors;
     private JComboBox<String> comSingleSecSize;
 
-    private DiskImage diskImage;
-    private OpeFlags opeFlags;
-    private int showFlags;
-    private DiskBasicParamPtrs diskParams;
-    private DiskParam manualParam;
+    private final DiskImage diskImage;
+    private final OpeFlags opeFlags;
+    private final int showFlags;
+    private final DiskBasicParamPtrs diskParams;
+    private final DiskParam manualParam;
     private boolean nowManualSetting;
 
-    private ArrayList<String> typeNames = new ArrayList<>();
+    private final ArrayList<String> typeNames = new ArrayList<>();
 
     private static final String[] NUMBER_SECTOR = {
             "By each side (default)",

@@ -29,9 +29,9 @@ import static l3diskex.basicfmt.DiskBasicDirItemTRSDOS.FILETYPE_MASK_TRSDOS_SYST
 public class DiskBasicTypeTRSDOS<T extends DirectoryT> extends DiskBasicType<T> {
 
     public static class TRSDOS_GAT {
-        private byte[] m_buffer;
-        private int m_size;
-        private int m_groups_per_track;
+        private final byte[] m_buffer;
+        private final int m_size;
+        private final int m_groups_per_track;
 
         public TRSDOS_GAT() {
             m_buffer = null;
@@ -46,8 +46,8 @@ public class DiskBasicTypeTRSDOS<T extends DirectoryT> extends DiskBasicType<T> 
         }
 
         public void modify(int num, boolean val) {
-            int pos = (int)num / m_groups_per_track;
-            int bit = (int)num % m_groups_per_track;
+            int pos = num / m_groups_per_track;
+            int bit = num % m_groups_per_track;
             if (val) {
                 m_buffer[pos] = (byte)((m_buffer[pos] | (1 << bit)));
             } else {
@@ -56,14 +56,14 @@ public class DiskBasicTypeTRSDOS<T extends DirectoryT> extends DiskBasicType<T> 
         }
 
         public boolean isSet(int num) {
-            int pos = (int)num / m_groups_per_track;
-            int bit = (int)num % m_groups_per_track;
+            int pos = num / m_groups_per_track;
+            int bit = num % m_groups_per_track;
             return ((m_buffer[pos] & (1 << bit)) != 0);
         }
 
         public void getPos(int num, int[] pos, int[] bit) {
-            pos[0] = (int)num / m_groups_per_track;
-            bit[0] = (int)num % m_groups_per_track;
+            pos[0] = num / m_groups_per_track;
+            bit[0] = num % m_groups_per_track;
         }
 
         public byte[] getBuffer() {
@@ -228,7 +228,7 @@ public class DiskBasicTypeTRSDOS<T extends DirectoryT> extends DiskBasicType<T> 
             return -1.0;
         }
         trsdos_gat_t gat_sector = (trsdos_gat_t)(Object)sector.getSectorBuffer(); // Type cast placeholder
-        String volname = new String(gat_sector.name, 0, gat_sector.name.length);
+        String volname = new String(gat_sector.name);
         if (!volname.chars().allMatch(ch -> ch < 128)) {
             return -1.0;
         }
@@ -406,7 +406,7 @@ public class DiskBasicTypeTRSDOS<T extends DirectoryT> extends DiskBasicType<T> 
 
         byte[] volname = data.getVolumeName().toUpperCase().getBytes();
         int len = Math.min(gat_sector.name.length, volname.length);
-        Arrays.fill(gat_sector.name, (byte) basic.diskBasicParam.getDirSpaceCode());
+        Arrays.fill(gat_sector.name, basic.diskBasicParam.getDirSpaceCode());
         System.arraycopy(volname, 0, gat_sector.name, 0, len);
 
         LocalDate tm = Utils.convDateStrToTm(data.getVolumeDate());

@@ -26,9 +26,9 @@ public class FileParam {
      *  FileFormat
      */
     public static class FileFormat {
-        private int    m_idx;          // index inside the list
+        private final int    m_idx;          // index inside the list
         private String m_name;         // file type ("d88","plain",...)
-        private String m_description;  // description
+        private final String m_description;  // description
 
         public FileFormat() {
             m_idx = 0;
@@ -89,7 +89,7 @@ public class FileParam {
      */
     public static class FileParamFormat {
         private String        m_type;   // file type ("d88","plain",...)
-        private List<DiskTypeHint> m_hints;  // list of hints
+        private final List<DiskTypeHint> m_hints;  // list of hints
 
         public FileParamFormat() {
             m_type = "";
@@ -168,9 +168,9 @@ public class FileParam {
      *  WildCard
      */
     public static class WildCard {
-        private String m_format;
-        private String m_ext;
-        private String m_card;
+        private final String m_format;
+        private final String m_ext;
+        private final String m_card;
 
         public WildCard() {
             m_format = "";
@@ -195,12 +195,12 @@ public class FileParam {
      *  FileTypes
      */
     public static class FileTypes /* extends TemplatesBase */ {
-        private List<FileFormat> formats = new ArrayList<>(); // file formats
-        private List<FileParam> types   = new ArrayList<>();  // file parameters
+        private final List<FileFormat> formats = new ArrayList<>(); // file formats
+        private final List<FileParam> types   = new ArrayList<>();  // file parameters
 
         private String          wcardForLoad = "";   // wildcard for loading
-        private List<WildCard> wcardForSave = new ArrayList<>(); // wildcards for saving
-        private List<Integer> idxForSave = new ArrayList<>(); // order of wildcards at save
+        private final List<WildCard> wcardForSave = new ArrayList<>(); // wildcards for saving
+        private final List<Integer> idxForSave = new ArrayList<>(); // order of wildcards at save
 
         /*
          *  MakeWildcard() – internal helper
@@ -231,13 +231,12 @@ public class FileParam {
             }
 
             // Build the load wildcard
-            StringBuilder sbLoad = new StringBuilder();
-            sbLoad.append("*.");
-            sbLoad.append(String.join(", *.", exts.get(0)));
-            sbLoad.append("|*.");
-            sbLoad.append(String.join(", *.", exts.get(0)));
+            String sbLoad = "*." +
+                    String.join(", *.", exts.get(0)) +
+                    "|*." +
+                    String.join(", *.", exts.get(0));
 
-            wcardForLoad = sbLoad.toString();
+            wcardForLoad = sbLoad;
 
             // Build the save wildcards
             wcardForSave.clear();
@@ -471,9 +470,9 @@ public class FileParam {
         /*
          *  Public API
          **/
-        public FileParam getItemPtr(int index) { return types.get((int) index); }
+        public FileParam getItemPtr(int index) { return types.get(index); }
 
-        public FileParam getItem(int index) { return types.get((int) index); }
+        public FileParam getItem(int index) { return types.get(index); }
 
         public int count() { return types.size(); }
     }

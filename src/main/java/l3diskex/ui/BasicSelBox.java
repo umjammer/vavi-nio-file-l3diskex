@@ -48,10 +48,10 @@ public class BasicSelBox extends JDialog {
     // ------
     //  UI / data members
     // ------
-    private JComboBox<String> comBasic;                // list box
-    private VolumeCtrl volumeCtrl = new VolumeCtrl();  // volume controls
-    private DiskBasicParamPtrs params = new DiskBasicParamPtrs();
-    private DiskImageDisk p_disk;                      // disk passed in ctor
+    private final JComboBox<String> comBasic;                // list box
+    private final VolumeCtrl volumeCtrl = new VolumeCtrl();  // volume controls
+    private final DiskBasicParamPtrs params = new DiskBasicParamPtrs();
+    private final DiskImageDisk p_disk;                      // disk passed in ctor
 
     // ------
     //  Constructor (mirrors the C++ BasicSelBox constructor)
@@ -198,8 +198,8 @@ public class BasicSelBox extends JDialog {
     // ------
     private class VolumeCtrl {
         private static final int VOLUME_ROWS = 3;
-        private JLabel[] lblVolume = new JLabel[VOLUME_ROWS];
-        private JTextField[] txtVolume = new JTextField[VOLUME_ROWS];
+        private final JLabel[] lblVolume = new JLabel[VOLUME_ROWS];
+        private final JTextField[] txtVolume = new JTextField[VOLUME_ROWS];
 
         // Create the panel with the controls
         public JPanel createVolumePanel(Container parent, int id) {
@@ -293,7 +293,7 @@ public class BasicSelBox extends JDialog {
 
     // Dummy document that limits max characters
     private class LimitedDocument extends javax.swing.text.PlainDocument {
-        private int maxLen;
+        private final int maxLen;
         public LimitedDocument(int maxLen) { this.maxLen = maxLen; }
         @Override
         public void insertString(int offs, String str, javax.swing.text.AttributeSet a)
@@ -307,9 +307,9 @@ public class BasicSelBox extends JDialog {
 
     // Dummy verifier – would normally check against a rule
     private class IntNameVerifier extends InputVerifier {
-        private int maxLen;
-        private String label;
-        private ValidNameRule rule;
+        private final int maxLen;
+        private final String label;
+        private final ValidNameRule rule;
         public IntNameVerifier(int maxLen, String label, ValidNameRule rule) {
             this.maxLen = maxLen;
             this.label = label;

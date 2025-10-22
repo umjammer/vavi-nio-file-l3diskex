@@ -96,7 +96,7 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryApledos>
 
     static class apledos_chain_t {
 
-        private ByteBuffer buffer;
+        private final ByteBuffer buffer;
         private static final int SIZE = 256;
 
         public apledos_chain_t(byte[] buf) {
@@ -190,12 +190,12 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryApledos>
     static class DiskBasicDirItemAppleDOSChain {
 
         private DiskBasic basic;
-        private AppleDOSChains chains;
+        private final AppleDOSChains chains;
         private apledos_chain_t chain; // Used in C++ Dup/operator= logic, might not be necessary here
         private DiskImageSector sector; // Used in C++ Dup/operator= logic, might not be necessary here
         private boolean chain_ownmake; // Used in C++ Dup/operator= logic, might not be necessary here
 
-        private DiskBasicDirItemAppleDOSChain(final DiskBasicDirItemAppleDOSChain src) {
+        private DiskBasicDirItemAppleDOSChain(DiskBasicDirItemAppleDOSChain src) {
             // Not implemented as per C++ private copy constructor
             chains = new AppleDOSChains();
         }
@@ -208,12 +208,12 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryApledos>
         // No explicit destructor needed in Java, rely on GC
 
         // COPYABLE_DIRITEM implementation in Java (simplified)
-        public DiskBasicDirItemAppleDOSChain operatorAssignment(final DiskBasicDirItemAppleDOSChain src) {
+        public DiskBasicDirItemAppleDOSChain operatorAssignment(DiskBasicDirItemAppleDOSChain src) {
             this.Dup(src);
             return this;
         }
 
-        public void Dup(final DiskBasicDirItemAppleDOSChain src) {
+        public void Dup(DiskBasicDirItemAppleDOSChain src) {
             // Simplified: just copy over the reference/data structures
             // The original C++ had complex memory management
             this.chains.Clear();
@@ -254,7 +254,7 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryApledos>
 
         /** 有効か */
         public boolean IsValid() {
-            return chains.size() > 0;
+            return !chains.isEmpty();
         }
 
         /** トラック＆セクタを返す */
@@ -305,22 +305,22 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryApledos>
     }
 
     /** ディレクトリデータ */
-    private DiskBasicDirData<DirectoryApledos> m_data = new DiskBasicDirData<>();
+    private final DiskBasicDirData<DirectoryApledos> m_data = new DiskBasicDirData<>();
 
     private int m_start_address;
     /** ファイル内部で持っている開始アドレス */
     private int m_data_length;      /** ファイル内部で持っているサイズ */
 
     /** トラック＆セクタリスト */
-    private DiskBasicDirItemAppleDOSChain chain = new DiskBasicDirItemAppleDOSChain();
-    private DiskBasicGroups m_groups = new DiskBasicGroups();
+    private final DiskBasicDirItemAppleDOSChain chain = new DiskBasicDirItemAppleDOSChain();
+    private final DiskBasicGroups m_groups = new DiskBasicGroups();
 
 
     private DiskBasicDirItemAppleDOS() {
         super();
     }
 
-    private DiskBasicDirItemAppleDOS(final DiskBasicDirItemAppleDOS src) {
+    private DiskBasicDirItemAppleDOS(DiskBasicDirItemAppleDOS src) {
         super(src);
     }
 
@@ -546,7 +546,7 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryApledos>
 
     /** 属性を設定 */
     @Override
-    public void setFileAttr(final DiskBasicFileType file_type) {
+    public void setFileAttr(DiskBasicFileType file_type) {
         int ftype = file_type.getType();
         if (ftype == -1) return;
 
@@ -644,7 +644,7 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryApledos>
                 break;
             }
         }
-        calc_groups += (int) chain.Count();
+        calc_groups += chain.Count();
         if (getSectorCount() != calc_groups) {
             calc_groups = getSectorCount();
             calc_file_size = calc_groups * basic.getSectorSize();
@@ -706,13 +706,13 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryApledos>
             // データサイズ
             m_data_length = sector.get16(2);
             // 実際のサイズを設定
-            if (m_data_length + 5 <= (int) groupItems.getSize()) groupItems.setSize(m_data_length + 5);
+            if (m_data_length + 5 <= groupItems.getSize()) groupItems.setSize(m_data_length + 5);
         } else if ((t1 & (en_file_type_mask_appledos.FILETYPE_MASK_APLEDOS_IBASIC.getValue() | en_file_type_mask_appledos.FILETYPE_MASK_APLEDOS_ABASIC.getValue())) != 0) {
             // BASICファイルサイズ
             // データサイズ => 最終データ位置みたい
             m_data_length = sector.get16(0);
             // 実際のサイズを設定
-            if (m_data_length + 3 <= (int) groupItems.getSize()) groupItems.setSize(m_data_length + 3);
+            if (m_data_length + 3 <= groupItems.getSize()) groupItems.setSize(m_data_length + 3);
         }
     }
 

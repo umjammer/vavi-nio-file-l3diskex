@@ -147,13 +147,13 @@ public class DiskBasicDirItemX1HU extends DiskBasicDirItem<DirectoryX1Hu> {
     // Attribute 1 (Type)
     @Override
     public int getFileType1() {
-        return basic.invertUint8((byte) m_data.data().type);
+        return basic.invertUint8(m_data.data().type);
     }
 
     // Attribute 2 (Password/Flags)
     @Override
     public int getFileType2() {
-        return basic.invertUint8((byte) m_data.data().password);
+        return basic.invertUint8(m_data.data().password);
     }
 
     // Set Attribute 1
@@ -312,9 +312,9 @@ public class DiskBasicDirItemX1HU extends DiskBasicDirItem<DirectoryX1Hu> {
     public int getFileSize() {
         if ((getFileType1() & FILETYPE_X1HU_ASCII) != 0) {
             // Ascファイルの場合 (Asc file case)
-            return (int)groups.getSize();
+            return groups.getSize();
         } else {
-            return basic.invertAndOrderUint16((short) m_data.data().fileSize);
+            return basic.invertAndOrderUint16(m_data.data().fileSize);
         }
     }
 
@@ -486,13 +486,13 @@ public class DiskBasicDirItemX1HU extends DiskBasicDirItem<DirectoryX1Hu> {
     // Get start address
     @Override
     public int getStartAddress() {
-        return basic.invertAndOrderUint16((short) m_data.data().loadAddr);
+        return basic.invertAndOrderUint16(m_data.data().loadAddr);
     }
 
     // Get execute address
     @Override
     public int getExecuteAddress() {
-        return basic.invertAndOrderUint16((short) m_data.data().execAddr);
+        return basic.invertAndOrderUint16(m_data.data().execAddr);
     }
 
     // Set start address
@@ -550,7 +550,7 @@ public class DiskBasicDirItemX1HU extends DiskBasicDirItem<DirectoryX1Hu> {
     @Override
     public int getStartGroup(int fileunit_num) {
         // X1 Hu-BASIC
-        return basic.invertUint8((byte) m_data.data().startGroupH) << 16 | basic.invertAndOrderUint16((short) m_data.data().startGroupL);
+        return basic.invertUint8(m_data.data().startGroupH) << 16 | basic.invertAndOrderUint16(m_data.data().startGroupL);
     }
 
     // Need check EOF code
@@ -629,16 +629,16 @@ public class DiskBasicDirItemX1HU extends DiskBasicDirItem<DirectoryX1Hu> {
         vals.add("self", m_data.isSelf());
         vals.add("inverted", basic.isDataInverted());
 
-        vals.add("TYPE", (byte) m_data.data().type, basic.isDataInverted());
+        vals.add("TYPE", m_data.data().type, basic.isDataInverted());
         vals.add("NAME", m_data.data().name, m_data.data().name.length, basic.isDataInverted());
         vals.add("EXT", m_data.data().ext, m_data.data().ext.length, basic.isDataInverted());
-        vals.add("PASSWORD", (byte) m_data.data().password, basic.isDataInverted());
+        vals.add("PASSWORD", m_data.data().password, basic.isDataInverted());
         vals.add("FILE_SIZE", m_data.data().fileSize, basic.isBigEndian(), basic.isDataInverted());
         vals.add("LOAD_ADDR", m_data.data().loadAddr, basic.isBigEndian(), basic.isDataInverted());
         vals.add("EXEC_ADDR", m_data.data().execAddr, basic.isBigEndian(), basic.isDataInverted());
         vals.add("DATE", m_data.data().date, m_data.data().date.length, basic.isDataInverted());
         vals.add("TIME", m_data.data().time, m_data.data().time.length, basic.isDataInverted());
-        vals.add("START_GROUP_H", (byte) m_data.data().startGroupH, basic.isDataInverted());
+        vals.add("START_GROUP_H", m_data.data().startGroupH, basic.isDataInverted());
         vals.add("START_GROUP_L", m_data.data().startGroupL, basic.isBigEndian(), basic.isDataInverted());
     }
 }

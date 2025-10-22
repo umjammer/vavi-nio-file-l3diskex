@@ -118,7 +118,7 @@ public class DiskBasicTypeDOS80 extends DiskBasicTypeFAT8 {
         DiskImageSector sector;
 
         /* -------- DIR ---------------------------------------------------*/
-        for (int sec = (int) basic.diskBasicParam.getDirStartSector();
+        for (int sec = basic.diskBasicParam.getDirStartSector();
              sec <= basic.diskBasicParam.getDirEndSector(); sec++) {
 
             sector = basic.getManagedSector(sec - 1);
@@ -140,7 +140,7 @@ public class DiskBasicTypeDOS80 extends DiskBasicTypeFAT8 {
         if (valid) {
             for (int sec = 0; sec < basic.diskBasicParam.getSectorsPerFat(); sec++) {
                 sector = basic.getManagedSector(
-                        sec + (int) basic.diskBasicParam.getFatStartSector() - 1);
+                        sec + basic.diskBasicParam.getFatStartSector() - 1);
                 if (sector == null) {
                     valid = false;
                     break;

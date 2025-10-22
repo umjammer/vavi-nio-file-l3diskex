@@ -22,11 +22,11 @@ public class DiskImageCreator {
     /* ------------------------------------------------------------------ */
     /*  メンバ変数                                                          */
     /* ------------------------------------------------------------------ */
-    private String m_diskname;                 /* ディスク名          */
-    private DiskParam p_param;                 /* パラメータ        */
-    private boolean m_write_protect;           /* 書込保護フラグ    */
-    private DiskImageFile p_file;              /* ディスクイメージファイル */
-    private DiskResult p_result;               /* 実行結果          */
+    private final String m_diskname;                 /* ディスク名          */
+    private final DiskParam p_param;                 /* パラメータ        */
+    private final boolean m_write_protect;           /* 書込保護フラグ    */
+    private final DiskImageFile p_file;              /* ディスクイメージファイル */
+    private final DiskResult p_result;               /* 実行結果          */
 
     /* ------------------------------------------------------------------ */
     /*  コンストラクタ / デストラクタ                                       */

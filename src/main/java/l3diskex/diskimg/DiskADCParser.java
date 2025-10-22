@@ -187,7 +187,7 @@ public class DiskADCParser extends DiskPlainParser {
             }
 
             /* 5) no candidates → manual entry */
-            if (diskParams.size() == 0) {
+            if (diskParams.isEmpty()) {
                 manualParam.setDiskParam(
                         sidesPerDisk,
                         tracksPerSide,

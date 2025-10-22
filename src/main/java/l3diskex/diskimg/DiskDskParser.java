@@ -91,7 +91,7 @@ public class DiskDskParser extends DiskImageParser {
     }
 
     /* Instance variables – mirroring the C++ class members */
-    private int      m_is_extended;   /* 0 = normal, 1 = extended */
+    private final int      m_is_extended;   /* 0 = normal, 1 = extended */
 
     /* ---------------------------------------------------------------- */
     /*                       Constructor & basic access                 */

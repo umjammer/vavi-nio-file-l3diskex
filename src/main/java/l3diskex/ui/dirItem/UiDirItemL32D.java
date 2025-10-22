@@ -6,35 +6,16 @@
 
 package l3diskex.ui.dirItem;
 
-import java.awt.GridLayout;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.ResourceBundle;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
-import javax.swing.JCheckBox;
-import javax.swing.JComponent;
 
-import l3diskex.basicfmt.DiskBasicDirItem.DiskBasicDirItemAttr;
-import l3diskex.basicfmt.DiskBasicDirItemL31S;
 import l3diskex.basicfmt.DiskBasicDirItemL32D;
-import l3diskex.basicfmt.DiskBasicDirItemMAGICAL;
-import l3diskex.basicfmt.DiskBasicDirItemMAGICAL.en_data_type_magical;
-import l3diskex.basicfmt.DiskBasicDirItemMAGICAL.en_file_type_magical;
-import l3diskex.basicfmt.DiskBasicDirItemMAGICAL.en_type_name_magical_1;
-import l3diskex.basicfmt.DiskBasicDirItemMAGICAL.en_type_name_magical_2;
-import l3diskex.basicfmt.DiskBasicDirItemMAGICAL.en_type_name_magical_3;
-import l3diskex.basicfmt.DiskBasicError;
 import l3diskex.ui.IntNameBox;
 import l3diskex.ui.UiDirItem;
 
 import static l3diskex.basicfmt.DiskBasicDirItemFAT8.TypeNames.ATTR_DIALOG_IDC_RADIO_TYPE2;
 import static l3diskex.basicfmt.DiskBasicDirItemFAT8.TypeNames.TYPE_NAME_2_ASCII;
 import static l3diskex.basicfmt.DiskBasicDirItemFAT8.TypeNames.TYPE_NAME_2_RANDOM;
-import static l3diskex.basicfmt.DiskBasicDirItemMAGICAL.gTypeNameMAGICALMap;
-import static l3diskex.basicfmt.DiskBasicDirItemMAGICAL.gTypeNameMAGICAL_1;
-import static l3diskex.basicfmt.DiskBasicDirItemMAGICAL.gTypeNameMAGICAL_2;
-import static l3diskex.basicfmt.DiskBasicDirItemMAGICAL.gTypeNameMAGICAL_3;
 
 
 /**

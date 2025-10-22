@@ -33,7 +33,7 @@ public class UIBinDump {
         class MyMemoryBuffer
         ------------------------------------------------------------------ */
     public static class MyMemoryBuffer {
-        private byte[] data;
+        private final byte[] data;
 
         public MyMemoryBuffer() {
             this.data = new byte[0];
@@ -59,10 +59,10 @@ public class UIBinDump {
         public static final int IDM_VIEW_FONT   = 4;
         public static final int IDM_VIEW_CHAR_0 = 5;
 
-        private MyMenu menuFile;
-        private MyMenu menuView;
-        private MyMenu menuSettings;
-        private MyMenu menuHelp;
+        private final MyMenu menuFile;
+        private final MyMenu menuView;
+        private final MyMenu menuSettings;
+        private final MyMenu menuHelp;
         private UiDiskBinDump currentView;
         private UiDiskBinDump currentView2;
         private String currentFile;
@@ -186,8 +186,8 @@ public class UIBinDump {
         public static final int IDC_TXT_HEX = 1;
         public static final int IDC_TXT_ASC = 2;
 
-        private Utils.Dump dump;
-        private StringBuilder sb;
+        private final Utils.Dump dump;
+        private final StringBuilder sb;
 
         public UiDiskBinDump(JWindow parent, int id) {
             super(parent, id);

@@ -114,10 +114,10 @@ public class UiDiskRawPanel extends JSplitPane {
         };
     }
 
-    private JComponent parent;
-    private UiDiskFrame frame;
-    private UiDiskRawTrack lpanel;
-    private UiDiskRawSector rpanel;
+    private final JComponent parent;
+    private final UiDiskFrame frame;
+    private final UiDiskRawTrack lpanel;
+    private final UiDiskRawSector rpanel;
     private boolean invertData = false;
     private boolean reverseSide = false;
 
@@ -314,12 +314,12 @@ public class UiDiskRawPanel extends JSplitPane {
     }
 
     public class UiDiskRawTrack extends JTable {
-        private UiDiskRawPanel parent;
-        private UiDiskFrame frame;
+        private final UiDiskRawPanel parent;
+        private final UiDiskFrame frame;
         private DiskImageDisk p_disk;
         private int m_side_number;
         private JPopupMenu menuPopup;
-        private TrackTableModel model;
+        private final TrackTableModel model;
 
         public UiDiskRawTrack(UiDiskFrame parentframe, UiDiskRawPanel parentwindow) {
             this.parent = parentwindow;
@@ -854,16 +854,19 @@ public class UiDiskRawPanel extends JSplitPane {
     }
 
     private static class FileTransferable implements Transferable {
-        private List<File> files;
+        private final List<File> files;
         public FileTransferable(List<File> files) { this.files = files; }
+        @Override
         public DataFlavor[] getTransferDataFlavors() { return new DataFlavor[]{DataFlavor.javaFileListFlavor}; }
+        @Override
         public boolean isDataFlavorSupported(DataFlavor flavor) { return flavor.equals(DataFlavor.javaFileListFlavor); }
+        @Override
         public Object getTransferData(DataFlavor flavor) { return files; }
     }
 
     class TrackTableModel extends AbstractTableModel {
-        private List<Object[]> data = new ArrayList<>();
-        private UiDiskRawTrack parent;
+        private final List<Object[]> data = new ArrayList<>();
+        private final UiDiskRawTrack parent;
 
         public TrackTableModel(UiDiskRawTrack parent) {
             this.parent = parent;
@@ -924,10 +927,10 @@ public class UiDiskRawPanel extends JSplitPane {
     }
 
     public static class UiDiskRawSector extends JTable {
-        private UiDiskRawPanel parent;
-        private UiDiskFrame frame;
+        private final UiDiskRawPanel parent;
+        private final UiDiskFrame frame;
         private DiskImageTrack p_track;
-        private SectorTableModel model;
+        private final SectorTableModel model;
         private JPopupMenu menuPopup;
 
         public UiDiskRawSector(UiDiskFrame parentframe, UiDiskRawPanel parentwindow) {
@@ -1299,8 +1302,8 @@ public class UiDiskRawPanel extends JSplitPane {
     }
 
     static class SectorTableModel extends AbstractTableModel {
-        private List<Object[]> data = new ArrayList<>();
-        private UiDiskRawSector parent;
+        private final List<Object[]> data = new ArrayList<>();
+        private final UiDiskRawSector parent;
 
         public SectorTableModel(UiDiskRawSector parent) {
             this.parent = parent;

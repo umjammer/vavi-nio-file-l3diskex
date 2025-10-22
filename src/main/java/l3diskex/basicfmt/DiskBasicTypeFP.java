@@ -55,7 +55,7 @@ public class DiskBasicTypeFP extends DiskBasicTypeN88 {
         for (int sec = staSec; sec <= endSec; sec++) {
             sector = basic.getManagedSector(sec - 1);
             if (sector == null) return false;
-            sector.fill((byte)basic.diskBasicParam.getFillCodeOnDir());
+            sector.fill(basic.diskBasicParam.getFillCodeOnDir());
         }
 
         // system used group reservation
@@ -87,7 +87,7 @@ public class DiskBasicTypeFP extends DiskBasicTypeN88 {
             if (istream != null) {
                 /* 比較時は、比較先のファイルサイズ */
                 if (istream instanceof InputStream) {
-                    sectorSize = (int)((InputStream)istream).available() % sectorSize;
+                    sectorSize = istream.available() % sectorSize;
                 }
             } else {
                 sectorSize = remainSize;
@@ -118,7 +118,7 @@ public class DiskBasicTypeFP extends DiskBasicTypeN88 {
                 /* ただしランダムアクセスか、残りサイズが丁度セクタサイズなら入れない */
                 if (item.getFileAttr().unmatchType(FILE_TYPE_RANDOM_MASK.getValue(), FILE_TYPE_RANDOM_MASK.getValue())
                         && size > tmpRemain) {
-                    buffer[tmpRemain] = (byte)basic.diskBasicParam.getTextTerminateCode();
+                    buffer[tmpRemain] = basic.diskBasicParam.getTextTerminateCode();
                     tmpRemain++;
                 }
             }

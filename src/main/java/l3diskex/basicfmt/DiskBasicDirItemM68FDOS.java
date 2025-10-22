@@ -111,7 +111,7 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
     }
 
     /// ディレクトリデータ
-    private DiskBasicDirData<DirectoryM68fdos> m_data = new DiskBasicDirData<>();
+    private final DiskBasicDirData<DirectoryM68fdos> m_data = new DiskBasicDirData<>();
 
     // Constructor required for the base class and used in cpp
     public DiskBasicDirItemM68FDOS(DiskBasic basic) {
@@ -161,8 +161,8 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
         int[] ns = {0};
         byte[] n = getFileNamePos(0, ns, nl);
         if (n != null && ns[0] > 0) {
-            m_data.data().name.w[0] = (short) basic.orderUint16(encodeName(Arrays.copyOfRange(filename, 0, size), 0, size));
-            m_data.data().name.w[1] = (short) basic.orderUint16(encodeName(Arrays.copyOfRange(filename, 3, size), 0, size - 3));
+            m_data.data().name.w[0] = basic.orderUint16(encodeName(Arrays.copyOfRange(filename, 0, size), 0, size));
+            m_data.data().name.w[1] = basic.orderUint16(encodeName(Arrays.copyOfRange(filename, 3, size), 0, size - 3));
         }
     }
 
@@ -173,7 +173,7 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
         int[] el = {0};
         byte[] e = getFileExtPos(el);
         if (e != null && el[0] > 0) {
-            m_data.data().ext.w = (short) basic.orderUint16(encodeName(fileext, 0, size));
+            m_data.data().ext.w = basic.orderUint16(encodeName(fileext, 0, size));
         }
     }
 
@@ -188,8 +188,8 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
         if (n != null && s[0] > 0) {
             int copySize = s[0];
             if (copySize > size) copySize = size;
-            decodeName((short) basic.orderUint16(m_data.data().name.w[0]), filename, 0, size);
-            decodeName((short) basic.orderUint16(m_data.data().name.w[1]), filename, 3, size - 3);
+            decodeName(basic.orderUint16(m_data.data().name.w[0]), filename, 0, size);
+            decodeName(basic.orderUint16(m_data.data().name.w[1]), filename, 3, size - 3);
         }
 
         length[0] = l[0];
@@ -203,7 +203,7 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
 
         byte[] e = getFileExtPos(l);
         if (e != null && l[0] > 0) {
-            decodeName((short) basic.orderUint16(m_data.data().ext.w), fileext, 0, size);
+            decodeName(basic.orderUint16(m_data.data().ext.w), fileext, 0, size);
         }
 
         length[0] = l[0];
@@ -230,13 +230,13 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
     /// 属性１のセット
     @Override
     public void setFileType1(int val) {
-        m_data.data().attr1 = (short) basic.orderUint16((short) val);
+        m_data.data().attr1 = basic.orderUint16((short) val);
     }
 
     /// 属性２のセット
     @Override
     public void setFileType2(int val) {
-        m_data.data().attr2 = (short) basic.orderUint16((short) val);
+        m_data.data().attr2 = basic.orderUint16((short) val);
     }
 
     /// 属性３のセット
@@ -253,7 +253,7 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
 
     /// リビジョンを返す
     private String getRevisionStr() {
-        String str = new String();
+        String str = "";
         short rev = getRevision();
         if (rev != 0) {
             byte[] revstr = new byte[4];
@@ -309,7 +309,7 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
         if (eof > 0) {
             sec++;
         }
-        m_data.data().blockSize = (short) basic.orderUint16((short) sec);
+        m_data.data().blockSize = basic.orderUint16((short) sec);
         m_data.data().eofInSector = (byte) (eof & 0xff);
     }
 
@@ -397,7 +397,7 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
     public boolean check(boolean[] last) {
         if (!m_data.isValid()) return false;
 
-        short val = (short) basic.orderUint16(m_data.data().name.w[0]);
+        short val = basic.orderUint16(m_data.data().name.w[0]);
         if ((val & 0xffff) >= 0xed80) {
             return false;
         }
@@ -589,7 +589,7 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
         int dd = (tm.getDayOfMonth() & 0x001f);
 
         short date = (short) ((yy << 9) | (mm << 5) | dd);
-        m_data.data().date = (short) basic.orderUint16(date);
+        m_data.data().date = basic.orderUint16(date);
     }
 
     /// アイテムがアドレスを持っているか
@@ -619,13 +619,13 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
     /// 開始アドレスをセット
     @Override
     public void setStartAddress(int val) {
-        m_data.data().loadAddr = (short) basic.orderUint16((short) val);
+        m_data.data().loadAddr = basic.orderUint16((short) val);
     }
 
     /// 実行アドレスをセット
     @Override
     public void setExecuteAddress(int val) {
-        m_data.data().execAddr = (short) basic.orderUint16((short) val);
+        m_data.data().execAddr = basic.orderUint16((short) val);
     }
 
     /// ディレクトリアイテムのサイズ

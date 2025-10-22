@@ -132,7 +132,7 @@ public class DiskBasicTypeProDOS extends DiskBasicType<DirectoryProdos> {
             }
             bitmap.AddBitmap(sector);
         }
-        basic.diskBasicParam.setSectorsPerFat((int)bitmap.size());
+        basic.diskBasicParam.setSectorsPerFat(bitmap.size());
 
         return valid_ratio;
     }
@@ -340,7 +340,7 @@ public class DiskBasicTypeProDOS extends DiskBasicType<DirectoryProdos> {
      */
     @Override
     public int initializeSectorsAsDirectory(DiskBasicGroups group_items, int[] file_size, int[] size_remain, DiskBasicError errinfo) {
-        file_size[0] = (int)group_items.count() * basic.getSectorSize();
+        file_size[0] = group_items.count() * basic.getSectorSize();
         size_remain[0] = 0;
 
         return 0;
@@ -714,7 +714,7 @@ public class DiskBasicTypeProDOS extends DiskBasicType<DirectoryProdos> {
      */
     @Override
     public int getStartSectorFromGroup(int group_num) {
-        return (int)group_num * basic.getSectorsPerGroup();
+        return group_num * basic.getSectorsPerGroup();
     }
 
     /**
@@ -722,7 +722,7 @@ public class DiskBasicTypeProDOS extends DiskBasicType<DirectoryProdos> {
      */
     @Override
     public int getEndSectorFromGroup(int group_num, int next_group, int sector_start, int sector_size, int remain_size) {
-        return ((int)group_num + 1) * basic.getSectorsPerGroup() - 1;
+        return (group_num + 1) * basic.getSectorsPerGroup() - 1;
     }
 
     /**
@@ -930,7 +930,7 @@ public class DiskBasicTypeProDOS extends DiskBasicType<DirectoryProdos> {
         // ファイルエントリ数
         vol.aux.sv.fileCount = 0;
 
-        int parent_start_block = (int)parent_item.getStartGroup(0);
+        int parent_start_block = parent_item.getStartGroup(0);
         // Placeholder for vol->sv.entries_per_block cast to int.
         int entries_per_block = vol.aux.sv.entriesPerBlock;
         if (entries_per_block == 0) entries_per_block = 1; // Avoid division by zero
@@ -1184,7 +1184,7 @@ public class DiskBasicTypeProDOS extends DiskBasicType<DirectoryProdos> {
             int len = volume.name.length;
             if (len > volname.length) len = volname.length;
 
-            System.arraycopy(volname, 0, volume.name, 0, (int)len);
+            System.arraycopy(volname, 0, volume.name, 0, len);
 
             volume.stypeAndNlen = (byte) ((len & 0xf) | (volume.stypeAndNlen & 0xf0));
         }

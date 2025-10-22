@@ -28,7 +28,7 @@ public class DiskBasicDirItemL32D extends DiskBasicDirItemFAT8<DirectoryL32d> {
     /*-------*/
 
     /** Directory data */
-    private DiskBasicDirData<DirectoryL32d> m_data = new DiskBasicDirData<>();
+    private final DiskBasicDirData<DirectoryL32d> m_data = new DiskBasicDirData<>();
 
     /*-------*/
     /*  Constructors                                                            */

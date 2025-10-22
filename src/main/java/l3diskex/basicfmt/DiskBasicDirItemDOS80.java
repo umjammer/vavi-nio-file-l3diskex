@@ -50,8 +50,8 @@ public class DiskBasicDirItemDOS80 extends DiskBasicDirItemFAT8<DirectoryDos80> 
     /**
      *  Private data members
      **/
-    private DiskBasicDirData<DirectoryDos80>        m_data;   //  directory_dos80_t
-    private DiskBasicDirData<DirectoryDos80_2>      m_data2;  //  directory_dos80_2_t
+    private final DiskBasicDirData<DirectoryDos80>        m_data;   //  directory_dos80_t
+    private final DiskBasicDirData<DirectoryDos80_2>      m_data2;  //  directory_dos80_2_t
     private final DiskBasicGroups[] m_file_unit = new DiskBasicGroups[2];
     private int m_cached_type = 0;
 
@@ -448,7 +448,7 @@ public class DiskBasicDirItemDOS80 extends DiskBasicDirItemFAT8<DirectoryDos80> 
                                InputStream stream,
                                int fileOffset) throws IOException {
         int file_type_1 = getFileType1();
-        int basic_size = (int)stream.available();
+        int basic_size = stream.available();
         int machine_size = -1;
         if (file_type_1 == TYPE_NAME_DOS80_BASIC_MACHINE) {
             // BASIC + マシン語の場合

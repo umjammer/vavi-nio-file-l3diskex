@@ -119,10 +119,10 @@ public class Parambase {
      */
     public static final class MyAttribute {
 
-        private int idx;
-        private int type;
-        private int value;
-        private int mask;
+        private final int idx;
+        private final int type;
+        private final int value;
+        private final int mask;
         private String name;
         private String desc;
 
@@ -375,7 +375,7 @@ public class Parambase {
                                                   String val,
                                                   Object[] nVal /* wrapped as array for pass‑by‑reference */) {
             if (node == null) return false;
-            String tagName = ((Element) node).getLocalName();
+            String tagName = node.getLocalName();
             if (tagName == null) return false;
 
             if (tagName.equals("int"))

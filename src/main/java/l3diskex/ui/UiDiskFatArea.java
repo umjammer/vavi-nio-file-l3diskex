@@ -63,7 +63,7 @@ public class UiDiskFatArea {
     /* ------------------------------------------------------------------ */
     static class UiDiskFatAreaFrame extends JFrame {
 
-        private UiDiskFatAreaPanel panel;
+        private final UiDiskFatAreaPanel panel;
 
         UiDiskFatAreaFrame(UiDiskFrame parent, String title, Dimension size) {
             super(title);
@@ -133,7 +133,7 @@ public class UiDiskFatArea {
     /* ------------------------------------------------------------------ */
     static class UiDiskFatAreaPanel extends JPanel /* implements Scrollable */ {
 
-        private UiDiskFatAreaFrame frame;
+        private final UiDiskFatAreaFrame frame;
 
         /* Data handling ------------------------------------------------ */
         private int offset = 0;                     // same as C++ `long` offset
@@ -289,18 +289,18 @@ public class UiDiskFatArea {
         private void setGroupBase(int groupNum, int highlight) {
             int pos = groupNum + offset;
             if (pos < datas.size()) {
-                int val = datas.get((int) pos);
+                int val = datas.get(pos);
                 val |= highlight;
-                datas.set((int) pos, val);
+                datas.set(pos, val);
             }
         }
 
         private void unsetGroupBase(int groupNum) {
             int pos = groupNum + offset;
             if (pos < datas.size()) {
-                int val = datas.get((int) pos);
+                int val = datas.get(pos);
                 val &= 0xffff;
-                datas.set((int) pos, val);
+                datas.set(pos, val);
             }
         }
 
