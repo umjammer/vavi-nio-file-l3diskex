@@ -86,6 +86,7 @@ public class DiskBasicDirItemMDOS extends DiskBasicDirItem<DirectoryMdos> {
         super(basic, n_sector, n_secpos, n_data);
         m_data.attach(n_data);
     }
+
     public DiskBasicDirItemMDOS(DiskBasic basic, int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, SectorParam n_next, boolean[] n_unuse) throws IOException {
         super(basic, n_num, n_gitem, n_sector, n_secpos, n_data, n_next, n_unuse);
         m_data.attach(n_data);
@@ -150,7 +151,7 @@ public class DiskBasicDirItemMDOS extends DiskBasicDirItem<DirectoryMdos> {
     public void setFileSize(int val) {
         groups.setSize(val);
         // Assuming wxUINT16_SWAP_ON_LE is a byte swap for little-endian
-        m_data.data().fileSize = (short)val; // le
+        m_data.data().fileSize = (short) val; // le
     }
 
     /** ファイルサイズを返す */
@@ -183,7 +184,7 @@ public class DiskBasicDirItemMDOS extends DiskBasicDirItem<DirectoryMdos> {
         // Assuming GetFatEndGroup returns int (unsigned 32-bit in C++)
         int limit = basic.getFatEndGroup() + 1;
 
-        while(working) {
+        while (working) {
             // Assuming GetGroupNumber returns int (unsigned 32-bit in C++)
             int next_group = basic.getType().getGroupNumber(group_num);
 
@@ -224,7 +225,7 @@ public class DiskBasicDirItemMDOS extends DiskBasicDirItem<DirectoryMdos> {
     @Override
     public void setStartGroup(int fileunit_num, int val, int size) {
         // Assuming wxUINT16_SWAP_ON_BE is a byte swap for big-endian
-        m_data.data().startGroup = (short)(val & 0xffff); // be
+        m_data.data().startGroup = (short) (val & 0xffff); // be
     }
 
     /** 最初のグループ番号を返す */
@@ -274,7 +275,9 @@ public class DiskBasicDirItemMDOS extends DiskBasicDirItem<DirectoryMdos> {
 
     /** アイテムが実行アドレスを持っているか */
     @Override
-    public boolean hasExecuteAddress() { return false; }
+    public boolean hasExecuteAddress() {
+        return false;
+    }
 
     /** ファイル名から属性を決定する */
     @Override
@@ -298,6 +301,7 @@ public class DiskBasicDirItemMDOS extends DiskBasicDirItem<DirectoryMdos> {
 //	void	ChangeTypeInAttrDialog(IntNameBox parent);
 //	/// 機種依存の属性を設定する
 //	boolean	SetAttrInAttrDialog(final IntNameBox parent, DiskBasicDirItemAttr attr, DiskBasicError errinfo) const;
+
     /** プロパティで表示する内部データを設定 */
     @Override
     public void setInternalDataInAttrDialog(KeyValArray vals) { // Assuming KeyValArray is a Map

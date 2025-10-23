@@ -52,9 +52,11 @@ public class DiskBasicDirItemFLEX extends DiskBasicDirItem<DirectoryFlex> {
     private int PhySecPos(int sector_number) {
         return (sector_number - 1) % basic.diskBasicParam.getGroupsPerSector();
     }
+
     private int SecBufOfs(int sector_number) {
         return PhySecPos(sector_number) * basic.getSectorSize() / basic.diskBasicParam.getGroupsPerSector();
     }
+
     private int LogSecSiz(int sector_size) {
         return sector_size / basic.diskBasicParam.getGroupsPerSector();
     }
@@ -123,11 +125,13 @@ public class DiskBasicDirItemFLEX extends DiskBasicDirItem<DirectoryFlex> {
         m_data = new DiskBasicDirData<>();
         m_data.alloc(DirectoryFlex.class);
     }
+
     public DiskBasicDirItemFLEX(DiskBasic basic, DiskImageSector n_sector, int n_secpos, byte[] n_data) {
         super(basic, n_sector, n_secpos, n_data);
         m_data = new DiskBasicDirData<>();
         m_data.attach(n_data);
     }
+
     public DiskBasicDirItemFLEX(DiskBasic basic, int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, SectorParam n_next, boolean[] n_unuse) throws IOException {
         super(basic, n_num, n_gitem, n_sector, n_secpos, n_data, n_next, n_unuse);
         m_data = new DiskBasicDirData<>();
@@ -179,7 +183,7 @@ public class DiskBasicDirItemFLEX extends DiskBasicDirItem<DirectoryFlex> {
         if (ftype == -1) return;
 
         int val = 0;
-        for(int i=0; i<=en_type_name_flex.TYPE_NAME_FLEX_HIDDEN.ordinal(); i++) {
+        for (int i = 0; i <= en_type_name_flex.TYPE_NAME_FLEX_HIDDEN.ordinal(); i++) {
             // Assumes gTypeValueFLEX is translated to a map or array of pairs
             int com_value = gTypeValueFLEX[i][0];
             int ori_value = gTypeValueFLEX[i][1];
@@ -202,7 +206,7 @@ public class DiskBasicDirItemFLEX extends DiskBasicDirItem<DirectoryFlex> {
         int random = 0;
         int type1 = getFileType1();
 
-        for(int i=0; i<=en_type_name_flex.TYPE_NAME_FLEX_HIDDEN.ordinal(); i++) {
+        for (int i = 0; i <= en_type_name_flex.TYPE_NAME_FLEX_HIDDEN.ordinal(); i++) {
             // Assumes gTypeValueFLEX is translated to a map or array of pairs
             int com_value = gTypeValueFLEX[i][0];
             int ori_value = gTypeValueFLEX[i][1];
@@ -222,7 +226,7 @@ public class DiskBasicDirItemFLEX extends DiskBasicDirItem<DirectoryFlex> {
     public String getFileAttrStr() {
         StringBuilder str = new StringBuilder();
         int val = getFileAttr().getType();
-        for(int i=0; i<=en_type_name_flex.TYPE_NAME_FLEX_RANDOM.ordinal(); i++) {
+        for (int i = 0; i <= en_type_name_flex.TYPE_NAME_FLEX_RANDOM.ordinal(); i++) {
             // Assumes gTypeNameFLEX is translated to a map or array of pairs
             if ((val & (int) Utils.valueAt(gTypeNameFLEX, i)) != 0) {
                 if (!str.isEmpty()) str.append(", ");
@@ -261,16 +265,16 @@ public class DiskBasicDirItemFLEX extends DiskBasicDirItem<DirectoryFlex> {
 
         DirectoryFlex d = m_data.data();
 
-        int track_num  = d.startTrack;
+        int track_num = d.startTrack;
         int sector_num = d.startSector;
-        int next_track_num  = 0;
+        int next_track_num = 0;
         int next_sector_num = 0;
         int[] div_num = new int[1]; // Use array for pass-by-reference
 
         int random_file = getFileType2();
         if (random_file > 0) {
             // ランダムアクセスファイル
-            for(int idx = 0; idx < random_file; idx++) {
+            for (int idx = 0; idx < random_file; idx++) {
                 // Assuming type->GetSectorPosFromNumS is translated to DiskBasicType.GetSectorPosFromNumS
                 int gnum = type.getSectorPosFromNumS(track_num, sector_num);
 
@@ -297,7 +301,7 @@ public class DiskBasicDirItemFLEX extends DiskBasicDirItem<DirectoryFlex> {
         }
 
         int limit = basic.getFatEndGroup() + 1;
-        while((track_num != 0 || sector_num != 0) && limit >= 0) {
+        while ((track_num != 0 || sector_num != 0) && limit >= 0) {
             int gnum = type.getSectorPosFromNumS(track_num, sector_num);
 
             DiskImageSector sector = basic.getSectorFromSectorPos(gnum, div_num);
@@ -331,7 +335,7 @@ public class DiskBasicDirItemFLEX extends DiskBasicDirItem<DirectoryFlex> {
             if (track_num == 0 || sector_num == 0) {
                 // 最終セクタは0パディング部分のサイズを減らす
                 byte[] buf = sector.getSectorBuffer(SecBufOfs(div_num[0] + 1));
-                for(int pos = LogSecSiz(sector.getSectorSize()) - 1; pos >= 4; pos--) {
+                for (int pos = LogSecSiz(sector.getSectorSize()) - 1; pos >= 4; pos--) {
                     if (buf[pos] != 0) break;
                     calc_file_size--;
                 }
@@ -350,11 +354,19 @@ public class DiskBasicDirItemFLEX extends DiskBasicDirItem<DirectoryFlex> {
     }
 
     @Override
-    public boolean hasCreateDateTime() { return true; }
+    public boolean hasCreateDateTime() {
+        return true;
+    }
+
     @Override
-    public boolean hasCreateDate() { return true; }
+    public boolean hasCreateDate() {
+        return true;
+    }
+
     @Override
-    public boolean hasCreateTime() { return false; }
+    public boolean hasCreateTime() {
+        return false;
+    }
 
     /// 日付を返す
     @Override
@@ -537,20 +549,20 @@ public class DiskBasicDirItemFLEX extends DiskBasicDirItem<DirectoryFlex> {
 
     // FLEX属性名 - wxTRANSLATE/wxGetTranslation removed, using raw strings
     public static final Map<String, Object> gTypeNameFLEX = new LinkedHashMap<>() {{
-            put("Read Only", FILE_TYPE_READONLY_MASK.getValue());
-            put("Undeletable", FILE_TYPE_UNDELETE_MASK.getValue());
-            put("Write Only", FILE_TYPE_WRITEONLY_MASK.getValue());
-            put("Hidden", FILE_TYPE_HIDDEN_MASK.getValue());
-            put("Random Access", FILE_TYPE_RANDOM_MASK.getValue());
+        put("Read Only", FILE_TYPE_READONLY_MASK.getValue());
+        put("Undeletable", FILE_TYPE_UNDELETE_MASK.getValue());
+        put("Write Only", FILE_TYPE_WRITEONLY_MASK.getValue());
+        put("Hidden", FILE_TYPE_HIDDEN_MASK.getValue());
+        put("Random Access", FILE_TYPE_RANDOM_MASK.getValue());
     }};
 
     // Mapping common mask (com_value) to FLEX mask (ori_value)
     // Converted to a 2D array for simplicity of access by index
     // The original C++ loop: for(int i=0; i<=TYPE_NAME_FLEX_HIDDEN; i++) relies on indices 0-3
     private static final int[][] gTypeValueFLEX = {
-            { FILE_TYPE_READONLY_MASK.getValue(), FILETYPE_MASK_FLEX_READ_ONLY }, // 0x01 -> 0x80
-            { FILE_TYPE_UNDELETE_MASK.getValue(), FILETYPE_MASK_FLEX_UNDELETE }, // 0x02 -> 0x40
-            { FILE_TYPE_WRITEONLY_MASK.getValue(), FILETYPE_MASK_FLEX_WRITE_ONLY }, // 0x04 -> 0x20
-            { FILE_TYPE_HIDDEN_MASK.getValue(), FILETYPE_MASK_FLEX_HIDDEN }, // 0x08 -> 0x10
+            {FILE_TYPE_READONLY_MASK.getValue(), FILETYPE_MASK_FLEX_READ_ONLY}, // 0x01 -> 0x80
+            {FILE_TYPE_UNDELETE_MASK.getValue(), FILETYPE_MASK_FLEX_UNDELETE}, // 0x02 -> 0x40
+            {FILE_TYPE_WRITEONLY_MASK.getValue(), FILETYPE_MASK_FLEX_WRITE_ONLY}, // 0x04 -> 0x20
+            {FILE_TYPE_HIDDEN_MASK.getValue(), FILETYPE_MASK_FLEX_HIDDEN}, // 0x08 -> 0x10
     };
 }

@@ -15,7 +15,7 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.12.1</version>
         <configuration>
-          <release>17</release>
+          <release>21</release>
           <excludes>
             <exclude>l3diskex/ui/**</exclude>
           </excludes>
@@ -56,6 +56,12 @@
   </dependencyManagement>
 
   <dependencies>
+    <dependency>
+      <groupId>vavi</groupId> <!-- com.github.umjammer / vavi -->
+      <artifactId>vavi-commons</artifactId>
+      <version>1.1.15-SNAPSHOT</version>
+    </dependency>
+
     <dependency>
       <groupId>com.github.umjammer</groupId>
       <artifactId>vavi-util-serdes</artifactId>

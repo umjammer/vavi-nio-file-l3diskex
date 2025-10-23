@@ -27,7 +27,6 @@ import vavi.util.serdes.Serdes;
 import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_FREE;
 import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_SYSTEM;
 import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_USED;
-import static l3diskex.basicfmt.BasicFat.INVALID_GROUP_NUMBER;
 import static l3diskex.basicfmt.DiskBasicDirItemAmiga.FILETYPE_MASK_AMIGA_DATA;
 import static l3diskex.basicfmt.DiskBasicDirItemAmiga.FILETYPE_MASK_AMIGA_HEADER;
 import static l3diskex.basicfmt.DiskBasicDirItemAmiga.FILETYPE_MASK_AMIGA_ROOT;
@@ -526,11 +525,11 @@ public class DiskBasicTypeAmiga extends DiskBasicType<DirectoryAmiga> {
 
         for (int num = 0; num <= basic.diskBasicParam.getFatEndGroup(); num++) {
             if (num < 2) {
-                fatAvailability.Add(FAT_AVAIL_SYSTEM.getValue(), 0, 0);
+                fatAvailability.add(FAT_AVAIL_SYSTEM.getValue(), 0, 0);
             } else if (m_bitmap.IsFree(num)) {
-                fatAvailability.Add(FAT_AVAIL_FREE.getValue(), block_size, 1);
+                fatAvailability.add(FAT_AVAIL_FREE.getValue(), block_size, 1);
             } else {
-                fatAvailability.Add(FAT_AVAIL_USED.getValue(), 0, 0);
+                fatAvailability.add(FAT_AVAIL_USED.getValue(), 0, 0);
             }
         }
 
@@ -546,7 +545,6 @@ public class DiskBasicTypeAmiga extends DiskBasicType<DirectoryAmiga> {
         }
     }
 
-    // file chain
     @Override
     public boolean prepareToSaveFile(InputStream istream, int[] file_size, DiskBasicDirItem<DirectoryAmiga> pitem, DiskBasicDirItem<DirectoryAmiga> nitem, DiskBasicError errinfo) {
         return true;
@@ -750,7 +748,6 @@ public class DiskBasicTypeAmiga extends DiskBasicType<DirectoryAmiga> {
         if (aparent.getParent() != null) updateCheckSumOnRoot();
     }
 
-    // format
     @Override
     public boolean additionalProcessOnFormatted(DiskBasicIdentifiedData data) throws IOException {
         DiskImageSector sector;
@@ -909,7 +906,6 @@ public class DiskBasicTypeAmiga extends DiskBasicType<DirectoryAmiga> {
         return remain_size;
     }
 
-    // save / write
     @Override
     public boolean isEnoughFileSize(int size) {
         int block_size = basic.getSectorSize();
@@ -1021,7 +1017,6 @@ public class DiskBasicTypeAmiga extends DiskBasicType<DirectoryAmiga> {
         DiskBasicDirItemAmiga.InsertItemInDirectory(basic, tables, nums, limit, parent.getChildren(), item);
     }
 
-    // delete
     @Override
     public void deleteGroupNumber(int group_num) {
         setGroupNumber(group_num, 0);
@@ -1056,7 +1051,6 @@ public class DiskBasicTypeAmiga extends DiskBasicType<DirectoryAmiga> {
         super.releaseDirectoryItem(item);
     }
 
-    // property
     @Override
     public void getIdentifiedData(DiskBasicIdentifiedData data) {
         if (m_root.post == null) return;
@@ -1175,7 +1169,6 @@ public class DiskBasicTypeAmiga extends DiskBasicType<DirectoryAmiga> {
         return new_num;
     }
 
-    // private helper method
     private int createHashNumberFromName(byte[] name, int size) {
         int hash;
         int bsize = (basic.getSectorSize() -

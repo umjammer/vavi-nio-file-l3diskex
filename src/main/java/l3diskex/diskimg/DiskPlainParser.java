@@ -118,7 +118,7 @@ public class DiskPlainParser extends DiskImageParser {
         }
         if (isDummy) {
             // ダミーセクタ or 足りない分
-            sector.fill((byte)0);
+            sector.fill((byte) 0);
         }
 
         sector.clearModify();
@@ -264,8 +264,8 @@ public class DiskPlainParser extends DiskImageParser {
         // ディスクテンプレート全体から探す
         for (int mag = 1; mag <= 2; mag++) {
             boolean separator = (diskParams.isEmpty());
-            for (int i = 0; i < gDiskTemplates.count(); i++) {
-                DiskParam param = gDiskTemplates.item(i);
+            for (int i = 0; i < gDiskTemplates.size(); i++) {
+                DiskParam param = gDiskTemplates.get(i);
                 if (param != null) {
                     // 同じ候補がある場合スキップ
                     if (diskParams.indexOf(param) >= 0) {
@@ -303,9 +303,9 @@ public class DiskPlainParser extends DiskImageParser {
                 256, 128, 0
         };
         // セクタ数ヒント
-        int[] secs256 = { 10, 16, 18, 0 };
-        int[] secs512 = { 9, 10, 0 }; // Note: 512 is the size, but C++ code uses this for sec_size_idx=1 (128 bytes/sector)
-        int[] secs1024 = { 4, 5, 0 }; // Note: 1024 is the size, but C++ code uses this for sec_size_idx=2 (0 bytes/sector, which seems wrong, but following the C++ logic)
+        int[] secs256 = {10, 16, 18, 0};
+        int[] secs512 = {9, 10, 0}; // Note: 512 is the size, but C++ code uses this for sec_size_idx=1 (128 bytes/sector)
+        int[] secs1024 = {4, 5, 0}; // Note: 1024 is the size, but C++ code uses this for sec_size_idx=2 (0 bytes/sector, which seems wrong, but following the C++ logic)
         // Correcting based on sec_size_hints: 0=256, 1=128, 2=0 (error in C++ logic for index 2, but following structure)
         // Re-analyzing C++: sec_size_hints are 256, 128, 0. The secs_hint array is indexed by sec_size_idx.
         // C++: const int secs256[] = {	10, 16, 18, 0 };
@@ -387,7 +387,7 @@ public class DiskPlainParser extends DiskImageParser {
                 }
             }
             // トラック数で割る
-            int[] ctracks = { 80, 77, 40, 35, 512, 511, 256, 255, 128, 127, 64, 63, 0 };
+            int[] ctracks = {80, 77, 40, 35, 512, 511, 256, 255, 128, 127, 64, 63, 0};
             ival = desidedAllSectors; // Reset ival for the check
             for (int t = 0; ctracks[t] != 0; t++) {
                 if (desidedAllSectors % ctracks[t] == 0) {

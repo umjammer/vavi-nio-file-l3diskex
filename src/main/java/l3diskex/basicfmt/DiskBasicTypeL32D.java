@@ -8,8 +8,6 @@ import l3diskex.basicfmt.BasicFat.DiskBasicFat;
 import l3diskex.basicfmt.BasicFmt.DiskBasic;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 
-import static l3diskex.basicfmt.BasicFat.INVALID_GROUP_NUMBER;
-
 
 public class DiskBasicTypeL32D extends DiskBasicTypeFAT8 {
 
@@ -28,8 +26,10 @@ public class DiskBasicTypeL32D extends DiskBasicTypeFAT8 {
     /* -- */
     /*  access to FAT area                                                 */
     /* -- */
+
     /**
      * ディスクから各パラメータを取得＆必要なパラメータを計算
+     *
      * @param is_formatting フォーマット中か
      * @return 1.0 正常, 0.0‑1.0 警告あり, <0.0 エラーあり
      */
@@ -53,6 +53,7 @@ public class DiskBasicTypeL32D extends DiskBasicTypeFAT8 {
 
     /**
      * FATエリアをチェック
+     *
      * @param is_formatting フォーマット中か
      * @return 1.0 正常, 0.0‑1.0 警告あり, <0.0 エラーあり
      */
@@ -64,7 +65,7 @@ public class DiskBasicTypeL32D extends DiskBasicTypeFAT8 {
             DiskImageSector sector = basic.getManagedSector(basic.diskBasicParam.getFatStartSector() - 1);
             if (sector == null) {
                 valid_ratio = -1.0;
-            } else if (!(sector.get(0) == 0 || sector.get(0) == (byte)0xff)) {
+            } else if (!(sector.get(0) == 0 || sector.get(0) == (byte) 0xff)) {
                 valid_ratio = -1.0;
             }
         }
@@ -73,6 +74,7 @@ public class DiskBasicTypeL32D extends DiskBasicTypeFAT8 {
 
     /**
      * 空きFAT位置を返す
+     *
      * @return 0xffffffff : 空きなし
      */
     @Override
@@ -113,8 +115,10 @@ public class DiskBasicTypeL32D extends DiskBasicTypeFAT8 {
     /* -- */
     /*  check / assign FAT area                                            */
     /* -- */
+
     /**
      * 管理エリアのトラック番号からグループ番号を計算
+     *
      * @return 計算されたグループ番号
      */
     @Override
@@ -133,8 +137,10 @@ public class DiskBasicTypeL32D extends DiskBasicTypeFAT8 {
     /* -- */
     /*  file chain                                                         */
     /* -- */
+
     /**
      * スキップするトラック番号
+     *
      * @return 管理トラック番号
      */
     @Override
@@ -144,6 +150,7 @@ public class DiskBasicTypeL32D extends DiskBasicTypeFAT8 {
 
     /**
      * データ領域の開始セクタを計算
+     *
      * @return 開始セクタ位置
      */
     @Override
@@ -154,9 +161,11 @@ public class DiskBasicTypeL32D extends DiskBasicTypeFAT8 {
     /* -- */
     /*  save / write                                                       */
     /* -- */
+
     /**
      * グループ確保時に最後のグループ番号を計算する
-     * @param group_num 現在のグループ番号
+     *
+     * @param group_num   現在のグループ番号
      * @param size_remain 残りのデータサイズ（参照渡しを配列で実装）
      * @return 最後のグループ番号
      */

@@ -11,14 +11,14 @@ import javax.swing.JTree;
 public class UICDTreeCtrl extends JTree {
 
     /**
-     *  Constructor
+     * Constructor
      */
     public UICDTreeCtrl(Object parentWindow, int id) {
         super(parentWindow, id);
     }
 
     /**
-     *  Protected method – add icons
+     * Protected method – add icons
      */
     protected void AssignTreeIcons(String[][][] icons) {
         // In wxWidgets this creates a wxImageList; here we simply store the array
@@ -113,7 +113,7 @@ public class UICDTreeCtrl extends JTree {
     }
 
     /**
-     *  Private helper data
+     * Private helper data
      */
     private String[][][] iconArray;   // stores icon paths (placeholder)
 

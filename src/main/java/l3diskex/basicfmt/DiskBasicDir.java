@@ -45,6 +45,7 @@ public class DiskBasicDir<T extends DirectoryT> implements AutoCloseable {
 
     /**
      * Creates a new directory item.
+     *
      * @return New DiskBasicDirItem
      */
     public DiskBasicDirItem<T> newItem() {
@@ -53,7 +54,7 @@ public class DiskBasicDir<T extends DirectoryT> implements AutoCloseable {
         DiskBasicFormatType num = FORMAT_TYPE_UNKNOWN;
         if (formatType != null) num = formatType.GetTypeNumber();
 
-        switch(num) {
+        switch (num) {
             case FORMAT_TYPE_L3_1S:
                 item = new DiskBasicDirItemL31S(basic);
                 break;
@@ -170,9 +171,10 @@ public class DiskBasicDir<T extends DirectoryT> implements AutoCloseable {
 
     /**
      * Creates and assigns a new directory item.
+     *
      * @param nSector Sector
-     * @param nPos Position within the sector
-     * @param nData Buffer within the sector
+     * @param nPos    Position within the sector
+     * @param nData   Buffer within the sector
      * @return New DiskBasicDirItem or null
      */
     public DiskBasicDirItem<T> newItem(DiskImageSector nSector, int nPos, byte[] nData) throws IOException {
@@ -181,7 +183,7 @@ public class DiskBasicDir<T extends DirectoryT> implements AutoCloseable {
         int num = FORMAT_TYPE_UNKNOWN.getValue();
         if (formatType != null) num = formatType.GetTypeNumber().getValue();
 
-        switch(DiskBasicFormatType.valueOf(num)) {
+        switch (DiskBasicFormatType.valueOf(num)) {
             case FORMAT_TYPE_L3_1S:
                 item = new DiskBasicDirItemL31S(basic, nSector, nPos, nData);
                 break;
@@ -295,13 +297,14 @@ public class DiskBasicDir<T extends DirectoryT> implements AutoCloseable {
 
     /**
      * Creates and assigns a new directory item with group/sector info.
-     * @param nNum Sequential number
-     * @param nGitem Track number data
+     *
+     * @param nNum    Sequential number
+     * @param nGitem  Track number data
      * @param nSector Sector
-     * @param nPos Position within the sector
-     * @param nData Buffer within the sector
-     * @param nNext Next sector info
-     * @param nUnuse Is unused (output array)
+     * @param nPos    Position within the sector
+     * @param nData   Buffer within the sector
+     * @param nNext   Next sector info
+     * @param nUnuse  Is unused (output array)
      * @return New DiskBasicDirItem or null
      */
     public DiskBasicDirItem<T> newItem(int nNum, DiskBasicGroupItem nGitem, DiskImageSector nSector, int nPos, byte[] nData, SectorParam nNext, boolean[] nUnuse) throws IOException {
@@ -316,7 +319,7 @@ public class DiskBasicDir<T extends DirectoryT> implements AutoCloseable {
             return null;
         }
 
-        switch(num) {
+        switch (num) {
             case FORMAT_TYPE_L3_1S:
                 item = new DiskBasicDirItemL31S(basic, nNum, nGitem, nSector, nPos, nData, nNext, nUnuse);
                 break;
@@ -430,6 +433,7 @@ public class DiskBasicDir<T extends DirectoryT> implements AutoCloseable {
 
     /**
      * Returns the root directory item.
+     *
      * @return Root directory item
      */
     public DiskBasicDirItem<T> getRootItem() {
@@ -438,6 +442,7 @@ public class DiskBasicDir<T extends DirectoryT> implements AutoCloseable {
 
     /**
      * Returns the list of root directory children.
+     *
      * @param dirItem Output array to receive the root item (can be null)
      * @return List of children in the root directory
      */
@@ -449,6 +454,7 @@ public class DiskBasicDir<T extends DirectoryT> implements AutoCloseable {
 
     /**
      * Returns the current directory item.
+     *
      * @return Current directory item
      */
     public DiskBasicDirItem<T> getCurrentItem() {
@@ -457,6 +463,7 @@ public class DiskBasicDir<T extends DirectoryT> implements AutoCloseable {
 
     /**
      * Returns the list of current directory children.
+     *
      * @param dirItem Output array to receive the current item (can be null)
      * @return List of children in the current directory
      */
@@ -468,6 +475,7 @@ public class DiskBasicDir<T extends DirectoryT> implements AutoCloseable {
 
     /**
      * Returns the list of children in a directory.
+     *
      * @param dirItem Directory item
      * @return List of children or null
      */
@@ -485,6 +493,7 @@ public class DiskBasicDir<T extends DirectoryT> implements AutoCloseable {
 
     /**
      * Clears all directory items in a directory.
+     *
      * @param dirItem Directory item
      */
     public void emptyChildren(DiskBasicDirItem<T> dirItem) {
@@ -500,6 +509,7 @@ public class DiskBasicDir<T extends DirectoryT> implements AutoCloseable {
 
     /**
      * Returns the parent directory item of the current directory.
+     *
      * @return Parent directory item
      */
     public DiskBasicDirItem<T> getParentItemOnCurrent() {
@@ -508,6 +518,7 @@ public class DiskBasicDir<T extends DirectoryT> implements AutoCloseable {
 
     /**
      * Returns the parent directory item.
+     *
      * @param dirItem Directory item
      * @return Parent directory item or null
      */
@@ -521,6 +532,7 @@ public class DiskBasicDir<T extends DirectoryT> implements AutoCloseable {
 
     /**
      * Returns a directory item pointer by index in the current directory.
+     *
      * @param idx Index
      * @return Directory item or null
      */
@@ -532,7 +544,8 @@ public class DiskBasicDir<T extends DirectoryT> implements AutoCloseable {
 
     /**
      * Returns an unused directory item in the current directory.
-     * @param pitem Temporary directory item with filename/attributes
+     *
+     * @param pitem    Temporary directory item with filename/attributes
      * @param nextItem Output array for the item after the unused one (can be null)
      * @return Unused directory item or null
      */
@@ -542,7 +555,8 @@ public class DiskBasicDir<T extends DirectoryT> implements AutoCloseable {
 
     /**
      * Returns an unused directory item in the root directory.
-     * @param pitem Temporary directory item with filename/attributes
+     *
+     * @param pitem    Temporary directory item with filename/attributes
      * @param nextItem Output array for the item after the unused one (can be null)
      * @return Unused directory item or null
      */
@@ -552,8 +566,9 @@ public class DiskBasicDir<T extends DirectoryT> implements AutoCloseable {
 
     /**
      * Returns an unused directory item in the specified directory.
-     * @param dirItem Directory
-     * @param pitem Temporary directory item with filename/attributes
+     *
+     * @param dirItem  Directory
+     * @param pitem    Temporary directory item with filename/attributes
      * @param nextItem Output array for the item after the unused one (can be null)
      * @return Unused directory item or null
      */
@@ -563,9 +578,10 @@ public class DiskBasicDir<T extends DirectoryT> implements AutoCloseable {
 
     /**
      * Returns an unused directory item in the specified directory.
-     * @param dirItem Directory
+     *
+     * @param dirItem  Directory
      * @param children List of directory items in dirItem
-     * @param pitem Temporary directory item with filename/attributes
+     * @param pitem    Temporary directory item with filename/attributes
      * @param nextItem Output array for the item after the unused one (can be null)
      * @return Unused directory item or null
      */
@@ -576,10 +592,11 @@ public class DiskBasicDir<T extends DirectoryT> implements AutoCloseable {
 
     /**
      * Checks if a file with the same name already exists in the current directory.
-     * @param filename Filename
-     * @param icase Case insensitive flag
+     *
+     * @param filename    Filename
+     * @param icase       Case insensitive flag
      * @param excludeItem Item to exclude from search (can be null)
-     * @param nextItem Output array for the item after the matched one (can be null)
+     * @param nextItem    Output array for the item after the matched one (can be null)
      * @return Matched directory item or null
      */
     public DiskBasicDirItem<T> findFileOnCurrent(DiskBasicFileName filename, boolean icase, DiskBasicDirItem<T> excludeItem, DiskBasicDirItem<T>[] nextItem) {
@@ -588,18 +605,19 @@ public class DiskBasicDir<T extends DirectoryT> implements AutoCloseable {
 
     /**
      * Checks if a file with the same name already exists in the specified directory.
-     * @param dirItem Directory item to search
-     * @param filename Filename
-     * @param icase Case insensitive flag
+     *
+     * @param dirItem     Directory item to search
+     * @param filename    Filename
+     * @param icase       Case insensitive flag
      * @param excludeItem Item to exclude from search (can be null)
-     * @param nextItem Output array for the item after the matched one (can be null)
+     * @param nextItem    Output array for the item after the matched one (can be null)
      * @return Matched directory item or null
      */
     public DiskBasicDirItem<T> findFile(DiskBasicDirItem<T> dirItem, DiskBasicFileName filename, boolean icase, DiskBasicDirItem<T> excludeItem, DiskBasicDirItem<T>[] nextItem) {
         DiskBasicDirItem<T> matchItem = null;
         List<DiskBasicDirItem<T>> items = dirItem.getChildren();
         if (items != null) {
-            for(int pos = 0; pos < items.size(); pos++) {
+            for (int pos = 0; pos < items.size(); pos++) {
                 DiskBasicDirItem item = items.get(pos);
                 if (item != excludeItem && item.isSameFileName(filename, icase)) {
                     matchItem = item;
@@ -620,10 +638,11 @@ public class DiskBasicDir<T extends DirectoryT> implements AutoCloseable {
 
     /**
      * Checks if a file with the same name already exists in the current directory.
-     * @param targetItem Target item to compare with
-     * @param icase Case insensitive flag
+     *
+     * @param targetItem  Target item to compare with
+     * @param icase       Case insensitive flag
      * @param excludeItem Item to exclude from search (can be null)
-     * @param nextItem Output array for the item after the matched one (can be null)
+     * @param nextItem    Output array for the item after the matched one (can be null)
      * @return Matched directory item or null
      */
     public DiskBasicDirItem<T> findFileOnCurrent(DiskBasicDirItem<T> targetItem, boolean icase, DiskBasicDirItem<T> excludeItem, DiskBasicDirItem<T>[] nextItem) {
@@ -632,18 +651,19 @@ public class DiskBasicDir<T extends DirectoryT> implements AutoCloseable {
 
     /**
      * Checks if a file with the same name already exists in the specified directory.
-     * @param dirItem Directory item to search
-     * @param targetItem Target item to compare with
-     * @param icase Case insensitive flag
+     *
+     * @param dirItem     Directory item to search
+     * @param targetItem  Target item to compare with
+     * @param icase       Case insensitive flag
      * @param excludeItem Item to exclude from search (can be null)
-     * @param nextItem Output array for the item after the matched one (can be null)
+     * @param nextItem    Output array for the item after the matched one (can be null)
      * @return Matched directory item or null
      */
     public DiskBasicDirItem<T> findFile(DiskBasicDirItem<T> dirItem, DiskBasicDirItem<T> targetItem, boolean icase, DiskBasicDirItem<T> excludeItem, DiskBasicDirItem[] nextItem) {
         DiskBasicDirItem<T> matchItem = null;
         List<DiskBasicDirItem<T>> items = dirItem.getChildren();
         if (items != null) {
-            for(int pos = 0; pos < items.size(); pos++) {
+            for (int pos = 0; pos < items.size(); pos++) {
                 DiskBasicDirItem<T> item = items.get(pos);
                 if (item != excludeItem && item.isSameFileName(targetItem, icase)) {
                     matchItem = item;
@@ -664,10 +684,11 @@ public class DiskBasicDir<T extends DirectoryT> implements AutoCloseable {
 
     /**
      * Checks if a file with the same name (excluding extension) exists in the current directory.
-     * @param name Filename (excluding extension)
-     * @param icase Case insensitive flag
+     *
+     * @param name        Filename (excluding extension)
+     * @param icase       Case insensitive flag
      * @param excludeItem Item to exclude from search (can be null)
-     * @param nextItem Output array for the item after the matched one (can be null)
+     * @param nextItem    Output array for the item after the matched one (can be null)
      * @return Matched directory item or null
      */
     public DiskBasicDirItem<T> findNameOnCurrent(String name, boolean icase, DiskBasicDirItem<T> excludeItem, DiskBasicDirItem<T>[] nextItem) {
@@ -676,18 +697,19 @@ public class DiskBasicDir<T extends DirectoryT> implements AutoCloseable {
 
     /**
      * Checks if a file with the same name (excluding extension) exists in the specified directory.
-     * @param dirItem Directory item to search
-     * @param name Filename (excluding extension)
-     * @param icase Case insensitive flag
+     *
+     * @param dirItem     Directory item to search
+     * @param name        Filename (excluding extension)
+     * @param icase       Case insensitive flag
      * @param excludeItem Item to exclude from search (can be null)
-     * @param nextItem Output array for the item after the matched one (can be null)
+     * @param nextItem    Output array for the item after the matched one (can be null)
      * @return Matched directory item or null
      */
     public DiskBasicDirItem<T> findName(DiskBasicDirItem<T> dirItem, String name, boolean icase, DiskBasicDirItem<T> excludeItem, DiskBasicDirItem[] nextItem) {
         DiskBasicDirItem<T> matchItem = null;
         List<DiskBasicDirItem<T>> items = dirItem.getChildren();
         if (items != null) {
-            for(int pos = 0; pos < items.size(); pos++) {
+            for (int pos = 0; pos < items.size(); pos++) {
                 DiskBasicDirItem<T> item = items.get(pos);
                 if (item != excludeItem && item.isSameName(name, icase)) {
                     matchItem = item;
@@ -708,8 +730,9 @@ public class DiskBasicDir<T extends DirectoryT> implements AutoCloseable {
 
     /**
      * Searches for a file matching the attributes in the current directory.
+     *
      * @param fileType Target attributes
-     * @param mask Bitmask to exclude from search
+     * @param mask     Bitmask to exclude from search
      * @param prevItem Previous matched item (can be null)
      * @return Matched directory item or null
      */
@@ -719,8 +742,9 @@ public class DiskBasicDir<T extends DirectoryT> implements AutoCloseable {
 
     /**
      * Searches for a file matching the attributes in the root directory.
+     *
      * @param fileType Target attributes
-     * @param mask Bitmask to exclude from search
+     * @param mask     Bitmask to exclude from search
      * @param prevItem Previous matched item (can be null)
      * @return Matched directory item or null
      */
@@ -730,9 +754,10 @@ public class DiskBasicDir<T extends DirectoryT> implements AutoCloseable {
 
     /**
      * Searches for a file matching the attributes in the specified directory.
-     * @param dirItem Directory item to search
+     *
+     * @param dirItem  Directory item to search
      * @param fileType Target attributes
-     * @param mask Bitmask to exclude from search
+     * @param mask     Bitmask to exclude from search
      * @param prevItem Previous matched item (can be null)
      * @return Matched directory item or null
      */
@@ -747,7 +772,7 @@ public class DiskBasicDir<T extends DirectoryT> implements AutoCloseable {
                 start = items.indexOf(prevItem);
                 start++;
             }
-            for(int pos = start; pos < items.size(); pos++) {
+            for (int pos = start; pos < items.size(); pos++) {
                 DiskBasicDirItem<T> item = items.get(pos);
                 if (item.getFileAttr().matchType(mask, fileType & mask)) {
                     matchItem = item;
@@ -760,9 +785,10 @@ public class DiskBasicDir<T extends DirectoryT> implements AutoCloseable {
 
     /**
      * Checks the root directory.
-     * @param type DISK BASIC type
-     * @param startSector Starting sector number
-     * @param endSector Ending sector number
+     *
+     * @param type         DISK BASIC type
+     * @param startSector  Starting sector number
+     * @param endSector    Ending sector number
      * @param isFormatting Is formatting
      * @return Check result (&lt; 0.0 on error)
      */
@@ -773,9 +799,10 @@ public class DiskBasicDir<T extends DirectoryT> implements AutoCloseable {
 
     /**
      * Assigns the root directory.
-     * @param type DISK BASIC type
+     *
+     * @param type        DISK BASIC type
      * @param startSector Starting sector number
-     * @param endSector Ending sector number
+     * @param endSector   Ending sector number
      * @return True if valid
      */
     public boolean assignRoot(DiskBasicType type, int startSector, int endSector) throws IOException {
@@ -798,6 +825,7 @@ public class DiskBasicDir<T extends DirectoryT> implements AutoCloseable {
 
     /**
      * Assigns the root directory.
+     *
      * @param type DISK BASIC type
      * @return True if valid
      */
@@ -821,6 +849,7 @@ public class DiskBasicDir<T extends DirectoryT> implements AutoCloseable {
 
     /**
      * Releases the root directory.
+     *
      * @param type DISK BASIC type
      * @return True
      */
@@ -832,7 +861,8 @@ public class DiskBasicDir<T extends DirectoryT> implements AutoCloseable {
 
     /**
      * Checks the directory.
-     * @param type DISK BASIC type
+     *
+     * @param type       DISK BASIC type
      * @param groupItems List of groups
      * @return Check result (&lt; 0.0 on error)
      */
@@ -842,9 +872,10 @@ public class DiskBasicDir<T extends DirectoryT> implements AutoCloseable {
 
     /**
      * Assigns the directory.
-     * @param type DISK BASIC type
+     *
+     * @param type       DISK BASIC type
      * @param groupItems List of groups
-     * @param dirItem Directory item
+     * @param dirItem    Directory item
      * @return True if valid
      */
     public boolean assign(DiskBasicType type, DiskBasicGroups groupItems, DiskBasicDirItem<T> dirItem) throws IOException {
@@ -858,7 +889,8 @@ public class DiskBasicDir<T extends DirectoryT> implements AutoCloseable {
 
     /**
      * Assigns the directory.
-     * @param type DISK BASIC type
+     *
+     * @param type    DISK BASIC type
      * @param dirItem Directory item
      * @return True if valid
      */
@@ -870,6 +902,7 @@ public class DiskBasicDir<T extends DirectoryT> implements AutoCloseable {
 
     /**
      * Assigns the directory.
+     *
      * @param dirItem Directory item
      * @return True if valid
      */
@@ -894,7 +927,8 @@ public class DiskBasicDir<T extends DirectoryT> implements AutoCloseable {
 
     /**
      * Reassigns the directory area (reloads).
-     * @param type DISK BASIC type
+     *
+     * @param type    DISK BASIC type
      * @param dirItem Directory item
      * @return True if valid
      */
@@ -914,6 +948,7 @@ public class DiskBasicDir<T extends DirectoryT> implements AutoCloseable {
 
     /**
      * Reassigns the directory area (reloads).
+     *
      * @param dirItem Directory item
      * @return True if valid
      */
@@ -931,12 +966,13 @@ public class DiskBasicDir<T extends DirectoryT> implements AutoCloseable {
 
     /**
      * Fills the root directory area with a specified code.
+     *
      * @param startSector Starting sector number
-     * @param endSector Ending sector number
-     * @param code Code to fill with
+     * @param endSector   Ending sector number
+     * @param code        Code to fill with
      */
     public void fill(int startSector, int endSector, byte code) {
-        for(int secPos = startSector; secPos <= endSector; secPos++) {
+        for (int secPos = startSector; secPos <= endSector; secPos++) {
             DiskImageSector sector = basic.getManagedSector(secPos - 1);
             if (sector == null) {
                 break;
@@ -947,6 +983,7 @@ public class DiskBasicDir<T extends DirectoryT> implements AutoCloseable {
 
     /**
      * Changes the current directory.
+     *
      * @param dstItem Array holding the destination directory item (input/output)
      * @return True on success
      */
@@ -977,7 +1014,7 @@ public class DiskBasicDir<T extends DirectoryT> implements AutoCloseable {
             // To make "." and ".." actual directory items
             // If it's the same as the parent directory, use that item
             DiskBasicDirItem<T> pitem = dest;
-            for(int i = 0; i < 2; i++) {
+            for (int i = 0; i < 2; i++) {
                 pitem = pitem.getParent();
                 if (pitem == null) break;
 
@@ -994,6 +1031,7 @@ public class DiskBasicDir<T extends DirectoryT> implements AutoCloseable {
 
     /**
      * Checks if the directory can be expanded.
+     *
      * @param dirItem Directory
      * @return True if expandable
      */
@@ -1004,6 +1042,7 @@ public class DiskBasicDir<T extends DirectoryT> implements AutoCloseable {
 
     /**
      * Expands the directory.
+     *
      * @param dirItem Directory
      * @return True on success
      */
@@ -1021,6 +1060,7 @@ public class DiskBasicDir<T extends DirectoryT> implements AutoCloseable {
 
     /**
      * Sets the format type.
+     *
      * @param val Format type
      */
     public void setFormatType(DiskBasicFormat val) {
@@ -1029,6 +1069,7 @@ public class DiskBasicDir<T extends DirectoryT> implements AutoCloseable {
 
     /**
      * Gets the format type.
+     *
      * @return Format type
      */
     public DiskBasicFormat getFormatType() {
@@ -1037,6 +1078,7 @@ public class DiskBasicDir<T extends DirectoryT> implements AutoCloseable {
 
     /**
      * Calculates the occupied size of the directory.
+     *
      * @return Occupied size in bytes
      */
     public int calcSize() {
@@ -1050,7 +1092,7 @@ public class DiskBasicDir<T extends DirectoryT> implements AutoCloseable {
             // Use int to avoid overflow when casting int to int
             int dataSize = items.get(0).getDataSize();
             size = dataSize * count;
-            for(int i = (count - 1); i >= 0; i--) {
+            for (int i = (count - 1); i >= 0; i--) {
                 DiskBasicDirItem<T> item = items.get(i);
                 if (item.isUsed()) {
                     break;

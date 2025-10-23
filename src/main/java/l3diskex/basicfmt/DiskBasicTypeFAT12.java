@@ -49,9 +49,9 @@ public class DiskBasicTypeFAT12 extends DiskBasicTypeFATBase {
     /*-----  Adjust remaining size for an EOF marker  -----*/
     @Override
     public int calcDataSizeOnLastSector(DiskBasicDirItem item,
-                                         InputStream istream, OutputStream ostream,
-                                         byte[] sectorBuffer, int offset, int sectorSize,
-                                         int remainSize) {
+                                        InputStream istream, OutputStream ostream,
+                                        byte[] sectorBuffer, int offset, int sectorSize,
+                                        int remainSize) {
 
         if (istream != null) {
             if (item.needCheckEofCode()) {

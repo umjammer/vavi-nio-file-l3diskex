@@ -22,7 +22,7 @@ import static l3diskex.Utils.TEMP_DATA_SIZE;
 
 /**
  * C-DOSの処理
- *
+ * <p>
  * DiskBasicParam
  * <li>IDString     : FATエリアにあるID</li>
  * <li>IPLString    : セクタ1のIPL</li>
@@ -57,7 +57,7 @@ public class DiskBasicTypeCDOS extends DiskBasicTypeMZBase<DirectoryCdos> {
             return -1.0;
         }
         st_fat_cdos f = new st_fat_cdos(fatbuf.getBuffer());
-        if (basic.invertUint8(f.bits[0]) != (byte)0xff) {
+        if (basic.invertUint8(f.bits[0]) != (byte) 0xff) {
             valid_ratio = 0.1;
         }
         String d_id_str = basic.diskBasicParam.getVariousStringParam("IDString");
@@ -109,7 +109,7 @@ public class DiskBasicTypeCDOS extends DiskBasicTypeMZBase<DirectoryCdos> {
         item.setStartGroup(fileunit_num, group_start[0]);
 
         // 領域を確保する
-        rc = allocateGroupsSub(item, group_start[0], remain, sec_size, group_items, new int[]{file_size}, new int[]{groups}); // Assuming AllocateGroupsSub takes file_size and groups as an array to simulate pass-by-reference
+        rc = allocateGroupsSub(item, group_start[0], remain, sec_size, group_items, new int[] {file_size}, new int[] {groups}); // Assuming AllocateGroupsSub takes file_size and groups as an array to simulate pass-by-reference
 
         return rc;
     }
@@ -132,7 +132,7 @@ public class DiskBasicTypeCDOS extends DiskBasicTypeMZBase<DirectoryCdos> {
         //
         DiskImageSector sector = basic.getSectorFromSectorPos(0);
         if (sector != null) {
-            sector.fill(basic.invertUint8(basic.diskBasicParam.getFillCodeOnFAT()));	// invert
+            sector.fill(basic.invertUint8(basic.diskBasicParam.getFillCodeOnFAT()));    // invert
             byte[] buf = sector.getSectorBuffer();
             if (buf != null) {
                 String ipl_str = basic.diskBasicParam.getVariousStringParam("IPLString");
@@ -166,7 +166,7 @@ public class DiskBasicTypeCDOS extends DiskBasicTypeMZBase<DirectoryCdos> {
 
         int gnum_start = 0;
         int gnum_end = ((basic.getManagedTrackNumber() + 1) * basic.getSectorsPerTrackOnBasic() * basic.getSidesPerDiskOnBasic());
-        for(int gnum = gnum_start; gnum < gnum_end; gnum++) {
+        for (int gnum = gnum_start; gnum < gnum_end; gnum++) {
             int pos = gnum;
             int[] mask = {0};
             int[] pos_arr = {pos};
@@ -177,7 +177,7 @@ public class DiskBasicTypeCDOS extends DiskBasicTypeMZBase<DirectoryCdos> {
         // オーバートラック部分は使用済みにする
         gnum_start = basic.getFatEndGroup() + 1;
         gnum_end = (0xb0 << 3);
-        for(int gnum = gnum_start; gnum < gnum_end; gnum++) {
+        for (int gnum = gnum_start; gnum < gnum_end; gnum++) {
             int pos = gnum;
             int[] mask = {0};
             int[] pos_arr = {pos};
@@ -189,7 +189,7 @@ public class DiskBasicTypeCDOS extends DiskBasicTypeMZBase<DirectoryCdos> {
         basic.invertMem(f.bits, f.bits.length);
 
         // 拡張ディレクトリ（未対応）
-        f.exdir = basic.invertUint16((short)0xffff);
+        f.exdir = basic.invertUint16((short) 0xffff);
 
         // ID
         String id_str = basic.diskBasicParam.getVariousStringParam("IDString");
@@ -200,7 +200,7 @@ public class DiskBasicTypeCDOS extends DiskBasicTypeMZBase<DirectoryCdos> {
 
         // ボリューム番号を設定
         int vol_num = data.getVolumeNumber();
-        f.volume_num = basic.invertAndOrderUint16((short)vol_num);
+        f.volume_num = basic.invertAndOrderUint16((short) vol_num);
         // ボリューム名を設定
         byte[] vol_name;
         if (!data.getVolumeName().isEmpty()) {
@@ -279,7 +279,7 @@ public class DiskBasicTypeCDOS extends DiskBasicTypeMZBase<DirectoryCdos> {
 
             byte[] buffer = temp.getData();
             boolean match = true;
-            for(int i = 0; i < temp.getSize(); i++) {
+            for (int i = 0; i < temp.getSize(); i++) {
                 if (buffer[i] != sector_buffer[i]) {
                     match = false;
                     break;
@@ -404,7 +404,7 @@ public class DiskBasicTypeCDOS extends DiskBasicTypeMZBase<DirectoryCdos> {
 
         temp.setSize(TEMP_DATA_SIZE);
         try {
-            while(osize > 0) {
+            while (osize > 0) {
                 int len = istream.read(temp.getData(), 0, temp.getSize());
                 if (len < 0) len = 0; // EOF reached
                 if (len == 0) break; // End of file
@@ -503,7 +503,7 @@ public class DiskBasicTypeCDOS extends DiskBasicTypeMZBase<DirectoryCdos> {
                 }
                 if (size > remain) {
                     // バッファの余りは0サプレス
-                    java.util.Arrays.fill(buffer, remain, size, (byte)0);
+                    java.util.Arrays.fill(buffer, remain, size, (byte) 0);
                 }
                 len = remain;
             } else {
@@ -576,7 +576,7 @@ public class DiskBasicTypeCDOS extends DiskBasicTypeMZBase<DirectoryCdos> {
 
         // volume number
         if (fmt.HasVolumeNumber()) {
-            f.volume_num = basic.invertAndOrderUint16((short)data.getVolumeNumber());
+            f.volume_num = basic.invertAndOrderUint16((short) data.getVolumeNumber());
         }
         // volume label
         if (fmt.HasVolumeName()) {
@@ -601,6 +601,7 @@ public class DiskBasicTypeCDOS extends DiskBasicTypeMZBase<DirectoryCdos> {
     // Assuming a class to wrap the byte array and provide field access.
     // Since Java doesn't have packed structs, access will be via offsets.
     static class st_fat_cdos {
+
         private final byte[] data;
         private static final int BITS_OFFSET = 0x00;
         private static final int BITS_SIZE = 0xae;

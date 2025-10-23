@@ -66,8 +66,8 @@ public class UiDirItemFROST extends UiDirItem {
      */
     @Override
     public void createControlsForAttrDialog(IntNameBox parent, int show_flags, String file_path, BoxLayout sizer, Object flags) {
-        int[] file_type_1 = new int[]{dirItem.getFileType1()};
-        int[] file_type_2 = new int[]{GetFileType2Pos()};
+        int[] file_type_1 = new int[] {dirItem.getFileType1()};
+        int[] file_type_2 = new int[] {GetFileType2Pos()};
         JRadioButton[] radType1;
 
         SetFileTypeForAttrDialog(show_flags, file_path, file_type_1, file_type_2);

@@ -260,7 +260,7 @@ public class DiskVFDParser extends DiskImageParser {
      *
      * @param istream 解析対象データ
      * @return 0 正常
-     *        -1 エラー
+     * -1 エラー
      */
     @Override
     public int check(InputStream istream) throws IOException {
@@ -295,8 +295,8 @@ public class DiskVFDParser extends DiskImageParser {
      * @param istream    解析対象データ
      * @param disk_param パラメータ通常不要
      * @return 0 正常
-     *        -1 エラーあり
-     *         1 警告あり
+     * -1 エラーあり
+     * 1 警告あり
      */
     @Override
     public int parse(InputStream istream, DiskParam disk_param) {

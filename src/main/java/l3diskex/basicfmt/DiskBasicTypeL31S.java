@@ -60,8 +60,8 @@ public class DiskBasicTypeL31S extends DiskBasicTypeFAT8F {
      *
      * @param isFormatting {@code true} when formatting the disk.
      * @return 1.0   – success (no warning)
-     *         0.0–1.0 – warnings exist
-     *        <0.0 – error
+     * 0.0–1.0 – warnings exist
+     * <0.0 – error
      */
     @Override
     public double checkFat(boolean isFormatting) {

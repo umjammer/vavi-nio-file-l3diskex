@@ -25,6 +25,7 @@ public class DiskTD0Parser extends DiskImageParser {
     /*  Header structs (converted from C++ structs)                            */
     /* --- */
     public static class Td0ImageHeader {
+
         public byte[] ident = new byte[2];           // 2 bytes
         public byte sequence;                        // 1 byte
         public byte checkSequence;                   // 1 byte
@@ -38,6 +39,7 @@ public class DiskTD0Parser extends DiskImageParser {
     }
 
     public static class Td0TrackHeader {
+
         public byte numOfSectors;     // 1 byte
         public byte trackNum;         // 1 byte
         public byte sideNum;          // 1 byte
@@ -45,6 +47,7 @@ public class DiskTD0Parser extends DiskImageParser {
     }
 
     public static class Td0SectorHeader {
+
         public byte trackNum;         // 1 byte
         public byte sideNum;          // 1 byte
         public byte sectorNum;        // 1 byte
@@ -53,6 +56,7 @@ public class DiskTD0Parser extends DiskImageParser {
     }
 
     public static class Td0DataHeader {
+
         public int size;              // 2 bytes (unsigned)
     }
 
@@ -69,7 +73,7 @@ public class DiskTD0Parser extends DiskImageParser {
      * セクタデータの作成
      */
     private int parseSector(InputStream istream, int diskNumber, int sectorNums,
-                             Object userData, DiskImageTrack track) throws IOException {
+                            Object userData, DiskImageTrack track) throws IOException {
         Td0SectorHeader hSector = new Td0SectorHeader();
         Serdes.Util.deserialize(istream, hSector);
 //        if (len != hSector.buf.length) {
@@ -90,8 +94,8 @@ public class DiskTD0Parser extends DiskImageParser {
 
         if (sectorSize > 7) {
             result.setError(DiskResult.ERRV_SECTOR_SIZE_SECTOR, diskNumber,
-                              trackNumber, sideNumber, sectorNumber,
-                              sectorSize, 0);
+                    trackNumber, sideNumber, sectorNumber,
+                    sectorSize, 0);
             return 0;
         }
 
@@ -99,8 +103,8 @@ public class DiskTD0Parser extends DiskImageParser {
 
         // セクタ作成（ダミー）
         DiskImageSector sector = track.newImageSector(trackNumber, sideNumber,
-                                                       sectorNumber, sectorSize,
-                                                       sectorNums, false, 0);
+                sectorNumber, sectorSize,
+                sectorNums, false, 0);
         track.add(sector);
 
         if ((hSector.flags & 0x04) != 0) {
@@ -129,22 +133,22 @@ public class DiskTD0Parser extends DiskImageParser {
 //            result.setError(DiskResult.ERRV_DISK_TOO_SMALL, diskNumber);
 //            return -1;
 //        }
-        if (hTrack.numOfSectors == (byte)0xFF) {
+        if (hTrack.numOfSectors == (byte) 0xFF) {
             return -1;
         }
 
         // トラックの作成（ダミー）
         DiskImageTrack track = disk.newImageTrack(hTrack.trackNum & 0xFF,
-                                                  hTrack.sideNum & 0xFF,
-                                                  offsetPos, 1);
+                hTrack.sideNum & 0xFF,
+                offsetPos, 1);
         disk.setMaxTrackNumber(hTrack.trackNum & 0xFF);
 
         int d88TrackSize = 0;
         for (int pos = 0; pos < (hTrack.numOfSectors & 0xFF)
                 && result.getValid() >= 0; pos++) {
             d88TrackSize += parseSector(istream, diskNumber,
-                                        hTrack.numOfSectors & 0xFF,
-                                        null, track);
+                    hTrack.numOfSectors & 0xFF,
+                    null, track);
         }
 
         if (result.getValid() >= 0) {
@@ -319,7 +323,7 @@ public class DiskTD0Parser extends DiskImageParser {
         if (header.ident[0] != 'T' || header.ident[1] != 'D') {
             return -1;
         }
-        if (header.telediskVersion != (byte)0x15) {
+        if (header.telediskVersion != (byte) 0x15) {
             return -1;
         }
         int sidesPerDisk = header.sidesPerDisk & 0xFF;
@@ -361,6 +365,7 @@ public class DiskTD0Parser extends DiskImageParser {
     /* --- */
 
     public static class Td0CommentHeader {
+
         public short crc;
         public short dataLength;
         public byte year;

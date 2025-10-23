@@ -39,8 +39,9 @@ public class UiDirItemSDOS extends UiDirItem {
 
     /**
      * ダイアログ用に属性を設定する
-     * @param show_flags ダイアログ表示フラグ
-     * @param name ファイル名
+     *
+     * @param show_flags  ダイアログ表示フラグ
+     * @param name        ファイル名
      * @param file_type_1 CreateControlsForAttrDialog()に渡す
      * @param file_type_2 CreateControlsForAttrDialog()に渡す
      */
@@ -56,11 +57,12 @@ public class UiDirItemSDOS extends UiDirItem {
 
     /**
      * ダイアログ内の属性部分のレイアウトを作成
-     * @param parent プロパティダイアログ
+     *
+     * @param parent     プロパティダイアログ
      * @param show_flags ダイアログ表示フラグ
-     * @param file_path 外部からインポート時のファイルパス
-     * @param sizer sizer (Placeholder for a Java container/layout)
-     * @param flags flags (Placeholder for layout constraints)
+     * @param file_path  外部からインポート時のファイルパス
+     * @param sizer      sizer (Placeholder for a Java container/layout)
+     * @param flags      flags (Placeholder for layout constraints)
      */
     @Override
     public void createControlsForAttrDialog(IntNameBox parent, int show_flags, String file_path, BoxLayout sizer, Object flags) {
@@ -76,7 +78,7 @@ public class UiDirItemSDOS extends UiDirItem {
 
         String[] types1 = new String[gTypeNameSDOS_1.size()];
         int i = 0;
-        for(String k : gTypeNameSDOS_1.keySet()) {
+        for (String k : gTypeNameSDOS_1.keySet()) {
             types1[i++] = rb.getString(k);
         }
 
@@ -97,12 +99,13 @@ public class UiDirItemSDOS extends UiDirItem {
 
     /**
      * 属性を変更した際に呼ばれるコールバック
+     *
      * @param parent プロパティダイアログ
      */
     @Override
     public void changeTypeInAttrDialog(IntNameBox parent) {
         // wxChoice *comType1 = (wxChoice *)parent->FindWindow(IDC_COMBO_TYPE1);
-        Choice comType1 = (Choice)parent.getComponent(IDC_COMBO_TYPE1);
+        Choice comType1 = (Choice) parent.getComponent(IDC_COMBO_TYPE1);
 
         int sel = comType1.GetSelection();
         boolean editable = (sel >= TYPE_NAME_SDOS_DAT && sel <= TYPE_NAME_SDOS_OBJ);
@@ -113,15 +116,16 @@ public class UiDirItemSDOS extends UiDirItem {
 
     /**
      * 機種依存の属性を設定する
-     * @param parent プロパティダイアログ
-     * @param attr プロパティの属性値
+     *
+     * @param parent  プロパティダイアログ
+     * @param attr    プロパティの属性値
      * @param errinfo エラー情報
      * @return true
      */
     @Override
     public boolean setAttrInAttrDialog(IntNameBox parent, DiskBasicDirItemAttr attr, DiskBasicError errinfo) {
         // wxChoice *comType1 = (wxChoice *)parent->FindWindow(IDC_COMBO_TYPE1);
-        Choice comType1 = (Choice)parent.getComponent(IDC_COMBO_TYPE1);
+        Choice comType1 = (Choice) parent.getComponent(IDC_COMBO_TYPE1);
 
         int t1 = comType1.getSelection();
         if (t1 < 0) t1 = FILETYPE_SDOS_BAS1;
@@ -136,7 +140,8 @@ public class UiDirItemSDOS extends UiDirItem {
 
     /**
      * 属性値を加工する
-     * @param attr プロパティの属性値
+     *
+     * @param attr    プロパティの属性値
      * @param errinfo エラー情報
      * @return true
      */
@@ -145,7 +150,7 @@ public class UiDirItemSDOS extends UiDirItem {
         int t1 = attr.getFileOriginAttr(0);
 
         // BASICの固定アドレス設定
-        switch(t1) {
+        switch (t1) {
             case FILETYPE_SDOS_BAS1:
             case FILETYPE_SDOS_BAS2:
                 // BASICの場合、ロードアドレス、実行アドレスを固定で設定

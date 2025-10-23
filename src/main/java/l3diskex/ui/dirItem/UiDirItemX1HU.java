@@ -20,7 +20,6 @@ import l3diskex.basicfmt.DiskBasicError;
 import l3diskex.ui.IntNameBox;
 import l3diskex.ui.UiDirItem;
 
-import static l3diskex.Config.gConfig;
 import static l3diskex.basicfmt.DiskBasicDirItemSDOS.IDC_COMBO_TYPE1;
 import static l3diskex.basicfmt.DiskBasicDirItemX1HU.DATATYPE_X1HU_PASSWORD_NONE;
 import static l3diskex.basicfmt.DiskBasicDirItemX1HU.EXTERNAL_X1_DEFAULT;
@@ -77,7 +76,7 @@ public class UiDirItemX1HU extends UiDirItem {
         BoxLayout staType1 = new BoxLayout(null, StaticBox.newWxStaticBox(parent, wxID_ANY, rb.getString("File Type")), wxVERTICAL);
 
         String[] types1 = new String[TYPE_NAME_X1HU_END];
-        for(int i = TYPE_NAME_X1HU_BINARY; i< TYPE_NAME_X1HU_END; i++) {
+        for (int i = TYPE_NAME_X1HU_BINARY; i < TYPE_NAME_X1HU_END; i++) {
             types1[i] = rb.getString(Utils.keyAt(gTypeNameX1HU_1, i));
         }
 
@@ -90,7 +89,7 @@ public class UiDirItemX1HU extends UiDirItem {
 
         BoxLayout staType4 = new WxStaticBoxLayout(null, WxStaticBox.newWxStaticBox(parent, wxID_ANY, rb.getString("File Attributes")), wxVERTICAL);
         GridLayout szrG = new GridLayout(2, 2, 4);
-        for(int i=0; gTypeNameX1HU_2.size(); i++) {
+        for (int i = 0; gTypeNameX1HU_2.size(); i++) {
             chkAttr1 = new JCheckBox(parent, IDC_CHECK_ATTR1 + i, rb.getString(Utils.keyAt(gTypeNameX1HU_2, i)));
             chkAttr1.setValue((file_type_2 & (int) Utils.valueAt(gTypeNameX1HU_2, i)) != 0);
             szrG.add(chkAttr1);
@@ -133,7 +132,7 @@ public class UiDirItemX1HU extends UiDirItem {
     // Callback when type is changed in attribute dialog
     @Override
     public void changeTypeInAttrDialog(IntNameBox parent) {
-        JComboBox comType1 = (JComboBox)parent.getComponent(IDC_COMBO_TYPE1);
+        JComboBox comType1 = (JComboBox) parent.getComponent(IDC_COMBO_TYPE1);
         if (comType1 == null) return;
 
         boolean enable = (comType1.getSelection() == TYPE_NAME_X1HU_BINARY);
@@ -143,7 +142,7 @@ public class UiDirItemX1HU extends UiDirItem {
 
     // Get attribute 1 from dialog
     public int getFileType1InAttrDialog(IntNameBox parent) {
-        JComboBox comType1 = (JComboBox)parent.getComponent(IDC_COMBO_TYPE1);
+        JComboBox comType1 = (JComboBox) parent.getComponent(IDC_COMBO_TYPE1);
         return comType1.getSelection();
     }
 
@@ -151,8 +150,8 @@ public class UiDirItemX1HU extends UiDirItem {
     public int getFileType2InAttrDialog(IntNameBox parent) {
         int val = 0;
 
-        for(int i=0; i<=TYPE_NAME_X1HU_READ_ONLY; i++) {
-            JCheckBox chkAttr1 = (JCheckBox)parent.getComponent(IDC_CHECK_ATTR1 + i);
+        for (int i = 0; i <= TYPE_NAME_X1HU_READ_ONLY; i++) {
+            JCheckBox chkAttr1 = (JCheckBox) parent.getComponent(IDC_CHECK_ATTR1 + i);
             if (chkAttr1.getValue()) {
                 val |= (int) Utils.valueAt(gTypeNameX1HU_2, i);
             }
@@ -164,7 +163,7 @@ public class UiDirItemX1HU extends UiDirItem {
     private int calcFileTypeFromPos(int pos) {
         int val = 0;
         int ext = 0;
-        switch(pos) {
+        switch (pos) {
             case TYPE_NAME_X1HU_BINARY:
                 val = FILETYPE_X1HU_BINARY;
                 break;
@@ -197,7 +196,7 @@ public class UiDirItemX1HU extends UiDirItem {
         t1 |= getFileType2InAttrDialog(parent);
 
         // ユーザ定義データ X1ではファイルパスワード (User defined data: file password in X1)
-        JCheckBox chkEncrypt = (JCheckBox)parent.getComponent(IDC_CHECK_ATTR1 + TYPE_NAME_X1HU_PASSWORD);
+        JCheckBox chkEncrypt = (JCheckBox) parent.getComponent(IDC_CHECK_ATTR1 + TYPE_NAME_X1HU_PASSWORD);
         int passwd = DATATYPE_X1HU_PASSWORD_NONE;
         if (chkEncrypt.getValue()) {
             passwd = parent.getUserData();

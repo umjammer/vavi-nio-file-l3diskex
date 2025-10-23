@@ -51,12 +51,15 @@ public abstract class UiDirItem {
 
     public int getEndAddressInAttrDialog(IntNameBox parent) {
 //        return getEndAddress();
+        return 0;
     }
 
     public boolean isEndAddressEditableInAttrDialog(IntNameBox parent) {
 //        return isAddressEditable();
+        return false;
     }
 
+    /// プロパティで表示する内部データを設定
     public void setCommonDataInAttrDialog(Map<String, Object> vals) {
 //        vals.put("num", num);
 //        vals.put("position", position);

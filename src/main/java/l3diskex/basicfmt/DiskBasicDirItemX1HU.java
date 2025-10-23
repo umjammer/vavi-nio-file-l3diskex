@@ -22,6 +22,7 @@ import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
 
 import static l3diskex.Common.mem_invert;
+import static l3diskex.Parambase.MyAttributes.findUpperCase;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_ASCII_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_BASIC_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_BINARY_MASK;
@@ -80,18 +81,18 @@ public class DiskBasicDirItemX1HU extends DiskBasicDirItem<DirectoryX1Hu> {
 
     // NameValueT arrays (from .cpp)
     public static final Map<String, Object> gTypeNameX1HU_1 = new HashMap<>() {{
-            put("Bin", FILETYPE_X1HU_BINARY);
-            put("Bas", FILETYPE_X1HU_BASIC);
-            put("Asc(Hu)", FILETYPE_X1HU_ASCII);
-            put("Asc(S-OS)", FILETYPE_X1HU_ASCII);
-            put("Asc(Random Access)", FILETYPE_X1HU_ASCII);
-            put("<DIR>", FILETYPE_X1HU_DIRECTORY);
+        put("Bin", FILETYPE_X1HU_BINARY);
+        put("Bas", FILETYPE_X1HU_BASIC);
+        put("Asc(Hu)", FILETYPE_X1HU_ASCII);
+        put("Asc(S-OS)", FILETYPE_X1HU_ASCII);
+        put("Asc(Random Access)", FILETYPE_X1HU_ASCII);
+        put("<DIR>", FILETYPE_X1HU_DIRECTORY);
     }};
     public static final Map<String, Object> gTypeNameX1HU_2 = new HashMap<>() {{
-            put("Hidden", DATATYPE_X1HU_HIDDEN);
-            put("Read After Write", DATATYPE_X1HU_READ_WRITE);
-            put("Write Protected", DATATYPE_X1HU_READ_ONLY);
-            put("Password", DATATYPE_X1HU_RESERVED);
+        put("Hidden", DATATYPE_X1HU_HIDDEN);
+        put("Read After Write", DATATYPE_X1HU_READ_WRITE);
+        put("Write Protected", DATATYPE_X1HU_READ_ONLY);
+        put("Password", DATATYPE_X1HU_RESERVED);
     }};
 
     private final DiskBasicDirData<DirectoryX1Hu> m_data = new DiskBasicDirData<>();
@@ -102,11 +103,13 @@ public class DiskBasicDirItemX1HU extends DiskBasicDirItem<DirectoryX1Hu> {
         m_data.alloc(DirectoryX1Hu.class);
         m_external_attr = basic.diskBasicParam.getVariousIntegerParam("DefaultAsciiType");
     }
+
     public DiskBasicDirItemX1HU(DiskBasic basic, DiskImageSector n_sector, int n_secpos, byte[] n_data) {
         super(basic, n_sector, n_secpos, n_data);
         m_data.attach(n_data);
         m_external_attr = basic.diskBasicParam.getVariousIntegerParam("DefaultAsciiType");
     }
+
     public DiskBasicDirItemX1HU(DiskBasic basic, int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, SectorParam n_next, boolean[] n_unuse) throws IOException {
         super(basic, n_num, n_gitem, n_sector, n_secpos, n_data, n_next, n_unuse);
         m_data.attach(n_data);
@@ -258,15 +261,15 @@ public class DiskBasicDirItemX1HU extends DiskBasicDirItem<DirectoryX1Hu> {
         int t1 = getFileType1();
         int val = 0;
         if ((t1 & FILETYPE_X1HU_BINARY) != 0) {
-            val = FILE_TYPE_MACHINE_MASK.getValue();	// bin
+            val = FILE_TYPE_MACHINE_MASK.getValue();    // bin
             val |= FILE_TYPE_BINARY_MASK.getValue();
         } else if ((t1 & FILETYPE_X1HU_BASIC) != 0) {
-            val = FILE_TYPE_BASIC_MASK.getValue();		// bas
+            val = FILE_TYPE_BASIC_MASK.getValue();        // bas
             val |= FILE_TYPE_BINARY_MASK.getValue();
         } else if ((t1 & FILETYPE_X1HU_ASCII) != 0) {
-            val = FILE_TYPE_ASCII_MASK.getValue();		// asc
+            val = FILE_TYPE_ASCII_MASK.getValue();        // asc
         } else if ((t1 & FILETYPE_X1HU_DIRECTORY) != 0) {
-            val = FILE_TYPE_DIRECTORY_MASK.getValue();	// sub directory
+            val = FILE_TYPE_DIRECTORY_MASK.getValue();    // sub directory
         }
 
         int passwd = getFileType2();
@@ -282,13 +285,13 @@ public class DiskBasicDirItemX1HU extends DiskBasicDirItem<DirectoryX1Hu> {
         int t = (getFileType1() | (m_external_attr << 16));
         String attr = rb.getString(Utils.keyAt(gTypeNameX1HU_1, getFileType1Pos(t)));
 
-        for(int i = 0; i<= TYPE_NAME_X1HU_READ_ONLY; i++) {
+        for (int i = 0; i <= TYPE_NAME_X1HU_READ_ONLY; i++) {
             if ((t & (int) Utils.valueAt(gTypeNameX1HU_2, i)) != 0) {
                 attr = attr + ", " + rb.getString(Utils.keyAt(gTypeNameX1HU_2, i));
             }
         }
         if (getFileType2() != DATATYPE_X1HU_PASSWORD_NONE) {
-            attr = attr + ", " + rb.getString(Utils.keyAt(gTypeNameX1HU_2, TYPE_NAME_X1HU_PASSWORD));	// password
+            attr = attr + ", " + rb.getString(Utils.keyAt(gTypeNameX1HU_2, TYPE_NAME_X1HU_PASSWORD));    // password
         }
         return attr;
     }
@@ -337,7 +340,7 @@ public class DiskBasicDirItemX1HU extends DiskBasicDirItem<DirectoryX1Hu> {
         int group_num = getStartGroup(fileunit_num);
         boolean working = true;
         int limit = basic.diskBasicParam.getFatEndGroup() + 1;
-        while(working) {
+        while (working) {
             int next_group = type.getGroupNumber(group_num);
             if (next_group == group_num) {
                 // 同じポジションならエラー (Error if same position)
@@ -396,10 +399,10 @@ public class DiskBasicDirItemX1HU extends DiskBasicDirItem<DirectoryX1Hu> {
         byte[] date = new byte[m_data.data().date.length + 1];
         basic.invertMem(m_data.data().date, m_data.data().date.length, date);
         return LocalDate.of(
-                ((date[0] & 0xff) <= 0x99 ? ((date[0] & 0xf0) >> 4) * 10 + (date[0] & 0x0f) : -1) +	// BCD
-                        (tm.getYear() >= 0 && tm.getYear() < 80 ? 100 : 0),	// 2000 - 2079
+                ((date[0] & 0xff) <= 0x99 ? ((date[0] & 0xf0) >> 4) * 10 + (date[0] & 0x0f) : -1) +    // BCD
+                        (tm.getYear() >= 0 && tm.getYear() < 80 ? 100 : 0),    // 2000 - 2079
                 ((date[1] & 0xf0) >> 4) - 1,
-                (date[2] & 0xff) <= 0x99 ? ((date[2] & 0xf0) >> 4) * 10 + (date[2] & 0x0f) : -1);	// BCD
+                (date[2] & 0xff) <= 0x99 ? ((date[2] & 0xf0) >> 4) * 10 + (date[2] & 0x0f) : -1);    // BCD
     }
 
     // Get file creation time
@@ -408,8 +411,8 @@ public class DiskBasicDirItemX1HU extends DiskBasicDirItem<DirectoryX1Hu> {
         byte[] time = new byte[m_data.data().time.length + 1];
         basic.invertMem(m_data.data().time, m_data.data().time.length, time);
         return LocalTime.of(
-                (time[0] & 0xff) <= 0x99 ? ((time[0] & 0xf0) >> 4) * 10 + (time[0] & 0x0f) : -1,	// BCD
-                (time[1] & 0xff) <= 0x99 ? ((time[1] & 0xf0) >> 4) * 10 + (time[1] & 0x0f) : -1,	// BCD
+                (time[0] & 0xff) <= 0x99 ? ((time[0] & 0xf0) >> 4) * 10 + (time[0] & 0x0f) : -1,    // BCD
+                (time[1] & 0xff) <= 0x99 ? ((time[1] & 0xf0) >> 4) * 10 + (time[1] & 0x0f) : -1,    // BCD
                 0);
     }
 
@@ -434,9 +437,9 @@ public class DiskBasicDirItemX1HU extends DiskBasicDirItem<DirectoryX1Hu> {
     public void setFileCreateDate(LocalDateTime tm) {
         if (tm.getYear() < 0 || tm.getMonth().ordinal() < -1 || tm.getDayOfMonth() < 0) return;
 
-        m_data.data().date[0] = (byte)(((tm.getYear() / 10) % 10) << 4 | (tm.getYear() % 10));	// year BCD
-        m_data.data().date[1] = (byte)(((tm.getMonth().ordinal() + 1) & 0xf) << 4);	// month
-        m_data.data().date[2] = (byte)(((tm.getDayOfMonth() / 10) << 4) | (tm.getDayOfMonth() % 10));	// day BCD
+        m_data.data().date[0] = (byte) (((tm.getYear() / 10) % 10) << 4 | (tm.getYear() % 10));    // year BCD
+        m_data.data().date[1] = (byte) (((tm.getMonth().ordinal() + 1) & 0xf) << 4);    // month
+        m_data.data().date[2] = (byte) (((tm.getDayOfMonth() / 10) << 4) | (tm.getDayOfMonth() % 10));    // day BCD
 
         // 日付から曜日を計算 (Calculate day of week from date)
         int wk = 0;
@@ -451,7 +454,7 @@ public class DiskBasicDirItemX1HU extends DiskBasicDirItem<DirectoryX1Hu> {
             wk = dt.getDayOfWeek().getValue();
         } catch (DateTimeParseException ignore) {
         }
-         m_data.data().date[1] |= (wk & 0xf);	// day of week
+        m_data.data().date[1] |= (wk & 0xf);    // day of week
 
         if (basic.isDataInverted()) mem_invert(m_data.data().date, m_data.data().date.length);
     }
@@ -461,27 +464,39 @@ public class DiskBasicDirItemX1HU extends DiskBasicDirItem<DirectoryX1Hu> {
     public void setFileCreateTime(LocalDateTime tm) {
         if (tm.getHour() < 0 || tm.getMinute() < 0) return;
 
-        m_data.data().time[0] = (byte)(((tm.getHour() / 10) << 4) | (tm.getHour() % 10));	// hour BCD
-        m_data.data().time[1] = (byte)(((tm.getMinute() / 10) << 4) | (tm.getMinute() % 10));	// minute BCD
+        m_data.data().time[0] = (byte) (((tm.getHour() / 10) << 4) | (tm.getHour() % 10));    // hour BCD
+        m_data.data().time[1] = (byte) (((tm.getMinute() / 10) << 4) | (tm.getMinute() % 10));    // minute BCD
 
         if (basic.isDataInverted()) mem_invert(m_data.data().time, m_data.data().time.length);
     }
 
     // Has date/time
     @Override
-    public boolean hasCreateDateTime() { return true; }
+    public boolean hasCreateDateTime() {
+        return true;
+    }
+
     @Override
-    public boolean hasCreateDate() { return true; }
+    public boolean hasCreateDate() {
+        return true;
+    }
+
     @Override
-    public boolean hasCreateTime() { return true; }
+    public boolean hasCreateTime() {
+        return true;
+    }
 
     // Can ignore date/time
     @Override
-    public int canIgnoreDateTime() { return DATETIME_ALL; } // enum enDateTime
+    public int canIgnoreDateTime() {
+        return DATETIME_ALL;
+    } // enum enDateTime
 
     // Has address
     @Override
-    public boolean hasAddress() { return true; }
+    public boolean hasAddress() {
+        return true;
+    }
 
     // Get start address
     @Override
@@ -581,7 +596,7 @@ public class DiskBasicDirItemX1HU extends DiskBasicDirItem<DirectoryX1Hu> {
     public int convOriginalTypeFromFileName(String filename) {
         int t1 = 0;
         // Set attribute by extension
-        MyAttribute sa = basic.diskBasicParam.getAttributesByExtension().findUpperCase(Utils.getExt(filename));
+        MyAttribute sa = findUpperCase(basic.diskBasicParam.getAttributesByExtension(), Utils.getExt(filename));
         if (sa != null) {
             t1 = convToNativeType(sa.getType(), t1);
             t1 |= (m_external_attr << 16);
@@ -602,23 +617,23 @@ public class DiskBasicDirItemX1HU extends DiskBasicDirItem<DirectoryX1Hu> {
     public int getFileType1Pos(int native_type) {
         int val = 0;
         if ((native_type & FILETYPE_X1HU_BINARY) != 0) {
-            val = TYPE_NAME_X1HU_BINARY;	// bin
+            val = TYPE_NAME_X1HU_BINARY;         // bin
         } else if ((native_type & FILETYPE_X1HU_BASIC) != 0) {
-            val = TYPE_NAME_X1HU_BASIC;		// bas
+            val = TYPE_NAME_X1HU_BASIC;          // bas
         } else if ((native_type & FILETYPE_X1HU_ASCII) != 0) {
-            switch(native_type >> 16) {
+            switch (native_type >> 16) {
                 case EXTERNAL_X1_RANDOM:
-                    val = TYPE_NAME_X1HU_RANDOM;	// asc
+                    val = TYPE_NAME_X1HU_RANDOM; // asc
                     break;
                 case EXTERNAL_X1_SWORD:
-                    val = TYPE_NAME_X1HU_SWORD;		// asc
+                    val = TYPE_NAME_X1HU_SWORD;  // asc
                     break;
                 default:
-                    val = TYPE_NAME_X1HU_ASCII;		// asc
+                    val = TYPE_NAME_X1HU_ASCII;  // asc
                     break;
             }
         } else if ((native_type & FILETYPE_X1HU_DIRECTORY) != 0) {
-            val = TYPE_NAME_X1HU_DIRECTORY;	// sub directory
+            val = TYPE_NAME_X1HU_DIRECTORY;     // sub directory
         }
         return val;
     }

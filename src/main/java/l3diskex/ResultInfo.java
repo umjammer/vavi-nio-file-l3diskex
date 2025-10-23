@@ -4,6 +4,8 @@
 
 package l3diskex;
 
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -12,87 +14,38 @@ import javax.swing.JOptionPane;
 
 
 /**
- * 結果保存用のクラス abstract
+ * An abstract class for storing results.
  */
 public abstract class ResultInfo {
 
-    //
-    //                         内部クラス (ログ)
-    //
+    private static final Logger logger = System.getLogger(ResultInfo.class.getName());
 
-    /**
-     * シンプルなログクラス (Java版)
-     */
-    public static class Log {
-
-        /* Log レベル定数 */
-        public static final int MyLog_Error = 1;
-        public static final int MyLog_Warn = 2;
-        public static final int MyLog_Info = 3;
-        public static final int MyLog_Debug = 4;
-
-        /** 例: コンソールに出力するだけの実装 */
-        public void setMessage(int level, String msg) {
-            String prefix;
-            switch (level) {
-                case MyLog_Error:
-                    prefix = "[ERROR] ";
-                    break;
-                case MyLog_Warn:
-                    prefix = "[WARN ] ";
-                    break;
-                case MyLog_Info:
-                    prefix = "[INFO ] ";
-                    break;
-                case MyLog_Debug:
-                    prefix = "[DEBUG] ";
-                    break;
-                default:
-                    prefix = "[LOG  ] ";
-                    break;
-            }
-            System.out.println(prefix + msg);
-        }
-    }
-
-    /*  */
-    /*                         フィールド宣言String
-    /*  */
-    /** 結果レベル (0:正常, -1:エラー, 1:警告, 2:情報) */
+    /** result level (0:ok, -1:error, 1:warning, 2:info) */
     protected int valid;
 
-    /** すべてのメッセージ */
+    /** all messages */
     protected List<String> msgs;
 
-    /** 取得したメッセージを格納するバッファ */
+    /** buffer to store fetched messages */
     protected List<String> bufs;
 
-    /*  */
-    /*                         ログオブジェクト (静的)                     */
-    /*  */
-    protected static Log myLog = new Log();
-
-    /*  */
-    /*                         コンストラクタ／コピー                        */
-    /*  */
-
-    /** デフォルトコンストラクタ */
+    /** default constructor */
     public ResultInfo() {
         msgs = new ArrayList<>();
         bufs = new ArrayList<>();
         clear();
     }
 
-    /** コピーコンストラクタ */
+    /** copy constructor */
     public ResultInfo(ResultInfo src) {
         this.valid = src.valid;
         this.msgs = new ArrayList<>(src.msgs);
         this.bufs = new ArrayList<>();
     }
 
-    /*  */
-    /*                         バリアブルアンダーセット (演算子代入)      */
-    /*  */
+    /**
+     * variable under set (assignment operator)
+     */
     public ResultInfo copyFrom(ResultInfo src) {
         this.valid = src.valid;
         this.msgs.clear();
@@ -102,14 +55,7 @@ public abstract class ResultInfo {
     }
 
     /**
-     * デストラクタ
-     */
-    public void destroy() {
-        // Java では GC が自動で行われるので何もしない
-    }
-
-    /**
-     * Clear メソッド
+     * Clear method
      */
     public void clear() {
         valid = 0;
@@ -146,23 +92,23 @@ public abstract class ResultInfo {
         if (valid == 0) valid = 2;
     }
 
-    /** メッセージ生成を派生クラスに委譲する抽象メソッド */
+    /** An abstract method that delegates message generation to a derived class. */
     public abstract void setMessageV(int errorNumber, Object[] args);
 
-    /* GetMessages（配列版）*/
+    /* GetMessages (for array) */
     public void getMessages(List<String> arr) {
         arr.clear();
         arr.addAll(msgs);
     }
 
-    /* GetMessages（バッファ版）*/
+    /* GetMessages (for buffer) */
     public List<String> getMessages(int maxrow) {
         bufs.clear();
-        int level = (valid < 0) ? Log.MyLog_Error : Log.MyLog_Info;
+        Level level = (valid < 0) ? Level.ERROR : Level.INFO;
 
         if (valid < 2) {
             for (String msg : msgs) {
-                myLog.setMessage(level, msg);
+                logger.log(level, msg);
             }
         }
 
@@ -183,12 +129,12 @@ public abstract class ResultInfo {
         }
     }
 
-    /** 結果ダイアログを表示 */
+    /** Show result dialog */
     public void show() {
         showMessage(getValid(), msgs);
     }
 
-    /** 結果ダイアログを表示 (静的) */
+    /** Show result dialog (static) */
     public static void showMessage(int level, List<String> msgs) {
         StringJoiner sj = new StringJoiner("\n");
         for (String m : msgs) {
@@ -219,7 +165,7 @@ public abstract class ResultInfo {
         );
     }
 
-    /** メッセージダイアログを表示 (静的) */
+    /** Show message dialog (static) */
     public static int showErrWarnMessage(int code, List<String> msgs) {
         StringJoiner sj = new StringJoiner("\n");
         for (String m : msgs) {
@@ -256,7 +202,7 @@ public abstract class ResultInfo {
         return (code == 0 || ans == JOptionPane.YES_OPTION) ? 0 : -1;
     }
 
-    /*  */
+    /** */
     public void setValid(int val) {
         this.valid = val;
     }

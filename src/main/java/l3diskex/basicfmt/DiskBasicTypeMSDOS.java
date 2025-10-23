@@ -49,7 +49,7 @@ public class DiskBasicTypeMSDOS extends DiskBasicTypeFAT12 {
          */
         DiskBasicDirItem[] nextItem = new DiskBasicDirItem[1];
         DiskBasicDirItem item = dir.findFileByAttrOnRoot(FILE_TYPE_VOLUME_MASK.getValue(),
-                                                        FILE_TYPE_VOLUME_MASK.getValue() | FILE_TYPE_DIRECTORY_MASK.getValue(), null);
+                FILE_TYPE_VOLUME_MASK.getValue() | FILE_TYPE_DIRECTORY_MASK.getValue(), null);
         if (item == null) {
             /* no volume label – try to allocate a new item */
             item = dir.getEmptyItemOnRoot(null, nextItem);
@@ -157,7 +157,7 @@ public class DiskBasicTypeMSDOS extends DiskBasicTypeFAT12 {
             int tracks = bpb.BPB_TotSec16;
             if (tracks > 0) {
                 tracks = tracks / basic.diskBasicParam.getSidesPerDiskOnBasic()
-                            / basic.diskBasicParam.getSectorsPerTrackOnBasic();
+                        / basic.diskBasicParam.getSectorsPerTrackOnBasic();
                 basic.diskBasicParam.setTracksPerSideOnBasic(tracks);
             }
         }
@@ -260,7 +260,7 @@ public class DiskBasicTypeMSDOS extends DiskBasicTypeFAT12 {
         DiskBasicFormat fmt = basic.getFormatType();
         if (fmt.HasVolumeName()) {
             int dirStart = basic.diskBasicParam.getReservedSectors()
-                          + basic.diskBasicParam.getNumberOfFats() * basic.diskBasicParam.getSectorsPerFat();
+                    + basic.diskBasicParam.getNumberOfFats() * basic.diskBasicParam.getSectorsPerFat();
             DiskImageSector sec = basic.getSectorFromSectorPos(dirStart);
             DiskBasicDirItem ditem = dir.newItem(sec, 0, sec.getSectorBuffer());
             ditem.setFileNamePlain(data.getVolumeName());
@@ -343,6 +343,7 @@ public class DiskBasicTypeMSDOS extends DiskBasicTypeFAT12 {
     /** FAT BPB */
     @Serdes(bigEndian = false)
     public static final class fat_bpb_t {
+
         @Element(sequence = 1)
         public byte[] BS_JmpBoot = new byte[3];
         @Element(sequence = 2)

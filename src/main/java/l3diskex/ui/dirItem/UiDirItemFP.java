@@ -47,9 +47,9 @@ import static l3diskex.basicfmt.DiskBasicDirItemFAT8.TypeNames.TYPE_NAME_2_RANDO
 public class UiDirItemFP extends UiDirItem {
 
     static final int IDC_RADIO_TYPE1 = 51;
-    static final int  IDC_RADIO_TYPE2 = 52;
-    static final int  IDC_CHECK_READONLY = 53;
-    static final int  IDC_CHECK_READWRITE = 54;
+    static final int IDC_RADIO_TYPE2 = 52;
+    static final int IDC_CHECK_READONLY = 53;
+    static final int IDC_CHECK_READWRITE = 54;
 
     DiskBasicDirItemFP dirItem;
 
@@ -90,8 +90,8 @@ public class UiDirItemFP extends UiDirItem {
 
     @Override
     public void changeTypeInAttrDialog(IntNameBox parent) {
-        ButtonGroup radType1 = (ButtonGroup)parent.getComponent(IDC_RADIO_TYPE1);
-        ButtonGroup radType2 = (ButtonGroup)parent.getComponent(IDC_RADIO_TYPE2);
+        ButtonGroup radType1 = (ButtonGroup) parent.getComponent(IDC_RADIO_TYPE1);
+        ButtonGroup radType2 = (ButtonGroup) parent.getComponent(IDC_RADIO_TYPE2);
 
         int selected_idx = 0;
         if (radType1 != null) {
@@ -100,7 +100,7 @@ public class UiDirItemFP extends UiDirItem {
 
         if (radType2 == null) return;
 
-        switch(selected_idx) {
+        switch (selected_idx) {
             case TYPE_NAME_1_BASIC:
                 if (radType2.getSelection() == TYPE_NAME_2_RANDOM) {
                     radType2.SetSelection(TYPE_NAME_2_ASCII);
@@ -139,17 +139,17 @@ public class UiDirItemFP extends UiDirItem {
 
     @Override
     public boolean setAttrInAttrDialog(IntNameBox parent, DiskBasicDirItemAttr attr, DiskBasicError errinfo) {
-        ButtonGroup radType1 = (ButtonGroup)parent.getComponent(IDC_RADIO_TYPE1);
-        ButtonGroup radType2 = (ButtonGroup)parent.getComponent(IDC_RADIO_TYPE2);
-        JCheckBox chkReadOnly = (JCheckBox)parent.getComponent(IDC_CHECK_READONLY);
-        JCheckBox chkReadWrite = (JCheckBox)parent.getComponent(IDC_CHECK_READWRITE);
+        ButtonGroup radType1 = (ButtonGroup) parent.getComponent(IDC_RADIO_TYPE1);
+        ButtonGroup radType2 = (ButtonGroup) parent.getComponent(IDC_RADIO_TYPE2);
+        JCheckBox chkReadOnly = (JCheckBox) parent.getComponent(IDC_CHECK_READONLY);
+        JCheckBox chkReadWrite = (JCheckBox) parent.getComponent(IDC_CHECK_READWRITE);
 
         int ftype = 0;
         int sel;
 
         if (radType1 != null) {
             sel = radType1.getSelection();
-            switch(sel) {
+            switch (sel) {
                 case TYPE_NAME_1_BASIC:
                     ftype = FILE_TYPE_BASIC_MASK.getValue();
                     break;
@@ -164,7 +164,7 @@ public class UiDirItemFP extends UiDirItem {
 
         if (radType2 != null) {
             sel = radType2.GetSelection();
-            switch(sel) {
+            switch (sel) {
                 case TYPE_NAME_2_RANDOM:
                     ftype |= FILE_TYPE_RANDOM_MASK.getValue();
                     break;
@@ -191,14 +191,14 @@ public class UiDirItemFP extends UiDirItem {
 
     @Override
     public int getEndAddressInAttrDialog(IntNameBox parent) {
-        ButtonGroup radType1 = (ButtonGroup)parent.getComponent(IDC_RADIO_TYPE1);
-        ButtonGroup radType2 = (ButtonGroup)parent.getComponent(IDC_RADIO_TYPE2);
+        ButtonGroup radType1 = (ButtonGroup) parent.getComponent(IDC_RADIO_TYPE1);
+        ButtonGroup radType2 = (ButtonGroup) parent.getComponent(IDC_RADIO_TYPE2);
         if (radType1 == null || radType2 == null) return -1;
 
         int val = 0;
         int sel1 = radType1.GetSelection();
         int sel2 = radType2.GetSelection();
-        switch(sel2) {
+        switch (sel2) {
             case TYPE_NAME_2_BINARY:
                 if (sel1 == TYPE_NAME_1_BASIC) {
                     val = dirItem.getFileSize();

@@ -17,13 +17,15 @@ import java.util.regex.Pattern;
  */
 public final class Utils {
 
-    private Utils() {} // Private constructor for utility class
+    private Utils() {
+    } // Private constructor for utility class
 
     public static final int TEMP_DATA_SIZE = 2048;
 
     /**
      * Helper to perform bitwise NOT (XOR with 0xFF) on a byte array.
      * C++ equivalent of an assumed 'mem_invert' function.
+     *
      * @param data The byte array.
      * @param size The number of bytes to invert.
      */
@@ -37,7 +39,9 @@ public final class Utils {
      * Placeholder for the external CharCodes class.
      */
     public static class CharCodes {
+
         public void setMap(String char_code) { /* no-op */ }
+
         public int findString(byte[] c, int len, StringBuilder cstr, char defaultChar) {
             // Placeholder: Assume 1 byte per character for simplicity in Java conversion.
             // This is a simplification of multi-byte character handling.
@@ -47,14 +51,19 @@ public final class Utils {
             }
             return 0;
         }
+
         public void convCtrlCodes(byte[] c, int len) { /* no-op */ }
-        public Charset charset() { return Charset.defaultCharset(); }
+
+        public Charset charset() {
+            return Charset.defaultCharset();
+        }
     }
 
     /**
      * Temporary data buffer.
      */
     public static class TempData {
+
         private byte[] data;
         private int alloc_size;
         private int size;
@@ -72,6 +81,7 @@ public final class Utils {
 
         /**
          * Allocate buffer (reallocate if needed).
+         *
          * @param newsize Buffer size.
          */
         public void setSize(int newsize) {
@@ -85,8 +95,9 @@ public final class Utils {
 
         /**
          * Set data to buffer.
-         * @param data Data.
-         * @param len Data size.
+         *
+         * @param data   Data.
+         * @param len    Data size.
          * @param invert Invert data if true.
          */
         public void setData(byte[] data, int len, boolean invert) {
@@ -99,6 +110,7 @@ public final class Utils {
 
         /**
          * Set data to buffer at position.
+         *
          * @param pos Data position.
          * @param val Data.
          */
@@ -110,6 +122,7 @@ public final class Utils {
 
         /**
          * Replace matching byte data.
+         *
          * @param src Target data to replace.
          * @param dst Replacement data.
          */
@@ -121,12 +134,16 @@ public final class Utils {
 
         /**
          * Returns buffer pointer.
+         *
          * @return Data array.
          */
-        public byte[] getData() { return data; }
+        public byte[] getData() {
+            return data;
+        }
 
         /**
          * Returns buffer pointer at a specific position.
+         *
          * @param pos Position.
          * @return Data array at position.
          */
@@ -141,18 +158,25 @@ public final class Utils {
 
         /**
          * Returns data size.
+         *
          * @return Size.
          */
-        public int getSize() { return size; }
+        public int getSize() {
+            return size;
+        }
 
         /**
          * Returns buffer size.
+         *
          * @return Allocated size.
          */
-        public int getBufferSize() { return alloc_size; }
+        public int getBufferSize() {
+            return alloc_size;
+        }
 
         /**
          * Invert data.
+         *
          * @param invert Invert if true.
          */
         public void invertData(boolean invert) {
@@ -166,6 +190,7 @@ public final class Utils {
      * FIFO buffer.
      */
     public static class FIFOBuffer {
+
         private byte[] m_data;
         private int m_size;
         private int m_rpos;
@@ -185,6 +210,7 @@ public final class Utils {
 
         /**
          * Set buffer size.
+         *
          * @param val Size.
          */
         public void setBufSize(int val) {
@@ -208,6 +234,7 @@ public final class Utils {
 
         /**
          * Append 1 byte of data.
+         *
          * @param val Data byte.
          */
         public void appendByte(byte val) {
@@ -220,7 +247,8 @@ public final class Utils {
 
         /**
          * Append data.
-         * @param buf Data.
+         *
+         * @param buf  Data.
          * @param size Data size.
          */
         public void appendData(byte[] buf, int size) {
@@ -237,6 +265,7 @@ public final class Utils {
 
         /**
          * Returns data without updating read position.
+         *
          * @return Data (0-255) or -1 if empty.
          */
         public int PeekByte() {
@@ -249,6 +278,7 @@ public final class Utils {
 
         /**
          * Returns data and updates read position.
+         *
          * @return Data (0-255) or -1 if empty.
          */
         public int getByte() {
@@ -261,7 +291,8 @@ public final class Utils {
 
         /**
          * Get data and update read position.
-         * @param buf Destination buffer.
+         *
+         * @param buf  Destination buffer.
          * @param size Buffer size.
          * @return Size of data stored.
          */
@@ -275,60 +306,83 @@ public final class Utils {
 
         /**
          * Returns data buffer.
+         *
          * @return Data array.
          */
-        public byte[] getData() { return m_data; }
+        public byte[] getData() {
+            return m_data;
+        }
 
         /**
          * Returns read position.
+         *
          * @return Read position.
          */
-        public int getReadPos() { return m_rpos; }
+        public int getReadPos() {
+            return m_rpos;
+        }
 
         /**
          * Returns write position.
+         *
          * @return Write position.
          */
-        public int getWritePos() { return m_wpos; }
+        public int getWritePos() {
+            return m_wpos;
+        }
 
         /**
          * Returns remaining data size.
+         *
          * @return Remaining size.
          */
-        public int remain() { return m_wpos - m_rpos; }
+        public int remain() {
+            return m_wpos - m_rpos;
+        }
 
         /**
          * Set read position.
+         *
          * @param val Position.
          */
-        public void setReadPos(int val) { m_rpos = val; }
+        public void setReadPos(int val) {
+            m_rpos = val;
+        }
 
         /**
          * Set write position.
+         *
          * @param val Position.
          */
-        public void setWritePos(int val) { m_wpos = val; }
+        public void setWritePos(int val) {
+            m_wpos = val;
+        }
 
         /**
          * Set read position to write position (all read).
          */
-        public void fix() { m_rpos = m_wpos; }
+        public void fix() {
+            m_rpos = m_wpos;
+        }
     }
 
     /**
      * Dump auxiliary class.
      */
     public static class Dump {
+
         private final CharCodes codes = new CharCodes();
 
-        public Dump() {}
+        public Dump() {
+        }
 
         /**
          * Binary dump.
-         * @param buffer Source data.
+         *
+         * @param buffer  Source data.
          * @param bufsize Source data length.
-         * @param str Dumped string builder.
-         * @param invert Invert data if true.
+         * @param str     Dumped string builder.
+         * @param invert  Invert data if true.
          * @return Number of dump lines.
          */
         public int binary(byte[] buffer, int bufsize, StringBuilder str, boolean invert) {
@@ -363,11 +417,12 @@ public final class Utils {
 
         /**
          * ASCII dump.
-         * @param buffer Source data.
-         * @param bufsize Source data length.
+         *
+         * @param buffer    Source data.
+         * @param bufsize   Source data length.
          * @param char_code Character code map ID (String).
-         * @param str Dumped string builder.
-         * @param invert Invert data if true.
+         * @param str       Dumped string builder.
+         * @param invert    Invert data if true.
          * @return Number of dump lines (returns 0 in C++).
          */
         public int ascii(byte[] buffer, int bufsize, String char_code, StringBuilder str, boolean invert) {
@@ -410,11 +465,12 @@ public final class Utils {
 
         /**
          * Text dump.
-         * @param buffer Source data.
-         * @param bufsize Source data length.
+         *
+         * @param buffer    Source data.
+         * @param bufsize   Source data length.
          * @param char_code Character code map ID (String).
-         * @param str Dumped string builder.
-         * @param invert Invert data if true.
+         * @param str       Dumped string builder.
+         * @param invert    Invert data if true.
          * @return Number of dump lines.
          */
         public int text(byte[] buffer, int bufsize, String char_code, StringBuilder str, boolean invert) {
@@ -488,6 +544,7 @@ public final class Utils {
      * StopWatch class.
      */
     public static class StopWatch {
+
         private long startTime;
         private int m_id;
         private boolean m_now_wait_cursor; // Ignored in Java translation
@@ -516,11 +573,17 @@ public final class Utils {
             // Ignored wxWakeUpIdle
         }
 
-        public int getID() { return m_id; }
-        public void setID(int id) { m_id = id; }
+        public int getID() {
+            return m_id;
+        }
+
+        public void setID(int id) {
+            m_id = id;
+        }
 
         /**
          * Returns elapsed time in milliseconds.
+         *
          * @return Elapsed time.
          */
         public long getTime() {
@@ -532,7 +595,8 @@ public final class Utils {
 
     /**
      * Convert time structure to date/time data (MS-DOS format).
-     * @param tm Time structure.
+     *
+     * @param tm   Time structure.
      * @param date Date data (3 bytes).
      * @param time Time data (3 bytes).
      */
@@ -561,12 +625,12 @@ public final class Utils {
      */
     public static LocalDateTime convDateTimeToTm(byte[] date, byte[] time) {
         return LocalDateTime.of(
-        // Year: date[0] (LSB) + ((date[1] & 0xf) << 8) (MSB 4 bits)
+                // Year: date[0] (LSB) + ((date[1] & 0xf) << 8) (MSB 4 bits)
                 (date[0] & 0xFF) | ((date[1] & 0x0F) << 8),
-        // Month: (date[1] & 0xf0) >> 4. Month is 1-12. DateTime stores 0-11.
+                // Month: (date[1] & 0xf0) >> 4. Month is 1-12. DateTime stores 0-11.
                 ((date[1] & 0xF0) >> 4) - 1,
 //        if (tm.getMonth().ordinal() == 0xf - 1) tm.SetMonth(-2); // -1 if month is 0xf
-        // Day: date[2] (1-31)
+                // Day: date[2] (1-31)
                 date[2] & 0xFF,
 
                 time[0] & 0xFF,
@@ -577,6 +641,7 @@ public final class Utils {
 
     /**
      * Convert date string to time structure.
+     *
      * @param date Date string.
      * @return true if successful.
      */
@@ -608,6 +673,7 @@ public final class Utils {
 
     /**
      * Convert time string to time structure.
+     *
      * @param time Time string.
      * @return true if successful.
      */
@@ -649,6 +715,7 @@ public final class Utils {
 
     /**
      * Convert BCD format date to time structure.
+     *
      * @param yy Year (BCD).
      * @param mm Month (BCD).
      * @param dd Day (BCD).
@@ -661,14 +728,15 @@ public final class Utils {
 
         return LocalDate.of(
                 year +
-                // Add 100 if year is 0-79 (since 1900)
-                (0 <= year && year < 80 ? 100 : 0),
+                        // Add 100 if year is 0-79 (since 1900)
+                        (0 <= year && year < 80 ? 100 : 0),
                 month - 1, // DateTime stores 0-11
                 day);
     }
 
     /**
      * Convert time structure to BCD format date.
+     *
      * @param tm Time structure.
      * @param yy Year (BCD).
      * @param mm Month (BCD).
@@ -686,6 +754,7 @@ public final class Utils {
 
     /**
      * Returns date as "YYYY/MM/DD" or "----/--/--".
+     *
      * @param tm Time structure.
      * @return Formatted date string.
      */
@@ -698,6 +767,7 @@ public final class Utils {
 
     /**
      * Returns time as "HH:MI:SS" or "--:--:--".
+     *
      * @param tm Time structure.
      * @return Formatted time string.
      */
@@ -710,6 +780,7 @@ public final class Utils {
 
     /**
      * Returns time as "HH:MI" or "--:--".
+     *
      * @param tm Time structure.
      * @return Formatted time string.
      */
@@ -722,6 +793,7 @@ public final class Utils {
     /**
      * Convert string to int value.
      * Supports decimal, 0x (hex), and 0b (binary).
+     *
      * @param val String value.
      * @return Integer value.
      */
@@ -746,6 +818,7 @@ public final class Utils {
     /**
      * Convert string to boolean value.
      * "1", "TRUE", "true" => true
+     *
      * @param val String value.
      * @return Boolean value.
      */
@@ -755,6 +828,7 @@ public final class Utils {
 
     /**
      * Convert hexadecimal string to integer.
+     *
      * @param sval String value.
      * @return Integer value or -1 on error.
      */
@@ -770,12 +844,14 @@ public final class Utils {
 
     /**
      * Decode escape characters.
+     *
      * @param src Source string.
      * @param dst Destination string builder.
      */
-    public static void decodeEscape(String src, StringBuilder dst) {
+    public static void decodeEscape(String src, String[] dst) {
         String str = src;
         int i = 0;
+        StringBuilder sb = new StringBuilder();
 
         while (i < str.length()) {
             char c = str.charAt(i);
@@ -787,31 +863,34 @@ public final class Utils {
                         try {
                             String hex = str.substring(i + 1, i + 3);
                             int v = Integer.parseInt(hex, 16);
-                            dst.append((char) v);
+                            sb.append((char) v);
                             i += 3;
                         } catch (NumberFormatException e) {
                             // If not a valid hex escape, treat as literal '\' and 'x'
-                            dst.append('\\');
-                            dst.append('x');
+                            sb.append('\\');
+                            sb.append('x');
                             i++; // Move past 'x'
                         }
                     } else {
-                        dst.append(nextC);
+                        sb.append(nextC);
                         i++;
                     }
                 } else {
                     // Trailing backslash, append it
-                    dst.append('\\');
+                    sb.append('\\');
                 }
             } else {
-                dst.append(c);
+                sb.append(c);
                 i++;
             }
         }
+
+        dst[0] = sb.toString();
     }
 
     /**
      * Decode escape characters into a byte array.
+     *
      * @param src Source string.
      * @param dst Destination byte array.
      * @param len Destination buffer length.
@@ -865,6 +944,7 @@ public final class Utils {
     /**
      * Encode characters into escape sequences.
      * Non-alphanumeric, 0x60, and 0x7f-0xff are converted to "\u0000".
+     *
      * @param src Source byte array.
      * @param len Data length.
      * @return Encoded string.
@@ -891,6 +971,7 @@ public final class Utils {
     /**
      * Decode file name.
      * Converts "%xx" to actual character.
+     *
      * @param src File name string.
      * @return Decoded string.
      */
@@ -922,6 +1003,7 @@ public final class Utils {
     /**
      * Encode file name.
      * Converts %\/:*?"<>| to "%%xx".
+     *
      * @param src File name string.
      * @return Encoded string.
      */
@@ -940,8 +1022,9 @@ public final class Utils {
 
     /**
      * Get side number string.
+     *
      * @param side_number Side number (0, 1).
-     * @param each_sides True to return as number ("0", "1"), False for letter ("A", "B").
+     * @param each_sides  True to return as number ("0", "1"), False for letter ("A", "B").
      * @return "0", "1", "A", or "B".
      */
     public static String getSideNumStr(int side_number, boolean each_sides) {
@@ -959,8 +1042,9 @@ public final class Utils {
 
     /**
      * Get side string.
+     *
      * @param side_number Side number (0, 1).
-     * @param each_sides True to return as number ("side 0"), False for letter ("side A").
+     * @param each_sides  True to return as number ("side 0"), False for letter ("side A").
      * @return "side 0" or "side A".
      */
     public static String getSideStr(int side_number, boolean each_sides) {
@@ -979,7 +1063,8 @@ public final class Utils {
 
     /**
      * Check if a string is in a list.
-     * @param list String list (null terminated in C++, use String[] in Java).
+     *
+     * @param list   String list (null terminated in C++, use String[] in Java).
      * @param substr String to check.
      * @return Index of the match or -1.
      */
@@ -996,6 +1081,7 @@ public final class Utils {
 
     /**
      * Check if upper case characters are more numerous than lower case.
+     *
      * @param str String.
      * @return True if upper case count > lower case count.
      */
@@ -1015,7 +1101,8 @@ public final class Utils {
 
     /**
      * Check if a value is a power of two.
-     * @param val Value.
+     *
+     * @param val   Value.
      * @param digit Number of bits to check (ignored in standard Java implementation).
      * @return True if power of two.
      */
@@ -1041,6 +1128,7 @@ public final class Utils {
 
     /**
      * Calculate CRC32.
+     *
      * @param data Data buffer.
      * @param size Data size.
      * @return CRC32 value (unsigned 32-bit).

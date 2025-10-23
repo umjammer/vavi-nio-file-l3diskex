@@ -37,14 +37,14 @@ public abstract class DiskBasicDirItemTRSDOS<T extends DirectoryT> extends DiskB
     public static final int FILETYPE_MASK_TRSDOS_OVERFLOW = 0x80;
 
     static final Map<String, Object> gTypeNameTRSDOS = new LinkedHashMap<>() {{
-            put("Invisible", FILETYPE_MASK_TRSDOS_INVISIBLE);
-            put("System", FILETYPE_MASK_TRSDOS_SYSTEM);
-            put("Overflow", FILETYPE_MASK_TRSDOS_OVERFLOW);
+        put("Invisible", FILETYPE_MASK_TRSDOS_INVISIBLE);
+        put("System", FILETYPE_MASK_TRSDOS_SYSTEM);
+        put("Overflow", FILETYPE_MASK_TRSDOS_OVERFLOW);
     }};
 
     /// TRSDOS属性名
     static final Map<String, Object> gTypeNameTRSDOS2 = new LinkedHashMap<>() {{
-            put("SYS", FILETYPE_MASK_TRSDOS_SYSTEM);
+        put("SYS", FILETYPE_MASK_TRSDOS_SYSTEM);
     }};
 
     protected DiskBasicDirItemTRSDOS<T> next_item;
@@ -734,7 +734,7 @@ class DiskBasicDirItemTRSD23 extends DiskBasicDirItemTRSDOS<DirectoryTrsd23> {
 /**
  * ディレクトリ１アイテム TRSDOS 1.3
  */
- class DiskBasicDirItemTRSD13 extends DiskBasicDirItemTRSDOS<DirectoryTrsd13> {
+class DiskBasicDirItemTRSD13 extends DiskBasicDirItemTRSDOS<DirectoryTrsd13> {
 
     protected DiskBasicDirData<DirectoryTrsd13> m_data = new DiskBasicDirData<>();
 

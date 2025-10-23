@@ -75,7 +75,7 @@ public class UiDirItemMAGICAL extends UiDirItem {
         GridLayout gszr = new GridLayout(2, 1, 1, 1); // rows, cols, vgap, hgap
 
         List<String> types1 = new ArrayList<>();
-        for(String nv : gTypeNameMAGICAL_1.keySet()) {
+        for (String nv : gTypeNameMAGICAL_1.keySet()) {
             types1.add(rb.getString(nv));
         }
         BoxLayout staType1 = new BoxLayout(new wxStaticBox(parent, 0, "File Type"), 1); // wxVERTICAL = 1
@@ -87,7 +87,7 @@ public class UiDirItemMAGICAL extends UiDirItem {
         gszr.Add(staType1, flags);
 
         List<String> types2 = new ArrayList<>();
-        for(String s : gTypeNameMAGICAL_3) {
+        for (String s : gTypeNameMAGICAL_3) {
             if (s == null) break;
             types2.add(rb.getString(s));
         }
@@ -128,12 +128,12 @@ public class UiDirItemMAGICAL extends UiDirItem {
 
     @Override
     public boolean setAttrInAttrDialog(IntNameBox parent, DiskBasicDirItemAttr attr, DiskBasicError errinfo) {
-        JCheckBox comType1 = (JCheckBox)parent.getComponent(IDC_COMBO_TYPE1);
-        JCheckBox comMemBank = (JCheckBox)parent.getComponent(IDC_COMBO_MEMBANK);
-        JCheckBox chkReadOnly = (JCheckBox)parent.getComponent(IDC_CHECK_READONLY);
-        JCheckBox chkHidden = (JCheckBox)parent.getComponent(IDC_CHECK_HIDDEN);
-        JCheckBox chkSystem = (JCheckBox)parent.getComponent(IDC_CHECK_SYSTEM);
-        JCheckBox chkSuper = (JCheckBox)parent.getComponent(IDC_CHECK_SUPER);
+        JCheckBox comType1 = (JCheckBox) parent.getComponent(IDC_COMBO_TYPE1);
+        JCheckBox comMemBank = (JCheckBox) parent.getComponent(IDC_COMBO_MEMBANK);
+        JCheckBox chkReadOnly = (JCheckBox) parent.getComponent(IDC_CHECK_READONLY);
+        JCheckBox chkHidden = (JCheckBox) parent.getComponent(IDC_CHECK_HIDDEN);
+        JCheckBox chkSystem = (JCheckBox) parent.getComponent(IDC_CHECK_SYSTEM);
+        JCheckBox chkSuper = (JCheckBox) parent.getComponent(IDC_CHECK_SUPER);
 
         int t1 = comType1.GetSelection();
         if (t1 >= en_type_name_magical_1.TYPE_NAME_MAGICAL_SYS.ordinal() && t1 < en_type_name_magical_1.TYPE_NAME_MAGICAL_UNKNOWN.ordinal()) {

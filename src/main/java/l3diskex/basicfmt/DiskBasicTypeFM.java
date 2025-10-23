@@ -51,8 +51,8 @@ public class DiskBasicTypeFM extends DiskBasicTypeFAT8 {
      *
      * @param is_formatting true if formatting is in progress.
      * @return 1.0       normal
-     *         0.0‑1.0   warning
-     *         <0.0      error
+     * 0.0‑1.0   warning
+     * <0.0      error
      */
     @Override
     public double checkFat(boolean is_formatting) {

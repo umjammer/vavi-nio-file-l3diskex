@@ -40,8 +40,8 @@ public class UiDirItemXDOS extends UiDirItem {
     DiskBasicDirItemXDOS dirItem;
 
     protected int getFileType1InAttrDialog(IntNameBox parent) {
-        JComboBox comFType = (JComboBox)parent.getComponent(51);
-        JComboBox comSType = (JComboBox)parent.getComponent(52);
+        JComboBox comFType = (JComboBox) parent.getComponent(51);
+        JComboBox comSType = (JComboBox) parent.getComponent(52);
 
         int typ1 = 0;
 
@@ -65,7 +65,7 @@ public class UiDirItemXDOS extends UiDirItem {
     protected int getFileType2InAttrDialog(IntNameBox parent) {
         int typ2 = 0;
         for (int idx = 0; gTypeNameXDOS2[idx] != null; idx++) {
-            JComboBox chk = (JComboBox)parent.getComponent(53 + idx);
+            JComboBox chk = (JComboBox) parent.getComponent(53 + idx);
             typ2 |= (chk.getValue() ? (0x80 >> idx) : 0);
         }
         return typ2;
@@ -111,8 +111,8 @@ public class UiDirItemXDOS extends UiDirItem {
 
     @Override
     public void changeTypeInAttrDialog(IntNameBox parent) {
-        JComboBox comFType = (JComboBox)parent.getComponent(51);
-        JComboBox comSType = (JComboBox)parent.getComponent(52);
+        JComboBox comFType = (JComboBox) parent.getComponent(51);
+        JComboBox comSType = (JComboBox) parent.getComponent(52);
 
         if (comFType == null || comSType == null) return;
 

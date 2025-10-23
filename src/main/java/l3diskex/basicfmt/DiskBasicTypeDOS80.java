@@ -15,8 +15,6 @@ import l3diskex.basicfmt.BasicFmt.DiskBasicIdentifiedData;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskImage.DiskImageTrack;
 
-import static l3diskex.basicfmt.BasicFat.INVALID_GROUP_NUMBER;
-
 
 /**
  * public class DiskBasicTypeDOS80
@@ -36,7 +34,7 @@ public class DiskBasicTypeDOS80 extends DiskBasicTypeFAT8 {
         int newNum = INVALID_GROUP_NUMBER;
 
         int grpsPerTrk = basic.getSectorsPerTrackOnBasic() /
-                          basic.getSectorsPerGroup();
+                basic.getSectorsPerGroup();
         int maxGroup = basic.getFatEndGroup() - managedStartGroup;
 
         if (maxGroup < 0) {
@@ -79,6 +77,7 @@ public class DiskBasicTypeDOS80 extends DiskBasicTypeFAT8 {
     }
 
     /*-----------------------  check / assign FAT area  -------------------*/
+
     /**
      * FATエリアをチェック
      */
@@ -99,6 +98,7 @@ public class DiskBasicTypeDOS80 extends DiskBasicTypeFAT8 {
     }
 
     /*-----------------------  format operations  ------------------------*/
+
     /**
      * セクタデータを指定コードで埋める
      */
@@ -167,6 +167,7 @@ public class DiskBasicTypeDOS80 extends DiskBasicTypeFAT8 {
     /**/
     /*  data access (read / verify)                                        */
     /**/
+
     /**
      * ファイルの最終セクタのデータサイズを求める
      */
@@ -194,6 +195,7 @@ public class DiskBasicTypeDOS80 extends DiskBasicTypeFAT8 {
     /**/
     /*  save / write                                                       */
     /**/
+
     /**
      * データの書き込み処理
      */

@@ -16,8 +16,6 @@ import l3diskex.basicfmt.BasicFmt.DiskBasic;
 import l3diskex.basicfmt.BasicFmt.DiskBasicIdentifiedData;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 
-import static l3diskex.basicfmt.BasicFat.INVALID_GROUP_NUMBER;
-
 
 //
 // basictype_xdos.h

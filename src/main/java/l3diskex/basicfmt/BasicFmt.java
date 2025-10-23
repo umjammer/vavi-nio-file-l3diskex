@@ -483,17 +483,17 @@ public class BasicFmt {
                         validRatio = parseFormattedDisk(newDisk, match, isFormatting);
                         logger.log(Level.INFO, "  Result => %.2f".formatted(validRatio));
                         if (validRatio >= 0.0) {
-                            validParams.content.add(match);
+                            validParams.list.add(match);
                             validRatios.add(validRatio);
                         }
                     }
                 }
 
                 errinfo.clear();
-                if (!validParams.content.isEmpty()) {
+                if (!validParams.list.isEmpty()) {
                     int idx = maxRatio(validRatios);
                     if (idx < 0) idx = 0;
-                    match = validParams.content.get(idx);
+                    match = validParams.list.get(idx);
                     logger.log(Level.INFO, "Decided format: %s".formatted(match.getBasicTypeName()));
                     validRatio = parseFormattedDisk(newDisk, match, isFormatting);
                     logger.log(Level.INFO, "  Result => %.2f".formatted(validRatio));
@@ -1687,11 +1687,11 @@ public class BasicFmt {
             return fat;
         }
 
-        public DiskBasicDir getDir() {
+        public <T extends DirectoryT> DiskBasicDir<T> getDir() {
             return dir;
         }
 
-        public DiskBasicType getType() {
+        public <T extends DirectoryT> DiskBasicType<T> getType() {
             return type;
         }
 

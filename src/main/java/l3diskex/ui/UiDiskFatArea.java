@@ -38,8 +38,8 @@ public class UiDiskFatArea {
     /*  CONSTANTS (portions of the original C++ definitions)              */
     /* ------------------------------------------------------------------ */
 
-    static final int SELECT_FLAG   = 0x10000;
-    static final int EXTRA_FLAG    = 0x20000;
+    static final int SELECT_FLAG = 0x10000;
+    static final int EXTRA_FLAG = 0x20000;
 
     /* ------------------------------------------------------------------ */
     /*  BASIC STUB CLASSES                                                 */
@@ -47,6 +47,7 @@ public class UiDiskFatArea {
 
     /** Minimal stub for UiDiskFrame. */
     static class UiDiskFrame {
+
         void FatAreaWindowClosed() {
             System.out.println("FAT area window closed");
         }
@@ -54,8 +55,12 @@ public class UiDiskFatArea {
 
     /** Minimal representation of a single group entry. */
     public static class DiskBasicGroup {
+
         int group;
-        DiskBasicGroup(int g) { this.group = g; }
+
+        DiskBasicGroup(int g) {
+            this.group = g;
+        }
     }
 
     /* ------------------------------------------------------------------ */
@@ -90,7 +95,8 @@ public class UiDiskFatArea {
 
             /* ---- Close handling --------------------------------------- */
             addWindowListener(new WindowAdapter() {
-                @Override public void windowClosed(WindowEvent e) {
+                @Override
+                public void windowClosed(WindowEvent e) {
                     if (parent != null) {
                         parent.FatAreaWindowClosed();
                     }
@@ -150,7 +156,7 @@ public class UiDiskFatArea {
         private final Color[] pens = new Color[FAT_AVAIL_NULLEND.getValue()];
         private final Color[] brushes = new Color[FAT_AVAIL_NULLEND.getValue()];
         private final Color brushSelect = Color.RED;
-        private final Color brushExtra  = new Color(0xff, 0x00, 0xff);
+        private final Color brushExtra = new Color(0xff, 0x00, 0xff);
 
         /* Constructor -------------------------------------------------- */
         UiDiskFatAreaPanel(UiDiskFatAreaFrame frame) {
@@ -158,29 +164,29 @@ public class UiDiskFatArea {
             setBackground(Color.WHITE);
 
             /* ---- Compute initial preferred size --------------------- */
-            int width  = lpadding + ll + margin
-                       + (sq.width + margin) * 16   // 16 squares in a row
-                       + rpadding;
+            int width = lpadding + ll + margin
+                    + (sq.width + margin) * 16   // 16 squares in a row
+                    + rpadding;
             int height = 240;                     // arbitrary initial height
             setPreferredSize(new Dimension(width, height * 100));
 
             /* ---- Pens ------------------------------------------------ */
-            pens[FAT_AVAIL_FREE.ordinal()]        = Color.BLACK;
-            pens[FAT_AVAIL_SYSTEM.getValue()]      = Color.BLACK;
-            pens[FAT_AVAIL_USED.getValue()]        = Color.BLACK;
-            pens[FAT_AVAIL_USED_FIRST.getValue()]  = Color.BLACK;
-            pens[FAT_AVAIL_USED_LAST.getValue()]   = Color.BLACK;
-            pens[FAT_AVAIL_MISSING.getValue()]     = Color.GRAY;
-            pens[FAT_AVAIL_LEAK.getValue()]        = Color.LIGHT_GRAY;
+            pens[FAT_AVAIL_FREE.ordinal()] = Color.BLACK;
+            pens[FAT_AVAIL_SYSTEM.getValue()] = Color.BLACK;
+            pens[FAT_AVAIL_USED.getValue()] = Color.BLACK;
+            pens[FAT_AVAIL_USED_FIRST.getValue()] = Color.BLACK;
+            pens[FAT_AVAIL_USED_LAST.getValue()] = Color.BLACK;
+            pens[FAT_AVAIL_MISSING.getValue()] = Color.GRAY;
+            pens[FAT_AVAIL_LEAK.getValue()] = Color.LIGHT_GRAY;
 
             /* ---- Brushes -------------------------------------------- */
-            brushes[FAT_AVAIL_FREE.getValue()]        = Color.WHITE;
-            brushes[FAT_AVAIL_SYSTEM.getValue()]      = Color.GRAY;
-            brushes[FAT_AVAIL_USED.getValue()]        = Color.CYAN;
-            brushes[FAT_AVAIL_USED_FIRST.getValue()]  = new Color(0x00, 0xff, 0x80);
-            brushes[FAT_AVAIL_USED_LAST.getValue()]   = new Color(0x00, 0x80, 0xff);
-            brushes[FAT_AVAIL_MISSING.getValue()]     = Color.LIGHT_GRAY;
-            brushes[FAT_AVAIL_LEAK.getValue()]        = new Color(0xc0, 0xff, 0xff);
+            brushes[FAT_AVAIL_FREE.getValue()] = Color.WHITE;
+            brushes[FAT_AVAIL_SYSTEM.getValue()] = Color.GRAY;
+            brushes[FAT_AVAIL_USED.getValue()] = Color.CYAN;
+            brushes[FAT_AVAIL_USED_FIRST.getValue()] = new Color(0x00, 0xff, 0x80);
+            brushes[FAT_AVAIL_USED_LAST.getValue()] = new Color(0x00, 0x80, 0xff);
+            brushes[FAT_AVAIL_MISSING.getValue()] = Color.LIGHT_GRAY;
+            brushes[FAT_AVAIL_LEAK.getValue()] = new Color(0xc0, 0xff, 0xff);
         }
 
         /* ---------------------------------------------------------------- */
@@ -193,9 +199,9 @@ public class UiDiskFatArea {
 
             /* ---- Draw the vertical grid lines ----------------------- */
             int step = (sq.width + margin) * 4;
-            int pos  = 1;
-            int x    = lpadding;
-            int y    = lpadding;
+            int pos = 1;
+            int x = lpadding;
+            int y = lpadding;
 
             // Vertical lines labelled every 4 positions
             for (int px = lpadding + ll + margin; px < getWidth() - rpadding; px += step) {
@@ -354,8 +360,8 @@ public class UiDiskFatArea {
 
             /* Build a frame with a small sample dataset */
             UiDiskFatArea.UiDiskFatAreaFrame frame =
-                new UiDiskFatAreaFrame(parent, "FAT Usage Demo",
-                                       new Dimension(400, 300));
+                    new UiDiskFatAreaFrame(parent, "FAT Usage Demo",
+                            new Dimension(400, 300));
 
             /* Sample data: 64 items with random values between 0 and 5 */
             List<Integer> sampleData = new ArrayList<>();

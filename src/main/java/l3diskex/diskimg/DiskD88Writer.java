@@ -26,8 +26,8 @@ public class DiskD88Writer extends DiskImageWriter {
      * Constructor.  The base class {@link DiskImageWriter} stores the
      * {@link DiskWriter} instance and the {@link DiskResult} instance.
      *
-     * @param dw_      Disk writer that owns the low‑level I/O settings
-     * @param result_  Result object used for error reporting
+     * @param dw_     Disk writer that owns the low‑level I/O settings
+     * @param result_ Result object used for error reporting
      */
     public DiskD88Writer(DiskWriter dw_, DiskResult result_) {
         super(dw_, result_);
@@ -40,13 +40,13 @@ public class DiskD88Writer extends DiskImageWriter {
     /**
      * Validate a disk image.
      *
-     * @param image     The disk image to validate.
+     * @param image      The disk image to validate.
      * @param diskNumber Disk number (>=0) or -1 for all disks.
      * @param sideNumber Side number (ignored by this class).
      * @return 0 on success, negative value on failure.
      */
     @Override
-    public int ValidateDisk(DiskImage image, int diskNumber, int sideNumber) {
+    public int validateDisk(DiskImage image, int diskNumber, int sideNumber) {
         p_result.clear();
         DiskImageFile file = image.getFile();
         if (file == null) {
@@ -94,14 +94,14 @@ public class DiskD88Writer extends DiskImageWriter {
      * every disk, so callers usually open the stream once and close it
      * after all calls finish.
      *
-     * @param image     Disk image object
+     * @param image      Disk image object
      * @param diskNumber Disk number or -1 for all disks
      * @param sideNumber Side number (ignored)
-     * @param ostream   Destination stream
+     * @param ostream    Destination stream
      * @return 0 on success, negative value on failure
      */
     @Override
-    public int SaveDisk(DiskImage image, int diskNumber, int sideNumber,
+    public int saveDisk(DiskImage image, int diskNumber, int sideNumber,
                         OutputStream ostream) {
         p_result.clear();
         DiskImageFile file = image.getFile();
@@ -119,7 +119,7 @@ public class DiskD88Writer extends DiskImageWriter {
 
             for (int i = 0; i < disks.size(); i++) {
                 DiskImageDisk disk = disks.get(i);
-                int r = SaveDisk(disk, sideNumber, ostream);
+                int r = saveDisk(disk, sideNumber, ostream);
                 if (r != 0) return r;
             }
         } else {                         // Save a specific disk
@@ -128,7 +128,7 @@ public class DiskD88Writer extends DiskImageWriter {
                 p_result.setError(DiskResult.ERR_NO_DISK);
                 return p_result.getValid();
             }
-            int r = SaveDisk(disk, sideNumber, ostream);
+            int r = saveDisk(disk, sideNumber, ostream);
             if (r != 0) return r;
         }
 
@@ -142,12 +142,12 @@ public class DiskD88Writer extends DiskImageWriter {
     /**
      * Core routine that actually writes the D88 image to disk.
      *
-     * @param disk      Disk to write
+     * @param disk       Disk to write
      * @param sideNumber Side number (ignored by this class)
-     * @param ostream   Destination stream
+     * @param ostream    Destination stream
      * @return 0 on success, negative on failure
      */
-    private int SaveDisk(DiskImageDisk disk, int sideNumber,
+    private int saveDisk(DiskImageDisk disk, int sideNumber,
                          OutputStream ostream) {
         if (disk == null) {
             p_result.setError(DiskResult.ERR_NO_DISK);
@@ -169,7 +169,7 @@ public class DiskD88Writer extends DiskImageWriter {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             Serdes.Util.deserialize(d88Header.getHeader(), baos);
             ostream.write(baos.toByteArray(), 0,
-                          d88Header.getHeaderSize());
+                    d88Header.getHeaderSize());
         } catch (IOException e) {
             p_result.setError(DiskResult.ERR_NO_DATA);
             return p_result.getValid();
@@ -183,10 +183,10 @@ public class DiskD88Writer extends DiskImageWriter {
         }
 
         d88Header.clearOffsets();
-        int trackStart   = sideNumber < 0 ? 0 : sideNumber;
-        int trackCount   = tracks.size();
-        int trackStep    = sideNumber < 0 ? 1 : 2;
-        int trackOffPos  = 0;
+        int trackStart = sideNumber < 0 ? 0 : sideNumber;
+        int trackCount = tracks.size();
+        int trackStep = sideNumber < 0 ? 1 : 2;
+        int trackOffPos = 0;
         int trackOffset = disk.getOffsetStart();
 
         for (int t = trackStart; t < trackCount && trackOffPos < DISKD88_MAX_TRACKS;
@@ -213,7 +213,7 @@ public class DiskD88Writer extends DiskImageWriter {
                     ByteArrayOutputStream baos = new ByteArrayOutputStream();
                     Serdes.Util.deserialize(sectHdr.getHeader(), baos);
                     ostream.write(baos.toByteArray(), 0,
-                                  sectHdr.getHeaderSize());
+                            sectHdr.getHeaderSize());
                     trackSize += sectHdr.getHeaderSize();
 
                     byte[] buf = sector.getSectorBuffer();
@@ -259,7 +259,7 @@ public class DiskD88Writer extends DiskImageWriter {
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
                 Serdes.Util.deserialize(d88Header.getHeader(), baos);
                 ostream.write(baos.toByteArray(), 0,
-                              d88Header.getHeaderSize());
+                        d88Header.getHeaderSize());
             } catch (IOException e) {
                 p_result.setError(DiskResult.ERR_NO_DATA);
             }

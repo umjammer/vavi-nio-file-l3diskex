@@ -25,10 +25,11 @@ import vavi.io.SeekableDataInputStream;
 
 /**
  * Run-length limited(RLL)パーサ
- *
+ * <p>
  * 1トラック分を解析
  */
 abstract class RunLengthLimitedParser {
+
     protected DiskImageDisk disk;
     protected DiskImageTrack track;
     protected int track_size;
@@ -41,16 +42,20 @@ abstract class RunLengthLimitedParser {
     protected DiskResult result;
 
     protected static class CurrentIDs {
+
         public byte C;
         public byte H;
         public byte R;
         public byte N;
         public short CRC; // wxUint16
     }
+
     protected CurrentIDs curr_ids;
 
     protected abstract boolean adjustGap();
+
     protected abstract boolean getData();
+
     protected int setSectorData(byte[] indata, boolean single, boolean deleted) {
         int track_num = curr_ids.C & 0xFF; // Unsigned byte to int
         int side_num = curr_ids.H & 0xFF;
@@ -72,7 +77,7 @@ abstract class RunLengthLimitedParser {
         byte[] buf = sector.getSectorBuffer();
         int siz = sector.getSectorBufferSize();
         int unit = getDecodeUnit();
-        for(int i = 0; i < siz; i++) {
+        for (int i = 0; i < siz; i++) {
             byte[] unitData = Arrays.copyOfRange(indata, i * unit, i * unit + unit);
             buf[i] = decodeData(unitData);
         }
@@ -84,6 +89,7 @@ abstract class RunLengthLimitedParser {
         // このセクタデータのサイズを返す
         return sector.getSize();
     }
+
     protected abstract byte decodeData(byte[] indata);
 
     public RunLengthLimitedParser() {
@@ -119,7 +125,7 @@ abstract class RunLengthLimitedParser {
         track = disk.newImageTrack(track_number, side_number, d88_offset_pos, 1);
         track_size = 0;
 
-        while(data_len > 0) {
+        while (data_len > 0) {
             if (!adjustGap()) {
                 break;
             }
@@ -133,8 +139,13 @@ abstract class RunLengthLimitedParser {
 
     public abstract int getDecodeUnit();
 
-    public DiskImageTrack getTrack() { return track; }
-    public int getSectorNums() { return sector_nums; }
+    public DiskImageTrack getTrack() {
+        return track;
+    }
+
+    public int getSectorNums() {
+        return sector_nums;
+    }
 
     /** バッファをシフト */
     public static int shiftBytes(byte[] data, int len, int sftcnt) {
@@ -142,7 +153,7 @@ abstract class RunLengthLimitedParser {
 
         int endpos = len - sftcnt;
 
-        for(int i = 0; i < endpos; i++) {
+        for (int i = 0; i < endpos; i++) {
             data[i] = data[i + sftcnt];
         }
         // Zeroing out the end is not strictly necessary in Java unless the array is reused with a smaller logical length
@@ -169,7 +180,7 @@ abstract class RunLengthLimitedParser {
 
         // bit shift
         int carry = 0x00;
-        for(int i = len - 1; i >= 0; i--) {
+        for (int i = len - 1; i >= 0; i--) {
             int currentByte = data[i] & 0xFF; // Unsigned value
             int c = (currentByte << (8 - modn)) & 0xFF;
             data[i] = (byte) ((currentByte >>> modn) | carry);
@@ -182,10 +193,11 @@ abstract class RunLengthLimitedParser {
 
 /**
  * IBM MFMパーサ
- *
+ * <p>
  * 1トラック分を解析
  */
 class FormatMFMParser extends RunLengthLimitedParser {
+
     @Override
     protected boolean adjustGap() {
         boolean found = false;
@@ -193,12 +205,12 @@ class FormatMFMParser extends RunLengthLimitedParser {
         byte[] buf = new byte[6]; // C++ used 3, then 4. Allocating 6 for safety based on the max usage later
         int pos = 0;
         // search GAP field
-        for(; pos < maxlen; pos++) {
+        for (; pos < maxlen; pos++) {
             if (pos + 3 > maxlen) break; // Check bounds
 
             System.arraycopy(data, pos, buf, 0, 3);
             int cnt = 0;
-            for(; cnt < 8; cnt++) {
+            for (; cnt < 8; cnt++) {
                 // memcmp(buf, "\x49\x2a", 2) == 0
                 if ((buf[0] & 0xFF) == 0x49 && (buf[1] & 0xFF) == 0x2A) {
                     found = true;
@@ -221,12 +233,12 @@ class FormatMFMParser extends RunLengthLimitedParser {
         // search the terminate of SYNC field
         found = false;
         pos = 0;
-        for(; pos < maxlen; pos++) {
+        for (; pos < maxlen; pos++) {
             if (pos + 4 > maxlen) break; // Check bounds
 
             System.arraycopy(data, pos, buf, 0, 4);
             int cnt = 0;
-            for(; cnt < 8; cnt++) {
+            for (; cnt < 8; cnt++) {
                 // memcmp(buf, "\x55\x55\x25", 3) == 0
                 boolean m1 = (buf[0] & 0xFF) == 0x55 && (buf[1] & 0xFF) == 0x55 && (buf[2] & 0xFF) == 0x25;
                 // memcmp(buf, "\x55\x55\xa5", 3) == 0
@@ -264,12 +276,12 @@ class FormatMFMParser extends RunLengthLimitedParser {
         boolean found = false;
         int maxlen = data_len;
         int pos = 0;
-        byte[] cmpIdx = {(byte)0x55, (byte)0x55, (byte)0x4a, (byte)0x24, (byte)0x4a, (byte)0x24, (byte)0x4a, (byte)0x24, (byte)0xaa, (byte)0x4a};
-        byte[] cmpId = {(byte)0x55, (byte)0x55, (byte)0x22, (byte)0x91, (byte)0x22, (byte)0x91, (byte)0x22, (byte)0x91, (byte)0xaa, (byte)0x2a};
-        byte[] cmpData = {(byte)0x55, (byte)0x55, (byte)0x22, (byte)0x91, (byte)0x22, (byte)0x91, (byte)0x22, (byte)0x91, (byte)0xaa, (byte)0xa2};
-        byte[] cmpDelData = {(byte)0x55, (byte)0x55, (byte)0x22, (byte)0x91, (byte)0x22, (byte)0x91, (byte)0x22, (byte)0x91, (byte)0xaa, (byte)0x52};
+        byte[] cmpIdx = {(byte) 0x55, (byte) 0x55, (byte) 0x4a, (byte) 0x24, (byte) 0x4a, (byte) 0x24, (byte) 0x4a, (byte) 0x24, (byte) 0xaa, (byte) 0x4a};
+        byte[] cmpId = {(byte) 0x55, (byte) 0x55, (byte) 0x22, (byte) 0x91, (byte) 0x22, (byte) 0x91, (byte) 0x22, (byte) 0x91, (byte) 0xaa, (byte) 0x2a};
+        byte[] cmpData = {(byte) 0x55, (byte) 0x55, (byte) 0x22, (byte) 0x91, (byte) 0x22, (byte) 0x91, (byte) 0x22, (byte) 0x91, (byte) 0xaa, (byte) 0xa2};
+        byte[] cmpDelData = {(byte) 0x55, (byte) 0x55, (byte) 0x22, (byte) 0x91, (byte) 0x22, (byte) 0x91, (byte) 0x22, (byte) 0x91, (byte) 0xaa, (byte) 0x52};
 
-        for(; pos < maxlen && !found; pos++) {
+        for (; pos < maxlen && !found; pos++) {
             if (pos + 10 > maxlen) break; // Check bounds
 
             // INDEX MARK
@@ -399,15 +411,18 @@ class FormatMFMParser extends RunLengthLimitedParser {
     }
 
     @Override
-    public int getDecodeUnit() { return 2; }
+    public int getDecodeUnit() {
+        return 2;
+    }
 }
 
 /**
  * IBM FMパーサ
- *
+ * <p>
  * 1トラック分を解析
  */
 class FormatFMParser extends RunLengthLimitedParser {
+
     @Override
     protected boolean adjustGap() {
         boolean found = false;
@@ -415,12 +430,12 @@ class FormatFMParser extends RunLengthLimitedParser {
         byte[] buf = new byte[8]; // C++ used 5, then 6. Allocating 8 for safety based on the max usage later
         int pos = 0;
         // search GAP field
-        for(; pos < maxlen; pos++) {
+        for (; pos < maxlen; pos++) {
             if (pos + 5 > maxlen) break; // Check bounds
 
             System.arraycopy(data, pos, buf, 0, 5);
             int cnt = 0;
-            for(; cnt < 8; cnt++) {
+            for (; cnt < 8; cnt++) {
                 // memcmp(buf, "\xaa\xaa\xaa\xaa", 4) == 0
                 if ((buf[0] & 0xFF) == 0xAA && (buf[1] & 0xFF) == 0xAA && (buf[2] & 0xFF) == 0xAA && (buf[3] & 0xFF) == 0xAA) {
                     found = true;
@@ -443,12 +458,12 @@ class FormatFMParser extends RunLengthLimitedParser {
         // search the terminate of SYNC field
         found = false;
         pos = 0;
-        for(; pos < maxlen; pos++) {
+        for (; pos < maxlen; pos++) {
             if (pos + 6 > maxlen) break; // Check bounds
 
             System.arraycopy(data, pos, buf, 0, 6);
             int cnt = 0;
-            for(; cnt < 8; cnt++) {
+            for (; cnt < 8; cnt++) {
                 // memcmp(buf, "\x22\x22\x22\x22\xa2", 5) == 0
                 if ((buf[0] & 0xFF) == 0x22 && (buf[1] & 0xFF) == 0x22 && (buf[2] & 0xFF) == 0x22 && (buf[3] & 0xFF) == 0x22 && (buf[4] & 0xFF) == 0xA2) {
                     found = true;
@@ -482,12 +497,12 @@ class FormatFMParser extends RunLengthLimitedParser {
         boolean found = false;
         int maxlen = data_len;
         int pos = 0;
-        byte[] cmpIdx = {(byte)0x22, (byte)0x22, (byte)0x22, (byte)0x22, (byte)0xaa, (byte)0xa8, (byte)0xa8, (byte)0x22};
-        byte[] cmpId = {(byte)0x22, (byte)0x22, (byte)0x22, (byte)0x22, (byte)0xaa, (byte)0x88, (byte)0xa8, (byte)0x2a};
-        byte[] cmpData = {(byte)0x22, (byte)0x22, (byte)0x22, (byte)0x22, (byte)0xaa, (byte)0x88, (byte)0x28, (byte)0xaa};
-        byte[] cmpDelData = {(byte)0x22, (byte)0x22, (byte)0x22, (byte)0x22, (byte)0xaa, (byte)0x88, (byte)0x28, (byte)0x22};
+        byte[] cmpIdx = {(byte) 0x22, (byte) 0x22, (byte) 0x22, (byte) 0x22, (byte) 0xaa, (byte) 0xa8, (byte) 0xa8, (byte) 0x22};
+        byte[] cmpId = {(byte) 0x22, (byte) 0x22, (byte) 0x22, (byte) 0x22, (byte) 0xaa, (byte) 0x88, (byte) 0xa8, (byte) 0x2a};
+        byte[] cmpData = {(byte) 0x22, (byte) 0x22, (byte) 0x22, (byte) 0x22, (byte) 0xaa, (byte) 0x88, (byte) 0x28, (byte) 0xaa};
+        byte[] cmpDelData = {(byte) 0x22, (byte) 0x22, (byte) 0x22, (byte) 0x22, (byte) 0xaa, (byte) 0x88, (byte) 0x28, (byte) 0x22};
 
-        for(; pos < maxlen && !found; pos++) {
+        for (; pos < maxlen && !found; pos++) {
             if (pos + 8 > maxlen) break; // Check bounds
 
             // INDEX MARK
@@ -605,13 +620,16 @@ class FormatFMParser extends RunLengthLimitedParser {
     }
 
     @Override
-    public int getDecodeUnit() { return 4; }
+    public int getDecodeUnit() {
+        return 4;
+    }
 }
 
 /**
  * HxC HFEディスクパーサー
  */
 public class DiskHfeParser extends DiskImageParser {
+
     private static final String DISK_HFE_HEADER = "HXCPICFE";
     private static final String DISK_HFE_HEADV3 = "HXCHFEV3";
 
@@ -623,6 +641,7 @@ public class DiskHfeParser extends DiskImageParser {
 
     // HxC HFE header (512bytes) (LE)
     private static class HFEHeader {
+
         public byte[] signature = new byte[8];
         public byte revision;
         public byte tracks;
@@ -648,7 +667,8 @@ public class DiskHfeParser extends DiskImageParser {
 
     // HxC HFE track offset (LE)
     private static class HFETrackOffset {
-        public short offset;	// wxUint16. Offset of the track data in block of 512bytes
+
+        public short offset;    // wxUint16. Offset of the track data in block of 512bytes
         public short track_len; // wxUint16.
 
         public static final int SIZE = 4;
@@ -656,10 +676,11 @@ public class DiskHfeParser extends DiskImageParser {
 
     // HxC HFE track offset LUT (up to 1024bytes) (LE)
     private static class HFETrackOffsetList {
+
         public HFETrackOffset[] at = new HFETrackOffset[256];
 
         public HFETrackOffsetList() {
-            for(int i = 0; i < at.length; i++) {
+            for (int i = 0; i < at.length; i++) {
                 at[i] = new HFETrackOffset();
             }
         }
@@ -669,6 +690,7 @@ public class DiskHfeParser extends DiskImageParser {
 
     // Map for wxTRANSLATE/hfe_type_msgs
     private static final Map<Byte, String> HFE_TYPE_MSGS;
+
     static {
         Map<Byte, String> map = new HashMap<>();
         map.put(ISOIBM_MFM_ENCODING, "IBM MFM");
@@ -720,7 +742,7 @@ public class DiskHfeParser extends DiskImageParser {
 
         ByteBuffer bb = ByteBuffer.wrap(buffer).order(ByteOrder.LITTLE_ENDIAN);
 
-        for(int i = 0; i < tracks; i++) {
+        for (int i = 0; i < tracks; i++) {
             list.at[i].offset = bb.getShort();
             list.at[i].track_len = bb.getShort();
         }
@@ -758,15 +780,15 @@ public class DiskHfeParser extends DiskImageParser {
         if (!(istream instanceof SeekableDataInputStream)) {
 
             // For a better emulation, if istream is RandomAccessFile, we'd use:
-            ((SeekableDataInputStream)istream).position(file_offset);
+            ((SeekableDataInputStream) istream).position(file_offset);
         }
 
         // C++: istream.SeekI(file_offset, wxFromStart);
-        ((SeekableDataInputStream)istream).position(file_offset);
+        ((SeekableDataInputStream) istream).position(file_offset);
 
         boolean working = true;
-        for(int block = 0; block < track_blocks && working; block++) {
-            for(int side = 0; side < 2 && working; side++) {
+        for (int block = 0; block < track_blocks && working; block++) {
+            for (int side = 0; side < 2 && working; side++) {
                 int len = istream.read(buffers[side], block * 256, 256);
                 if (len != 256) {
                     result.setError(DiskResult.ERR_NO_TRACK, 0);
@@ -776,7 +798,7 @@ public class DiskHfeParser extends DiskImageParser {
             }
         }
 
-        for(int side = 0; side < sides; side++) {
+        for (int side = 0; side < sides; side++) {
             int d88_track_size = 0;
             DiskImageTrack track = null;
             int sector_nums = 0;
@@ -784,15 +806,13 @@ public class DiskHfeParser extends DiskImageParser {
 
             int side_encoding = encoding[side] & 0xFF;
 
-            switch(side_encoding) {
-                case ISOIBM_FM_ENCODING:
-                {
+            switch (side_encoding) {
+                case ISOIBM_FM_ENCODING: {
                     // parse FM
                     ps = new FormatFMParser(disk, track_number, side, d88_offset_pos[0], buffers[side], track_blocks * 256, result);
                 }
                 break;
-                default:
-                {
+                default: {
                     // parse MFM (handles ISOIBM_MFM_ENCODING and others as default)
                     ps = new FormatMFMParser(disk, track_number, side, d88_offset_pos[0], buffers[side], track_blocks * 256, result);
                 }
@@ -849,7 +869,7 @@ public class DiskHfeParser extends DiskImageParser {
         int tracks = header.tracks & 0xFF;
         int sides = header.sides & 0xFF;
 
-        int d88_offset = disk.getOffsetStart();	// header size
+        int d88_offset = disk.getOffsetStart();    // header size
         int[] d88_offset_pos = new int[1]; // Use array to pass by reference
         d88_offset_pos[0] = 0;
 
@@ -858,7 +878,7 @@ public class DiskHfeParser extends DiskImageParser {
         track_list_offset *= 512;
 
         // Simulating istream.SeekI(track_list_offset, wxFromStart);
-        ((SeekableDataInputStream)istream).position(track_list_offset);
+        ((SeekableDataInputStream) istream).position(track_list_offset);
 
         HFETrackOffsetList track_offset_list = readTrackOffsetList(istream, tracks);
         if (track_offset_list == null) {
@@ -866,7 +886,7 @@ public class DiskHfeParser extends DiskImageParser {
             return 0;
         }
 
-        for(int track_num = 0; track_num < tracks; track_num++) {
+        for (int track_num = 0; track_num < tracks; track_num++) {
             byte[] encoding = new byte[2];
             encoding[0] = header.encoding;
             encoding[1] = header.encoding;
@@ -928,7 +948,7 @@ public class DiskHfeParser extends DiskImageParser {
     @Override
     public int check(InputStream istream) throws IOException {
         // Simulating istream.SeekI(0);
-        ((SeekableDataInputStream)istream).position(0);
+        ((SeekableDataInputStream) istream).position(0);
 
         HFEHeader header = readHeader(istream);
         if (header == null) {
@@ -963,9 +983,9 @@ public class DiskHfeParser extends DiskImageParser {
         int tracks = header.tracks & 0xFF;
 
         // Simulating istream.SeekI(track_list_offset, wxFromStart);
-        ((SeekableDataInputStream)istream).position(track_list_offset);
+        ((SeekableDataInputStream) istream).position(track_list_offset);
 
-        for(int track_num = 0; track_num < tracks; track_num++) {
+        for (int track_num = 0; track_num < tracks; track_num++) {
             HFETrackOffset track_offset = readTrackOffset(istream);
 
             if (track_offset == null) {

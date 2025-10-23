@@ -40,6 +40,7 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryApledos>
 
     static final ResourceBundle rb = ResourceBundle.getBundle("message");
 
+    /// Apple DOS属性名
     public static final Map<String, Object> gTypeNameAppleDOS = new LinkedHashMap<>() {{
         put("Text", en_file_type_mask_appledos.FILETYPE_MASK_APLEDOS_TEXT.getValue());
         put("Integer BASIC", en_file_type_mask_appledos.FILETYPE_MASK_APLEDOS_IBASIC.getValue());
@@ -148,7 +149,6 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryApledos>
         }
     }
 
-    /// ///////////////////////////////////////////////////////////////////
     //
     // Apple DOS トラックセクタリストの各セクタ
     //
@@ -156,24 +156,20 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryApledos>
 
         private boolean chain_ownmake;
 
+        //
+        // Apple DOS トラックセクタリストの各セクタ
+        //
         public AppleDOSChains() {
             super();
             chain_ownmake = false;
         }
 
-        // No explicit destructor needed in Java, rely on GC
-
         public void Clear() {
-            if (chain_ownmake) {
-                // In Java, calling clear on the ArrayList is enough,
-                // the objects will be eligible for GC. The C++ original
-                // explicitly deletes them because they were allocated with 'new'.
-            }
             super.clear();
             chain_ownmake = false;
         }
 
-        public void Alloc() {
+        public void alloc() {
             if (chain_ownmake) {
                 super.clear();
             }
@@ -183,7 +179,6 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryApledos>
         }
     }
 
-    /// ///////////////////////////////////////////////////////////////////
     //
     // Apple DOS トラックセクタリスト
     //
@@ -191,9 +186,9 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryApledos>
 
         private DiskBasic basic;
         private final AppleDOSChains chains;
-        private apledos_chain_t chain; // Used in C++ Dup/operator= logic, might not be necessary here
-        private DiskImageSector sector; // Used in C++ Dup/operator= logic, might not be necessary here
-        private boolean chain_ownmake; // Used in C++ Dup/operator= logic, might not be necessary here
+        private apledos_chain_t chain;
+        private DiskImageSector sector;
+        private boolean chain_ownmake;
 
         private DiskBasicDirItemAppleDOSChain(DiskBasicDirItemAppleDOSChain src) {
             // Not implemented as per C++ private copy constructor
@@ -209,11 +204,11 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryApledos>
 
         // COPYABLE_DIRITEM implementation in Java (simplified)
         public DiskBasicDirItemAppleDOSChain operatorAssignment(DiskBasicDirItemAppleDOSChain src) {
-            this.Dup(src);
+            this.dup(src);
             return this;
         }
 
-        public void Dup(DiskBasicDirItemAppleDOSChain src) {
+        public void dup(DiskBasicDirItemAppleDOSChain src) {
             // Simplified: just copy over the reference/data structures
             // The original C++ had complex memory management
             this.chains.Clear();
@@ -228,7 +223,7 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryApledos>
         }
 
         /** BASICをセット */
-        public void SetBasic(DiskBasic n_basic) {
+        public void setBasic(DiskBasic n_basic) {
             basic = n_basic;
         }
 
@@ -238,27 +233,27 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryApledos>
         }
 
         /** メモリ確保 */
-        public void Alloc() {
-            chains.Alloc();
+        public void alloc() {
+            chains.alloc();
         }
 
         /** クリア */
-        public void Clear() {
+        public void clear() {
             chains.Clear();
         }
 
         /** セクタ数を返す */
-        public int Count() {
+        public int count() {
             return chains.size();
         }
 
         /** 有効か */
-        public boolean IsValid() {
+        public boolean isValid() {
             return !chains.isEmpty();
         }
 
         /** トラック＆セクタを返す */
-        public void GetTrackAndSector(int idx, int[] track, int[] sector) {
+        public void getTrackAndSector(int idx, int[] track, int[] sector) {
             int max_idx = APLEDOS_TRACK_LIST_MAX;
             for (apledos_chain_t item : chains) {
                 if (idx < max_idx) {
@@ -273,7 +268,7 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryApledos>
         }
 
         /** トラック＆セクタを設定 */
-        public void SetTrackAndSector(int idx, int track, int sector) {
+        public void setTrackAndSector(int idx, int track, int sector) {
             int max_idx = APLEDOS_TRACK_LIST_MAX;
             for (apledos_chain_t item : chains) {
                 if (idx < max_idx) {
@@ -288,14 +283,14 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryApledos>
         }
 
         /** 次のセクタのあるセクタ番号を得る */
-        public int GetNext(int idx) {
+        public int getNext(int idx) {
             apledos_chain_t item = chains.get(idx);
             ApledosPtr next = item.getNext();
             return (next.nextTrack & 0xFF) * basic.diskBasicParam.getSectorsPerTrackOnBasic() + (next.nextSector & 0xFF);
         }
 
         /** 次のセクタのあるセクタ番号を設定 */
-        public void SetNext(int idx, int val) {
+        public void setNext(int idx, int val) {
             apledos_chain_t item = chains.get(idx);
             ApledosPtr next = item.getNext();
             next.nextTrack = (byte) ((val / basic.getSectorsPerTrackOnBasic()) & 0xFF);
@@ -330,7 +325,7 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryApledos>
         m_data_length = -1;
 
         m_data.alloc(DirectoryApledos.class);
-        chain.Alloc();
+        chain.alloc();
         type = basic.getType(); // Assuming basic can provide type
     }
 
@@ -360,8 +355,8 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryApledos>
 
         // チェインセクタへのポインタをセット
         if (isUsed()) {
-            chain.Clear();
-            chain.SetBasic(basic);
+            chain.clear();
+            chain.setBasic(basic);
             int grp = getStartGroup(0);
             while (grp != 0) {
                 DiskImageSector sector = basic.getSectorFromGroup(grp);
@@ -413,7 +408,7 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryApledos>
      * @param filename [in,out]  ファイル名
      * @param size     バッファサイズ
      * @param length   長さ
-     * filename はデータビットが反転している場合あり
+     *                 filename はデータビットが反転している場合あり
      */
     @Override
     protected void setNativeName(byte[] filename, int size, int[] length) {
@@ -434,9 +429,9 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryApledos>
     /**
      * ファイル名を得る
      *
-     * @param filename [in,out]  ファイル名
+     * @param filename [in,out] ファイル名
      * @param size     バッファサイズ
-     * @param length   [out]       長さ
+     * @param length   [out] 長さ
      */
     @Override
     protected void getNativeName(byte[] filename, int size, int[] length) {
@@ -595,7 +590,7 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryApledos>
         m_groups.setSize(val);
         int sec_size = basic.getSectorSize();
         val = (val + sec_size - 1) / sec_size;
-        setSectorCount(val + chain.Count());
+        setSectorCount(val + chain.count());
     }
 
     /** ファイルサイズとグループ数を計算する */
@@ -620,7 +615,7 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryApledos>
      */
     @Override
     public void getUnitGroups(int fileunit_num, DiskBasicGroups group_items) throws IOException {
-        if (!chain.IsValid()) return;
+        if (!chain.isValid()) return;
 
         int calc_groups = 0;
         int calc_file_size = 0;
@@ -628,7 +623,7 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryApledos>
         for (int i = 0; ; i++) {
             int[] track_num = {0};
             int[] sector_num = {0};
-            chain.GetTrackAndSector(i, track_num, sector_num);
+            chain.getTrackAndSector(i, track_num, sector_num);
             if (track_num[0] == 0 && sector_num[0] == 0) {
                 break;
             }
@@ -644,7 +639,7 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryApledos>
                 break;
             }
         }
-        calc_groups += chain.Count();
+        calc_groups += chain.count();
         if (getSectorCount() != calc_groups) {
             calc_groups = getSectorCount();
             calc_file_size = calc_groups * basic.getSectorSize();
@@ -749,9 +744,9 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryApledos>
     @Override
     public void getExtraGroups(List<Integer> arr) {
         int gnum = getExtraGroup();
-        for (int i = 0; i < chain.Count(); i++) {
+        for (int i = 0; i < chain.count(); i++) {
             arr.add(gnum);
-            gnum = chain.GetNext(i);
+            gnum = chain.getNext(i);
             if (gnum == 0) break;
         }
     }
@@ -763,8 +758,8 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryApledos>
      */
     @Override
     public void clearChainSector(DiskBasicDirItem pitem) {
-        chain.Clear();
-        chain.SetBasic(basic);
+        chain.clear();
+        chain.setBasic(basic);
     }
 
     /**
@@ -778,9 +773,9 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryApledos>
     @Override
     public void setChainSector(DiskImageSector sector, int gnum, byte[] data, DiskBasicDirItem pitem) {
         chain.Add(new apledos_chain_t(data));
-        if (chain.Count() > 1) {
-            int i = chain.Count() - 2;
-            chain.SetNext(i, gnum);
+        if (chain.count() > 1) {
+            int i = chain.count() - 2;
+            chain.setNext(i, gnum);
         }
     }
 
@@ -795,7 +790,7 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryApledos>
         int[] track_num = {0};
         int[] sector_num = {0};
         type.getNumFromSectorPosS(val, track_num, sector_num);
-        chain.SetTrackAndSector(idx, track_num[0], sector_num[0]);
+        chain.setTrackAndSector(idx, track_num[0], sector_num[0]);
     }
 
     /** セクタカウントをセット(機種依存) */
@@ -805,7 +800,7 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryApledos>
 
     /**
      * セクタカウントを返す(機種依存)
-     *
+     * <p>
      * セクタカウントはトラックセクタリストで占有しているセクタ数も含んでいる
      */
     public int getSectorCount() {
@@ -870,7 +865,7 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryApledos>
      */
     @Override
     public boolean preImportDataFile(String[] filename) {
-        if (gConfig.IsDecideAttrImport()) {
+        if (gConfig.isDecideAttrImport()) {
             trimExtensionByExtensionAttr(filename);
         }
         filename[0] = remakeFileNameAndExtStr(filename[0]);

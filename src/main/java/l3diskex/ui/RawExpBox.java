@@ -34,7 +34,6 @@ import l3diskex.diskimg.DiskImage.DiskImageTrack;
 // --- Fundamental wx types -----------------------------------------------------
 
 
-
 // ----------
 // Actual RawExpBox implementation (converted from rawexpbox.h / .cpp)
 // ----------
@@ -54,12 +53,12 @@ public class RawExpBox extends JDialog {
     /* -------------------- constants (original enum) -------------------- */
     public static final int IDC_TEXT_TRACK_ST = 1;
     public static final int IDC_TEXT_TRACK_ED = 2;
-    public static final int IDC_TEXT_SIDE_ST  = 3;
-    public static final int IDC_TEXT_SIDE_ED  = 4;
+    public static final int IDC_TEXT_SIDE_ST = 3;
+    public static final int IDC_TEXT_SIDE_ED = 4;
     public static final int IDC_TEXT_SECTOR_ST = 5;
     public static final int IDC_TEXT_SECTOR_ED = 6;
-    public static final int IDC_CHK_INV_DATA  = 7;
-    public static final int IDC_CHK_REV_SIDE  = 8;
+    public static final int IDC_CHK_INV_DATA = 7;
+    public static final int IDC_CHK_REV_SIDE = 8;
 
     /* -------------------- constructor (original RawExpBox ctor) -------------------- */
     public RawExpBox(JComponent parent, int id, String caption, DiskImageDisk disk,
@@ -78,28 +77,28 @@ public class RawExpBox extends JDialog {
         int i;
         for (i = 0; i < 2; i++) {
             txtTrack[i] = new JTextField(this, IDC_TEXT_TRACK_ST + i,
-                                         "", wxDefaultPosition, 32, 1, 0,
-                                         new wxTextValidator(0));
+                    "", wxDefaultPosition, 32, 1, 0,
+                    new wxTextValidator(0));
             txtTrack[i].SetMaxLength(2);
             txtTrack[i].SetValue(String.format("%d",
                     (i == 0 || end_track_num < 0) ? start_track_num : end_track_num));
 
             txtSide[i] = new JTextField(this, IDC_TEXT_SIDE_ST + i,
-                                         "", wxDefaultPosition, 32, 1, 0,
-                                         new wxTextValidator(0));
+                    "", wxDefaultPosition, 32, 1, 0,
+                    new wxTextValidator(0));
             txtSide[i].SetMaxLength(1);
             txtSide[i].SetValue(String.format("%d",
                     (sel_side_num >= 0) ? sel_side_num
-                                        : ((i == 0 || end_side_num < 0) ? start_side_num : end_side_num)));
+                            : ((i == 0 || end_side_num < 0) ? start_side_num : end_side_num)));
 
             txtSector[i] = new JTextField(this, IDC_TEXT_SECTOR_ST + i,
-                                          "", wxDefaultPosition, 32, 1, 0,
-                                          new wxTextValidator(0));
+                    "", wxDefaultPosition, 32, 1, 0,
+                    new wxTextValidator(0));
             txtSector[i].SetMaxLength(2);
             txtSector[i].SetValue(String.format("%d",
                     (i == 0) ? start_sector_num
-                              : ((end_sector_num > 0) ? end_sector_num
-                                                     : disk.GetSectorsPerTrack())));
+                            : ((end_sector_num > 0) ? end_sector_num
+                            : disk.GetSectorsPerTrack())));
         }
 
         chkInvData = new JCheckBox(this, IDC_CHK_INV_DATA, "Invert datas.");
@@ -172,21 +171,30 @@ public class RawExpBox extends JDialog {
     public int GetTrackNumber(int num) {
         int val = 0;
         String str = txtTrack[num].GetValue();
-        try { val = Long.parseLong(str); } catch (NumberFormatException e) {}
+        try {
+            val = Long.parseLong(str);
+        } catch (NumberFormatException e) {
+        }
         return val;
     }
 
     public int GetSideNumber(int num) {
         int val = 0;
         String str = txtSide[num].GetValue();
-        try { val = Long.parseLong(str); } catch (NumberFormatException e) {}
+        try {
+            val = Long.parseLong(str);
+        } catch (NumberFormatException e) {
+        }
         return val;
     }
 
     public int GetSectorNumber(int num) {
         int val = 0;
         String str = txtSector[num].GetValue();
-        try { val = Long.parseLong(str); } catch (NumberFormatException e) {}
+        try {
+            val = Long.parseLong(str);
+        } catch (NumberFormatException e) {
+        }
         return val;
     }
 
@@ -199,7 +207,9 @@ public class RawExpBox extends JDialog {
     }
 
     /* -------------------- stub event class -------------------- */
-    public static class ActionEvent { }
+    public static class ActionEvent {
+
+    }
 
     /* ------
        wxDECLARE_EVENT_TABLE() in the original header is omitted – the

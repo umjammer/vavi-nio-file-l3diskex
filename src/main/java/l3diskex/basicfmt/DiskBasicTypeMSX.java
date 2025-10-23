@@ -19,11 +19,11 @@ public class DiskBasicTypeMSX extends DiskBasicTypeMSDOS {
      *  Excluded keywords – the last element is a sentinel (null)
      * - */
     private static final String[] C_EXCLUDE_KEYWORDS = {
-        "IO      SYS",
-        "IBMDOS",
-        "MSDOS",
-        "IBM",
-        null
+            "IO      SYS",
+            "IBMDOS",
+            "MSDOS",
+            "IBM",
+            null
     };
 
     public DiskBasicTypeMSX(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryMsDos> dir) {
@@ -33,13 +33,14 @@ public class DiskBasicTypeMSX extends DiskBasicTypeMSDOS {
     /* -
      *  Check / assign FAT area
      * - */
+
     /**
-     *  ディスクから各パラメータを取得＆必要なパラメータを計算
+     * ディスクから各パラメータを取得＆必要なパラメータを計算
      *
-     *  @param  is_formatting  フォーマット中か
-     *  @return 1.0 正常
-     *          0.0 - 1.0 警告あり
-     *          <0.0 エラーあり
+     * @param is_formatting フォーマット中か
+     * @return 1.0 正常
+     * 0.0 - 1.0 警告あり
+     * <0.0 エラーあり
      */
     @Override
     public double parseParamOnDisk(boolean is_formatting) throws IOException {
@@ -94,8 +95,9 @@ public class DiskBasicTypeMSX extends DiskBasicTypeMSDOS {
     /* -
      *  Directory
      * - */
+
     /**
-     *  サブディレクトリを作成できるか
+     * サブディレクトリを作成できるか
      */
     @Override
     public boolean canMakeDirectory() {
@@ -105,9 +107,10 @@ public class DiskBasicTypeMSX extends DiskBasicTypeMSDOS {
     /* -
      *  Format
      * - */
+
     /**
-     *  セクタデータを埋めた後の個別処理
-     *         フォーマット IPL の書き込み
+     * セクタデータを埋めた後の個別処理
+     * フォーマット IPL の書き込み
      */
     @Override
     public boolean additionalProcessOnFormatted(DiskBasicIdentifiedData data) {
@@ -132,12 +135,12 @@ public class DiskBasicTypeMSX extends DiskBasicTypeMSDOS {
      * - */
 
     /**
-     *  Stub for the C++ method:
-     *      bool CreateBiosParameterBlock(final char *code,
-     *                                    final char *sig,
-     *                                    byte *&buf);
-     *  In Java we emulate the same behaviour by returning a byte[]
-     *  that is passed back by reference.
+     * Stub for the C++ method:
+     * bool CreateBiosParameterBlock(final char *code,
+     * final char *sig,
+     * byte *&buf);
+     * In Java we emulate the same behaviour by returning a byte[]
+     * that is passed back by reference.
      */
     private boolean createBiosParameterBlock(String code, String sig, byte[] buf) {
         /* ここでは実際の実装は省略している。 */
@@ -145,7 +148,7 @@ public class DiskBasicTypeMSX extends DiskBasicTypeMSDOS {
     }
 
     /**
-     *  Stub for ParseMSDOSParamOnDisk – returns a dummy value.
+     * Stub for ParseMSDOSParamOnDisk – returns a dummy value.
      */
     private double parseMSDOSParamOnDisk(Object disk, boolean isFormatting) {
         /* ここでは実際の実装は省略している。 */
@@ -153,7 +156,7 @@ public class DiskBasicTypeMSX extends DiskBasicTypeMSDOS {
     }
 
     /**
-     *  Stub to get the DiskBasic instance – replace with real implementation.
+     * Stub to get the DiskBasic instance – replace with real implementation.
      */
     private DiskBasic getBasic() {
         /* ここでは実際の実装は省略している。 */

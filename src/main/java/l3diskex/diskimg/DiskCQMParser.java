@@ -289,7 +289,7 @@ public class DiskCQMParser extends DiskPlainParser {
         return sts;
     }
 
-    public int Check(InputStream istream,
+    public int check(InputStream istream,
                      List<DiskParam> disk_params,
                      DiskParam manual_param,
                      List<DiskTypeHint> hints) throws IOException {

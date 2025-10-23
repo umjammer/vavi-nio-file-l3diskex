@@ -39,6 +39,7 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
+import l3diskex.Utils;
 import l3diskex.basicfmt.BasicFmt.DiskBasic;
 import l3diskex.basicfmt.BasicFmt.DiskBasicIdentifiedData;
 import l3diskex.basicfmt.BasicFmt.DiskBasics;
@@ -55,6 +56,7 @@ import vavi.util.win32.WAVE;
 public class UiDiskList extends JTree {
 
     public static class DiskPositionData {
+
         private final int diskNum;
         private int typeNum;
         private final int sideNum;
@@ -176,7 +178,7 @@ public class UiDiskList extends JTree {
         addTreeSelectionListener(new TreeSelectionListener() {
             @Override
             public void valueChanged(TreeSelectionEvent e) {
-                DefaultMutableTreeNode node = (DefaultMutableTreeNode)getLastSelectedPathComponent();
+                DefaultMutableTreeNode node = (DefaultMutableTreeNode) getLastSelectedPathComponent();
                 if (node != null) {
                     setDataOnItemNode(node, SetDataOnItemNodeFlags.NODE_SELECTED);
                 }
@@ -188,7 +190,7 @@ public class UiDiskList extends JTree {
         addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
-                switch(e.getKeyCode()) {
+                switch (e.getKeyCode()) {
                     case KeyEvent.VK_ENTER:
                         showDiskAttr();
                         break;
@@ -218,7 +220,7 @@ public class UiDiskList extends JTree {
     }
 
     public void onBeginDrag(TreeSelectionEvent e) {
-        DefaultMutableTreeNode node = (DefaultMutableTreeNode)e.getPath().getLastPathComponent();
+        DefaultMutableTreeNode node = (DefaultMutableTreeNode) e.getPath().getLastPathComponent();
         dragDataSource(node);
     }
 
@@ -231,33 +233,33 @@ public class UiDiskList extends JTree {
     }
 
     public void onSelectionChanged(TreeSelectionEvent e) {
-        DefaultMutableTreeNode node = (DefaultMutableTreeNode)e.getPath().getLastPathComponent();
+        DefaultMutableTreeNode node = (DefaultMutableTreeNode) e.getPath().getLastPathComponent();
         changeSelection(node);
     }
 
     public void onItemExpanding(TreeExpansionEvent e) {
-        DefaultMutableTreeNode node = (DefaultMutableTreeNode)e.getPath().getLastPathComponent();
+        DefaultMutableTreeNode node = (DefaultMutableTreeNode) e.getPath().getLastPathComponent();
         expandItemNode(node);
     }
 
     public void onStartEditing(TreeModelEvent e) {
-        DefaultMutableTreeNode node = (DefaultMutableTreeNode)e.getChildren()[0];
-        DiskPositionData data = (DiskPositionData)node.getUserObject();
+        DefaultMutableTreeNode node = (DefaultMutableTreeNode) e.getChildren()[0];
+        DiskPositionData data = (DiskPositionData) node.getUserObject();
         if (!data.getEditable()) {
             cancelEditing();
         }
     }
 
     public void onEditingDone(TreeModelEvent e) {
-        DefaultMutableTreeNode node = (DefaultMutableTreeNode)e.getChildren()[0];
-        DiskPositionData data = (DiskPositionData)node.getUserObject();
+        DefaultMutableTreeNode node = (DefaultMutableTreeNode) e.getChildren()[0];
+        DiskPositionData data = (DiskPositionData) node.getUserObject();
         if (data.getDiskNumber() < 0 || !data.getEditable()) {
             return;
         }
 
         String newName = node.toString();
         if (selectedDisk.setDiskName(WAVE.data.getDiskNumber(), newName)) {
-            ((DefaultTreeModel)getModel()).nodeChanged(node);
+            ((DefaultTreeModel) getModel()).nodeChanged(node);
         }
     }
 
@@ -375,9 +377,9 @@ public class UiDiskList extends JTree {
 
     private DiskPositionData getNodeData(Object node) {
         if (node instanceof DefaultMutableTreeNode) {
-            Object data = ((DefaultMutableTreeNode)node).getUserObject();
+            Object data = ((DefaultMutableTreeNode) node).getUserObject();
             if (data instanceof DiskPositionData) {
-                return (DiskPositionData)data;
+                return (DiskPositionData) data;
             }
         }
         return null;
@@ -396,17 +398,17 @@ public class UiDiskList extends JTree {
     }
 
     public void deleteChildrenOnSelectedDisk() {
-        DefaultMutableTreeNode node = (DefaultMutableTreeNode)getLastSelectedPathComponent();
-        if(node == null) return;
+        DefaultMutableTreeNode node = (DefaultMutableTreeNode) getLastSelectedPathComponent();
+        if (node == null) return;
 
-        DiskPositionData data = (DiskPositionData)node.getUserObject();
-        if(data == null) return;
+        DiskPositionData data = (DiskPositionData) node.getUserObject();
+        if (data == null) return;
 
         int diskNumber = data.getDiskNumber();
         node = findNodeByDiskNumber(rootNode, diskNumber);
-        if(node == null) return;
+        if (node == null) return;
 
-        data = (DiskPositionData)node.getUserObject();
+        data = (DiskPositionData) node.getUserObject();
 
         collapsePath(new TreePath(node.getPath()));
         node.removeAllChildren();
@@ -421,7 +423,7 @@ public class UiDiskList extends JTree {
     }
 
     public void refreshSelectedSide(DiskBasicParam newParam) {
-        if(newParam != null && !newParam.canMountEachSides()) {
+        if (newParam != null && !newParam.canMountEachSides()) {
             deleteChildrenOnSelectedDisk();
         }
         reSelect(newParam);
@@ -507,10 +509,10 @@ public class UiDiskList extends JTree {
     public void showPopupMenu() {
         if (popupMenu == null) return;
 
-        DefaultMutableTreeNode node = (DefaultMutableTreeNode)getLastSelectedPathComponent();
+        DefaultMutableTreeNode node = (DefaultMutableTreeNode) getLastSelectedPathComponent();
         if (node == null) return;
 
-        DiskPositionData data = (DiskPositionData)node.getUserObject();
+        DiskPositionData data = (DiskPositionData) node.getUserObject();
         boolean opened = (data != null);
 
         // Enable/disable menu items based on selection
@@ -519,7 +521,7 @@ public class UiDiskList extends JTree {
         Component[] items = popupMenu.getComponents();
         for (Component item : items) {
             if (item instanceof JMenuItem) {
-                JMenuItem menuItem = (JMenuItem)item;
+                JMenuItem menuItem = (JMenuItem) item;
                 String text = menuItem.getText();
 
                 if (text.contains("Add Disk")) {
@@ -545,7 +547,7 @@ public class UiDiskList extends JTree {
 
     public boolean dragDataSource(TreePath selectedPath) {
         String tempDirName = "";
-        DefaultMutableTreeNode node = (DefaultMutableTreeNode)selectedPath.getLastPathComponent();
+        DefaultMutableTreeNode node = (DefaultMutableTreeNode) selectedPath.getLastPathComponent();
 
         // Create composite data object
         Path fileObj = new Path();
@@ -605,7 +607,7 @@ public class UiDiskList extends JTree {
         for (int i = 0; i < selCount; i++) {
             DefaultMutableTreeNode node = (DefaultMutableTreeNode)
                     selectedItems.get(i).getLastPathComponent();
-            DiskPositionData data = (DiskPositionData)node.getUserObject();
+            DiskPositionData data = (DiskPositionData) node.getUserObject();
             DiskBasicDirItem item = data.getDiskBasicDirItem();
             if (item != null) {
                 dirItems.add(item);
@@ -645,7 +647,7 @@ public class UiDiskList extends JTree {
             return false;
         }
 
-        DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getLastPathComponent();
+        DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
 
         // Don't drop on dragged node
         if (node.equals(draggingNode)) {
@@ -653,7 +655,7 @@ public class UiDiskList extends JTree {
             return true;
         }
 
-        DiskPositionData data = (DiskPositionData)node.getUserObject();
+        DiskPositionData data = (DiskPositionData) node.getUserObject();
         DiskBasicDirItem dirItem = data.getDiskBasicDirItem();
 
         if (dirItem == null) {
@@ -711,8 +713,8 @@ public class UiDiskList extends JTree {
             return false;
         }
 
-        DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getLastPathComponent();
-        DiskPositionData data = (DiskPositionData)node.getUserObject();
+        DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
+        DiskPositionData data = (DiskPositionData) node.getUserObject();
         DiskBasicDirItem dirItem = data.getDiskBasicDirItem();
 
         if (dirItem == null) {
@@ -737,7 +739,7 @@ public class UiDiskList extends JTree {
         if (clipboard.isDataFlavorAvailable(fileFlavor)) {
             try {
                 @SuppressWarnings("unchecked")
-                List<File> files = (List<File>)clipboard.getData(fileFlavor);
+                List<File> files = (List<File>) clipboard.getData(fileFlavor);
                 List<String> paths = files.stream()
                         .map(File::getAbsolutePath)
                         .collect(Collectors.toList());
@@ -770,8 +772,8 @@ public class UiDiskList extends JTree {
 
         Enumeration<?> children = node.children();
         while (children.hasMoreElements()) {
-            DefaultMutableTreeNode child = (DefaultMutableTreeNode)children.nextElement();
-            DiskPositionData data = (DiskPositionData)child.getUserObject();
+            DefaultMutableTreeNode child = (DefaultMutableTreeNode) children.nextElement();
+            DiskPositionData data = (DiskPositionData) child.getUserObject();
 
             if (data != null && data.getDiskNumber() == diskNumber) {
                 if (data.getSideNumber() == sideNumber) {
@@ -819,7 +821,7 @@ public class UiDiskList extends JTree {
         DefaultMutableTreeNode child = new DefaultMutableTreeNode(text);
         child.setUserObject(data);
 
-        ((DefaultTreeModel)getModel()).insertNodeInto(child, parent, parent.getChildCount());
+        ((DefaultTreeModel) getModel()).insertNodeInto(child, parent, parent.getChildCount());
 
         return child;
     }
@@ -827,7 +829,7 @@ public class UiDiskList extends JTree {
     public void refreshRootDirectoryNode(DiskImageDisk disk, DefaultMutableTreeNode node) {
         if (node == null) return;
 
-        DiskPositionData data = (DiskPositionData)node.getUserObject();
+        DiskPositionData data = (DiskPositionData) node.getUserObject();
         DiskBasic basic = disk.getDiskBasic(data.getSideNumber());
         if (basic == null) return;
 
@@ -850,8 +852,8 @@ public class UiDiskList extends JTree {
 
         Enumeration<?> children = node.children();
         while (children.hasMoreElements()) {
-            DefaultMutableTreeNode child = (DefaultMutableTreeNode)children.nextElement();
-            DiskPositionData data = (DiskPositionData)child.getUserObject();
+            DefaultMutableTreeNode child = (DefaultMutableTreeNode) children.nextElement();
+            DiskPositionData data = (DiskPositionData) child.getUserObject();
 
             if (data != null && data.getDiskNumber() == diskNumber) {
                 if (data.getTypeNumber() == CD_TYPENUM_NODE_DIR) {

@@ -773,13 +773,14 @@ public class DiskBasicDirItemAmiga extends DiskBasicDirItem<DirectoryAmiga> {
     }
 
     /**
-     アイテムリストにアイテムを挿入
-     @param basic       DISK BASIC
-     @param tables      ディレクトリヘッダ内のハッシュテーブル
-     @param table_size  ハッシュテーブルのサイズ数
-     @param limit       ループ制限値
-     @param items [in,out]  ディレクトリの子供アイテムリスト
-     @param item  [in,out]  新たに追加するアイテム
+     * アイテムリストにアイテムを挿入
+     *
+     * @param basic      DISK BASIC
+     * @param tables     ディレクトリヘッダ内のハッシュテーブル
+     * @param table_size ハッシュテーブルのサイズ数
+     * @param limit      ループ制限値
+     * @param items      [in,out]  ディレクトリの子供アイテムリスト
+     * @param item       [in,out]  新たに追加するアイテム
      */
     public static boolean InsertItemInDirectory(DiskBasic basic, int[] tables, int table_size, int limit, List<DiskBasicDirItem<DirectoryAmiga>> items, DiskBasicDirItem<DirectoryAmiga> item) {
         boolean valid = true;
@@ -789,9 +790,9 @@ public class DiskBasicDirItemAmiga extends DiskBasicDirItem<DirectoryAmiga> {
         }
 
         valid = false;
-        DiskBasicDirItemAmiga aitem = (DiskBasicDirItemAmiga )item;
-        for(int i=0; i<items.size(); i++) {
-            DiskBasicDirItemAmiga ad = (DiskBasicDirItemAmiga )items.get(i);
+        DiskBasicDirItemAmiga aitem = (DiskBasicDirItemAmiga) item;
+        for (int i = 0; i < items.size(); i++) {
+            DiskBasicDirItemAmiga ad = (DiskBasicDirItemAmiga) items.get(i);
             // hash_tableのインデックス番号に沿ってインサート
             if (ad.m_chain.m_idx > aitem.m_chain.m_idx) {
                 items.add(i, item);
@@ -817,7 +818,7 @@ public class DiskBasicDirItemAmiga extends DiskBasicDirItem<DirectoryAmiga> {
             return false;
         }
 
-        DiskBasicDirItemAmiga aitem = (DiskBasicDirItemAmiga )item;
+        DiskBasicDirItemAmiga aitem = (DiskBasicDirItemAmiga) item;
         aitem.m_chain.p_prev_chain = aitem.m_chain.p_next_chain;
 
         items.remove(item);
@@ -833,9 +834,9 @@ public class DiskBasicDirItemAmiga extends DiskBasicDirItem<DirectoryAmiga> {
         int month = 0;
         int day = 0;
         // 1978-01-01から
-        for(int i=0; i<200 ;i++) {
+        for (int i = 0; i < 200; i++) {
             year = 1978 + i;
-            int days_per_year = (int)Utils.getDaysSince1978(LocalDate.of(i, 1, 1));
+            int days_per_year = (int) Utils.getDaysSince1978(LocalDate.of(i, 1, 1));
             if (days < days_per_year) {
                 month = days % days_per_year;
                 break;
@@ -843,8 +844,8 @@ public class DiskBasicDirItemAmiga extends DiskBasicDirItem<DirectoryAmiga> {
             days -= days_per_year;
         }
         // month and day
-        for(int i=0; i<12 ;i++) {
-            int day_of_month = (int)Utils.getDaysSince1978(LocalDate.of(year, month, 1));
+        for (int i = 0; i < 12; i++) {
+            int day_of_month = (int) Utils.getDaysSince1978(LocalDate.of(year, month, 1));
             if (month < day_of_month) {
                 day = (month % day_of_month) + 1;
                 month = i;
@@ -880,13 +881,13 @@ public class DiskBasicDirItemAmiga extends DiskBasicDirItem<DirectoryAmiga> {
         int year = tm.getYear() + 1900;
         if (year < 1978) year = 1978;
         if (year > 2178) year = 2178;
-        for(int i=1978; i<year; i++) {
-            days[0] += (int)Utils.getDaysSince1978(LocalDate.of(i, 1, 1));
+        for (int i = 1978; i < year; i++) {
+            days[0] += (int) Utils.getDaysSince1978(LocalDate.of(i, 1, 1));
         }
 
         int month = tm.getMonth().ordinal();
-        for(int i=0; i<month; i++) {
-            days[0] += (int)Utils.getDaysSince1978(LocalDate.of(year, month, 1));
+        for (int i = 0; i < month; i++) {
+            days[0] += (int) Utils.getDaysSince1978(LocalDate.of(year, month, 1));
         }
 
         days[0] += tm.getDayOfMonth() - 1;
@@ -957,8 +958,7 @@ public class DiskBasicDirItemAmiga extends DiskBasicDirItem<DirectoryAmiga> {
 
     /// 最初のグループ番号を設定
     @Override
-    public void setStartGroup(int fileunit_num, int val, int size)
-    {
+    public void setStartGroup(int fileunit_num, int val, int size) {
         m_data.data().blockNum = val;
     }
 

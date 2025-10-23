@@ -51,6 +51,7 @@ public class DiskBasicDirItemFP extends DiskBasicDirItemFAT8<DirectoryFp> {
         super(null);
         m_data = new DiskBasicDirData<>();
     }
+
     private DiskBasicDirItemFP(DiskBasicDirItemFP src) {
         super(src.basic);
         m_data = new DiskBasicDirData<>();
@@ -76,7 +77,7 @@ public class DiskBasicDirItemFP extends DiskBasicDirItemFAT8<DirectoryFp> {
 
         boolean unuse = n_unuse[0];
         used(checkUsed(unuse));
-        unuse = (unuse || m_data.data().name[0] == (byte)0xff);
+        unuse = (unuse || m_data.data().name[0] == (byte) 0xff);
         n_unuse[0] = unuse;
 
         calcFileSize();
@@ -140,7 +141,7 @@ public class DiskBasicDirItemFP extends DiskBasicDirItemFAT8<DirectoryFp> {
 
         c = ((val & FILETYPE_FP_BASIC) != 0 ? 0xff : 0);
         for (int i = 0; i < m_data.data().unknown.length; i++) {
-            m_data.data().unknown[i] =  (byte) c;
+            m_data.data().unknown[i] = (byte) c;
         }
     }
 
@@ -173,7 +174,8 @@ public class DiskBasicDirItemFP extends DiskBasicDirItemFAT8<DirectoryFp> {
     }
 
     @Override
-    public void takeAddressesInFile() {}
+    public void takeAddressesInFile() {
+    }
 
     // --- Public Virtual/Overridden Methods ---
 
@@ -337,9 +339,14 @@ public class DiskBasicDirItemFP extends DiskBasicDirItemFAT8<DirectoryFp> {
     }
 
     @Override
-    public boolean hasAddress() { return true; }
+    public boolean hasAddress() {
+        return true;
+    }
+
     @Override
-    public boolean hasExecuteAddress() { return hasAddress(); }
+    public boolean hasExecuteAddress() {
+        return hasAddress();
+    }
 
     @Override
     public void setStartGroup(int fileunit_num, int val, int size) {
@@ -386,7 +393,7 @@ public class DiskBasicDirItemFP extends DiskBasicDirItemFAT8<DirectoryFp> {
 
     @Override
     public boolean preImportDataFile(String[] filename) {
-        if (gConfig.IsDecideAttrImport()) {
+        if (gConfig.isDecideAttrImport()) {
             trimExtensionByExtensionAttr(filename);
         }
         // filename is mutable in C++, simulated here by re-assignment if String was mutable

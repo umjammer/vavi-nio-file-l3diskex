@@ -31,7 +31,7 @@ public class DiskWriter extends DiskWriteOptions {
 
     // 拡張子をさがす
     private int CanSaveDiskByExt(int disk_number, int side_number) {
-        int  rc = 0;
+        int rc = 0;
 
         // ファイル形式の指定がない場合
         // C++: wxFileName fpath(m_file_path);
@@ -57,7 +57,7 @@ public class DiskWriter extends DiskWriteOptions {
         // 指定した形式でファイル出力
         // C++: const FileParamFormats *formats = &fitem->GetFormats();
         List<FileParamFormat> formats = fitem.getFormats();
-        for(int i=0; i<formats.size(); i++) {
+        for (int i = 0; i < formats.size(); i++) {
             // C++: const FileParamFormat *param_format = &formats->Item(i);
             FileParamFormat param_format = formats.get(i);
             // C++: rc = SelectCanSaveDisk(param_format->GetType(), disk_number, side_number);
@@ -77,7 +77,7 @@ public class DiskWriter extends DiskWriteOptions {
         if (file_format.equals("d88")) {
             // d88形式
             DiskD88Writer wr = new DiskD88Writer(this, p_result);
-            rc = wr.ValidateDisk(p_image, disk_number, side_number);
+            rc = wr.validateDisk(p_image, disk_number, side_number);
             // } else if (file_format.equals("cpcdsk")) {
             // // CPC DSK形式
             // DiskDskWriter wr(result);
@@ -85,14 +85,14 @@ public class DiskWriter extends DiskWriteOptions {
         } else if (file_format.equals("plain")) {
             // ベタ
             DiskPlainWriter wr = new DiskPlainWriter(this, p_result);
-            rc = wr.ValidateDisk(p_image, disk_number, side_number);
+            rc = wr.validateDisk(p_image, disk_number, side_number);
         }
         return rc;
     }
 
     // 拡張子をさがす
     private int SaveDiskByExt(int disk_number, int side_number, boolean[] support) {
-        int  rc = 0;
+        int rc = 0;
 
         // ファイル形式の指定がない場合
         // C++: wxFileName fpath(m_file_path);
@@ -118,7 +118,7 @@ public class DiskWriter extends DiskWriteOptions {
         // 指定した形式でファイル出力
         // C++: const FileParamFormats *formats = &fitem->GetFormats();
         List<FileParamFormat> formats = fitem.getFormats();
-        for(int i=0; i<formats.size(); i++) {
+        for (int i = 0; i < formats.size(); i++) {
             // C++: const FileParamFormat *param_format = &formats->Item(i);
             FileParamFormat param_format = formats.get(i);
             // C++: rc = SelectSaveDisk(param_format->GetType(), disk_number, side_number, support);
@@ -140,7 +140,7 @@ public class DiskWriter extends DiskWriteOptions {
         if (file_format.equals("d88")) {
             // d88形式
             DiskD88Writer wr = new DiskD88Writer(this, p_result);
-            rc = wr.SaveDisk(p_image, disk_number, side_number, p_ostream);
+            rc = wr.saveDisk(p_image, disk_number, side_number, p_ostream);
             support[0] = true;
 //        } else if (file_format.equals("cpcdsk")) {
 //            // CPC DSK形式
@@ -150,7 +150,7 @@ public class DiskWriter extends DiskWriteOptions {
         } else if (file_format.equals("plain")) {
             // ベタ
             DiskPlainWriter wr = new DiskPlainWriter(this, p_result);
-            rc = wr.SaveDisk(p_image, disk_number, side_number, p_ostream);
+            rc = wr.saveDisk(p_image, disk_number, side_number, p_ostream);
             support[0] = true;
         }
 
@@ -162,10 +162,10 @@ public class DiskWriter extends DiskWriteOptions {
     }
 
     /**
-     * @param image ディスクイメージ
-     * @param path ファイルパス
+     * @param image   ディスクイメージ
+     * @param path    ファイルパス
      * @param options 出力時のオプション
-     * @param result 結果
+     * @param result  結果
      */
     public DiskWriter(DiskImage image, String path, DiskWriteOptions options, DiskResult result) {
         // C++: DiskWriter(DiskImage *image, const wxString &path, const DiskWriteOptions &options, DiskResult *result) : DiskWriteOptions(options)
@@ -178,7 +178,7 @@ public class DiskWriter extends DiskWriteOptions {
     }
 
     /**
-     * @param image ディスクイメージ
+     * @param image  ディスクイメージ
      * @param result 結果
      */
     public DiskWriter(DiskImage image, DiskResult result) {
@@ -210,6 +210,7 @@ public class DiskWriter extends DiskWriteOptions {
 
     /**
      * 出力先を開く
+     *
      * @param path 出力先ファイルパス
      * @return 結果
      */
@@ -237,6 +238,7 @@ public class DiskWriter extends DiskWriteOptions {
 
     /**
      * 出力先がオープンしているか
+     *
      * @return true if open and ready, false otherwise
      */
     public boolean IsOk() {
@@ -247,12 +249,13 @@ public class DiskWriter extends DiskWriteOptions {
 
     /**
      * 対応しているディスクイメージか
+     *
      * @param file_format ファイルフォーマット
      * @return true if supported, false otherwise
      */
     public static boolean SupportedFormat(String file_format) {
         boolean match = false;
-        for(int i=1; cFormatTypeNamesForSave[i] != null; i++) {
+        for (int i = 1; cFormatTypeNamesForSave[i] != null; i++) {
             if (file_format.equals(cFormatTypeNamesForSave[i])) {
                 match = true;
                 break;
@@ -263,6 +266,7 @@ public class DiskWriter extends DiskWriteOptions {
 
     /**
      * ディスクイメージを保存できるか
+     *
      * @param file_format ファイルフォーマット
      * @return 0:できる, 1:警告あり (>=0 success, <0 error)
      */
@@ -272,13 +276,14 @@ public class DiskWriter extends DiskWriteOptions {
 
     /**
      * ストリームの内容をファイルに保存できるか
+     *
      * @param disk_number ディスク番号
      * @param side_number サイド番号
      * @param file_format ファイルフォーマット
      * @return 0:できる, 1:警告あり (>=0 success, <0 error)
      */
     public int CanSaveDisk(int disk_number, int side_number, String file_format) {
-        int  rc = 0;
+        int rc = 0;
         if (file_format.isEmpty()) {
             // ファイル形式の指定がない場合
             rc = CanSaveDiskByExt(disk_number, side_number);
@@ -291,6 +296,7 @@ public class DiskWriter extends DiskWriteOptions {
 
     /**
      * ディスクイメージの保存
+     *
      * @param file_format ファイルフォーマット
      * @return 結果
      */
@@ -300,13 +306,14 @@ public class DiskWriter extends DiskWriteOptions {
 
     /**
      * ストリームの内容をファイルに保存
+     *
      * @param disk_number ディスク番号
      * @param side_number サイド番号
      * @param file_format ファイルフォーマット
      * @return 結果
      */
     public int SaveDisk(int disk_number, int side_number, String file_format) {
-        int  rc = 0;
+        int rc = 0;
         // In C++, 'bool support' is an output parameter, in Java, use a mutable object (or Ref class)
         boolean[] support = {false};
 
@@ -335,6 +342,7 @@ public class DiskWriter extends DiskWriteOptions {
      * 形式ごとのディスクライター
      */
     static class DiskImageWriter {
+
         protected DiskWriter p_dw;
         protected DiskResult p_result;
 
@@ -348,25 +356,27 @@ public class DiskWriter extends DiskWriteOptions {
 
         /**
          * ストリームの内容をファイルに保存できるか
-         * @param image ディスクイメージ
+         *
+         * @param image       ディスクイメージ
          * @param disk_number ディスク番号(0-) / -1のときは全体
          * @param side_number サイド番号(0-) / -1のときは両面
          * @return 0 正常
          */
-        public int ValidateDisk(DiskImage image, int disk_number, int side_number) {
+        public int validateDisk(DiskImage image, int disk_number, int side_number) {
             p_result.clear();
             return 0;
         }
 
         /**
          * ストリームの内容をファイルに保存
-         * @param image ディスクイメージ
+         *
+         * @param image       ディスクイメージ
          * @param disk_number ディスク番号(0-) / -1のときは全体
          * @param side_number サイド番号(0-) / -1のときは両面
-         * @param ostream 出力先
+         * @param ostream     出力先
          * @return 0 正常
          */
-        public int SaveDisk(DiskImage image, int disk_number, int side_number, OutputStream ostream) {
+        public int saveDisk(DiskImage image, int disk_number, int side_number, OutputStream ostream) {
             p_result.clear();
             return 0;
         }
@@ -377,6 +387,7 @@ public class DiskWriter extends DiskWriteOptions {
  * ディスクライト時のオプション
  */
 class DiskWriteOptions {
+
     protected boolean m_trim_unused_data;
 
     public DiskWriteOptions() {

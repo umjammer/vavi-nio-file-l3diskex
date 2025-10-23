@@ -4,11 +4,28 @@
 
 package l3diskex.ui;
 
-import java.awt.*;
-import java.awt.event.*;
-import java.util.*;
-import javax.swing.*;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.Frame;
+import java.awt.GraphicsEnvironment;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import javax.swing.BoxLayout;
+import javax.swing.DefaultCellEditor;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
+
 
 /** */
 public class FontMiniBox extends JDialog {
@@ -17,16 +34,16 @@ public class FontMiniBox extends JDialog {
     /*  Constants – event IDs are kept for compatibility but are not
      *  used directly in the Java version.
      * ---------------------------------------------------------------- */
-    public static final int IDC_COMBO_FONTNAME   = 1;
-    public static final int IDC_COMBO_FONTSIZE   = 2;
-    public static final int IDC_BUTTON_DEFAULT   = 3;
+    public static final int IDC_COMBO_FONTNAME = 1;
+    public static final int IDC_COMBO_FONTSIZE = 2;
+    public static final int IDC_BUTTON_DEFAULT = 3;
 
     /* ---------------------------------------------------------------- */
     /*  GUI components
      * ---------------------------------------------------------------- */
-    private final JComboBox<String>   comFontName;
-    private final JComboBox<String>   comFontSize;
-    private final JButton             btnDefault;
+    private final JComboBox<String> comFontName;
+    private final JComboBox<String> comFontSize;
+    private final JButton btnDefault;
 
     /* ---------------------------------------------------------------- */
     /*  Data containers – equivalent to ArrayList<String>
@@ -38,9 +55,9 @@ public class FontMiniBox extends JDialog {
     /*  Font data – the default font that is passed in, and the
      *  currently selected name/size.
      * ---------------------------------------------------------------- */
-    private final Font               mDefaultFont;
-    private String             mSelectedName;
-    private int                mSelectedSize;
+    private final Font mDefaultFont;
+    private String mSelectedName;
+    private int mSelectedSize;
 
     /* ---------------------------------------------------------------- */
     /*  Flag used by ShowModal to know whether OK was pressed
@@ -97,7 +114,7 @@ public class FontMiniBox extends JDialog {
         bottomPanel.add(btnDefault);
 
         /* OK / Cancel buttons – use standard Swing buttons */
-        JButton btnOK     = new JButton("OK");
+        JButton btnOK = new JButton("OK");
         JButton btnCancel = new JButton("Cancel");
         bottomPanel.add(btnOK);
         bottomPanel.add(btnCancel);
@@ -169,7 +186,7 @@ public class FontMiniBox extends JDialog {
     private void init_dialog() {
         /* Get system font family names */
         String[] systemFonts = GraphicsEnvironment.getLocalGraphicsEnvironment()
-                                                  .getAvailableFontFamilyNames();
+                .getAvailableFontFamilyNames();
 
         /* Add them to the list, sort */
         mFontNames.clear();
@@ -209,11 +226,11 @@ public class FontMiniBox extends JDialog {
      * ---------------------------------------------------------------- */
     private void term_dialog() {
         mSelectedName = comFontName.getSelectedItem() != null
-                        ? comFontName.getSelectedItem().toString()
-                        : "";
+                ? comFontName.getSelectedItem().toString()
+                : "";
         String sizeText = comFontSize.getSelectedItem() != null
-                          ? comFontSize.getSelectedItem().toString()
-                          : "";
+                ? comFontSize.getSelectedItem().toString()
+                : "";
         try {
             int val = Long.parseLong(sizeText);
             if (val < 1) val = 1;

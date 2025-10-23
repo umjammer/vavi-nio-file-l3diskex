@@ -20,7 +20,7 @@ import static l3diskex.diskimg.DiskParam.gDiskTemplates;
 
 
 /**
- *  DIFC.X DIMディスクイメージパーサ
+ * DIFC.X DIMディスクイメージパーサ
  */
 public class DiskDIMParser extends DiskPlainParser {
 
@@ -29,23 +29,24 @@ public class DiskDIMParser extends DiskPlainParser {
     private static final int DIM_HEADER_SIZE = 256;
     /** "DIFC HEADER  \0\0"（15バイト） */
     private static final byte[] DISK_DIM_HEADER = new byte[] {
-            'D','I','F','C',' ','H','E','A','D','E','R',' ',' ','\0','\0'
+            'D', 'I', 'F', 'C', ' ', 'H', 'E', 'A', 'D', 'E', 'R', ' ', ' ', '\0', '\0'
     };
 
     /**
      * DIMディスクヘッダ
      */
     private static class DimDskHeader {
+
         /** 1 byte */
         byte type;
         /** 0xaa bytes (170) */
         byte[] tracks = new byte[0xaa];
         /** 15 bytes */
-        byte[] ident  = new byte[15];
+        byte[] ident = new byte[15];
         /** 4 bytes */
-        byte[] date   = new byte[4];
+        byte[] date = new byte[4];
         /** 4 bytes */
-        byte[] time   = new byte[4];
+        byte[] time = new byte[4];
         /** 0x3d bytes (61) */
         byte[] comments = new byte[0x3d];
         /** 1 byte */
@@ -81,10 +82,10 @@ public class DiskDIMParser extends DiskPlainParser {
     /**
      * DIMファイルの解析
      *
-     * @param  istream  入力ディスクイメージ
-     * @param  disk_number  ディスク番号
-     * @param  disk_param   ディスクパラメータ
-     * @return  オフセット（最後のデータ位置）
+     * @param istream     入力ディスクイメージ
+     * @param disk_number ディスク番号
+     * @param disk_param  ディスクパラメータ
+     * @return オフセット（最後のデータ位置）
      */
     @Override
     public int parseDisk(InputStream istream, int disk_number, DiskParam disk_param) {
@@ -223,9 +224,9 @@ public class DiskDIMParser extends DiskPlainParser {
                         if (hint.getKind() != header.type) continue;
                         DiskParam param = gDiskTemplates.find(hint.getHint());
                         if (param != null &&
-                            (streamSize == param.calcDiskSize() ||
-                             tracksPerSide == param.getTracksPerSide() ||
-                             retry > 0)) {
+                                (streamSize == param.calcDiskSize() ||
+                                        tracksPerSide == param.getTracksPerSide() ||
+                                        retry > 0)) {
                             disk_params.add(param);
                         }
                     }
@@ -264,6 +265,7 @@ public class DiskDIMParser extends DiskPlainParser {
     }
 
     /*  ------------------  ParseTrack（ダミー実装）  ------------------ */
+
     /**
      * 1トラックの解析（簡易）
      */

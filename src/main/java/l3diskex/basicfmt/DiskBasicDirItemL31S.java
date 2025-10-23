@@ -15,21 +15,21 @@ import l3diskex.diskimg.DiskParam.SectorParam;
 public class DiskBasicDirItemL31S extends DiskBasicDirItemFAT8F {
 
     /**
-     *  Construct with only the DiskBasic pointer.
+     * Construct with only the DiskBasic pointer.
      *
-     *  @param basic  The disk basic object.
+     * @param basic The disk basic object.
      */
     public DiskBasicDirItemL31S(DiskBasic basic) {
         super(basic);
     }
 
     /**
-     *  Construct with sector information and data buffer.
+     * Construct with sector information and data buffer.
      *
-     *  @param basic   The disk basic object.
-     *  @param n_sector The sector containing the directory item.
-     *  @param n_secpos Position of the sector within the image.
-     *  @param n_data   Raw byte data of the directory entry.
+     * @param basic    The disk basic object.
+     * @param n_sector The sector containing the directory item.
+     * @param n_secpos Position of the sector within the image.
+     * @param n_data   Raw byte data of the directory entry.
      */
     public DiskBasicDirItemL31S(DiskBasic basic,
                                 DiskImageSector n_sector,
@@ -39,16 +39,16 @@ public class DiskBasicDirItemL31S extends DiskBasicDirItemFAT8F {
     }
 
     /**
-     *  Construct with full group information.
+     * Construct with full group information.
      *
-     *  @param basic    The disk basic object.
-     *  @param n_num    The item number.
-     *  @param n_gitem  The group item describing the file chain.
-     *  @param n_sector The sector containing the directory item.
-     *  @param n_secpos Position of the sector within the image.
-     *  @param n_data   Raw byte data of the directory entry.
-     *  @param n_next   Parameter for the next sector (may be {@code null}).
-     *  @param n_unuse  Flag indicating whether the item is unused.
+     * @param basic    The disk basic object.
+     * @param n_num    The item number.
+     * @param n_gitem  The group item describing the file chain.
+     * @param n_sector The sector containing the directory item.
+     * @param n_secpos Position of the sector within the image.
+     * @param n_data   Raw byte data of the directory entry.
+     * @param n_next   Parameter for the next sector (may be {@code null}).
+     * @param n_unuse  Flag indicating whether the item is unused.
      */
     public DiskBasicDirItemL31S(DiskBasic basic,
                                 int n_num,

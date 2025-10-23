@@ -31,9 +31,10 @@ public class DiskBasicTypeHU68K extends DiskBasicTypeMSDOS {
     /* ----------------------------------------------------------------- */
 
     /**
-     *   ディスクから各パラメータを取得＆必要なパラメータを計算
-     *  @param  isFormatting フォーマット中か
-     *  @return 1.0 正常, <1.0 警告あり, <0.0 エラーあり
+     * ディスクから各パラメータを取得＆必要なパラメータを計算
+     *
+     * @param isFormatting フォーマット中か
+     * @return 1.0 正常, <1.0 警告あり, <0.0 エラーあり
      */
     @Override
     public double parseParamOnDisk(boolean isFormatting) throws IOException {
@@ -90,9 +91,10 @@ public class DiskBasicTypeHU68K extends DiskBasicTypeMSDOS {
     /* ----------------------------------------------------------------- */
 
     /**
-     *   セクタデータを埋めた後の個別処理
-     *  @param  data 形式判定で取得したデータ
-     *  @return true/false
+     * セクタデータを埋めた後の個別処理
+     *
+     * @param data 形式判定で取得したデータ
+     * @return true/false
      */
     @Override
     public boolean additionalProcessOnFormatted(DiskBasicIdentifiedData data) throws IOException {

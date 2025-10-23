@@ -25,18 +25,17 @@ import javax.swing.TransferHandler;
 /** */
 public class Main {
 
-    /* ------------- Application constants ------------- */
-    public static final String APPLICATION_NAME        = "L3DiskEx";
+    public static final String APPLICATION_NAME = "L3DiskEx";
     public static final String APPLICATION_XPMICON_NAME = "l3diskex_xpm";
-    public static final String APPLICATION_FULLNAME    = "L3DiskEx Full Name";
-    public static final String APPLICATION_VERSION     = "1.0.0";
-    public static final String PLATFORM                = System.getProperty("os.name");
-    public static final String APP_COPYRIGHT           = "© 2023 Sasaji. All rights reserved.";
-    public static final String APPLICATION_XPMICON     = "";  // placeholder for XPM icon
+    public static final String APPLICATION_FULLNAME = "L3DiskEx Full Name";
+    public static final String APPLICATION_VERSION = "1.0.0";
+    public static final String PLATFORM = System.getProperty("os.name");
+    public static final String APP_COPYRIGHT = "© 2023 Sasaji. All rights reserved.";
+    public static final String APPLICATION_XPMICON = "";  // placeholder for XPM icon
 
-    /* -- */
-    /* ------------- UiDiskApp (wxApp) ------------- */
-    /* -- */
+    /**
+     * UiDiskApp (wxApp)
+     */
     public static class UiDiskApp {
 
         /* Member variables (String → String) */
@@ -108,9 +107,17 @@ public class Main {
         }
 
         /*  Path getters  */
-        public String getAppPath() { return appPath; }
-        public String getIniPath() { return iniPath; }
-        public String getResPath() { return resPath; }
+        public String getAppPath() {
+            return appPath;
+        }
+
+        public String getIniPath() {
+            return iniPath;
+        }
+
+        public String getResPath() {
+            return resPath;
+        }
 
         /*  Temp directory handling  */
         public boolean makeTempDir(StringBuilder tmpDirPath) {
@@ -192,8 +199,13 @@ public class Main {
             this.setTransferHandler(new UiDiskPanelDropTarget(parent, this));
         }
 
-        public UiDiskList getLPanel() { return lpanel; }
-        public UiDiskRPanel getRPanel() { return rpanel; }
+        public UiDiskList getLPanel() {
+            return lpanel;
+        }
+
+        public UiDiskRPanel getRPanel() {
+            return rpanel;
+        }
 
         /* Process dropped files */
         public boolean processDroppedFiles(int x, int y, List<String> filenames) {

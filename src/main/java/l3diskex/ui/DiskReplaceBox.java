@@ -4,6 +4,7 @@ import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JWindow;
 
@@ -36,8 +37,8 @@ public class DiskReplaceBox extends JDialog {
                           DiskImageFile src_file,
                           DiskImageDisk tag_disk) {
         super(parent, id, "Replace data in a disk",
-              wxDefaultPosition, wxDefaultSize,
-              wxCAPTION | wxCLOSE_BOX);
+                wxDefaultPosition, wxDefaultSize,
+                wxCAPTION | wxCLOSE_BOX);
 
         // --- layout stubs (no real effect) ---------------------------------------
         DiskBasicDirItemMSX.wxBoxLayout szrAll = new DiskBasicDirItemMSX.wxBoxLayout(wxVERTICAL);
@@ -57,7 +58,7 @@ public class DiskReplaceBox extends JDialog {
             str = String.format("[disk %d] ", idx) + disk.GetDiskDescription();
 
             if (disk.IsReversible() &&
-                (side_number >= 0 || tag_disk.GetSidesPerDisk() == 1)) {
+                    (side_number >= 0 || tag_disk.GetSidesPerDisk() == 1)) {
                 /* AB 面があり、片面だけ置換する場合 */
                 sstr = " ( side %c ( side %d ))";
                 sstr = String.format(sstr, 'A', 0);
@@ -68,7 +69,7 @@ public class DiskReplaceBox extends JDialog {
             numDisk.add(new DiskReplaceNumber(idx, 0));
 
             if (disk.IsReversible() &&
-                (side_number >= 0 || tag_disk.GetSidesPerDisk() == 1)) {
+                    (side_number >= 0 || tag_disk.GetSidesPerDisk() == 1)) {
                 sstr = " ( side %c ( side %d ))";
                 sstr = String.format(sstr, 'B', 1);
                 comDisk.Append(str + sstr);
@@ -83,7 +84,7 @@ public class DiskReplaceBox extends JDialog {
 
         String tdiskStr = String.format("[disk %d] ", tag_disk.GetNumber()) + tag_disk.GetDiskDescription();
         if (side_number >= 0) {
-            tdiskStr += " ( side " + (char)('A' + side_number) + " ( side " + side_number + " ))";
+            tdiskStr += " ( side " + (char) ('A' + side_number) + " ( side " + side_number + " ))";
         }
         wxStaticText txtTDisk = new wxStaticText(this, -1, tdiskStr, wxDefaultPosition, wxDefaultSize, wxBORDER_THEME);
         szrAll.Add(txtTDisk, 0);
@@ -146,6 +147,7 @@ public class DiskReplaceBox extends JDialog {
     */
     /* DiskReplaceNumber – a simple data holder */
     private class DiskReplaceNumber {
+
         public int disknum;
         public int sidenum;
 

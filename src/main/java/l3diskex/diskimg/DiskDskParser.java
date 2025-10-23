@@ -23,6 +23,7 @@ public class DiskDskParser extends DiskImageParser {
     /*                     C++ struct equivalents                          */
     /**/
     static class CPCDSKHeader {
+
         final static int SIZE = 34 + 14 + 1 + 1 + 2 + 204;
         public byte[] ident = new byte[34];
         public byte[] creator = new byte[14];
@@ -37,13 +38,14 @@ public class DiskDskParser extends DiskImageParser {
             System.arraycopy(buf, 34, h.creator, 0, 14);
             h.num_of_tracks = buf[48];
             h.num_of_sides = buf[49];
-            h.track_size = (short)((buf[50] & 0xFF) | ((buf[51] & 0xFF) << 8));
+            h.track_size = (short) ((buf[50] & 0xFF) | ((buf[51] & 0xFF) << 8));
             System.arraycopy(buf, 52, h.track_sizes, 0, 204);
             return h;
         }
     }
 
     public static class CPCDSKSector {
+
         public byte C, H, R, N, fdc_status_1, fdc_status_2;
         public short data_length;   /* little‑endian 16‑bit */
 
@@ -55,12 +57,13 @@ public class DiskDskParser extends DiskImageParser {
             s.N = buf[offset + 3];
             s.fdc_status_1 = buf[offset + 4];
             s.fdc_status_2 = buf[offset + 5];
-            s.data_length = (short)((buf[offset + 6] & 0xFF) | ((buf[offset + 7] & 0xFF) << 8));
+            s.data_length = (short) ((buf[offset + 6] & 0xFF) | ((buf[offset + 7] & 0xFF) << 8));
             return s;
         }
     }
 
     static class CPCDSKTrack {
+
         public byte[] ident = new byte[12];
         public int track_number;
         public int side_number;
@@ -91,7 +94,7 @@ public class DiskDskParser extends DiskImageParser {
     }
 
     /* Instance variables – mirroring the C++ class members */
-    private final int      m_is_extended;   /* 0 = normal, 1 = extended */
+    private final int m_is_extended;   /* 0 = normal, 1 = extended */
 
     /* ---------------------------------------------------------------- */
     /*                       Constructor & basic access                 */
@@ -107,25 +110,26 @@ public class DiskDskParser extends DiskImageParser {
 
     /**
      * Parse a sector from the given stream.
-     * @param in           Input stream containing the sector data
-     * @param sector_nums  Number of sectors (unused in this stub)
-     * @param id           CPCDSKSector object describing the sector
-     * @param track        DiskImageTrack to which the sector belongs
-     * @return              The size of the parsed sector
+     *
+     * @param in          Input stream containing the sector data
+     * @param sector_nums Number of sectors (unused in this stub)
+     * @param id          CPCDSKSector object describing the sector
+     * @param track       DiskImageTrack to which the sector belongs
+     * @return The size of the parsed sector
      */
-    public int ParseSector(InputStream in, int sector_nums,
+    public int parseSector(InputStream in, int sector_nums,
                            CPCDSKSector id, DiskImageTrack track) throws IOException {
         int sectorSize = (128 << (id.N & 0xFF));
         if (sectorSize > 7) {          /* error condition – keep original logic */
             result.setError(0x01);   /* dummy error code */
             return 0;
         }
-        int trackNum  = id.C & 0xFF;
-        int sideNum   = id.H & 0xFF;
+        int trackNum = id.C & 0xFF;
+        int sideNum = id.H & 0xFF;
         int sectorNum = id.R & 0xFF;
         /* create sector object */
         DiskImageSector sector = track.newImageSector(trackNum, sideNum, sectorNum,
-                                                       sectorSize, sector_nums, false, 0);
+                sectorSize, sector_nums, false, 0);
         track.add(sector);
         byte[] buf = sector.getSectorBuffer();
         int len = in.read(buf, 0, sectorSize);
@@ -146,12 +150,13 @@ public class DiskDskParser extends DiskImageParser {
 
     /**
      * Parse a track from the stream.
-     * @param in          Input stream containing the track data
-     * @param offsetPos   Offset position in the disk image
-     * @param trackSize   Size of the track in the original DSK format
-     * @return            The size of the parsed track
+     *
+     * @param in        Input stream containing the track data
+     * @param offsetPos Offset position in the disk image
+     * @param trackSize Size of the track in the original DSK format
+     * @return The size of the parsed track
      */
-    public int ParseTrack(InputStream in, int trackSize, int offsetPos, int offset, DiskImageDisk disk) throws IOException {
+    public int parseTrack(InputStream in, int trackSize, int offsetPos, int offset, DiskImageDisk disk) throws IOException {
         CPCDSKTrack trk = readTrackHeader(in);
         /* Validate ident */
         String identStr = new String(trk.ident, StandardCharsets.US_ASCII);
@@ -166,8 +171,8 @@ public class DiskDskParser extends DiskImageParser {
         int d88TrackSize = 0;
         for (int i = 0; i < trk.num_of_sectors; i++) {
             CPCDSKSector sector = trk.sectors[i];
-            d88TrackSize += ParseSector(in, trk.num_of_sectors,
-                                        sector, track);
+            d88TrackSize += parseSector(in, trk.num_of_sectors,
+                    sector, track);
         }
 
         if (result.getValid() >= 0) {
@@ -184,10 +189,11 @@ public class DiskDskParser extends DiskImageParser {
 
     /**
      * Parse an entire DSK image.
-     * @param in  Input stream containing the DSK image
-     * @return    True if parsing succeeded, false otherwise
+     *
+     * @param in Input stream containing the DSK image
+     * @return True if parsing succeeded, false otherwise
      */
-    public int ParseDisk(InputStream in) throws IOException {
+    public int parseDisk(InputStream in) throws IOException {
         DiskImageDisk disk = file.newImageDisk(0);
 
         CPCDSKHeader header = readHeader(in);
@@ -199,11 +205,11 @@ public class DiskDskParser extends DiskImageParser {
         disk.setName(header.creator, header.creator.length);
         int max_tracks = header.num_of_tracks * header.num_of_sides;
 
-        int d88_offset = disk.getOffsetStart();	// header size
+        int d88_offset = disk.getOffsetStart();    // header size
         int d88_offset_pos = 0;
-        for(int pos = 0; pos < 204 && pos < max_tracks; pos++) {
-            d88_offset += ParseTrack(in
-                    , m_is_extended != 0 ? (int)header.track_sizes[pos] * 256 : header.track_size
+        for (int pos = 0; pos < 204 && pos < max_tracks; pos++) {
+            d88_offset += parseTrack(in
+                    , m_is_extended != 0 ? (int) header.track_sizes[pos] * 256 : header.track_size
                     , d88_offset_pos, d88_offset, disk);
             d88_offset_pos++;
             if (d88_offset_pos >= disk.getCreatableTracks()) {
@@ -226,33 +232,36 @@ public class DiskDskParser extends DiskImageParser {
 
     /**
      * Check whether the DSK image is valid (overloaded version).
-     * @param in   Input stream to check
-     * @return     true if valid, false otherwise
+     *
+     * @param in Input stream to check
+     * @return true if valid, false otherwise
      */
     @Override
     public int check(InputStream in) throws IOException {
         /* Reset the result to a clean state */
         result = new DiskResult();
-        return ParseDisk(in);
+        return parseDisk(in);
     }
 
     /**
      * Overloaded check – returns the same as above but also outputs a string.
-     * @param in   Input stream to check
-     * @return     String description of the result
+     *
+     * @param in Input stream to check
+     * @return String description of the result
      */
-    public String CheckDetailed(InputStream in) throws IOException {
+    public String checkDetailed(InputStream in) throws IOException {
         int ok = check(in);
         return ok != -1 ? "DSK image is valid." : "DSK image is invalid.";
     }
 
     /**
      * Parse the DSK image from the stream.
+     *
      * @param in Input stream containing the DSK image
-     * @return   Validity code from DiskResult
+     * @return Validity code from DiskResult
      */
-    public int Parse(InputStream in) throws IOException {
-        ParseDisk(in);
+    public int parse(InputStream in) throws IOException {
+        parseDisk(in);
         return result.getValid();
     }
 

@@ -128,7 +128,7 @@ public class UiDirItemMZFDOS extends UiDirItem {
 
         // wxCharBuffer buf = txtAttr1.GetValue().To8BitData(); // Placeholder
         String buf = "0S";
-        int attr1 = 0x3053;	// "0S"
+        int attr1 = 0x3053;    // "0S"
         if (buf.length() == 2) {
             attr1 = buf.charAt(0);
             attr1 <<= 8;

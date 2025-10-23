@@ -17,7 +17,6 @@ import l3diskex.diskimg.DiskImage.DiskImageSector;
 import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_FREE;
 import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_SYSTEM;
 import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_USED;
-import static l3diskex.basicfmt.BasicFat.INVALID_GROUP_NUMBER;
 import static l3diskex.basicfmt.DiskBasicDirItemAppleDOS.APLEDOS_TRACK_LIST_MAX;
 
 
@@ -433,11 +432,11 @@ public class DiskBasicTypeAppleDOS extends DiskBasicType<DirectoryApledos> {
 
             for (int sec = 0; sec < basic.getSectorsPerTrackOnBasic(); sec++) {
                 if (trk < 3 || trk == managed_track_num) {
-                    fatAvailability.Add(FAT_AVAIL_SYSTEM.getValue(), 0, 0);
+                    fatAvailability.add(FAT_AVAIL_SYSTEM.getValue(), 0, 0);
                 } else if ((usemap & (1L << sec)) != 0) {
-                    fatAvailability.Add(FAT_AVAIL_FREE.getValue(), basic.getSectorSize(), 1);
+                    fatAvailability.add(FAT_AVAIL_FREE.getValue(), basic.getSectorSize(), 1);
                 } else {
-                    fatAvailability.Add(FAT_AVAIL_USED.getValue(), 0, 0);
+                    fatAvailability.add(FAT_AVAIL_USED.getValue(), 0, 0);
                 }
             }
         }
@@ -879,7 +878,7 @@ public class DiskBasicTypeAppleDOS extends DiskBasicType<DirectoryApledos> {
         if (buffer.length < 2) return ptr;
 
         ptr.nextTrack = buffer[0];
-        ptr.nextSector =buffer[1];
+        ptr.nextSector = buffer[1];
 
         return ptr;
     }

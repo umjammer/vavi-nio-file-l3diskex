@@ -23,10 +23,11 @@ import org.xml.sax.SAXException;
 public class FileParam {
 
     /**
-     *  FileFormat
+     * FileFormat
      */
     public static class FileFormat {
-        private final int    m_idx;          // index inside the list
+
+        private final int m_idx;          // index inside the list
         private String m_name;         // file type ("d88","plain",...)
         private final String m_description;  // description
 
@@ -43,21 +44,30 @@ public class FileParam {
         }
 
         /* getters / setters ------------------------------------------------*/
-        public int getIndex() { return m_idx; }
+        public int getIndex() {
+            return m_idx;
+        }
 
-        public void setName(String val) { m_name = val; }
+        public void setName(String val) {
+            m_name = val;
+        }
 
-        public String getName() { return m_name; }
+        public String getName() {
+            return m_name;
+        }
 
-        public String getDescription() { return m_description; }
+        public String getDescription() {
+            return m_description;
+        }
     }
 
     /**
-     *  DiskTypeHint
+     * DiskTypeHint
      */
     public static class DiskTypeHint {
+
         private String m_hint;
-        private int    m_kind;
+        private int m_kind;
 
         public DiskTypeHint() {
             m_hint = "";
@@ -79,16 +89,21 @@ public class FileParam {
             m_kind = kind;
         }
 
-        public String getHint() { return m_hint; }
+        public String getHint() {
+            return m_hint;
+        }
 
-        public int getKind() { return m_kind; }
+        public int getKind() {
+            return m_kind;
+        }
     }
 
     /**
-     *  FileParamFormat
+     * FileParamFormat
      */
     public static class FileParamFormat {
-        private String        m_type;   // file type ("d88","plain",...)
+
+        private String m_type;   // file type ("d88","plain",...)
         private final List<DiskTypeHint> m_hints;  // list of hints
 
         public FileParamFormat() {
@@ -105,19 +120,25 @@ public class FileParam {
             m_hints.add(new DiskTypeHint(val, kind));
         }
 
-        public void setType(String val) { m_type = val; }
+        public void setType(String val) {
+            m_type = val;
+        }
 
-        public String getType() { return m_type; }
+        public String getType() {
+            return m_type;
+        }
 
-        public List<DiskTypeHint> getHints() { return m_hints; }
+        public List<DiskTypeHint> getHints() {
+            return m_hints;
+        }
     }
 
     /**
-     *  FileParam
+     * FileParam
      */
-    protected String            m_extension; // extension
+    protected String m_extension; // extension
     protected List<FileParamFormat> m_formats;   // list of formats
-    protected String            m_description; // description
+    protected String m_description; // description
 
     public FileParam() {
         clearFileParam();
@@ -140,13 +161,13 @@ public class FileParam {
     /* setters --------------------------------------------------------*/
     public void setFileParam(FileParam src) {
         m_extension = src.m_extension;
-        m_formats   = src.m_formats;
+        m_formats = src.m_formats;
         m_description = src.m_description;
     }
 
     public void setFileParam(String n_ext, ArrayList<FileParamFormat> n_formats, String n_desc) {
         m_extension = n_ext;
-        m_formats   = n_formats;
+        m_formats = n_formats;
         m_description = n_desc;
         m_extension = m_extension.toLowerCase(Locale.ROOT);
     }
@@ -158,16 +179,23 @@ public class FileParam {
     }
 
     /* getters --------------------------------------------------------*/
-    public String getExt() { return m_extension; }
+    public String getExt() {
+        return m_extension;
+    }
 
-    public List<FileParamFormat> getFormats() { return m_formats; }
+    public List<FileParamFormat> getFormats() {
+        return m_formats;
+    }
 
-    public String getDescription() { return m_description; }
+    public String getDescription() {
+        return m_description;
+    }
 
     /**
-     *  WildCard
+     * WildCard
      */
     public static class WildCard {
+
         private final String m_format;
         private final String m_ext;
         private final String m_card;
@@ -184,21 +212,28 @@ public class FileParam {
             m_card = n_card;
         }
 
-        public String getFormat() { return m_format; }
+        public String getFormat() {
+            return m_format;
+        }
 
-        public String getExt() { return m_ext; }
+        public String getExt() {
+            return m_ext;
+        }
 
-        public String getCard() { return m_card; }
+        public String getCard() {
+            return m_card;
+        }
     }
 
     /**
-     *  FileTypes
+     * FileTypes
      */
     public static class FileTypes /* extends TemplatesBase */ {
-        private final List<FileFormat> formats = new ArrayList<>(); // file formats
-        private final List<FileParam> types   = new ArrayList<>();  // file parameters
 
-        private String          wcardForLoad = "";   // wildcard for loading
+        private final List<FileFormat> formats = new ArrayList<>(); // file formats
+        private final List<FileParam> types = new ArrayList<>();  // file parameters
+
+        private String wcardForLoad = "";   // wildcard for loading
         private final List<WildCard> wcardForSave = new ArrayList<>(); // wildcards for saving
         private final List<Integer> idxForSave = new ArrayList<>(); // order of wildcards at save
 
@@ -403,7 +438,9 @@ public class FileParam {
         /*
          *  File loading helpers
          **/
-        public String getWildcardForLoad() { return wcardForLoad; }
+        public String getWildcardForLoad() {
+            return wcardForLoad;
+        }
 
         public String getWildcardForSave(String n_format, String n_ext) {
             idxForSave.clear();
@@ -465,29 +502,36 @@ public class FileParam {
         /*
          *  Constructors / Destructors
          **/
-        public FileTypes() { }
+        public FileTypes() {
+        }
 
         /*
          *  Public API
          **/
-        public FileParam getItemPtr(int index) { return types.get(index); }
+        public FileParam getItemPtr(int index) {
+            return types.get(index);
+        }
 
-        public FileParam getItem(int index) { return types.get(index); }
+        public FileParam getItem(int index) {
+            return types.get(index);
+        }
 
-        public int count() { return types.size(); }
+        public int count() {
+            return types.size();
+        }
     }
 
     /**
-     *  Global instance (equivalent to the C++ `extern FileTypes gFileTypes;`)
+     * Global instance (equivalent to the C++ `extern FileTypes gFileTypes;`)
      */
     public static FileTypes gFileTypes = new FileTypes();
 
     /**
-     *  Main – optional test harness
+     * Main – optional test harness
      */
     public static void main(String[] args) {
         String dataPath = ".";           // adjust as needed
-        String locale   = "en_US";
+        String locale = "en_US";
         StringBuilder errmsgs = new StringBuilder();
 
         boolean ok = gFileTypes.load(dataPath, locale, errmsgs);

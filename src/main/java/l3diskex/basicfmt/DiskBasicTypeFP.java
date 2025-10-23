@@ -21,9 +21,10 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_RANDOM_MASK;
 
 /**
  * DiskBasicTypeFP – C82‑BASIC の処理
- * 
+ * <p>
  * DiskBasicParam
- *  @li ReservedGroups : Group 予約済みにするグループ（クラスタ）番号
+ *
+ * @li ReservedGroups : Group 予約済みにするグループ（クラスタ）番号
  */
 public class DiskBasicTypeFP extends DiskBasicTypeN88 {
 
@@ -47,7 +48,7 @@ public class DiskBasicTypeFP extends DiskBasicTypeN88 {
         sector = basic.getManagedSector(basic.diskBasicParam.getFatStartSector() - 1);
         if (sector == null) return false;
         sector.fill(basic.diskBasicParam.getFillCodeOnFAT(), basic.diskBasicParam.getFatEndGroup() + 1, 1);
-        sector.fill((byte)(basic.diskBasicParam.getFatEndGroup() + 1), 1, 0);
+        sector.fill((byte) (basic.diskBasicParam.getFatEndGroup() + 1), 1, 0);
 
         // DIR area
         int staSec = basic.diskBasicParam.getDirStartSector();
@@ -124,7 +125,7 @@ public class DiskBasicTypeFP extends DiskBasicTypeN88 {
             }
             if (size > tmpRemain) {
                 /* バッファの余りは0サプレス */
-                Arrays.fill(buffer, tmpRemain, size, (byte)0);
+                Arrays.fill(buffer, tmpRemain, size, (byte) 0);
             }
             len = remain;
         } else {

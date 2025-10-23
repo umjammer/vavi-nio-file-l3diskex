@@ -23,6 +23,7 @@ public class UiCdListCtrl {
     /* ----------------------------------------------------------------- */
 
     public static class MyCDListValue {
+
         protected int row;
         protected int icon;
         protected String value;
@@ -62,6 +63,7 @@ public class UiCdListCtrl {
     /* ----------------------------------------------------------------- */
 
     public static class MyCDListColumn {
+
         protected int idx;
         protected int col;
         protected ListColumnInfo info;        // placeholder for struct st_list_columns
@@ -83,18 +85,33 @@ public class UiCdListCtrl {
             this.label = (n_info != null ? n_info.text : "");
         }
 
-        public int GetIndex() { return idx; }
-        public int GetColumn() { return col; }
-        public void SetColumn(int val) { this.col = val; }
+        public int GetIndex() {
+            return idx;
+        }
+
+        public int GetColumn() {
+            return col;
+        }
+
+        public void SetColumn(int val) {
+            this.col = val;
+        }
 
         public boolean HaveIcon() {
             return info != null && info.icon;
         }
 
-        public int GetWidth() { return width; }
-        public void SetWidth(int val) { this.width = val; }
+        public int GetWidth() {
+            return width;
+        }
 
-        public String GetText() { return label; }
+        public void SetWidth(int val) {
+            this.width = val;
+        }
+
+        public String GetText() {
+            return label;
+        }
 
         public Alignment GetAlign() {
             return (info != null ? info.align : Alignment.LEFT);
@@ -104,11 +121,21 @@ public class UiCdListCtrl {
             return info != null && info.sortable;
         }
 
-        public int GetSortDir() { return sort_dir; }
-        public void SetSortDir(int val) { this.sort_dir = val; }
+        public int GetSortDir() {
+            return sort_dir;
+        }
 
-        public DataViewColumn GetId() { return id; }
-        public void SetId(DataViewColumn val) { this.id = val; }
+        public void SetSortDir(int val) {
+            this.sort_dir = val;
+        }
+
+        public DataViewColumn GetId() {
+            return id;
+        }
+
+        public void SetId(DataViewColumn val) {
+            this.id = val;
+        }
     }
 
     /* ----------------------------------------------------------------- */
@@ -416,6 +443,7 @@ public class UiCdListCtrl {
     /* ----------------------------------------------------------------- */
 
     public static class MyCDListRearrangeBox {
+
         public MyCDListRearrangeBox(MyCDListCtrl parent,
                                     List<Integer> order,
                                     List<String> items) {

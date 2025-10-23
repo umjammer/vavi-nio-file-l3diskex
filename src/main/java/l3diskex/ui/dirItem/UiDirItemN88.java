@@ -83,7 +83,7 @@ public class UiDirItemN88 extends UiDirItem {
         BoxLayout gszr = new BoxLayout(); // wxHORIZONTAL
 
         List<String> types1 = new ArrayList<>();
-        for(int i = 0; G_TYPE_NAME_N88_1[i] != null; i++) {
+        for (int i = 0; G_TYPE_NAME_N88_1[i] != null; i++) {
             types1.add(G_TYPE_NAME_N88_1[i]);
         }
         // wxDefaultPosition, wxDefaultSize, wxRA_SPECIFY_ROWS are placeholders/constants
@@ -124,10 +124,10 @@ public class UiDirItemN88 extends UiDirItem {
     @Override
     public void changeTypeInAttrDialog(IntNameBox parent) {
         // Controls are retrieved by ID from the parent dialog
-        ButtonGroup radType1 = (ButtonGroup)parent.getComponent(IDC_RADIO_TYPE1);
-        JCheckBox chkReadOnly = (JCheckBox)parent.getComponent(IDC_CHECK_READONLY);
-        JCheckBox chkReadWrite = (JCheckBox)parent.getComponent(IDC_CHECK_READWRITE);
-        JCheckBox chkEncrypt = (JCheckBox)parent.getComponent(IDC_CHECK_ENCRYPT);
+        ButtonGroup radType1 = (ButtonGroup) parent.getComponent(IDC_RADIO_TYPE1);
+        JCheckBox chkReadOnly = (JCheckBox) parent.getComponent(IDC_CHECK_READONLY);
+        JCheckBox chkReadWrite = (JCheckBox) parent.getComponent(IDC_CHECK_READWRITE);
+        JCheckBox chkEncrypt = (JCheckBox) parent.getComponent(IDC_CHECK_ENCRYPT);
 
         int selectedIdx = 0;
         if (radType1 != null) {
@@ -136,7 +136,7 @@ public class UiDirItemN88 extends UiDirItem {
 
         if (chkReadOnly == null || chkReadWrite == null || chkEncrypt == null) return; // Should not happen in real app
 
-        switch(selectedIdx) {
+        switch (selectedIdx) {
             case TYPE_NAME_N88_MACHINE:
                 // machine
                 chkReadOnly.setEnabled(false);
@@ -179,10 +179,10 @@ public class UiDirItemN88 extends UiDirItem {
     // C++ method: SetAttrInAttrDialog
     @Override
     public boolean setAttrInAttrDialog(IntNameBox parent, DiskBasicDirItemAttr attr, DiskBasicError errinfo) {
-        ButtonGroup radType1 = (ButtonGroup)parent.getComponent(IDC_RADIO_TYPE1);
-        JCheckBox chkReadOnly = (JCheckBox)parent.getComponent(IDC_CHECK_READONLY);
-        JCheckBox chkReadWrite = (JCheckBox)parent.getComponent(IDC_CHECK_READWRITE);
-        JCheckBox chkEncrypt = (JCheckBox)parent.getComponent(IDC_CHECK_ENCRYPT);
+        ButtonGroup radType1 = (ButtonGroup) parent.getComponent(IDC_RADIO_TYPE1);
+        JCheckBox chkReadOnly = (JCheckBox) parent.getComponent(IDC_CHECK_READONLY);
+        JCheckBox chkReadWrite = (JCheckBox) parent.getComponent(IDC_CHECK_READWRITE);
+        JCheckBox chkEncrypt = (JCheckBox) parent.getComponent(IDC_CHECK_ENCRYPT);
 
         if (radType1 == null || chkReadOnly == null || chkReadWrite == null || chkEncrypt == null) return false;
 

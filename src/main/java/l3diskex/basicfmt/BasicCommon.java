@@ -7,47 +7,13 @@ package l3diskex.basicfmt;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.Map;
+import java.util.List;
+
+import l3diskex.Common;
+import vavi.util.ByteUtil;
 
 
 public class BasicCommon {
-
-    static class CommonUtil {
-
-        // Placeholder for C++'s mem_invert.
-        // In Java, byte is signed, so 0xFF is necessary for unsigned operations.
-        public static void memInvert(byte[] data, int size) {
-            for (int i = 0; i < size; i++) {
-                data[i] = (byte) (~data[i]);
-            }
-        }
-
-        // Helper to write a short (wxUint16) into a byte array with specified endianness
-        public static void writeUint16(byte[] dest, short val, boolean bigEndian) {
-            if (bigEndian) {
-                dest[0] = (byte) (val >> 8);
-                dest[1] = (byte) (val & 0xff);
-            } else {
-                dest[0] = (byte) (val & 0xff);
-                dest[1] = (byte) (val >> 8);
-            }
-        }
-
-        // Helper to write an int (int) into a byte array with specified endianness
-        public static void writeUint32(byte[] dest, int val, boolean bigEndian) {
-            if (bigEndian) {
-                dest[0] = (byte) (val >> 24);
-                dest[1] = (byte) (val >> 16);
-                dest[2] = (byte) (val >> 8);
-                dest[3] = (byte) (val & 0xff);
-            } else {
-                dest[0] = (byte) (val & 0xff);
-                dest[1] = (byte) (val >> 8);
-                dest[2] = (byte) (val >> 16);
-                dest[3] = (byte) (val >> 24);
-            }
-        }
-    }
 
     /**
      * 共通属性フラグ
@@ -74,11 +40,7 @@ public class BasicCommon {
         FILE_TYPE_TEMPORARY_MASK(0x040000),
         FILE_TYPE_INTEGER_MASK(0x080000),
         FILE_TYPE_HARDLINK_MASK(0x100000),
-        FILE_TYPE_SOFTLINK_MASK(0x200000),
-
-        // Calculated field, not a constant in the enum itself in Java style
-        // FILE_TYPE_EXTENSION_MASK = FILE_TYPE_BASIC_MASK | ... | FILE_TYPE_INTEGER_MASK
-        ;
+        FILE_TYPE_SOFTLINK_MASK(0x200000);
 
         private final int value;
 
@@ -100,44 +62,6 @@ public class BasicCommon {
     }
 
     /**
-     * 共通属性フラグ位置
-     */
-    enum FileTypePos {
-        FILE_TYPE_BASIC_POS(0),
-        FILE_TYPE_DATA_POS(1),
-        FILE_TYPE_MACHINE_POS(2),
-        FILE_TYPE_ASCII_POS(3),
-        FILE_TYPE_BINARY_POS(4),
-        FILE_TYPE_RANDOM_POS(5),
-        FILE_TYPE_ENCRYPTED_POS(6),
-        FILE_TYPE_READWRITE_POS(7),
-        FILE_TYPE_READONLY_POS(8),
-        FILE_TYPE_HIDDEN_POS(9),
-        FILE_TYPE_SYSTEM_POS(10),
-        FILE_TYPE_VOLUME_POS(11),
-        FILE_TYPE_DIRECTORY_POS(12),
-        FILE_TYPE_ARCHIVE_POS(13),
-        FILE_TYPE_LIBRARY_POS(14),
-        FILE_TYPE_NONSHARE_POS(15),
-        FILE_TYPE_UNDELETE_POS(16),
-        FILE_TYPE_WRITEONLY_POS(17),
-        FILE_TYPE_TEMPORARY_POS(18),
-        FILE_TYPE_INTEGER_POS(19),
-        FILE_TYPE_HARDLINK_POS(20),
-        FILE_TYPE_SOFTLINK_POS(21);
-
-        private final int value;
-
-        FileTypePos(int value) {
-            this.value = value;
-        }
-
-        public int getValue() {
-            return value;
-        }
-    }
-
-    /**
      * ディレクトリエントリ L3,S1 ５インチ,８インチ(倍密度)
      */
     public static class DirectoryL32d implements DirectoryT {
@@ -147,7 +71,7 @@ public class BasicCommon {
         public byte type; // byte
         public byte type2; // byte
         public byte startGroup; // byte
-        public short endBytes; // wxUint16 (big endien) - unsigned 16-bit is best represented by a Java 'int' if arithmetic is needed, but 'short' for storage.
+        public short endBytes; // used size of end cluster (big endian)
 
         public byte[] reserved = new byte[16]; // char reserved[16]
     }
@@ -182,19 +106,19 @@ public class BasicCommon {
     /**
      * ディレクトリエントリ X1 Hu-BASIC (32bytes)
      */
-    public static class DirectoryX1Hu implements DirectoryT{
+    public static class DirectoryX1Hu implements DirectoryT {
 
-        public byte type; // byte
+        public byte type;
         public byte[] name = new byte[13];
         public byte[] ext = new byte[3];
-        public byte password; // byte
-        public short fileSize; // wxUint16
-        public short loadAddr; // wxUint16
-        public short execAddr; // wxUint16
+        public byte password;
+        public short fileSize;
+        public short loadAddr;
+        public short execAddr;
         public byte[] date = new byte[3]; // yymwdd yy:BCD 00-99 m:HEX 0-C w:WEEK HEX 0(SUN)-7(SAT) dd:BCD
         public byte[] time = new byte[2]; // hhmi BCD
-        public byte startGroupH; // byte
-        public short startGroupL; // wxUint16
+        public byte startGroupH;
+        public short startGroupL;
     }
 
     /**
@@ -202,15 +126,15 @@ public class BasicCommon {
      */
     public static class DirectoryMz implements DirectoryT {
 
-        public byte type; // byte
+        public byte type;
         public byte[] name = new byte[17]; // file name has $0D on the end of string
-        public byte type2; // byte
-        public byte reserved; // byte
-        public short fileSize; // wxUint16
-        public short loadAddr; // wxUint16
-        public short execAddr; // wxUint16
+        public byte type2;
+        public byte reserved;
+        public short fileSize;
+        public short loadAddr;
+        public short execAddr;
         public byte[] dateTime = new byte[4];
-        public short startSector; // wxUint16
+        public short startSector;
     }
 
     /**
@@ -220,17 +144,17 @@ public class BasicCommon {
 
         public byte[] name = new byte[8];
         public byte[] ext = new byte[3];
-        public byte type; // byte
-        public byte ntres; // byte
-        public byte ctimeTenth; // byte
-        public short ctime; // wxUint16
-        public short cdate; // wxUint16
-        public short adate; // wxUint16
-        public short startGroupHi; // wxUint16
-        public short wtime; // wxUint16
-        public short wdate; // wxUint16
-        public short startGroup; // wxUint16
-        public int fileSize; // int
+        public byte type;
+        public byte ntres;
+        public byte ctimeTenth;
+        public short ctime;
+        public short cdate;
+        public short adate;
+        public short startGroupHi;
+        public short wtime;
+        public short wdate;
+        public short startGroup;
+        public int fileSize;
     }
 
     /**
@@ -652,6 +576,7 @@ public class BasicCommon {
 
             public byte track; // byte
             public byte sector; // byte
+
             public byte[] getBytes() {
                 return new byte[0];
             }
@@ -786,6 +711,7 @@ public class BasicCommon {
      * Amiga Root Block (above hash_table)
      */
     public static class AmigaRootBlockPost {
+
         public static final int SIZE = 4 + 4 + 4 + 4 + 4 + 41 + 1 + 4 + 4 + 4 + 4 + 4 + 4 + 4 + 4 + 4 + 4 + 4;
         public int bmFlag; // int value is -1 if disk bitmap is valid
         public int[] bmPages = new int[25]; // int blocks of disk bitmap
@@ -1018,50 +944,6 @@ public class BasicCommon {
     }
 
     /**
-     * 名前と値 定数リスト用
-     */
-    static class NameValue {
-
-        /**
-         * @param list リスト(NULL終り)
-         * @param str  文字列
-         * @return 一致する位置 or -1
-         * 名前が一致するか
-         */
-        public static int indexOf(Map<String, Object> list, String str) {
-            int match = -1;
-            int i = 0;
-            for (Map.Entry<String, Object> e : list.entrySet()) {
-                if (str.equals(e.getKey())) {
-                    match = i;
-                    break;
-                }
-                i++;
-            }
-            return match;
-        }
-
-        /**
-         * @param list リスト(NULL終り)
-         * @param val  値
-         * @return 一致する位置 or -1
-         * 値が一致するか
-         */
-        public static int indexOf(Map<String, Object> list, int val) {
-            int match = -1;
-            int i = 0;
-            for (Map.Entry<String, Object> e : list.entrySet()) {
-                if (val == (int) e.getValue()) {
-                    match = i;
-                    break;
-                }
-                i++;
-            }
-            return match;
-        }
-    }
-
-    /**
      * ファイルプロパティでファイル名変更した時に渡す値
      */
     public static class DiskBasicFileName {
@@ -1080,8 +962,6 @@ public class BasicCommon {
             this.name = nName;
             this.optional = nOptional;
         }
-
-        // No destructor needed in Java
 
         /**
          * ファイル名
@@ -1242,7 +1122,8 @@ public class BasicCommon {
 
     /**
      * グループ番号に対応する機種依存データを保持
-     * @sa DiskBasicGroupItem
+     *
+     * @see DiskBasicGroupItem
      */
     public static class DiskBasicGroupUserData implements Cloneable {
 
@@ -1262,7 +1143,8 @@ public class BasicCommon {
 
     /**
      * グループ番号に対応するパラメータを保持
-     * @sa DiskBasicGroups
+     *
+     * @see DiskBasicGroups
      */
     public static class DiskBasicGroupItem {
 
@@ -1431,38 +1313,17 @@ public class BasicCommon {
         }
     }
 
-    // Equivalent of WX_DECLARE_OBJARRAY(DiskBasicGroupItem, DiskBasicGroupItems);
-    // Use a standard Java List<DiskBasicGroupItem> or ArrayList<DiskBasicGroupItem>
-    public static class DiskBasicGroupItems extends ArrayList<DiskBasicGroupItem> {
-        // Standard list functionality is inherited.
-        // The C++ macro also defines methods like Item() and Last(), which we can implement
-        // or rely on the standard Java List methods (get() and size()-1).
-
-        public DiskBasicGroupItem last() {
-            if (isEmpty()) throw new java.util.NoSuchElementException();
-            return get(size() - 1);
-        }
-
-        public DiskBasicGroupItem item(int idx) {
-            return get(idx);
-        }
-
-        // In C++, this might be a pointer to the element:
-        public DiskBasicGroupItem itemPtr(int idx) {
-            return get(idx);
-        }
-    }
-
     /**
      * グループ番号のリストを保持
      * <p>
      * ディスク内ファイルのチェインをこのリストに保持する
-     * @sa DiskBasicGroupItem , DiskBasicDirItem
+     *
+     * @see DiskBasicGroupItem , DiskBasicDirItem
      */
     public static class DiskBasicGroups {
 
         /** グループ番号のリスト */
-        private final DiskBasicGroupItems items;
+        private final List<DiskBasicGroupItem> items;
         /** グループ数 */
         private int nums;
         /** グループ内の占有サイズ (int) */
@@ -1471,13 +1332,13 @@ public class BasicCommon {
         private int sizePerGroup;
 
         public DiskBasicGroups() {
-            items = new DiskBasicGroupItems();
+            items = new ArrayList<>();
             nums = 0;
             size = 0;
             sizePerGroup = 0;
         }
 
-        public DiskBasicGroups(DiskBasicGroupItems items) {
+        public DiskBasicGroups(List<DiskBasicGroupItem> items) {
             this.items = items;
             nums = 0;
             size = 0;
@@ -1494,7 +1355,7 @@ public class BasicCommon {
          * @param nDiv   １グループがセクタ内に複数ある時の分割位置
          * @param nDivs  １グループがセクタ内に複数ある時の分割数
          * @param nUser  機種依存データ
-         * 追加
+         *               追加
          */
         public void add(int nGroup, int nNext, int nTrack, int nSide, int nStart, int nEnd, int nDiv, int nDivs, DiskBasicGroupUserData nUser) {
             items.add(new DiskBasicGroupItem(nGroup, nNext, nTrack, nSide, nStart, nEnd, nDiv, nDivs, nUser));
@@ -1515,7 +1376,7 @@ public class BasicCommon {
          * @param nSide  サイド番号
          * @param nStart グループ内の開始セクタ番号
          * @param nUser  機種依存データ
-         * 追加
+         *               追加
          */
         public void add(int nGroup, int nNext, int nTrack, int nSide, int nStart, DiskBasicGroupUserData nUser) {
             items.add(new DiskBasicGroupItem(nGroup, nNext, nTrack, nSide, nStart, nUser));
@@ -1523,7 +1384,7 @@ public class BasicCommon {
 
         /**
          * @param nItem アイテム
-         * 追加
+         *              追加
          */
         public void add(DiskBasicGroupItem nItem) {
             items.add(new DiskBasicGroupItem(nItem)); // Add a copy to maintain ownership semantics
@@ -1531,7 +1392,7 @@ public class BasicCommon {
 
         /**
          * @param nItems アイテムリスト
-         * 追加
+         *               追加
          */
         public void add(DiskBasicGroups nItems) {
             for (int i = 0; i < nItems.count(); i++) {
@@ -1562,7 +1423,7 @@ public class BasicCommon {
          * リストの最後を返す
          */
         public DiskBasicGroupItem last() {
-            return items.last();
+            return items.getLast();
         }
 
         /**
@@ -1583,7 +1444,7 @@ public class BasicCommon {
         /**
          * リストを返す
          */
-        public final DiskBasicGroupItems getItems() {
+        public final List<DiskBasicGroupItem> getItems() {
             return items;
         }
 
@@ -1655,7 +1516,8 @@ public class BasicCommon {
 
     /**
      * 汎用リスト用アイテム
-     * @sa KeyValArray
+     *
+     * @see KeyValArray
      */
     public static class KeyValItem {
 
@@ -1738,8 +1600,7 @@ public class BasicCommon {
             clear();
             mKey = key;
             mValue = new byte[Integer.BYTES];
-            // Little endian by default for Java int in byte array (if not specified)
-            CommonUtil.writeUint32(mValue, val, false);
+            ByteUtil.writeLeInt(val, mValue, 0);
             mSize = Integer.BYTES;
             mType = Type.TYPE_INTEGER;
         }
@@ -1758,7 +1619,7 @@ public class BasicCommon {
             mValue[0] = val;
             mSize = Byte.BYTES;
             mType = Type.TYPE_UINT8;
-            if (invert) CommonUtil.memInvert(mValue, mSize);
+            if (invert) Common.mem_invert(mValue, mSize);
         }
 
         /**
@@ -1773,10 +1634,13 @@ public class BasicCommon {
             clear();
             mKey = key;
             mValue = new byte[Short.BYTES];
-            CommonUtil.writeUint16(mValue, val, bigEndian);
+            if (bigEndian)
+                ByteUtil.writeBeShort(val, mValue, 0);
+            else
+                ByteUtil.writeLeShort(val, mValue, 0);
             mSize = Short.BYTES;
             mType = Type.TYPE_UINT16;
-            if (invert) CommonUtil.memInvert(mValue, mSize);
+            if (invert) Common.mem_invert(mValue, mSize);
         }
 
         /**
@@ -1791,10 +1655,13 @@ public class BasicCommon {
             clear();
             mKey = key;
             mValue = new byte[Integer.BYTES];
-            CommonUtil.writeUint32(mValue, val, bigEndian);
+            if (bigEndian)
+                ByteUtil.writeBeInt(val, mValue, 0);
+            else
+                ByteUtil.writeLeInt(val, mValue, 0);
             mSize = Integer.BYTES;
             mType = Type.TYPE_UINT32;
-            if (invert) CommonUtil.memInvert(mValue, mSize);
+            if (invert) Common.mem_invert(mValue, mSize);
         }
 
         /**
@@ -1813,7 +1680,7 @@ public class BasicCommon {
             mValue[size] = 0; // Null terminator
             mSize = size;
             mType = Type.TYPE_STRING;
-            if (invert) CommonUtil.memInvert(mValue, mSize);
+            if (invert) Common.mem_invert(mValue, mSize);
         }
 
         /**
@@ -1889,44 +1756,29 @@ public class BasicCommon {
         }
     }
 
-    // WX_DEFINE_ARRAY(KeyValItem *, ArrayOfKeyValItem);
-    // Use a standard Java List<KeyValItem> or ArrayList<KeyValItem>
-    public static class ArrayOfKeyValItem extends ArrayList<KeyValItem> {
-
-    }
-
     /**
      * 汎用リスト KeyValItem の配列
      */
-    public static class KeyValArray extends ArrayOfKeyValItem {
+    public static class KeyValArray {
+
+        List<KeyValItem> contents = new ArrayList<>();
 
         public KeyValArray() {
             super();
         }
 
-        // No destructor needed in Java.
-
-        private void deleteAll() {
-            // In Java, this just clears the references in the list and relies on GC.
-            // The KeyValItem objects themselves don't need explicit 'delete' if they manage their own resources (mValue) correctly.
-            // Since KeyValItem's constructor allocates mValue, and it should be freed/null'd in clear, we just rely on clear and then ArrayList.clear.
-        }
-
         /**
          * リストをクリア (and delete all elements in C++ semantics)
          */
-        @Override
         public void clear() {
-            deleteAll();
-            super.clear();
+            contents.clear();
         }
 
         /**
          * リストをクリア (and delete all elements in C++ semantics)
          */
         public void empty() {
-            deleteAll();
-            super.clear(); // ArrayList's clear() performs the same function as Empty() in wxWidgets/C++ world
+            contents.clear();
         }
 
         /**
@@ -1936,7 +1788,7 @@ public class BasicCommon {
          * @param val 値
          */
         public void add(String key, int val) {
-            super.add(new KeyValItem(key, val));
+            contents.add(new KeyValItem(key, val));
         }
 
         /**
@@ -1947,7 +1799,7 @@ public class BasicCommon {
          * @param invert 値を反転するか
          */
         public void add(String key, byte val, boolean invert) {
-            super.add(new KeyValItem(key, val, invert));
+            contents.add(new KeyValItem(key, val, invert));
         }
 
         /**
@@ -1959,7 +1811,7 @@ public class BasicCommon {
          * @param invert    値を反転するか
          */
         public void add(String key, short val, boolean bigEndian, boolean invert) {
-            super.add(new KeyValItem(key, val, bigEndian, invert));
+            contents.add(new KeyValItem(key, val, bigEndian, invert));
         }
 
         /**
@@ -1971,7 +1823,7 @@ public class BasicCommon {
          * @param invert    値を反転するか
          */
         public void add(String key, int val, boolean bigEndian, boolean invert) {
-            super.add(new KeyValItem(key, val, bigEndian, invert));
+            contents.add(new KeyValItem(key, val, bigEndian, invert));
         }
 
         /**
@@ -1983,7 +1835,7 @@ public class BasicCommon {
          * @param invert 値を反転するか
          */
         public void add(String key, byte[] val, int size, boolean invert) {
-            super.add(new KeyValItem(key, val, size, invert));
+            contents.add(new KeyValItem(key, val, size, invert));
         }
 
         public void add(String key, byte[] val, int size) {
@@ -1997,7 +1849,7 @@ public class BasicCommon {
          * @param val 値
          */
         public void add(String key, boolean val) {
-            super.add(new KeyValItem(key, val));
+            contents.add(new KeyValItem(key, val));
         }
     }
 }

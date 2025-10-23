@@ -54,7 +54,7 @@ public class UiDirItemL32D extends UiDirItem {
         super.createControlsForAttrDialog(parent, showFlags, filePath, sizer, flags);
 
         // Hide random access option
-        ButtonGroup radType2 = (ButtonGroup)parent.getComponent(ATTR_DIALOG_IDC_RADIO_TYPE2);
+        ButtonGroup radType2 = (ButtonGroup) parent.getComponent(ATTR_DIALOG_IDC_RADIO_TYPE2);
         radType2.show(TYPE_NAME_2_RANDOM, false);
     }
 }

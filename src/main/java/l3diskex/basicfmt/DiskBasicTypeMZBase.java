@@ -14,7 +14,6 @@ import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskImage.DiskImageTrack;
 
 import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_FREE;
-import static l3diskex.basicfmt.BasicFat.INVALID_GROUP_NUMBER;
 
 
 /**
@@ -137,9 +136,9 @@ public class DiskBasicTypeMZBase<T extends DirectoryT> extends DiskBasicType<T> 
             }
         }
 
-        fatAvailability.Add(FAT_AVAIL_FREE.getValue(), 0, 0);
+        fatAvailability.add(FAT_AVAIL_FREE.getValue(), 0, 0);
         fatAvailability.setFreeSize(0);
-        fatAvailability.SetFreeGroups(0);
+        fatAvailability.setFreeGroups(0);
     }
 
     /** 未使用が連続している位置をさがす */

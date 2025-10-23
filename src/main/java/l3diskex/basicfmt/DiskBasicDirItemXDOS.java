@@ -593,7 +593,7 @@ public class DiskBasicDirItemXDOS extends DiskBasicDirItemXDOSBase<DirectoryXdos
 
     @Override
     public boolean preExportDataFile(String[] filename) {
-        if (!gConfig.IsAddExtensionExport()) return true;
+        if (!gConfig.isAddExtensionExport()) return true;
 
         if (!isDirectory()) {
             String ext = convFileType1Str(getFileType1());
@@ -610,7 +610,7 @@ public class DiskBasicDirItemXDOS extends DiskBasicDirItemXDOSBase<DirectoryXdos
 
     @Override
     public boolean preImportDataFile(String[] filename) {
-        if (gConfig.IsDecideAttrImport()) {
+        if (gConfig.isDecideAttrImport()) {
             int[] p1 = new int[1];
             isContainAttrByExtension(filename[0], gTypeNameXDOS1, 1, 8, filename, null, p1);
             if (!(1 <= p1[0] && p1[0] <= 8)) {

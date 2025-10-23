@@ -41,15 +41,16 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableColumnModel;
 
-import l3diskex.ui.Main.UiDiskApp;
 import l3diskex.diskimg.DiskImage.DiskImageDisk;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskImage.DiskImageTrack;
+import l3diskex.ui.Main.UiDiskApp;
 
 
 public class UiDiskRawPanel extends JSplitPane {
 
     static class ListColumn {
+
         String title;
         boolean isSortable;
         int width;
@@ -64,6 +65,7 @@ public class UiDiskRawPanel extends JSplitPane {
     }
 
     public static class UiRawDisk {
+
         public static final int SECTORBOX_HIDE_SECTOR_NUMS = 1;
         public static final int EDITOR_TYPE_BINARY = 1;
 
@@ -314,6 +316,7 @@ public class UiDiskRawPanel extends JSplitPane {
     }
 
     public class UiDiskRawTrack extends JTable {
+
         private final UiDiskRawPanel parent;
         private final UiDiskFrame frame;
         private DiskImageDisk p_disk;
@@ -411,8 +414,8 @@ public class UiDiskRawPanel extends JSplitPane {
                 setRowSelectionInterval(row, row);
             }
 
-            ((Container) ((JCheckBoxMenuItem)menuPopup.getComponent(0)).getComponent(0)).setState(parent.getInvertData());
-            ((Container) ((JCheckBoxMenuItem)menuPopup.getComponent(0)).getComponent(1)).setState(parent.getReverseSide());
+            ((Container) ((JCheckBoxMenuItem) menuPopup.getComponent(0)).getComponent(0)).setState(parent.getInvertData());
+            ((Container) ((JCheckBoxMenuItem) menuPopup.getComponent(0)).getComponent(1)).setState(parent.getReverseSide());
 
             boolean opened = (p_disk != null);
             menuPopup.getComponent(2).setEnabled(opened); // Export
@@ -634,7 +637,7 @@ public class UiDiskRawPanel extends JSplitPane {
                 if (track == null) track = getFirstTrack();
                 if (track != null) {
                     int[] stSec = new int[1], edSec = new int[1];
-                    if(getFirstAndLastSectorNumOnTrack(track, stSec, edSec)) {
+                    if (getFirstAndLastSectorNumOnTrack(track, stSec, edSec)) {
                         st_trk = track.getTrackNumber();
                         st_sid = track.getSideNumber();
                         ed_trk = st_trk;
@@ -679,7 +682,7 @@ public class UiDiskRawPanel extends JSplitPane {
                         }
                     }
                 }
-            } catch(IOException e) {
+            } catch (IOException e) {
                 e.printStackTrace();
                 return false;
             }
@@ -710,7 +713,7 @@ public class UiDiskRawPanel extends JSplitPane {
         public void appendTrack() {
             if (p_disk == null) return;
             int[] disk_number = {-1}, side_number = {-1};
-            if(p_disk.isReversible()) {
+            if (p_disk.isReversible()) {
                 frame.GetDiskListSelectedPos(disk_number, side_number);
             }
             p_disk.addNewTrack(side_number[0]);
@@ -725,7 +728,7 @@ public class UiDiskRawPanel extends JSplitPane {
             int trackPos = model.getTrackPosition(modelRow);
 
             int[] disk_number = {-1}, side_number = {-1};
-            if(p_disk.isReversible()) {
+            if (p_disk.isReversible()) {
                 frame.GetDiskListSelectedPos(disk_number, side_number);
             }
 
@@ -737,7 +740,9 @@ public class UiDiskRawPanel extends JSplitPane {
             }
         }
 
-        public DiskImageDisk getDisk() { return p_disk; }
+        public DiskImageDisk getDisk() {
+            return p_disk;
+        }
 
         public DiskImageTrack getSelectedTrack() {
             int selectedRow = getSelectedRow();
@@ -755,7 +760,7 @@ public class UiDiskRawPanel extends JSplitPane {
         public DiskImageTrack getFirstTrack() {
             if (p_disk == null) return null;
             int limit = p_disk.getCreatableTracks();
-            for(int num = 0; num < limit; num++) {
+            for (int num = 0; num < limit; num++) {
                 DiskImageTrack track = p_disk.getTrack(num, m_side_number >= 0 ? m_side_number : 0);
                 if (track != null) return track;
             }
@@ -779,7 +784,7 @@ public class UiDiskRawPanel extends JSplitPane {
             if (sectors == null || sectors.isEmpty()) return false;
             start_sector[0] = 0xFFFF;
             end_sector[0] = 0;
-            for(DiskImageSector sector : sectors) {
+            for (DiskImageSector sector : sectors) {
                 if (start_sector[0] > sector.getSectorNumber()) start_sector[0] = sector.getSectorNumber();
                 if (end_sector[0] < sector.getSectorNumber()) end_sector[0] = sector.getSectorNumber();
             }
@@ -812,6 +817,7 @@ public class UiDiskRawPanel extends JSplitPane {
     }
 
     private static class TrackTransferHandler extends TransferHandler {
+
         @Override
         protected Transferable createTransferable(JComponent c) {
             String[] tmpDirName = new String[1];
@@ -823,7 +829,7 @@ public class UiDiskRawPanel extends JSplitPane {
                 int modelRow = convertRowIndexToModel(row);
                 int trackPos = model.getTrackPosition(modelRow);
                 DiskImageTrack track = p_disk.getTrack(trackPos);
-                if(track == null) continue;
+                if (track == null) continue;
 
                 int[] st_sec = new int[1], ed_sec = new int[1];
                 if (!getFirstAndLastSectorNumOnTrack(track, st_sec, ed_sec)) continue;
@@ -854,17 +860,31 @@ public class UiDiskRawPanel extends JSplitPane {
     }
 
     private static class FileTransferable implements Transferable {
+
         private final List<File> files;
-        public FileTransferable(List<File> files) { this.files = files; }
+
+        public FileTransferable(List<File> files) {
+            this.files = files;
+        }
+
         @Override
-        public DataFlavor[] getTransferDataFlavors() { return new DataFlavor[]{DataFlavor.javaFileListFlavor}; }
+        public DataFlavor[] getTransferDataFlavors() {
+            return new DataFlavor[] {DataFlavor.javaFileListFlavor};
+        }
+
         @Override
-        public boolean isDataFlavorSupported(DataFlavor flavor) { return flavor.equals(DataFlavor.javaFileListFlavor); }
+        public boolean isDataFlavorSupported(DataFlavor flavor) {
+            return flavor.equals(DataFlavor.javaFileListFlavor);
+        }
+
         @Override
-        public Object getTransferData(DataFlavor flavor) { return files; }
+        public Object getTransferData(DataFlavor flavor) {
+            return files;
+        }
     }
 
     class TrackTableModel extends AbstractTableModel {
+
         private final List<Object[]> data = new ArrayList<>();
         private final UiDiskRawTrack parent;
 
@@ -881,7 +901,7 @@ public class UiDiskRawPanel extends JSplitPane {
             int sides = disk.getSidesPerDisk();
             int max_pos = Math.max(disk.getTracksPerSide() * sides, disk.getCreatableTracks());
 
-            for(int pos = (side_number >= 0 ? side_number : 0); pos < max_pos; pos += (side_number >= 0 ? sides : 1)) {
+            for (int pos = (side_number >= 0 ? side_number : 0); pos < max_pos; pos += (side_number >= 0 ? sides : 1)) {
                 Object[] rowData = new Object[UiRawDisk.TrackListColumns.values().length + 1]; // +1 for original position
                 int offset = disk.getOffset(pos);
                 DiskImageTrack trk = (offset > 0) ? disk.getTrackByOffset(offset) : disk.getTrack(pos);
@@ -910,10 +930,14 @@ public class UiDiskRawPanel extends JSplitPane {
         }
 
         @Override
-        public int getRowCount() { return data.size(); }
+        public int getRowCount() {
+            return data.size();
+        }
 
         @Override
-        public int getColumnCount() { return UiRawDisk.TrackListColumns.TRACKCOL_END.ordinal(); }
+        public int getColumnCount() {
+            return UiRawDisk.TrackListColumns.TRACKCOL_END.ordinal();
+        }
 
         @Override
         public Object getValueAt(int rowIndex, int columnIndex) {
@@ -927,6 +951,7 @@ public class UiDiskRawPanel extends JSplitPane {
     }
 
     public static class UiDiskRawSector extends JTable {
+
         private final UiDiskRawPanel parent;
         private final UiDiskFrame frame;
         private DiskImageTrack p_track;
@@ -961,13 +986,27 @@ public class UiDiskRawPanel extends JSplitPane {
             });
 
             addMouseListener(new MouseAdapter() {
-                @Override public void mouseClicked(MouseEvent e) { if (e.getClickCount() == 2) showSectorAttr(); }
-                @Override public void mousePressed(MouseEvent e) { if (e.isPopupTrigger()) showPopupMenu(e); }
-                @Override public void mouseReleased(MouseEvent e) { if (e.isPopupTrigger()) showPopupMenu(e); }
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    if (e.getClickCount() == 2) showSectorAttr();
+                }
+
+                @Override
+                public void mousePressed(MouseEvent e) {
+                    if (e.isPopupTrigger()) showPopupMenu(e);
+                }
+
+                @Override
+                public void mouseReleased(MouseEvent e) {
+                    if (e.isPopupTrigger()) showPopupMenu(e);
+                }
             });
 
             addKeyListener(new KeyAdapter() {
-                @Override public void keyPressed(KeyEvent e) { onChar(e); }
+                @Override
+                public void keyPressed(KeyEvent e) {
+                    onChar(e);
+                }
             });
 
             setDragEnabled(true);
@@ -1019,9 +1058,9 @@ public class UiDiskRawPanel extends JSplitPane {
         }
 
         private void showPopupMenu(MouseEvent e) {
-            if(menuPopup == null) return;
+            if (menuPopup == null) return;
             int row = rowAtPoint(e.getPoint());
-            if(row >= 0) {
+            if (row >= 0) {
                 setRowSelectionInterval(row, row);
             }
 
@@ -1079,8 +1118,13 @@ public class UiDiskRawPanel extends JSplitPane {
             return p_track.getSectorByIndex(modelRow);
         }
 
-        public boolean copyToClipboard() { /* ... */ return true; }
-        public boolean pasteFromClipboard() { return parent.pasteFromClipboard(); }
+        public boolean copyToClipboard() { /* ... */
+            return true;
+        }
+
+        public boolean pasteFromClipboard() {
+            return parent.pasteFromClipboard();
+        }
 
         public boolean showExportDataFileDialog() {
             int[] selectedRows = getSelectedRows();
@@ -1175,11 +1219,11 @@ public class UiDiskRawPanel extends JSplitPane {
                 }
             }
 
-            sector.setIDC((byte)dlg.GetIdC());
-            sector.setIDH((byte)dlg.GetIdH());
-            sector.setIDR((byte)dlg.GetIdR());
-            sector.setIDN((byte)dlg.GetIdN());
-            sector.setSectorsPerTrack((short)dlg.GetSectorNums());
+            sector.setIDC((byte) dlg.GetIdC());
+            sector.setIDH((byte) dlg.GetIdH());
+            sector.setIDR((byte) dlg.GetIdR());
+            sector.setIDN((byte) dlg.GetIdN());
+            sector.setSectorsPerTrack((short) dlg.GetSectorNums());
             sector.setDeletedMark(dlg.GetDeletedMark());
             sector.setSingleDensity(dlg.GetSingleDensity());
             sector.setSectorStatus(dlg.GetStatus());
@@ -1195,20 +1239,23 @@ public class UiDiskRawPanel extends JSplitPane {
         public void modifyIDonTrack(int type_num) {
             if (p_track == null) return;
             DiskImageSector sector = p_track.getSectorByIndex(0);
-            if(sector == null) return;
+            if (sector == null) return;
 
             String title = "";
             int value = 0;
             int maxvalue = 255;
             // Logic to set title, value, maxvalue based on type_num
-            switch(type_num) { /*...*/ }
+            switch (type_num) { /*...*/ }
 
             RawParamBox dlg = new RawParamBox(frame, title, type_num, value, maxvalue);
             dlg.setVisible(true); // Modal
             int newvalue = dlg.GetValue();
             if (value != newvalue) {
-                switch(type_num) {
-                    case RawParamBox.TYPE_IDC: p_track.setAllIDC(newvalue); p_track.setTrackNumber(newvalue); break;
+                switch (type_num) {
+                    case RawParamBox.TYPE_IDC:
+                        p_track.setAllIDC(newvalue);
+                        p_track.setTrackNumber(newvalue);
+                        break;
                     //... other cases
                 }
                 refreshSectors();
@@ -1216,7 +1263,11 @@ public class UiDiskRawPanel extends JSplitPane {
         }
 
         public void modifyDensityOnTrack() { /* ... */ }
-        public void modifySectorsOnTrack() { modifyIDonTrack(RawParamBox.TYPE_NUM_OF_SECTORS); }
+
+        public void modifySectorsOnTrack() {
+            modifyIDonTrack(RawParamBox.TYPE_NUM_OF_SECTORS);
+        }
+
         public void modifySectorSizeOnTrack() { /* ... */ }
 
         public void showAppendSectorDialog() {
@@ -1302,6 +1353,7 @@ public class UiDiskRawPanel extends JSplitPane {
     }
 
     static class SectorTableModel extends AbstractTableModel {
+
         private final List<Object[]> data = new ArrayList<>();
         private final UiDiskRawSector parent;
 
@@ -1337,9 +1389,24 @@ public class UiDiskRawPanel extends JSplitPane {
             fireTableDataChanged();
         }
 
-        @Override public int getRowCount() { return data.size(); }
-        @Override public int getColumnCount() { return UiRawDisk.SectorListColumns.SECTORCOL_END.ordinal(); }
-        @Override public Object getValueAt(int row, int col) { return data.get(row)[col]; }
-        @Override public String getColumnName(int col) { return UiRawDisk.gUiDiskRawSectorColumnDefs[col].title; }
+        @Override
+        public int getRowCount() {
+            return data.size();
+        }
+
+        @Override
+        public int getColumnCount() {
+            return UiRawDisk.SectorListColumns.SECTORCOL_END.ordinal();
+        }
+
+        @Override
+        public Object getValueAt(int row, int col) {
+            return data.get(row)[col];
+        }
+
+        @Override
+        public String getColumnName(int col) {
+            return UiRawDisk.gUiDiskRawSectorColumnDefs[col].title;
+        }
     }
 }

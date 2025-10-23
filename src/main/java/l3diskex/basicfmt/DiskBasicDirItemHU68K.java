@@ -15,7 +15,7 @@ import l3diskex.diskimg.DiskParam.SectorParam;
 
 /**
  * Directory item for Human68k.
- *
+ * <p>
  * This class extends {@link DiskBasicDirItemMSDOS} and provides the
  * Human68k-specific implementation of several virtual functions.
  */
@@ -25,32 +25,36 @@ public class DiskBasicDirItemHU68K extends DiskBasicDirItemMSDOS {
      *  Data structure that represents a directory entry on a Human68k disk.
      *------------------------------------------------------------------*/
     private static class DirectoryHu68kT {
+
         // File name
-        byte[] name   = new byte[9];
+        byte[] name = new byte[9];
         // Secondary name
-        byte[] name2  = new byte[9];
+        byte[] name2 = new byte[9];
         // Extension
-        byte[] ext    = new byte[4];
+        byte[] ext = new byte[4];
         // Type (8-bit)
-        int  type     = 0;
+        int type = 0;
         // Write time (2 bytes)
-        int  wtime    = 0;
+        int wtime = 0;
         // Write date (2 bytes)
-        int  wdate    = 0;
+        int wdate = 0;
         // Starting group
-        int  start_group = 0;
+        int start_group = 0;
         // File size (4 bytes)
-        int  file_size   = 0;
+        int file_size = 0;
     }
 
     /*------------------------------------------------------------------
      *  Container for the directory data.
      *------------------------------------------------------------------*/
     private static class BasicDirItemData {
+
         DirectoryHu68kT hu68k = new DirectoryHu68kT();
 
         /** Return true if this data represents the current file itself. */
-        boolean isSelf() { return false; }   // Stub: actual logic omitted
+        boolean isSelf() {
+            return false;
+        }   // Stub: actual logic omitted
     }
 
     /** The underlying data of this directory item. */
@@ -64,9 +68,9 @@ public class DiskBasicDirItemHU68K extends DiskBasicDirItemMSDOS {
     }
 
     public DiskBasicDirItemHU68K(DiskBasic basic,
-                                DiskImageSector n_sector,
-                                int n_secpos,
-                                byte[] n_data) {
+                                 DiskImageSector n_sector,
+                                 int n_secpos,
+                                 byte[] n_data) {
         super(basic, n_sector, n_secpos, n_data);
     }
 
@@ -134,13 +138,13 @@ public class DiskBasicDirItemHU68K extends DiskBasicDirItemMSDOS {
     public int getDataSize() {
         // Size of the directory_hu68k_t structure.
         return new DirectoryHu68kT().name.length   // 9
-             + new DirectoryHu68kT().name2.length  // 9
-             + new DirectoryHu68kT().ext.length    // 4
-             + 1   // type (int)
-             + 2   // wtime (int)
-             + 2   // wdate (int)
-             + 2   // start_group (int)
-             + 4;  // file_size (int)
+                + new DirectoryHu68kT().name2.length  // 9
+                + new DirectoryHu68kT().ext.length    // 4
+                + 1   // type (int)
+                + 2   // wtime (int)
+                + 2   // wdate (int)
+                + 2   // start_group (int)
+                + 4;  // file_size (int)
     }
 
     /*------------------------------------------------------------------
@@ -149,7 +153,7 @@ public class DiskBasicDirItemHU68K extends DiskBasicDirItemMSDOS {
     @Override
     public void setInternalDataInAttrDialog(KeyValArray vals) {
         vals.add("self", m_data.isSelf() ? 1 : 0);
-        vals.add("NAME", m_data.hu68k.name,  m_data.hu68k.name.length);
+        vals.add("NAME", m_data.hu68k.name, m_data.hu68k.name.length);
         vals.add("EXT", m_data.hu68k.ext, m_data.hu68k.ext.length);
         vals.add("TYPE", m_data.hu68k.type);
         vals.add("NAME2", m_data.hu68k.name2, m_data.hu68k.name2.length);

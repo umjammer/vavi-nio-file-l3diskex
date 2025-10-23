@@ -59,7 +59,7 @@ public class UiDirItemMSX extends UiDirItem {
         int fileType1 = dirItem.getFileAttr().getType();
         int fileType2 = 0;
 
-        setFileTypeForAttrDialog(showFlags, filePath, new int[]{fileType1}, new int[]{fileType2});
+        setFileTypeForAttrDialog(showFlags, filePath, new int[] {fileType1}, new int[] {fileType2});
 
         BoxLayout staType1 =
                 new BoxLayout(new BoxLayout(parent, wxID_ANY, "File Attributes"), wxVERTICAL);

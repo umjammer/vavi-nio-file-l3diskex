@@ -1,8 +1,18 @@
 package l3diskex.ui;
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+import java.awt.Window;
+import java.awt.event.ActionEvent;
+import javax.swing.BorderFactory;
+import javax.swing.ButtonGroup;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
 
 
 /**
@@ -39,11 +49,11 @@ public class RawParamBox extends JDialog {
     /**
      * Constructor.
      *
-     * @param parent  the parent window (may be {@code null})
-     * @param id      the window id (unused in Swing)
-     * @param title   the dialog title
-     * @param type    the parameter type
-     * @param value   the initial value
+     * @param parent   the parent window (may be {@code null})
+     * @param id       the window id (unused in Swing)
+     * @param title    the dialog title
+     * @param type     the parameter type
+     * @param value    the initial value
      * @param maxvalue the maximum allowed value
      */
     public RawParamBox(Window parent, int id, String title,
@@ -172,6 +182,7 @@ public class RawParamBox extends JDialog {
      * Utility to limit the number of characters in a {@link JTextField}.
      */
     private static class JTextFieldLimit extends javax.swing.text.PlainDocument {
+
         private final int limit;
 
         JTextFieldLimit(int limit) {

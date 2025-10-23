@@ -27,16 +27,16 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_READONLY_MASK
 public class DiskBasicDirItemTFDOS extends DiskBasicDirItemMZBase<DirectoryTfdos> {
 
     public static final Map<String, Object> gTypeNameTFDOS = new HashMap<>() {{
-            put("???", 0);
-            put("OBJ", FILETYPE_TFDOS_OBJ);
-            put("TEX", FILETYPE_TFDOS_TEX);
-            put("CMD", FILETYPE_TFDOS_CMD);
-            put("SYS", FILETYPE_TFDOS_SYS);
-            put("DAT", FILETYPE_TFDOS_DAT);
-            put("GRA", FILETYPE_TFDOS_GRA);
-            put("DBB", FILETYPE_TFDOS_DBB);
-            put("Write Protected", 0);
-            put("Hidden", 0);
+        put("???", 0);
+        put("OBJ", FILETYPE_TFDOS_OBJ);
+        put("TEX", FILETYPE_TFDOS_TEX);
+        put("CMD", FILETYPE_TFDOS_CMD);
+        put("SYS", FILETYPE_TFDOS_SYS);
+        put("DAT", FILETYPE_TFDOS_DAT);
+        put("GRA", FILETYPE_TFDOS_GRA);
+        put("DBB", FILETYPE_TFDOS_DBB);
+        put("Write Protected", 0);
+        put("Hidden", 0);
     }};
 
     public static final int TYPE_NAME_TFDOS_UNKNOWN = 0;
@@ -179,7 +179,7 @@ public class DiskBasicDirItemTFDOS extends DiskBasicDirItemMZBase<DirectoryTfdos
     public DiskBasicFileType getFileAttr() {
         int t1 = getFileType1();
         int val = 0;
-        switch(t1 & 0x3f) {
+        switch (t1 & 0x3f) {
             case FILETYPE_TFDOS_OBJ:
                 val = FILE_TYPE_BINARY_MASK.getValue();
                 break;
@@ -270,8 +270,8 @@ public class DiskBasicDirItemTFDOS extends DiskBasicDirItemMZBase<DirectoryTfdos
 
     @Override
     public void clearData() {
-        m_data.fill((byte)0, getDataSize());
-        Arrays.fill(m_data.data().name, (byte)0x0d);
+        m_data.fill((byte) 0, getDataSize());
+        Arrays.fill(m_data.data().name, (byte) 0x0d);
         basic.invertMem(m_data.getRawData(), getDataSize());
     }
 
@@ -287,7 +287,7 @@ public class DiskBasicDirItemTFDOS extends DiskBasicDirItemMZBase<DirectoryTfdos
 
     @Override
     public boolean preExportDataFile(String[] filename) {
-        if (!gConfig.IsAddExtensionExport()) return true;
+        if (!gConfig.isAddExtensionExport()) return true;
 
         String[] ext = new String[1];
         if (getFileAttrName(convFileType1Pos(getFileType1()), gTypeNameTFDOS, ext)) {
@@ -303,7 +303,7 @@ public class DiskBasicDirItemTFDOS extends DiskBasicDirItemMZBase<DirectoryTfdos
 
     @Override
     public boolean preImportDataFile(String[] filename) {
-        if (gConfig.IsDecideAttrImport()) {
+        if (gConfig.isDecideAttrImport()) {
             isContainAttrByExtension(filename[0], gTypeNameTFDOS, TYPE_NAME_TFDOS_OBJ, TYPE_NAME_TFDOS_DBB, filename, null, null);
         }
         filename[0] = remakeFileNameAndExtStr(filename[0]);

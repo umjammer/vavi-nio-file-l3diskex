@@ -14,7 +14,9 @@ import org.w3c.dom.Node;
  */
 public class BasicCategory {
 
-    /** */
+    /**
+     * DISK BASICのカテゴリ(メーカ毎、OS毎にまとめる)クラス
+     */
     public static class DiskBasicCategory {
 
         private String name;
@@ -49,18 +51,26 @@ public class BasicCategory {
         }
     }
 
-    /** */
+    /**
+     * DiskBasicCategory のリスト
+     */
     public static class DiskBasicCategories {
 
-        private final ArrayList<DiskBasicCategory> list = new ArrayList<>();
+        final ArrayList<DiskBasicCategory> list = new ArrayList<>();
 
-        /** DiskBasicCategoryエレメントのロード */
+        /**
+         * DiskBasicCategoryエレメントのロード
+         *
+         * @param node       ノード
+         * @param localeName ローケル名
+         * @param errmsgs    [out] エラー時メッセージ
+         * @return true / false
+         */
         public boolean load(Node node, String localeName, StringBuilder errmsgs) {
             boolean valid = false;
 
-            /* nodeの検索 */
             while (node != null && !valid) {
-                if ("DiskBasicCategories".equals(node.getLocalName())) {
+                if ("DiskBasicCategories".equals(node.getNodeName())) {
                     valid = true;
                     break;
                 }
@@ -70,17 +80,16 @@ public class BasicCategory {
                 return false;
             }
 
-            /* アイテムの読み込み */
             Node item = node.getFirstChild();
             while (item != null && valid) {
-                if ("DiskBasicCategory".equals(item.getLocalName())) {
+                if ("DiskBasicCategory".equals(item.getNodeName())) {
                     String type_name = ((Element) item).getAttribute("name");
                     String desc = "";
                     String desc_locale = "";
 
                     Node itemnode = item.getFirstChild();
                     while (itemnode != null) {
-                        if ("Description".equals(itemnode.getLocalName())) {
+                        if ("Description".equals(itemnode.getNodeName())) {
                             if (((Element) itemnode).hasAttribute("lang")) {
                                 String lang = ((Element) itemnode).getAttribute("lang");
                                 if (localeName.contains(lang)) {
@@ -113,7 +122,12 @@ public class BasicCategory {
             return valid;
         }
 
-        /** カテゴリを検索 */
+        /**
+         * カテゴリを検索
+         *
+         * @param n_category カテゴリ名
+         * @return カテゴリ
+         */
         public DiskBasicCategory find(String n_category) {
             for (DiskBasicCategory item : list) {
                 if (item.getName().equals(n_category)) {
@@ -123,7 +137,12 @@ public class BasicCategory {
             return null;
         }
 
-        /** カテゴリ名を返す */
+        /**
+         * カテゴリ名を返す
+         *
+         * @param idx インデックス
+         * @return カテゴリ名
+         */
         public String getName(int idx) {
             return list.get(idx).getName();
         }

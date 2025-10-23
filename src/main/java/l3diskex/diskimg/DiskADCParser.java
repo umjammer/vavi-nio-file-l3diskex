@@ -33,12 +33,13 @@ public class DiskADCParser extends DiskPlainParser {
      *  The struct st_adc_header (84 bytes)
      * -----------------------------------------------------------------*/
     private static class AdcHeader {
-        int  labelLength;      // 1 byte
+
+        int labelLength;      // 1 byte
         byte[] label = new byte[LABEL_MAX];   // 63 bytes
-        int  dataSize;         // 4 bytes, big‑endian
-        int  resourceSize;     // 4 bytes, big‑endian
-        int  createDate;       // 4 bytes
-        int  modifyDate;       // 4 bytes
+        int dataSize;         // 4 bytes, big‑endian
+        int resourceSize;     // 4 bytes, big‑endian
+        int createDate;       // 4 bytes
+        int modifyDate;       // 4 bytes
         byte[] unknown = new byte[4];   // 4 bytes
 
         /* read header from a byte buffer */
@@ -47,22 +48,22 @@ public class DiskADCParser extends DiskPlainParser {
             h.labelLength = buf[pos] & 0xFF;
             System.arraycopy(buf, pos + 1, h.label, 0, LABEL_MAX);
             // dataSize & resourceSize are stored big‑endian in the file
-            h.dataSize =   ((buf[pos + 64] & 0xFF) << 24) |
-                           ((buf[pos + 65] & 0xFF) << 16) |
-                           ((buf[pos + 66] & 0xFF) << 8)  |
-                           (buf[pos + 67] & 0xFF);
+            h.dataSize = ((buf[pos + 64] & 0xFF) << 24) |
+                    ((buf[pos + 65] & 0xFF) << 16) |
+                    ((buf[pos + 66] & 0xFF) << 8) |
+                    (buf[pos + 67] & 0xFF);
             h.resourceSize = ((buf[pos + 68] & 0xFF) << 24) |
-                             ((buf[pos + 69] & 0xFF) << 16) |
-                             ((buf[pos + 70] & 0xFF) << 8)  |
-                             (buf[pos + 71] & 0xFF);
+                    ((buf[pos + 69] & 0xFF) << 16) |
+                    ((buf[pos + 70] & 0xFF) << 8) |
+                    (buf[pos + 71] & 0xFF);
             h.createDate = ((buf[pos + 72] & 0xFF) << 24) |
-                           ((buf[pos + 73] & 0xFF) << 16) |
-                           ((buf[pos + 74] & 0xFF) << 8)  |
-                           (buf[pos + 75] & 0xFF);
+                    ((buf[pos + 73] & 0xFF) << 16) |
+                    ((buf[pos + 74] & 0xFF) << 8) |
+                    (buf[pos + 75] & 0xFF);
             h.modifyDate = ((buf[pos + 76] & 0xFF) << 24) |
-                           ((buf[pos + 77] & 0xFF) << 16) |
-                           ((buf[pos + 78] & 0xFF) << 8)  |
-                           (buf[pos + 79] & 0xFF);
+                    ((buf[pos + 77] & 0xFF) << 16) |
+                    ((buf[pos + 78] & 0xFF) << 8) |
+                    (buf[pos + 79] & 0xFF);
             System.arraycopy(buf, pos + 80, h.unknown, 0, 4);
             return h;
         }
@@ -118,9 +119,9 @@ public class DiskADCParser extends DiskPlainParser {
     @Override
     public int check(InputStream istream,
                      List<DiskTypeHint> diskHints,
-                     DiskParam      diskParam,
+                     DiskParam diskParam,
                      List<DiskParam> diskParams,
-                     DiskParam      manualParam) {
+                     DiskParam manualParam) {
         try {
             /* read header */
             istream.mark(HEADER_SIZE);
@@ -134,14 +135,14 @@ public class DiskADCParser extends DiskPlainParser {
 
             /* 1) check label length */
             if (header.labelLength > LABEL_MAX ||
-                header.label[header.labelLength] != 0) {
+                    header.label[header.labelLength] != 0) {
                 result.setError(DiskResult.ERRV_INVALID_DISK, 0);
                 return result.getValid();
             }
 
             /* 2) compute expected file size */
             int dataSize = Integer.reverseBytes(header.dataSize);     // BE → native LE
-            int resSize  = Integer.reverseBytes(header.resourceSize);
+            int resSize = Integer.reverseBytes(header.resourceSize);
             int fileSize = HEADER_SIZE + dataSize + resSize;
             int streamLen = getStreamLength(istream);
             if (fileSize != streamLen) {
@@ -150,31 +151,31 @@ public class DiskADCParser extends DiskPlainParser {
             }
 
             /* 3) infer disk parameters from data size */
-            int sidesPerDisk       = 1;
-            int tracksPerSide      = 1;
-            int sectorsPerTrack    = 1;
-            int sectorSize         = 256;
+            int sidesPerDisk = 1;
+            int tracksPerSide = 1;
+            int sectorsPerTrack = 1;
+            int sectorSize = 256;
             DiskParticulars sd = new DiskParticulars();
             DiskParticulars pt = new DiskParticulars();
 
             if (dataSize <= 143360) {                           // 140K
-                sidesPerDisk    = 1;
-                tracksPerSide   = 35;
+                sidesPerDisk = 1;
+                tracksPerSide = 35;
                 sectorsPerTrack = 16;
-                sectorSize      = 256;
+                sectorSize = 256;
             } else if (dataSize <= 819200) {                     // 800K
-                sidesPerDisk    = 2;
-                tracksPerSide   = 80;
+                sidesPerDisk = 2;
+                tracksPerSide = 80;
                 sectorsPerTrack = 12;
-                sectorSize      = 512;
+                sectorSize = 512;
                 for (int i = 16, n = sectorsPerTrack - 1; i < tracksPerSide; i += 16, n--) {
                     pt.add(new DiskParticular(i, -1, -1, 16, n, 512));
                 }
             } else if (dataSize <= 1474560) {                    // 1440K
-                sidesPerDisk    = 2;
-                tracksPerSide   = 80;
+                sidesPerDisk = 2;
+                tracksPerSide = 80;
                 sectorsPerTrack = 18;
-                sectorSize      = 512;
+                sectorSize = 512;
             }
 
             /* 4) look up a matching template */

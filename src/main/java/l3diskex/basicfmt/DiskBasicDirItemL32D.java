@@ -6,7 +6,7 @@ package l3diskex.basicfmt;
 
 import java.io.IOException;
 
-import l3diskex.Parambase;
+import l3diskex.Parambase.MyAttribute;
 import l3diskex.basicfmt.BasicCommon.DirectoryL32d;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
@@ -15,10 +15,13 @@ import l3diskex.basicfmt.BasicFmt.DiskBasic;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
 
+import static l3diskex.Parambase.MyAttributes.findType;
+import static l3diskex.Parambase.MyAttributes.findUpperCase;
+
 
 /**
  * DiskBasicDirItemL32D
- *
+ * <p>
  * 1-item directory for L3/S1 BASIC double‑density 2D/2HD
  */
 public class DiskBasicDirItemL32D extends DiskBasicDirItemFAT8<DirectoryL32d> {
@@ -42,7 +45,7 @@ public class DiskBasicDirItemL32D extends DiskBasicDirItemFAT8<DirectoryL32d> {
 
     /** Constructor with sector data */
     public DiskBasicDirItemL32D(DiskBasic basic, DiskImageSector sector,
-                               int secPos, byte[] data) {
+                                int secPos, byte[] data) {
         super(basic, sector, secPos, data);
         m_data.attach(data);
     }
@@ -82,15 +85,15 @@ public class DiskBasicDirItemL32D extends DiskBasicDirItemFAT8<DirectoryL32d> {
         if (!m_data.isValid()) return false;
 
         boolean valid = true;
-        if (m_data.data().name[0] == (byte)0xff) {
+        if (m_data.data().name[0] == (byte) 0xff) {
             last[0] = true;
             return valid;
         }
         // Unexpected attribute value
-        if (m_data.data().type2 != 0 && m_data.data().type2 != (byte)0xff) {
+        if (m_data.data().type2 != 0 && m_data.data().type2 != (byte) 0xff) {
             valid = false;
         }
-        if (m_data.data().name[0] == (byte)0xff) {
+        if (m_data.data().name[0] == (byte) 0xff) {
             last[0] = true;
         }
         return valid;
@@ -102,7 +105,7 @@ public class DiskBasicDirItemL32D extends DiskBasicDirItemFAT8<DirectoryL32d> {
 
     @Override
     public boolean checkUsed(boolean unuse) {
-        return (m_data.data().name[0] != 0 && m_data.data().name[0] != (byte)0xff);
+        return (m_data.data().name[0] != 0 && m_data.data().name[0] != (byte) 0xff);
     }
 
     /*-------*/
@@ -167,7 +170,7 @@ public class DiskBasicDirItemL32D extends DiskBasicDirItemFAT8<DirectoryL32d> {
 
     @Override
     protected void setFileType1(int val) {
-        m_data.data().type = (byte)(val & 0xff);
+        m_data.data().type = (byte) (val & 0xff);
     }
 
     /*-------*/
@@ -176,7 +179,7 @@ public class DiskBasicDirItemL32D extends DiskBasicDirItemFAT8<DirectoryL32d> {
 
     @Override
     protected void setFileType2(int val) {
-        m_data.data().type2 = (byte)(val & 0xff);
+        m_data.data().type2 = (byte) (val & 0xff);
     }
 
     /*-------*/
@@ -185,7 +188,7 @@ public class DiskBasicDirItemL32D extends DiskBasicDirItemFAT8<DirectoryL32d> {
 
     private void setDataSizeOnLastSecotr(int val) {
         // L3/S1 2D/2HD
-        m_data.data().endBytes = (short)swap16(val);
+        m_data.data().endBytes = (short) swap16(val);
     }
 
     /*-------*/
@@ -207,7 +210,7 @@ public class DiskBasicDirItemL32D extends DiskBasicDirItemFAT8<DirectoryL32d> {
         String newName = "";
         int len = name.length();
         String ext = name.length() >= 4 ? name.substring(name.length() - 4) : "";
-        Parambase.MyAttribute sa = basic.diskBasicParam.getAttributesByExtension().findUpperCase(
+        MyAttribute sa = findUpperCase(basic.diskBasicParam.getAttributesByExtension(),
                 ext.length() >= 3 ? ext.substring(ext.length() - 3) : "");
         if (sa != null && ext.startsWith(".")) {
             len -= 4;
@@ -224,7 +227,7 @@ public class DiskBasicDirItemL32D extends DiskBasicDirItemFAT8<DirectoryL32d> {
 
         int val = (fileType1 >= TYPE_NAME_1_BASIC && fileType1 <= TYPE_NAME_1_MACHINE)
                 ? (1 << fileType1) : 0;
-        sa = basic.diskBasicParam.getAttributesByExtension().findType(val, 0x7);
+        sa = findType(basic.diskBasicParam.getAttributesByExtension(), val, 0x7);
         if (sa != null) {
             newName += ".";
             newName += sa.getName();
@@ -233,10 +236,9 @@ public class DiskBasicDirItemL32D extends DiskBasicDirItemFAT8<DirectoryL32d> {
         return newName;
     }
 
-    /*-------*/
-    /*  Set internal data for attribute dialog                                 */
-    /*-------*/
-
+    /**
+     * Set internal data for attribute dialog
+     */
     @Override
     public void setInternalDataInAttrDialog(KeyValArray vals) {
         vals.add("self", m_data.isSelf());
@@ -303,7 +305,7 @@ public class DiskBasicDirItemL32D extends DiskBasicDirItemFAT8<DirectoryL32d> {
     @Override
     public void setStartGroup(int fileunitNum, int val, int size) {
         // L3/S1 2D/2HD
-        m_data.data().startGroup = (byte)(val & 0xff);
+        m_data.data().startGroup = (byte) (val & 0xff);
     }
 
     /*-------*/
@@ -343,9 +345,9 @@ public class DiskBasicDirItemL32D extends DiskBasicDirItemFAT8<DirectoryL32d> {
     /*-------*/
 
     /* File type constants – defined in super or elsewhere */
-    private static final int TYPE_NAME_2_RANDOM   = 0x05;   // placeholder
-    private static final int TYPE_NAME_2_ASCII    = 0x01;   // placeholder
-    private static final int TYPE_NAME_1_BASIC    = 0x00;   // placeholder
-    private static final int TYPE_NAME_1_MACHINE  = 0x04;   // placeholder
+    private static final int TYPE_NAME_2_RANDOM = 0x05;   // placeholder
+    private static final int TYPE_NAME_2_ASCII = 0x01;   // placeholder
+    private static final int TYPE_NAME_1_BASIC = 0x00;   // placeholder
+    private static final int TYPE_NAME_1_MACHINE = 0x04;   // placeholder
     private static final int ATTR_DIALOG_IDC_RADIO_TYPE2 = 0x10; // placeholder
 }

@@ -20,7 +20,7 @@ public class UICTreeCtrl extends JTree {
     public UICTreeCtrl(JComponent parentwindow, int id) {
         // wxTR_EDIT_LABELS | wxTR_NO_LINES | wxTR_HAS_BUTTONS | wxTR_TWIST_BUTTONS
         super(parentwindow, id, wxDefaultPosition, wxDefaultSize,
-              wxTR_EDIT_LABELS | wxTR_NO_LINES | wxTR_HAS_BUTTONS | wxTR_TWIST_BUTTONS);
+                wxTR_EDIT_LABELS | wxTR_NO_LINES | wxTR_HAS_BUTTONS | wxTR_TWIST_BUTTONS);
         this.m_selecting = false;
     }
 
@@ -95,7 +95,7 @@ public class UICTreeCtrl extends JTree {
      *  ノードを追加する (コンテナ)
      *----------------------------------------------------------*/
     public TreeNode AddTreeContainer(TreeNode parent, String text,
-                                         int def_icon, int sel_icon, Object n_data) {
+                                     int def_icon, int sel_icon, Object n_data) {
         TreeNode node = AppendItem(parent, text, def_icon, sel_icon, n_data);
         SetItemHasChildren(node, true);
         return node;
@@ -105,7 +105,7 @@ public class UICTreeCtrl extends JTree {
      *  ノードを追加する (単純ノード)
      *----------------------------------------------------------*/
     public TreeNode AddTreeNode(TreeNode parent, String text,
-                                   int def_icon, int sel_icon, Object n_data) {
+                                int def_icon, int sel_icon, Object n_data) {
         TreeNode node = AppendItem(parent, text, def_icon, sel_icon, n_data);
         SetItemHasChildren(node, false);
         return node;
@@ -139,7 +139,7 @@ public class UICTreeCtrl extends JTree {
     }
 
     protected TreeNode AppendItem(TreeNode parent, String text,
-                                     int def_icon, int sel_icon, Object n_data) {
+                                  int def_icon, int sel_icon, Object n_data) {
         return super.AppendItem(parent, text, def_icon, sel_icon, n_data);
     }
 

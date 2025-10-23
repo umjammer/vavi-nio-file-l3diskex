@@ -91,7 +91,7 @@ public class DiskBasicTypeFalcom extends DiskBasicType<DirectoryFalcom> {
         int fsize = grps * basic.getSectorSize() * basic.getSectorsPerGroup();
 
         fatAvailability.setFreeSize(fsize);
-        fatAvailability.SetFreeGroups(grps);
+        fatAvailability.setFreeGroups(grps);
     }
 
     /// フォーマットできるか

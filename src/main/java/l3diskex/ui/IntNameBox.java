@@ -42,16 +42,26 @@ public class IntNameBox extends JDialog {
     private static final int INTNAME_COLUMN_WIDTH = 120;
     private static final int INTNAME_LISTCOL_WIDTH = 42;
 
-    public static final int INTNAME_SHOW_TEXT			 = 0x0001;	///< 内部ファイル名を表示する
-    public static final int INTNAME_SHOW_ATTR			 = 0x0002;	///< 属性を表示する
-    public static final int INTNAME_SHOW_PROPERTY		 = 0x0004;	///< プロパティ表示（グループ一覧表示）
-    public static final int INTNAME_SHOW_SKIP_DIALOG	 = 0x0008;	///< スキップするかチェックボックス表示
-    public static final int INTNAME_NEW_FILE			 = 0x0010;	///< 新規ファイル時
-    public static final int INTNAME_IMPORT_INTERNAL		 = 0x0020;	///< アプリ内インポート
-    public static final int INTNAME_SPECIFY_FILE_NAME	 = 0x0100;	///< ファイル名を別途指定
-    public static final int INTNAME_SPECIFY_CDATE_TIME	 = 0x0200;	///< 作成日時を別途指定
-    public static final int INTNAME_SPECIFY_MDATE_TIME	 = 0x0400;	///< 更新日時を別途指定
-    public static final int INTNAME_SPECIFY_ADATE_TIME	 = 0x0800;	///< アクセス日時を別途指定
+    public static final int INTNAME_SHOW_TEXT = 0x0001;
+    /// < 内部ファイル名を表示する
+    public static final int INTNAME_SHOW_ATTR = 0x0002;
+    /// < 属性を表示する
+    public static final int INTNAME_SHOW_PROPERTY = 0x0004;
+    /// < プロパティ表示（グループ一覧表示）
+    public static final int INTNAME_SHOW_SKIP_DIALOG = 0x0008;
+    /// < スキップするかチェックボックス表示
+    public static final int INTNAME_NEW_FILE = 0x0010;
+    /// < 新規ファイル時
+    public static final int INTNAME_IMPORT_INTERNAL = 0x0020;
+    /// < アプリ内インポート
+    public static final int INTNAME_SPECIFY_FILE_NAME = 0x0100;
+    /// < ファイル名を別途指定
+    public static final int INTNAME_SPECIFY_CDATE_TIME = 0x0200;
+    /// < 作成日時を別途指定
+    public static final int INTNAME_SPECIFY_MDATE_TIME = 0x0400;
+    /// < 更新日時を別途指定
+    public static final int INTNAME_SPECIFY_ADATE_TIME = 0x0800;
+    /// < アクセス日時を別途指定
 
     // Control IDs
     public static final int IDC_TEXT_INTNAME = 1;
@@ -162,6 +172,7 @@ public class IntNameBox extends JDialog {
     }
 
     private static class LimitedDocument extends javax.swing.text.PlainDocument {
+
         private final int limit;
 
         LimitedDocument(int limit) {
@@ -243,6 +254,7 @@ public class IntNameBox extends JDialog {
     }
 
     private class DateTimeDocument extends PlainDocument {
+
         private final boolean isTime;
         private final boolean required;
 
@@ -359,7 +371,7 @@ public class IntNameBox extends JDialog {
         }
 
         if (lstGroups != null) {
-            DefaultListModel<String> model = (DefaultListModel<String>)lstGroups.getModel();
+            DefaultListModel<String> model = (DefaultListModel<String>) lstGroups.getModel();
             model.clear();
 
             for (int i = 0; i < vals.size(); i++) {
@@ -378,7 +390,7 @@ public class IntNameBox extends JDialog {
 
     public void setInternalDatas(KeyValArray vals) {
         if (lstInternal != null) {
-            DefaultListModel<String> model = (DefaultListModel<String>)lstInternal.getModel();
+            DefaultListModel<String> model = (DefaultListModel<String>) lstInternal.getModel();
             model.clear();
 
             Dimension sz = this.getSize();
@@ -403,6 +415,7 @@ public class IntNameBox extends JDialog {
 
     // Action listener implementations
     private class ChangeStartAddrListener implements ActionListener {
+
         @Override
         public void actionPerformed(ActionEvent e) {
             calcEndAddress();
@@ -410,14 +423,16 @@ public class IntNameBox extends JDialog {
     }
 
     private class ChangeIgnoreDateListener implements ActionListener {
+
         @Override
         public void actionPerformed(ActionEvent e) {
-            JCheckBox cb = (JCheckBox)e.getSource();
+            JCheckBox cb = (JCheckBox) e.getSource();
             changedIgnoreDate(cb.isSelected());
         }
     }
 
     private class MyListSelectionListener implements ListSelectionListener {
+
         @Override
         public void valueChanged(ListSelectionEvent e) {
             if (!e.getValueIsAdjusting()) {
@@ -434,7 +449,7 @@ public class IntNameBox extends JDialog {
             L3DiskEx.UiDiskFileList fileList = frame.getFileListPanel();
             if (fileList == null) return;
 
-            Vector<String> row = (Vector<String>)lstGroups.getModel().getElementAt(idx);
+            Vector<String> row = (Vector<String>) lstGroups.getModel().getElementAt(idx);
             int grp = Integer.parseInt(row.get(0), 16);
             int trk = Integer.parseInt(row.get(1));
             int sid = Integer.parseInt(row.get(2));

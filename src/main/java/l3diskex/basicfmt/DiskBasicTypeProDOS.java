@@ -27,7 +27,6 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_DIRECTORY_MAS
 import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_FREE;
 import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_SYSTEM;
 import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_USED;
-import static l3diskex.basicfmt.BasicFat.INVALID_GROUP_NUMBER;
 import static l3diskex.basicfmt.DiskBasicDirItemProDOS.FILETYPE_MASK_PRODOS_ACCESS_ALL;
 import static l3diskex.basicfmt.DiskBasicDirItemProDOS.FILETYPE_MASK_PRODOS_CHANGE;
 import static l3diskex.basicfmt.DiskBasicDirItemProDOS.FILETYPE_MASK_PRODOS_SAPLING;
@@ -69,8 +68,9 @@ public class DiskBasicTypeProDOS extends DiskBasicType<DirectoryProdos> {
 
         /**
          * 指定位置のビットを変更する
+         *
          * @param group_num 位置
-         * @param use セットする場合true
+         * @param use       セットする場合true
          */
         @Override
         public void modify(int group_num, boolean use) {
@@ -79,6 +79,7 @@ public class DiskBasicTypeProDOS extends DiskBasicType<DirectoryProdos> {
 
         /**
          * 指定位置が空いているか
+         *
          * @param group_num 位置
          * @return 空いている場合 true
          */
@@ -88,10 +89,14 @@ public class DiskBasicTypeProDOS extends DiskBasicType<DirectoryProdos> {
 
 
         /// ブロック番号をセット
-        void SetMyGroupNumber(int group_num) { m_group_num = group_num; }
+        void SetMyGroupNumber(int group_num) {
+            m_group_num = group_num;
+        }
 
         /// ブロック番号を得る
-        int GetMyGroupNumber() { return m_group_num; }
+        int GetMyGroupNumber() {
+            return m_group_num;
+        }
     }
 
     private final DiskBasicSectorSkew sector_skew = new DiskBasicSectorSkew();
@@ -112,10 +117,11 @@ public class DiskBasicTypeProDOS extends DiskBasicType<DirectoryProdos> {
 
     /**
      * エリアをチェック
+     *
      * @param is_formatting フォーマット中か
      * @return 1.0       正常
-     *  0.0 - 1.0 警告あり
-     *  <0.0      エラーあり
+     * 0.0 - 1.0 警告あり
+     * <0.0      エラーあり
      */
     @Override
     public double checkFat(boolean is_formatting) {
@@ -139,10 +145,11 @@ public class DiskBasicTypeProDOS extends DiskBasicType<DirectoryProdos> {
 
     /**
      * ディスクから各パラメータを取得＆必要なパラメータを計算
+     *
      * @param is_formatting フォーマット中か
      * @return 1.0       正常
-     *  0.0 - 1.0 警告あり
-     *  <0.0      エラーあり
+     * 0.0 - 1.0 警告あり
+     * <0.0      エラーあり
      */
     @Override
     public double parseParamOnDisk(boolean is_formatting) {
@@ -368,13 +375,13 @@ public class DiskBasicTypeProDOS extends DiskBasicType<DirectoryProdos> {
         // BITMAP table
         for (int grp = 0; grp <= basic.getFatEndGroup(); grp++) {
             if (grp <= 2) {
-                fatAvailability.Add(FAT_AVAIL_SYSTEM.getValue(), 0, 0);
+                fatAvailability.add(FAT_AVAIL_SYSTEM.getValue(), 0, 0);
             } else if (grp == bitmap.GetMyGroupNumber()) {
-                fatAvailability.Add(FAT_AVAIL_SYSTEM.getValue(), 0, 0);
+                fatAvailability.add(FAT_AVAIL_SYSTEM.getValue(), 0, 0);
             } else if (bitmap.IsFree(grp)) {
-                fatAvailability.Add(FAT_AVAIL_FREE.getValue(), basic.getSectorSize() * basic.getSectorsPerGroup(), 1);
+                fatAvailability.add(FAT_AVAIL_FREE.getValue(), basic.getSectorSize() * basic.getSectorsPerGroup(), 1);
             } else {
-                fatAvailability.Add(FAT_AVAIL_USED.getValue(), 0, 0);
+                fatAvailability.add(FAT_AVAIL_USED.getValue(), 0, 0);
             }
         }
         // Volume directory
@@ -430,7 +437,7 @@ public class DiskBasicTypeProDOS extends DiskBasicType<DirectoryProdos> {
     public int getEmptyGroupNumber() {
         int new_num = INVALID_GROUP_NUMBER;
 
-        for (int grp= 3; grp <= basic.getFatEndGroup(); grp++) {
+        for (int grp = 3; grp <= basic.getFatEndGroup(); grp++) {
             if (bitmap.IsFree(grp)) {
                 new_num = grp;
                 break;
@@ -570,7 +577,7 @@ public class DiskBasicTypeProDOS extends DiskBasicType<DirectoryProdos> {
                 remain -= block_size;
                 limit--;
             }
-        } else if (stype == FILETYPE_MASK_PRODOS_TREE){
+        } else if (stype == FILETYPE_MASK_PRODOS_TREE) {
             // 131Kバイト以上 ツリー
             int chain_pidx = 0;
             chain_idx = 256;
@@ -650,6 +657,7 @@ public class DiskBasicTypeProDOS extends DiskBasicType<DirectoryProdos> {
 
     /**
      * グループをつなげる
+     *
      * @return 0 正常
      */
     public int chainDirectoryGroups(DiskBasicDirItem<DirectoryProdos> item, DiskBasicGroups group_items) throws IOException {
@@ -887,8 +895,8 @@ public class DiskBasicTypeProDOS extends DiskBasicType<DirectoryProdos> {
 
         int block_size = basic.getSectorSize() * basic.getSectorsPerGroup();
 
-        DiskBasicDirItemProDOS ditem = (DiskBasicDirItemProDOS)item;
-        DiskBasicDirItemProDOS parent_ditem = (DiskBasicDirItemProDOS)parent_item;
+        DiskBasicDirItemProDOS ditem = (DiskBasicDirItemProDOS) item;
+        DiskBasicDirItemProDOS parent_ditem = (DiskBasicDirItemProDOS) parent_item;
 
         // ディレクトリの最初のブロックをセット
         item.setParentGroup(parent_item.getStartGroup(0));
@@ -904,7 +912,7 @@ public class DiskBasicTypeProDOS extends DiskBasicType<DirectoryProdos> {
         // Placeholder for byte *buf = sector->GetSectorBuffer(4);
         byte[] buf = sector.getSectorBuffer(4);
         DiskBasicDirItem<DirectoryProdos> newitem = basic.createDirItem(sector, 0, buf);
-        DiskBasicDirItemProDOS newditem = (DiskBasicDirItemProDOS)newitem;
+        DiskBasicDirItemProDOS newditem = (DiskBasicDirItemProDOS) newitem;
 
         newitem.copyData(item.getData());
         newitem.setFileAttr(FORMAT_TYPE_PRODOS, 0, (FILETYPE_MASK_PRODOS_SUBVOL << 16) | (0x75 << 8) | (FILETYPE_MASK_PRODOS_ACCESS_ALL & ~FILETYPE_MASK_PRODOS_CHANGE));
@@ -1071,18 +1079,20 @@ public class DiskBasicTypeProDOS extends DiskBasicType<DirectoryProdos> {
             if (remain > 0) {
                 try {
                     istream.read(buffer, 0, remain);
-                } catch (java.io.IOException e) {} // Simplified error handling
+                } catch (java.io.IOException e) {
+                } // Simplified error handling
             }
             if (size > remain) {
                 // バッファの余りは0サプレス
-                Arrays.fill(buffer, remain, size, (byte)0);
+                Arrays.fill(buffer, remain, size, (byte) 0);
             }
             len = remain;
         } else {
             // 継続
             try {
                 istream.read(buffer, 0, size);
-            } catch (java.io.IOException e) {} // Simplified error handling
+            } catch (java.io.IOException e) {
+            } // Simplified error handling
             len = size;
         }
 
@@ -1094,7 +1104,7 @@ public class DiskBasicTypeProDOS extends DiskBasicType<DirectoryProdos> {
      */
     @Override
     public void additionalProcessOnSavedFile(DiskBasicDirItem<DirectoryProdos> item) {
-        DiskBasicDirItemProDOS ditem = (DiskBasicDirItemProDOS)item;
+        DiskBasicDirItemProDOS ditem = (DiskBasicDirItemProDOS) item;
 
         // ディレクトリのヘッダにあるファイル数を＋１する
         DiskBasicDirItem<DirectoryProdos> parent = item.getParent();
@@ -1107,7 +1117,7 @@ public class DiskBasicTypeProDOS extends DiskBasicType<DirectoryProdos> {
             // Why?
             return;
         }
-        DiskBasicDirItemProDOS vol = (DiskBasicDirItemProDOS)children.get(0);
+        DiskBasicDirItemProDOS vol = (DiskBasicDirItemProDOS) children.get(0);
         if (vol == null) {
             // Why?
             return;
@@ -1147,7 +1157,7 @@ public class DiskBasicTypeProDOS extends DiskBasicType<DirectoryProdos> {
             // Why?
             return true;
         }
-        DiskBasicDirItemProDOS vol = (DiskBasicDirItemProDOS)children.get(0);
+        DiskBasicDirItemProDOS vol = (DiskBasicDirItemProDOS) children.get(0);
         if (vol == null) {
             // Why?
             return true;

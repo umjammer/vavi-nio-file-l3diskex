@@ -24,11 +24,11 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_MACHINE_MASK;
 
 
 /**
- *   Directory 1 item – PC‑8001 DOS
- *
- *  The class follows the same inheritance hierarchy as the C++ version.
- *  All methods are implemented exactly as in the original source,
- *  only syntax is changed to Java.
+ * Directory 1 item – PC‑8001 DOS
+ * <p>
+ * The class follows the same inheritance hierarchy as the C++ version.
+ * All methods are implemented exactly as in the original source,
+ * only syntax is changed to Java.
  */
 public class DiskBasicDirItemDOS80 extends DiskBasicDirItemFAT8<DirectoryDos80> {
 
@@ -38,8 +38,8 @@ public class DiskBasicDirItemDOS80 extends DiskBasicDirItemFAT8<DirectoryDos80> 
     static final int TYPE_NAME_DOS80_END = 3;
 
     /**
-     *   Array of translated type names.
-     *  In C++ this is defined as `extern final char *gTypeNameDOS80[];`.
+     * Array of translated type names.
+     * In C++ this is defined as `extern final char *gTypeNameDOS80[];`.
      */
     static final String[] gTypeNameDOS80 = {
             "BASIC",
@@ -48,15 +48,15 @@ public class DiskBasicDirItemDOS80 extends DiskBasicDirItemFAT8<DirectoryDos80> 
     };
 
     /**
-     *  Private data members
+     * Private data members
      **/
-    private final DiskBasicDirData<DirectoryDos80>        m_data;   //  directory_dos80_t
-    private final DiskBasicDirData<DirectoryDos80_2>      m_data2;  //  directory_dos80_2_t
+    private final DiskBasicDirData<DirectoryDos80> m_data;   //  directory_dos80_t
+    private final DiskBasicDirData<DirectoryDos80_2> m_data2;  //  directory_dos80_2_t
     private final DiskBasicGroups[] m_file_unit = new DiskBasicGroups[2];
     private int m_cached_type = 0;
 
     /**
-     *  Constructors
+     * Constructors
      **/
     public DiskBasicDirItemDOS80(DiskBasic basic) {
         super(basic);
@@ -92,11 +92,12 @@ public class DiskBasicDirItemDOS80 extends DiskBasicDirItemFAT8<DirectoryDos80> 
      */
 
     /**
-     *   Get the position of the file name within the directory data.
-     *  @param  num   The index of the element to return.
-     *  @return       Byte array that points to the name position.
-     *  In the original code a `byte*` is returned;
-     *        here we return a slice of the underlying byte array.
+     * Get the position of the file name within the directory data.
+     *
+     * @param num The index of the element to return.
+     * @return Byte array that points to the name position.
+     * In the original code a `byte*` is returned;
+     * here we return a slice of the underlying byte array.
      */
     @Override
     protected byte[] getFileNamePos(int num, int[] size, int[] len) {
@@ -111,7 +112,7 @@ public class DiskBasicDirItemDOS80 extends DiskBasicDirItemFAT8<DirectoryDos80> 
     }
 
     /**
-     *   Get file type (attribute #1).
+     * Get file type (attribute #1).
      */
     @Override
     protected int getFileType1() {
@@ -132,7 +133,7 @@ public class DiskBasicDirItemDOS80 extends DiskBasicDirItemFAT8<DirectoryDos80> 
     }
 
     /**
-     *   Set file type (attribute #1).
+     * Set file type (attribute #1).
      */
     @Override
     protected void setFileType1(int val) {
@@ -144,7 +145,7 @@ public class DiskBasicDirItemDOS80 extends DiskBasicDirItemFAT8<DirectoryDos80> 
         // マシン語のアドレスはSetStartAddress(),SetEndAddress(),SetExecuteAddress()で
         // 設定する
         //
-        switch(val & 0xff) {
+        switch (val & 0xff) {
             case TYPE_NAME_DOS80_BASIC:
                 // BASICの場合、ロードアドレス、終了アドレス、実行アドレスを固定で設定
                 m_data2.data().grps[0].a = basic.orderUint16((short) basic.diskBasicParam.getVariousIntegerParam("DefaultStartAddress"));
@@ -163,7 +164,7 @@ public class DiskBasicDirItemDOS80 extends DiskBasicDirItemFAT8<DirectoryDos80> 
     }
 
     /**
-     *   Check if this item is used.
+     * Check if this item is used.
      */
     @Override
     public boolean checkUsed(boolean unuse) {
@@ -171,11 +172,11 @@ public class DiskBasicDirItemDOS80 extends DiskBasicDirItemFAT8<DirectoryDos80> 
     }
 
     /**
-     *   Convert attribute from file unit to DOS80 type.
+     * Convert attribute from file unit to DOS80 type.
      */
     private int convFileAttrFromTypePos(int t1) {
         int val = 0;
-        switch(t1) {
+        switch (t1) {
             case TYPE_NAME_DOS80_MACHINE:
                 // Machine
                 val = FILE_TYPE_MACHINE_MASK.getValue() | FILE_TYPE_BINARY_MASK.getValue();
@@ -194,7 +195,7 @@ public class DiskBasicDirItemDOS80 extends DiskBasicDirItemFAT8<DirectoryDos80> 
 
 
     /**
-     *   Convert DOS80 type to attribute.
+     * Convert DOS80 type to attribute.
      */
     private int convFileAttrToTypePos(int file_type) {
         int t1 = TYPE_NAME_DOS80_BASIC;
@@ -209,12 +210,12 @@ public class DiskBasicDirItemDOS80 extends DiskBasicDirItemFAT8<DirectoryDos80> 
     }
 
     /**
-     *   Calculate the file size.
+     * Calculate the file size.
      */
     @Override
     public void calcFileSize() throws IOException {
         this.groups.empty();
-        for(int fileunit_num = 0; fileunit_num < 4; fileunit_num++) {
+        for (int fileunit_num = 0; fileunit_num < 4; fileunit_num++) {
             if (!isValidFileUnit(fileunit_num)) {
                 break;
             }
@@ -236,7 +237,7 @@ public class DiskBasicDirItemDOS80 extends DiskBasicDirItemFAT8<DirectoryDos80> 
     }
 
     /**
-     *  Data handling
+     * Data handling
      **/
     @Override
     public void setDataPtr(int num,
@@ -312,7 +313,7 @@ public class DiskBasicDirItemDOS80 extends DiskBasicDirItemFAT8<DirectoryDos80> 
     @Override
     public void getAllGroups(DiskBasicGroups groupItems) throws IOException {
         groupItems.empty();
-        for(int fileunit_num = 0; fileunit_num < 4; fileunit_num++) {
+        for (int fileunit_num = 0; fileunit_num < 4; fileunit_num++) {
             if (!isValidFileUnit(fileunit_num)) {
                 break;
             }
@@ -331,7 +332,9 @@ public class DiskBasicDirItemDOS80 extends DiskBasicDirItemFAT8<DirectoryDos80> 
     }
 
     @Override
-    public boolean hasAddress() { return m_data2.isValid(); }
+    public boolean hasAddress() {
+        return m_data2.isValid();
+    }
 
     @Override
     public boolean isAddressEditable() {
@@ -344,7 +347,7 @@ public class DiskBasicDirItemDOS80 extends DiskBasicDirItemFAT8<DirectoryDos80> 
         int t1 = getFileType1();
         int val = 0;
         if (m_data2.isValid()) {
-            switch(t1) {
+            switch (t1) {
                 case TYPE_NAME_DOS80_BASIC_MACHINE:
                     val = basic.orderUint16(m_data2.data().grps[1].a);
                     break;
@@ -361,7 +364,7 @@ public class DiskBasicDirItemDOS80 extends DiskBasicDirItemFAT8<DirectoryDos80> 
         int t1 = getFileType1();
         int val = 0;
         if (m_data2.isValid()) {
-            switch(t1) {
+            switch (t1) {
                 case TYPE_NAME_DOS80_BASIC_MACHINE:
                     val = basic.orderUint16(m_data2.data().grps[2].a);
                     break;
@@ -378,7 +381,7 @@ public class DiskBasicDirItemDOS80 extends DiskBasicDirItemFAT8<DirectoryDos80> 
         int t1 = getFileType1();
         int val = 0;
         if (m_data2.isValid()) {
-            switch(t1) {
+            switch (t1) {
                 case TYPE_NAME_DOS80_BASIC_MACHINE:
                     val = basic.orderUint16(m_data2.data().grps[3].a);
                     break;
@@ -395,7 +398,7 @@ public class DiskBasicDirItemDOS80 extends DiskBasicDirItemFAT8<DirectoryDos80> 
         if (!m_data2.isValid()) return;
         if ((m_cached_type & 0xff00) == 0) return;
 
-        switch(m_cached_type & 0xff) {
+        switch (m_cached_type & 0xff) {
             case TYPE_NAME_DOS80_MACHINE:
                 m_data2.data().grps[0].a = basic.orderUint16((short) val);
                 break;
@@ -410,7 +413,7 @@ public class DiskBasicDirItemDOS80 extends DiskBasicDirItemFAT8<DirectoryDos80> 
         if (!m_data2.isValid()) return;
         if ((m_cached_type & 0xff00) == 0) return;
 
-        switch(m_cached_type & 0xff) {
+        switch (m_cached_type & 0xff) {
             case TYPE_NAME_DOS80_MACHINE:
                 m_data2.data().grps[1].g = 0;
                 m_data2.data().grps[1].a = basic.orderUint16((short) val);
@@ -427,7 +430,7 @@ public class DiskBasicDirItemDOS80 extends DiskBasicDirItemFAT8<DirectoryDos80> 
         if (!m_data2.isValid()) return;
         if ((m_cached_type & 0xff00) == 0) return;
 
-        switch(m_cached_type & 0xff) {
+        switch (m_cached_type & 0xff) {
             case TYPE_NAME_DOS80_MACHINE:
                 m_data2.data().grps[2].g = 0;
                 m_data2.data().grps[2].a = basic.orderUint16((short) val);
@@ -436,7 +439,9 @@ public class DiskBasicDirItemDOS80 extends DiskBasicDirItemFAT8<DirectoryDos80> 
     }
 
     @Override
-    public boolean needCheckEofCode() { return false; }
+    public boolean needCheckEofCode() {
+        return false;
+    }
 
     @Override
     public int recalcFileSizeOnSave(InputStream stream, int fileSize) {
@@ -492,10 +497,14 @@ public class DiskBasicDirItemDOS80 extends DiskBasicDirItemFAT8<DirectoryDos80> 
     }
 
     @Override
-    public DirectoryDos80 getData() { return m_data.data(); }
+    public DirectoryDos80 getData() {
+        return m_data.data();
+    }
 
     @Override
-    public boolean copyData(DirectoryDos80 val) { return m_data.copy(val); }
+    public boolean copyData(DirectoryDos80 val) {
+        return m_data.copy(val);
+    }
 
     @Override
     public void clearData() {
@@ -515,7 +524,7 @@ public class DiskBasicDirItemDOS80 extends DiskBasicDirItemFAT8<DirectoryDos80> 
 
     @Override
     public boolean preImportDataFile(String[] filename) {
-        if (gConfig.IsDecideAttrImport()) {
+        if (gConfig.isDecideAttrImport()) {
             trimExtensionByExtensionAttr(filename);
         }
         filename[0] = remakeFileNameAndExtStr(filename[0]);

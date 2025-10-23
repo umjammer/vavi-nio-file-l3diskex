@@ -1,8 +1,19 @@
 package l3diskex.ui;
 
-import javax.swing.*;
-import javax.swing.text.*;
-import java.awt.*;
+import java.awt.FlowLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.Window;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.PlainDocument;
 
 
 /**
@@ -181,14 +192,33 @@ public class RawSectorBox extends JDialog {
     /*  PROPERTY ACCESSORS                                               */
     /* ------------------------------------------------------------------ */
 
-    public int GetIdC()   { return parseInt(txtID_C); }
-    public int GetIdH()   { return parseInt(txtID_H); }
-    public int GetIdR()   { return parseInt(txtID_R); }
-    public int GetIdN()   { return parseInt(txtID_N); }
-    public int GetSectorNums() { return txtSecNums != null ? parseInt(txtSecNums) : 0; }
+    public int GetIdC() {
+        return parseInt(txtID_C);
+    }
 
-    public boolean GetDeletedMark() { return chkDeleted.isSelected(); }
-    public boolean GetSingleDensity() { return chkDensity.isSelected(); }
+    public int GetIdH() {
+        return parseInt(txtID_H);
+    }
+
+    public int GetIdR() {
+        return parseInt(txtID_R);
+    }
+
+    public int GetIdN() {
+        return parseInt(txtID_N);
+    }
+
+    public int GetSectorNums() {
+        return txtSecNums != null ? parseInt(txtSecNums) : 0;
+    }
+
+    public boolean GetDeletedMark() {
+        return chkDeleted.isSelected();
+    }
+
+    public boolean GetSingleDensity() {
+        return chkDensity.isSelected();
+    }
 
     public int GetStatus() {
         try {
@@ -242,6 +272,7 @@ public class RawSectorBox extends JDialog {
      * allowed character set.
      */
     private static class LimitedDocument extends PlainDocument {
+
         private final int maxLen;
         private final String allowedChars;
 

@@ -24,31 +24,34 @@ import javax.swing.table.TableRowSorter;
 
 import l3diskex.Config;
 import l3diskex.ui.UICListCtrl.MyCListValue;
+import vavi.net.www.content.application.ini;
 
 
 // MyCListCtrl.java
 public class UICListCtrl extends JList {
 
     public class MyCListValue extends ListItem {
+
         public MyCListValue() {
             setMask(ListMask.TEXT);
         }
 
         public void set(int row, int icon, String value) {
-            setId((int)row);
+            setId((int) row);
             setImage(icon);
             setText(value);
             setMask(ListMask.IMAGE | ListMask.TEXT);
         }
 
         public void set(int row, String value) {
-            setId((int)row);
+            setId((int) row);
             setText(value);
         }
     }
 
     // MyCListColumn.java
     public class MyCListColumn {
+
         private int idx;
         private int col;
         private ListColumns info;
@@ -140,7 +143,7 @@ public class UICListCtrl extends JList {
         // Set column data
         for (int idx = 0; columns[idx] != null; idx++) {
             ListColumns c = columns[idx];
-            int w = ini != null ? ini.getListColumnWidth(idx) : -1;
+            int w = ini != null ? vavi.net.www.content.application.ini.getListColumnWidth(idx) : -1;
             this.columns.add(new MyCListColumn(idx, c, w >= 0 ? w : c.getWidth()));
             this.indexes.add(-1);
         }
@@ -200,6 +203,7 @@ public class UICListCtrl extends JList {
 }
 
 class MyCListRow {
+
     private final List<MyCListValue> values = new ArrayList<>();
     private int data;
 
@@ -268,6 +272,7 @@ class MyCListRow {
 
 // filepath: MyCListRows.java
 class MyCListRows extends ArrayList<MyCListRow> {
+
     private static ListCtrlCompare fnSortCallBack;
     private static int sortData;
 
@@ -323,12 +328,15 @@ class MyCListRearrangeBox extends RearrangeDialog {
 
 // Interface for sort callback
 interface ListCtrlCompare {
+
     int compare(int item1, int item2, int data);
 }
 
 class MyCListCtrl extends JTable {
+
     // Custom sorting listener
     class HeaderClickListener extends MouseAdapter {
+
         @Override
         public void mouseClicked(MouseEvent e) {
             JTableHeader header = getTableHeader();
@@ -355,7 +363,7 @@ class MyCListCtrl extends JTable {
         if (col < 0) return;
 
         TableColumn tableColumn = getColumnModel().getColumn(col);
-        TableHeaderRenderer renderer = (TableHeaderRenderer)tableColumn.getHeaderRenderer();
+        TableHeaderRenderer renderer = (TableHeaderRenderer) tableColumn.getHeaderRenderer();
 
         String text = columns.get(idx).getText();
         if (dir > 0) {
@@ -401,14 +409,14 @@ class MyCListCtrl extends JTable {
     }
 
     public boolean deleteAllListItems() {
-        DefaultTableModel model = (DefaultTableModel)getModel();
+        DefaultTableModel model = (DefaultTableModel) getModel();
         model.setRowCount(0);
         return true;
     }
 
     public int getListItemData(int item) {
         TableModel model = getModel();
-        return (long)model.getValueAt(item, getColumnCount() - 1);
+        return (long) model.getValueAt(item, getColumnCount() - 1);
     }
 
     public int getListItemDataByRow(int row) {
@@ -443,6 +451,7 @@ class MyCListCtrl extends JTable {
 
 // Custom table header renderer for sort icons
 class TableHeaderRenderer extends DefaultTableCellRenderer {
+
     private String text;
 
     @Override
@@ -467,6 +476,7 @@ class TableHeaderRenderer extends DefaultTableCellRenderer {
 
 // ListCtrl event handling
 class ListEvent extends EventObject {
+
     public static final int COLUMN_SORTED = 1;
     private final int column;
 
@@ -488,6 +498,7 @@ enum ListColumnFormat {
 
 // filepath: ListColumns.java
 class ListColumns {
+
     private final String name;
     private final String label;
     private final int width;
@@ -504,10 +515,27 @@ class ListColumns {
         this.sortable = sortable;
     }
 
-    public String getName() { return name; }
-    public String getLabel() { return label; }
-    public int getWidth() { return width; }
-    public int getAlign() { return align; }
-    public boolean haveIcon() { return haveIcon; }
-    public boolean isSortable() { return sortable; }
+    public String getName() {
+        return name;
+    }
+
+    public String getLabel() {
+        return label;
+    }
+
+    public int getWidth() {
+        return width;
+    }
+
+    public int getAlign() {
+        return align;
+    }
+
+    public boolean haveIcon() {
+        return haveIcon;
+    }
+
+    public boolean isSortable() {
+        return sortable;
+    }
 }

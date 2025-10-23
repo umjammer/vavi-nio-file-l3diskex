@@ -22,13 +22,13 @@ import l3diskex.diskimg.DiskImage.DiskImageSector;
 import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_FREE;
 import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_SYSTEM;
 import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_USED;
-import static l3diskex.basicfmt.BasicFat.INVALID_GROUP_NUMBER;
 import static l3diskex.basicfmt.DiskBasicDirItemTRSDOS.FILETYPE_MASK_TRSDOS_SYSTEM;
 
 
 public class DiskBasicTypeTRSDOS<T extends DirectoryT> extends DiskBasicType<T> {
 
     public static class TRSDOS_GAT {
+
         private final byte[] m_buffer;
         private final int m_size;
         private final int m_groups_per_track;
@@ -49,9 +49,9 @@ public class DiskBasicTypeTRSDOS<T extends DirectoryT> extends DiskBasicType<T> 
             int pos = num / m_groups_per_track;
             int bit = num % m_groups_per_track;
             if (val) {
-                m_buffer[pos] = (byte)((m_buffer[pos] | (1 << bit)));
+                m_buffer[pos] = (byte) ((m_buffer[pos] | (1 << bit)));
             } else {
-                m_buffer[pos] = (byte)((m_buffer[pos] & ~(1 << bit)));
+                m_buffer[pos] = (byte) ((m_buffer[pos] & ~(1 << bit)));
             }
         }
 
@@ -76,6 +76,7 @@ public class DiskBasicTypeTRSDOS<T extends DirectoryT> extends DiskBasicType<T> 
     }
 
     public static class TRSDOS_HIT {
+
         private byte[] m_hit_buffer;
         private int m_hit_size;
 
@@ -109,6 +110,7 @@ public class DiskBasicTypeTRSDOS<T extends DirectoryT> extends DiskBasicType<T> 
     }
 
     static class trsdos_gat_t {
+
         public byte[] gat = new byte[0x60];
         public byte[] tlt = new byte[0x60];
         public byte[] reserved1 = new byte[14];
@@ -136,12 +138,15 @@ public class DiskBasicTypeTRSDOS<T extends DirectoryT> extends DiskBasicType<T> 
     protected void assignHIT(byte[] n_buffer, int n_size) {
         hit_impl.assignHIT(n_buffer, n_size);
     }
+
     protected byte getHI(int pos) {
         return hit_impl.getHI(pos);
     }
+
     protected void setHI(int pos, byte val) {
         hit_impl.setHI(pos, val);
     }
+
     protected void deleteHI(int pos) {
         hit_impl.deleteHI(pos);
     }
@@ -177,7 +182,7 @@ public class DiskBasicTypeTRSDOS<T extends DirectoryT> extends DiskBasicType<T> 
         int mng_grp_sta = basic.getManagedTrackNumber() * basic.diskBasicParam.getGroupsPerTrack();
         int mng_grp_end = mng_grp_sta + basic.diskBasicParam.getGroupsPerTrack() - 1;
 
-        for (int grp= 0; grp <= basic.getFatEndGroup(); grp = grp + 1) {
+        for (int grp = 0; grp <= basic.getFatEndGroup(); grp = grp + 1) {
             if ((grp < mng_grp_sta || mng_grp_end < grp) && !isUsedGroupNumber(grp)) {
                 new_num = grp;
                 break;
@@ -200,7 +205,7 @@ public class DiskBasicTypeTRSDOS<T extends DirectoryT> extends DiskBasicType<T> 
         if (sector == null) {
             return -1.0;
         }
-        trsdos_gat_t gat_sector = (trsdos_gat_t)(Object)sector.getSectorBuffer(); // Type cast placeholder
+        trsdos_gat_t gat_sector = (trsdos_gat_t) (Object) sector.getSectorBuffer(); // Type cast placeholder
 
         gat_table = new TRSDOS_GAT(gat_sector.gat, gat_sector.gat.length, basic.diskBasicParam.getGroupsPerTrack());
         tlt_table = new TRSDOS_GAT(gat_sector.tlt, gat_sector.tlt.length, basic.diskBasicParam.getGroupsPerTrack());
@@ -227,7 +232,7 @@ public class DiskBasicTypeTRSDOS<T extends DirectoryT> extends DiskBasicType<T> 
         if (sector == null) {
             return -1.0;
         }
-        trsdos_gat_t gat_sector = (trsdos_gat_t)(Object)sector.getSectorBuffer(); // Type cast placeholder
+        trsdos_gat_t gat_sector = (trsdos_gat_t) (Object) sector.getSectorBuffer(); // Type cast placeholder
         String volname = new String(gat_sector.name);
         if (!volname.chars().allMatch(ch -> ch < 128)) {
             return -1.0;
@@ -275,16 +280,16 @@ public class DiskBasicTypeTRSDOS<T extends DirectoryT> extends DiskBasicType<T> 
         int group_size = basic.getSectorsPerGroup() * basic.getSectorSize();
         int max_group = basic.getFatEndGroup();
 
-        for (int grp= 0; grp <= max_group; grp = grp + 1) {
+        for (int grp = 0; grp <= max_group; grp = grp + 1) {
             if (mng_start <= grp && grp <= mng_end) {
-                fat_availability.Add(FAT_AVAIL_SYSTEM.getValue(), 0, 0);
+                fat_availability.add(FAT_AVAIL_SYSTEM.getValue(), 0, 0);
             } else if (tlt_table.isSet(grp)) {
-                fat_availability.Add(FAT_AVAIL_USED.getValue(), 0, 0);
+                fat_availability.add(FAT_AVAIL_USED.getValue(), 0, 0);
             } else {
                 if (gat_table.isSet(grp)) {
-                    fat_availability.Add(FAT_AVAIL_USED.getValue(), 0, 0);
+                    fat_availability.add(FAT_AVAIL_USED.getValue(), 0, 0);
                 } else {
-                    fat_availability.Add(FAT_AVAIL_FREE.getValue(), group_size, 1);
+                    fat_availability.add(FAT_AVAIL_FREE.getValue(), group_size, 1);
                 }
             }
         }
@@ -315,11 +320,11 @@ public class DiskBasicTypeTRSDOS<T extends DirectoryT> extends DiskBasicType<T> 
         }
         sector.fill(basic.diskBasicParam.getFillCodeOnFAT());
 
-        trsdos_gat_t gat_sector = (trsdos_gat_t)(Object)sector.getSectorBuffer();
+        trsdos_gat_t gat_sector = (trsdos_gat_t) (Object) sector.getSectorBuffer();
 
         int mnt_st_grp = basic.getManagedTrackNumber() * basic.diskBasicParam.getGroupsPerTrack() * basic.getSidesPerDiskOnBasic();
         int mnt_ed_grp = mnt_st_grp + basic.diskBasicParam.getGroupsPerTrack() - 1;
-        for (int grp= 0; grp <= basic.getFatEndGroup(); grp = grp + 1) {
+        for (int grp = 0; grp <= basic.getFatEndGroup(); grp = grp + 1) {
             if (grp < mnt_st_grp || mnt_ed_grp < grp) {
                 gat_table.modify(grp, false);
             }
@@ -379,7 +384,7 @@ public class DiskBasicTypeTRSDOS<T extends DirectoryT> extends DiskBasicType<T> 
         if (sector == null) {
             return;
         }
-        trsdos_gat_t gat_sector = (trsdos_gat_t)(Object)sector.getSectorBuffer();
+        trsdos_gat_t gat_sector = (trsdos_gat_t) (Object) sector.getSectorBuffer();
 
         String wname = new String(gat_sector.name, basic.getCharCodes().charset());
         wname = wname.trim();
@@ -402,7 +407,7 @@ public class DiskBasicTypeTRSDOS<T extends DirectoryT> extends DiskBasicType<T> 
         if (sector == null) {
             return;
         }
-        trsdos_gat_t gat_sector = (trsdos_gat_t)(Object)sector.getSectorBuffer();
+        trsdos_gat_t gat_sector = (trsdos_gat_t) (Object) sector.getSectorBuffer();
 
         byte[] volname = data.getVolumeName().toUpperCase().getBytes();
         int len = Math.min(gat_sector.name.length, volname.length);
@@ -458,7 +463,7 @@ class DiskBasicTypeTRSD23 extends DiskBasicTypeTRSDOS<DirectoryTrsd23> {
 
         List<DiskBasicDirItem<DirectoryTrsd23>> citems = dir_item.getChildren();
         for (int i = 0; i < citems.size(); i++) {
-            DiskBasicDirItemTRSDOS<DirectoryTrsd23> citem = (DiskBasicDirItemTRSDOS<DirectoryTrsd23>)citems.get(i);
+            DiskBasicDirItemTRSDOS<DirectoryTrsd23> citem = (DiskBasicDirItemTRSDOS<DirectoryTrsd23>) citems.get(i);
             int ov = citem.getOverflow() & 0xff;
             if (ov > 0 && ov < 254) {
                 citem.visible(false);
@@ -471,13 +476,13 @@ class DiskBasicTypeTRSD23 extends DiskBasicTypeTRSDOS<DirectoryTrsd23> {
                     sts = false;
                     return sts;
                 }
-                DiskBasicDirItemTRSDOS<DirectoryTrsd23> pitem = (DiskBasicDirItemTRSDOS<DirectoryTrsd23>)citems.get(num);
+                DiskBasicDirItemTRSDOS<DirectoryTrsd23> pitem = (DiskBasicDirItemTRSDOS<DirectoryTrsd23>) citems.get(num);
                 pitem.setNextItem(citem);
             }
         }
 
         for (int i = 0; i < citems.size(); i++) {
-            DiskBasicDirItemTRSDOS<DirectoryTrsd23> citem = (DiskBasicDirItemTRSDOS<DirectoryTrsd23>)citems.get(i);
+            DiskBasicDirItemTRSDOS<DirectoryTrsd23> citem = (DiskBasicDirItemTRSDOS<DirectoryTrsd23>) citems.get(i);
             citem.calcFileSize();
         }
         return sts;
@@ -508,12 +513,12 @@ class DiskBasicTypeTRSD23 extends DiskBasicTypeTRSDOS<DirectoryTrsd23> {
         }
 
         if (rc >= 0) {
-            DiskBasicDirItemTRSDOS<?> titem = (DiskBasicDirItemTRSDOS<?>)item;
+            DiskBasicDirItemTRSDOS<?> titem = (DiskBasicDirItemTRSDOS<?>) item;
             titem.setAsNewFile();
 
             int pos = 0;
-            int pre_grp= 0;
-            int sta_grp= 0;
+            int pre_grp = 0;
+            int sta_grp = 0;
             int cnt = 0;
             int max_idx = group_items.count();
             for (int idx = 0; idx < max_idx; idx++) {
@@ -521,8 +526,8 @@ class DiskBasicTypeTRSD23 extends DiskBasicTypeTRSDOS<DirectoryTrsd23> {
                 if (idx == 0) {
                     sta_grp = grp;
                 } else if (cnt > 32 || pre_grp + 1 != grp) {
-                    int[] pos_arr = new int[]{pos};
-                    DiskBasicDirItemTRSDOS<DirectoryTrsd23>[] titem_arr = new DiskBasicDirItemTRSDOS[]{titem};
+                    int[] pos_arr = new int[] {pos};
+                    DiskBasicDirItemTRSDOS<DirectoryTrsd23>[] titem_arr = new DiskBasicDirItemTRSDOS[] {titem};
                     if (pos >= pos_max && createOverflowEntry(titem_arr, pos_arr) < 0) {
                         rc = -1;
                         break;
@@ -538,8 +543,8 @@ class DiskBasicTypeTRSD23 extends DiskBasicTypeTRSDOS<DirectoryTrsd23> {
                 pre_grp = grp;
             }
             if (rc >= 0 && cnt > 0) {
-                int[] pos_arr = new int[]{pos};
-                DiskBasicDirItemTRSDOS<DirectoryTrsd23>[] titem_arr = new DiskBasicDirItemTRSDOS[]{titem};
+                int[] pos_arr = new int[] {pos};
+                DiskBasicDirItemTRSDOS<DirectoryTrsd23>[] titem_arr = new DiskBasicDirItemTRSDOS[] {titem};
                 if (pos >= pos_max && createOverflowEntry(titem_arr, pos_arr) < 0) {
                     rc = -1;
                 }
@@ -562,7 +567,7 @@ class DiskBasicTypeTRSD23 extends DiskBasicTypeTRSDOS<DirectoryTrsd23> {
 
     private int createOverflowEntry(DiskBasicDirItemTRSDOS<DirectoryTrsd23>[] ptitem, int[] pos) throws IOException {
         int rc = 0;
-        DiskBasicDirItemTRSDOS<DirectoryTrsd23> new_titem = (DiskBasicDirItemTRSDOS<DirectoryTrsd23>)dir.getEmptyItemOnCurrent(ptitem[0], null);
+        DiskBasicDirItemTRSDOS<DirectoryTrsd23> new_titem = (DiskBasicDirItemTRSDOS<DirectoryTrsd23>) dir.getEmptyItemOnCurrent(ptitem[0], null);
         if (new_titem == null) {
             rc = -1;
             return rc;
@@ -627,11 +632,11 @@ class DiskBasicTypeTRSD23 extends DiskBasicTypeTRSDOS<DirectoryTrsd23> {
             return false;
         }
 
-        for (int grp= 0; grp <= basic.getFatEndGroup(); grp = grp + 1) {
+        for (int grp = 0; grp <= basic.getFatEndGroup(); grp = grp + 1) {
             tlt_table.modify(grp, false);
         }
 
-        trsdos_gat_t gat_sector = (trsdos_gat_t)(Object)sector.getSectorBuffer();
+        trsdos_gat_t gat_sector = (trsdos_gat_t) (Object) sector.getSectorBuffer();
 
         // Assuming wxUINT16_SWAP_ON_BE is a byte-swapping utility
         // gat_sector.password = wxUINT16_SWAP_ON_BE(0x4296);
@@ -641,14 +646,14 @@ class DiskBasicTypeTRSD23 extends DiskBasicTypeTRSDOS<DirectoryTrsd23> {
 
         st_pos += 2;
         sector = basic.getSectorFromSectorPos(st_pos);
-        titem = (DiskBasicDirItemTRSDOS<?>)dir.newItem(sector, 0, sector.getSectorBuffer(0));
+        titem = (DiskBasicDirItemTRSDOS<?>) dir.newItem(sector, 0, sector.getSectorBuffer(0));
         titem.setAsBootSysEntry();
         // Assume delete titem is not needed in Java due to garbage collection
         // delete titem;
 
         st_pos++;
         sector = basic.getSectorFromSectorPos(st_pos);
-        titem = (DiskBasicDirItemTRSDOS<?>)dir.newItem(sector, 0, sector.getSectorBuffer(0));
+        titem = (DiskBasicDirItemTRSDOS<?>) dir.newItem(sector, 0, sector.getSectorBuffer(0));
         titem.setAsDirSysEntry();
         // delete titem;
 
@@ -687,7 +692,7 @@ class DiskBasicTypeTRSD13 extends DiskBasicTypeTRSDOS<DirectoryTrsd13> {
 
         List<DiskBasicDirItem<DirectoryTrsd13>> citems = dir_item.getChildren();
         for (int i = 0; i < citems.size(); i++) {
-            DiskBasicDirItemTRSDOS<?> citem = (DiskBasicDirItemTRSDOS<?>)citems.get(i);
+            DiskBasicDirItemTRSDOS<?> citem = (DiskBasicDirItemTRSDOS<?>) citems.get(i);
             citem.calcFileSize();
         }
         return sts;
@@ -731,12 +736,12 @@ class DiskBasicTypeTRSD13 extends DiskBasicTypeTRSDOS<DirectoryTrsd13> {
         }
 
         if (rc >= 0) {
-            DiskBasicDirItemTRSDOS<?> titem = (DiskBasicDirItemTRSDOS<?>)item;
+            DiskBasicDirItemTRSDOS<?> titem = (DiskBasicDirItemTRSDOS<?>) item;
             titem.setAsNewFile();
 
             int pos = 0;
-            int pre_grp= 0;
-            int sta_grp= 0;
+            int pre_grp = 0;
+            int sta_grp = 0;
             int cnt = 0;
             int max_idx = group_items.count();
             for (int idx = 0; idx < max_idx; idx++) {
@@ -789,7 +794,7 @@ class DiskBasicTypeTRSD13 extends DiskBasicTypeTRSDOS<DirectoryTrsd13> {
             return false;
         }
 
-        trsdos_gat_t gat_sector = (trsdos_gat_t)(Object)sector.getSectorBuffer();
+        trsdos_gat_t gat_sector = (trsdos_gat_t) (Object) sector.getSectorBuffer();
 
         gat_sector.password = (short) 0x5cef; // be
 

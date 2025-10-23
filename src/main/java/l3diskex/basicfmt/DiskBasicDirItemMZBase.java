@@ -27,21 +27,21 @@ public abstract class DiskBasicDirItemMZBase<T extends DirectoryT> extends DiskB
 
     /** Constructor – initialize from sector data. */
     public DiskBasicDirItemMZBase(DiskBasic basic,
-                                 DiskImageSector n_sector,
-                                 int n_secpos,
-                                 byte[] n_data) {
+                                  DiskImageSector n_sector,
+                                  int n_secpos,
+                                  byte[] n_data) {
         super(basic, n_sector, n_secpos, n_data);
     }
 
     /** Full constructor – all parameters. */
     public DiskBasicDirItemMZBase(DiskBasic basic,
-                                 int n_num,
-                                 DiskBasicGroupItem n_gitem,
-                                 DiskImageSector n_sector,
-                                 int n_secpos,
-                                 byte[] n_data,
-                                 SectorParam n_next,
-                                 boolean[] n_unuse) {
+                                  int n_num,
+                                  DiskBasicGroupItem n_gitem,
+                                  DiskImageSector n_sector,
+                                  int n_secpos,
+                                  byte[] n_data,
+                                  SectorParam n_next,
+                                  boolean[] n_unuse) {
         super(basic, n_num, n_gitem, n_sector, n_secpos, n_data, n_next, n_unuse);
     }
 
@@ -139,7 +139,7 @@ public abstract class DiskBasicDirItemMZBase<T extends DirectoryT> extends DiskB
      *--------------------------------------------------------------*/
     @Override
     public void getUnitGroups(int fileunitNum, DiskBasicGroups groupItems) {
-        int calcFlags  = 0;
+        int calcFlags = 0;
         int calcGroups = 0;
         int calcGroupsLocal = 0;           // Counter used inside the loop
         int[] userData = new int[1];    // Emulates void **user_data
@@ -147,7 +147,7 @@ public abstract class DiskBasicDirItemMZBase<T extends DirectoryT> extends DiskB
         // The original C++ code uses a reference to an unsigned 32‑bit
         // integer for group_num.  In Java we use a single‑element int[]
         // array to emulate a reference.
-        int[] groupNum = new int[]{getStartGroup(fileunitNum)};
+        int[] groupNum = new int[] {getStartGroup(fileunitNum)};
 
         // The file size in the data stream (retrieved by GetFileSizeBase)
         int fileSizeInData = getFileSizeBase();
@@ -155,11 +155,11 @@ public abstract class DiskBasicDirItemMZBase<T extends DirectoryT> extends DiskB
         int secSize = basic.getSectorSize();
 
         // Pre‑calculation hook – does nothing in this class
-        preCalcAllGroups(new int[]{calcFlags},
-                         groupNum,
-                         new int[]{remain},
-                         new int[]{secSize},
-                         new Object[] {userData[0]});
+        preCalcAllGroups(new int[] {calcFlags},
+                groupNum,
+                new int[] {remain},
+                new int[] {secSize},
+                new Object[] {userData[0]});
 
         // Main loop – collect all the groups used by this file
         int limit = basic.diskBasicParam.getFatEndGroup() + 1;
@@ -168,7 +168,7 @@ public abstract class DiskBasicDirItemMZBase<T extends DirectoryT> extends DiskB
             if (usedGroup) {
                 int endSec = -1;
                 basic.getNumsFromGroup(groupNum[0], 0, secSize, remain, groupItems, userData);
-                calcAllGroups(calcFlags, groupNum, new int[]{remain}, new int[]{secSize}, new int[]{endSec}, userData);
+                calcAllGroups(calcFlags, groupNum, new int[] {remain}, new int[] {secSize}, new int[] {endSec}, userData);
                 calcGroupsLocal++;
                 remain -= (secSize * basic.getSectorsPerGroup());
             } else {

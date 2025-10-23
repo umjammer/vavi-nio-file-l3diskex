@@ -15,7 +15,6 @@ import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_FREE;
 import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_SYSTEM;
 import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_USED;
 import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_USED_LAST;
-import static l3diskex.basicfmt.BasicFat.INVALID_GROUP_NUMBER;
 
 
 /**
@@ -24,7 +23,7 @@ import static l3diskex.basicfmt.BasicFat.INVALID_GROUP_NUMBER;
 public class DiskBasicTypeFATBase extends DiskBasicType {
 
     /**
-     *  constructor
+     * constructor
      */
     public DiskBasicTypeFATBase(DiskBasic basic, DiskBasicFat fat, DiskBasicDir dir) {
         super(basic, fat, dir);
@@ -122,7 +121,7 @@ public class DiskBasicTypeFATBase extends DiskBasicType {
 
         // システム領域
         for (int pos = 0; pos < start_group; pos++) {
-            fatAvailability.Add(FAT_AVAIL_SYSTEM.getValue(), 0, 0);
+            fatAvailability.add(FAT_AVAIL_SYSTEM.getValue(), 0, 0);
         }
 
         // クラスタは2から始まる(MS-DOS)
@@ -138,7 +137,7 @@ public class DiskBasicTypeFATBase extends DiskBasicType {
             } else if (gnum >= used_group) {          // 0xff8 0xfff8 0xfffffff8
                 fsts = FAT_AVAIL_USED_LAST.getValue();
             }
-            fatAvailability.Add(fsts, fsize, grps);
+            fatAvailability.add(fsts, fsize, grps);
             //logger.log(Level.DEBUG, "DiskBasicTypeFATBase::CalcDiskFreeSizeBase: pos:%d gnum:%d size:%d grps:%d", pos, gnum, fsize, grps);
         }
     }

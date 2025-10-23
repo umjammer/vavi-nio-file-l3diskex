@@ -4,10 +4,15 @@
 
 package l3diskex.basicfmt;
 
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
+
 import l3diskex.ResultInfo;
 
 
 public class DiskBasicError extends ResultInfo {
+
+    private static final Logger logger = System.getLogger(DiskBasicError.class.getName());
 
     /*
      * Constants – error codes
@@ -167,6 +172,7 @@ public class DiskBasicError extends ResultInfo {
 
         // add to the collection only if it is not already present
         if (!msgs.contains(msg)) {
+logger.log(Level.TRACE, msg, new Exception("dummy"));
             msgs.add(msg);
         }
     }

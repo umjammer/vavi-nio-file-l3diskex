@@ -6,7 +6,8 @@ package l3diskex;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -26,26 +27,26 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_VOLUME_MASK;
 
 
 /**
+ * parameter template.
+ *
  * @author Sasaji
  */
 public class Parambase {
 
-    /**
-     * 2. ValidNameRule – file name validation rule
-     */
+    /** Holds the file name convention (for validator) */
     public static final class ValidNameRule {
 
-        /** ファイル名の先頭に設定できる文字 */
+        /** Characters that can be set at the beginning of a file name */
         private String validFirstChars;
-        /** ファイル名に設定できる文字      */
+        /** Characters that can be set in a file name */
         private String validChars;
-        /** ファイル名に設定できない文字    */
+        /** Characters that cannot be set in a file name */
         private String invalidChars;
-        /** ファイル名に重複指定できない文字 */
+        /** Characters that cannot be duplicated in a file name */
         private String deduplicateChars;
-        /** ファイル名が必須か             */
+        /** Whether a file name is required */
         private boolean nameRequire;
-        /* ファイル名のサイズ              */
+        /* Size of file name */
         private int maxLength;
 
         public ValidNameRule() {
@@ -53,7 +54,7 @@ public class Parambase {
             maxLength = 0;
         }
 
-        /** 空にする */
+        /** Make empty */
         public void empty() {
             validFirstChars = "";
             validChars = "";
@@ -63,67 +64,85 @@ public class Parambase {
             maxLength = 0;
         }
 
-        /* getters */
+        /** Characters that can be set at the beginning of a file name */
         public String getValidFirstChars() {
             return validFirstChars;
         }
 
+        /** Characters that can be set in a file name */
         public String getValidChars() {
             return validChars;
         }
 
+        /** Characters that cannot be set in a file name */
         public String getInvalidChars() {
             return invalidChars;
         }
 
+        /** Characters that cannot be duplicated in a file name */
         public String getDeduplicateChars() {
             return deduplicateChars;
         }
 
+        /** Whether a file name is required */
         public boolean isNameRequired() {
             return nameRequire;
         }
 
+        /** Size of file name */
         public int getMaxLength() {
             return maxLength;
         }
 
-        /* setters */
+        /** Characters that can be set at the beginning of a file name */
         public void setValidFirstChars(String str) {
             validFirstChars = str;
         }
 
+        /** Characters that can be set in a file name */
         public void setValidChars(String str) {
             validChars = str;
         }
 
+        /** Characters that cannot be set in a file name */
         public void setInvalidChars(String str) {
             invalidChars = str;
         }
 
+        /** Characters that cannot be duplicated in a file name */
         public void setDeduplicateChars(String str) {
             deduplicateChars = str;
         }
 
+        /** Whether a file name is required */
         public void requireName(boolean val) {
             nameRequire = val;
         }
 
+        /** Size of file name */
         public void setMaxLength(int val) {
             maxLength = val;
         }
     }
 
     /**
-     * 3. MyAttribute – an attribute with type, value, mask, name, desc
+     * Holds special attributes, etc.
+     *
+     * @see MyAttributes
      */
     public static final class MyAttribute {
 
+        /** index */
         private final int idx;
+        /** attribute type */
         private final int type;
+        /** attribute value */
         private final int value;
+        /** マスク */
         private final int mask;
+        /** name */
         private String name;
+        /** description */
         private String desc;
 
         public MyAttribute() {
@@ -145,42 +164,47 @@ public class Parambase {
             if (name == null || name.isEmpty()) name = "???";
         }
 
-        /* getters */
+        /** インデックス */
         public int getIndex() {
             return idx;
         }
 
+        /** 属性タイプ */
         public int getType() {
             return type;
         }
 
+        /** 属性値 */
         public int getValue() {
             return value;
         }
 
+        /** マスク */
         public int getMask() {
             return mask;
         }
 
+        /** 名前 */
         public String getName() {
             return name;
         }
 
+        /** description */
         public String getDescription() {
             return desc;
         }
     }
 
     /**
-     * 4. MyAttributes – a list of MyAttribute (extends ArrayList)
+     * List of special attributes. An array of MyAttribute.
      */
-    public static final class MyAttributes extends ArrayList<MyAttribute> {
+    public static final class MyAttributes {
 
-        /* 4.1 Find(type, value) */
-        public MyAttribute find(int type, int value) {
+        /** Returns an item that matches the attribute type and value. */
+        public static MyAttribute find(List<MyAttribute> list, int type, int value) {
             MyAttribute match = null;
-            for (int i = 0; i < size(); i++) {
-                MyAttribute attr = get(i);
+            for (int i = 0; i < list.size(); i++) {
+                MyAttribute attr = list.get(i);
                 if (attr.getType() == type &&
                         attr.getValue() == (value & attr.getMask())) {
                     match = attr;
@@ -190,11 +214,11 @@ public class Parambase {
             return match;
         }
 
-        /* 4.2 Find(type, mask, value) */
-        public MyAttribute find(int type, int mask, int value) {
+        /** Returns an item that matches the attribute type and value. */
+        public static MyAttribute find(List<MyAttribute> list, int type, int mask, int value) {
             MyAttribute match = null;
-            for (int i = 0; i < size(); i++) {
-                MyAttribute attr = get(i);
+            for (int i = 0; i < list.size(); i++) {
+                MyAttribute attr = list.get(i);
                 if (((attr.getType() & mask) == (type & mask)) &&
                         attr.getValue() == (value & attr.getMask())) {
                     match = attr;
@@ -204,11 +228,11 @@ public class Parambase {
             return match;
         }
 
-        /* 4.3 FindType(type, mask) */
-        public MyAttribute findType(int type, int mask) {
+        /** Returns an item that matches the attribute type. */
+        public static MyAttribute findType(List<MyAttribute> list, int type, int mask) {
             MyAttribute match = null;
-            for (int i = 0; i < size(); i++) {
-                MyAttribute attr = get(i);
+            for (int i = 0; i < list.size(); i++) {
+                MyAttribute attr = list.get(i);
                 if (((attr.getType() & mask) == (type & mask))) {
                     match = attr;
                     break;
@@ -217,11 +241,11 @@ public class Parambase {
             return match;
         }
 
-        /* 4.4 FindValue(value) */
-        public MyAttribute findValue(int value) {
+        /** Returns an item that matches the attribute value. */
+        public static MyAttribute findValue(List<MyAttribute> list, int value) {
             MyAttribute match = null;
-            for (int i = 0; i < size(); i++) {
-                MyAttribute attr = get(i);
+            for (int i = 0; i < list.size(); i++) {
+                MyAttribute attr = list.get(i);
                 if (attr.getValue() == (value & attr.getMask())) {
                     match = attr;
                     break;
@@ -230,11 +254,11 @@ public class Parambase {
             return match;
         }
 
-        /* 4.5 Find(type, name) */
-        public MyAttribute find(int type, String name) {
+        /** Returns an item that matches the attribute name. */
+        public static MyAttribute find(List<MyAttribute> list, int type, String name) {
             MyAttribute match = null;
-            for (int i = 0; i < size(); i++) {
-                MyAttribute attr = get(i);
+            for (int i = 0; i < list.size(); i++) {
+                MyAttribute attr = list.get(i);
                 if (attr.getType() == type && attr.getName().equals(name)) {
                     match = attr;
                     break;
@@ -243,11 +267,11 @@ public class Parambase {
             return match;
         }
 
-        /* 4.6 Find(name) */
-        public MyAttribute find(String name) {
+        /** Returns an item that matches the attribute name. */
+        public static MyAttribute find(List<MyAttribute> list, String name) {
             MyAttribute match = null;
-            for (int i = 0; i < size(); i++) {
-                MyAttribute attr = get(i);
+            for (int i = 0; i < list.size(); i++) {
+                MyAttribute attr = list.get(i);
                 if (attr.getName().equals(name)) {
                     match = attr;
                     break;
@@ -256,12 +280,12 @@ public class Parambase {
             return match;
         }
 
-        /* 4.7 FindUpperCase(name) */
-        public MyAttribute findUpperCase(String name) {
+        /** Returns an item that matches the attribute name. Match in upper case. */
+        public static MyAttribute findUpperCase(List<MyAttribute> list, String name) {
             String iname = name.toUpperCase();
             MyAttribute match = null;
-            for (int i = 0; i < size(); i++) {
-                MyAttribute attr = get(i);
+            for (int i = 0; i < list.size(); i++) {
+                MyAttribute attr = list.get(i);
                 if (attr.getName().toUpperCase().equals(iname)) {
                     match = attr;
                     break;
@@ -270,12 +294,12 @@ public class Parambase {
             return match;
         }
 
-        /* 4.8 FindUpperCase(name, type, mask) */
-        public MyAttribute findUpperCase(String name, int type, int mask) {
+        /** Returns an item that matches the attribute name and type. Match in upper case. */
+        public static MyAttribute findUpperCase(List<MyAttribute> list, String name, int type, int mask) {
             String iname = name.toUpperCase();
             MyAttribute match = null;
-            for (int i = 0; i < size(); i++) {
-                MyAttribute attr = get(i);
+            for (int i = 0; i < list.size(); i++) {
+                MyAttribute attr = list.get(i);
                 if (attr.getName().toUpperCase().equals(iname) &&
                         ((attr.getType() & mask) == (type & mask))) {
                     match = attr;
@@ -285,12 +309,12 @@ public class Parambase {
             return match;
         }
 
-        /* 4.9 FindUpperCase(name, type, mask, value) */
-        public MyAttribute findUpperCase(String name, int type, int mask, int value) {
+        /** Returns an item that matches the attribute name, type, and value. Match in upper case. */
+        public static MyAttribute findUpperCase(List<MyAttribute> list, String name, int type, int mask, int value) {
             String iname = name.toUpperCase();
             MyAttribute match = null;
-            for (int i = 0; i < size(); i++) {
-                MyAttribute attr = get(i);
+            for (int i = 0; i < list.size(); i++) {
+                MyAttribute attr = list.get(i);
                 if (attr.getName().toUpperCase().equals(iname) &&
                         ((attr.getType() & mask) == (type & mask)) &&
                         attr.getValue() == (value & attr.getMask())) {
@@ -301,81 +325,76 @@ public class Parambase {
             return match;
         }
 
-        /* 4.10 GetIndexByValue(value) */
-        public int getIndexByValue(int value) {
+        /** Returns the position of the item that matches the attribute value. */
+        public static int getIndexByValue(List<MyAttribute> list, int value) {
             int idx = -1;
-            MyAttribute attr = findValue(value);
+            MyAttribute attr = findValue(list, value);
             if (attr != null) idx = attr.getIndex();
             return idx;
         }
 
-        /* 4.11 GetTypeByValue(value) */
-        public int getTypeByValue(int value) {
-            MyAttribute attr = findValue(value);
+        /** Returns the attribute type of the item that matches the attribute value. */
+        public static int getTypeByValue(List<MyAttribute> list, int value) {
+            MyAttribute attr = findValue(list, value);
             return (attr != null) ? attr.getType() : -1;
         }
 
-        /* 4.12 GetTypeByIndex(idx) */
-        public int getTypeByIndex(int idx) {
-            if (idx >= 0 && idx < size())
-                return get(idx).getType();
+        /** Returns the attribute type from the position. */
+        public static int getTypeByIndex(List<MyAttribute> list, int idx) {
+            if (idx >= 0 && idx < list.size())
+                return list.get(idx).getType();
             return -1;
         }
 
-        /* 4.13 GetValueByIndex(idx) */
-        public int getValueByIndex(int idx) {
-            if (idx >= 0 && idx < size())
-                return get(idx).getValue();
+        /** Returns the attribute value from the position. */
+        public static int getValueByIndex(List<MyAttribute> list, int idx) {
+            if (idx >= 0 && idx < list.size())
+                return list.get(idx).getValue();
             return -1;
         }
     }
 
-    /* --- */
-    /* 8. StSpecialAttrNames – name / type pair used in LoadMyAttributesInTypes */
-    /* --- */
-    public static final class StSpecialAttrNames {
-
-        public final String name;
-        public final int type;
-
-        public StSpecialAttrNames(String n, int t) {
-            name = n;
-            type = t;
-        }
-    }
-
-    /* --- */
-    /* 9. TemplatesBase – helper methods for loading XML data                */
-    /* --- */
+    /** Provides a template for disk parameters. */
     public static class TemplatesBase {
 
-        /* 9.1 LoadDescription – static helper */
+        /**
+         * Descriptionエレメントをロード
+         *
+         * @param node       子ノード
+         * @param localeName ローケル名
+         * @param desc       [out] description
+         * @param descLocale [out] description locale
+         * @return true
+         */
         protected static boolean loadDescription(Node node,
                                                  String localeName,
-                                                 StringBuilder desc,
-                                                 StringBuilder descLocale) {
+                                                 String[] desc,
+                                                 String[] descLocale) {
             if (node == null) return false;
             if (((Element) node).hasAttribute("Locale")) {
                 String locale = ((Element) node).getAttribute("Locale");
                 if (locale.equals(localeName)) {
-                    descLocale.setLength(0);
-                    descLocale.append(node.getTextContent());
+                    descLocale[0] = node.getTextContent();
                     return true;
                 }
             }
 
             String content = node.getTextContent();
-            desc.setLength(0);
-            desc.append(content);
+            desc[0] = content;
             return true;
         }
 
-        /* 9.2 LoadVariousParam – static helper */
-        protected static boolean loadVariousParam(Node node,
-                                                  String val,
-                                                  Object[] nVal /* wrapped as array for pass‑by‑reference */) {
+        /**
+         * 独自エレメントのロード
+         *
+         * @param node 子ノード
+         * @param val  value
+         * @param nVal [out] converted value
+         * @return true
+         */
+        protected static boolean loadVariousParam(Node node, String val, Object[] nVal) {
             if (node == null) return false;
-            String tagName = node.getLocalName();
+            String tagName = node.getNodeName();
             if (tagName == null) return false;
 
             if (tagName.equals("int"))
@@ -385,16 +404,24 @@ public class Parambase {
             else if (tagName.equals("string"))
                 nVal[0] = val;
             else
-                nVal[0] = null;      // unknown type
+                nVal[0] = null;
 
             return true;
         }
 
-        /* 9.3 LoadMyAttribute – load a single MyAttribute */
+        /**
+         * SpecialAttributes/AttributesByExtension エレメントをロード
+         *
+         * @param node       子ノード
+         * @param localeName ローケル名
+         * @param type       タイプ
+         * @param attrs      [out] 値
+         * @return true
+         */
         protected static boolean loadMyAttribute(Node node,
                                                  String localeName,
                                                  int type,
-                                                 MyAttributes attrs) {
+                                                 List<MyAttribute> attrs) {
             if (node == null) return false;
             String name = ((Element) node).getAttribute("Name");
             String desc = ((Element) node).getAttribute("Description");
@@ -407,96 +434,146 @@ public class Parambase {
             return true;
         }
 
-        static final Map<String, EnumSet<FileTypeMask>> specialAttrNames = new HashMap<>() {{
-            put("MachineBinary",	EnumSet.of(FILE_TYPE_MACHINE_MASK, FILE_TYPE_BINARY_MASK));
-            put("BasicBinary",	EnumSet.of(FILE_TYPE_BASIC_MASK, FILE_TYPE_BINARY_MASK));
-            put("BasicAscii",		EnumSet.of(FILE_TYPE_BASIC_MASK, FILE_TYPE_ASCII_MASK));
-            put("BasicInteger",	EnumSet.of(FILE_TYPE_BASIC_MASK, FILE_TYPE_INTEGER_MASK));
-            put("DataAscii",		EnumSet.of(FILE_TYPE_DATA_MASK, FILE_TYPE_ASCII_MASK));
-            put("DataBinary",		EnumSet.of(FILE_TYPE_DATA_MASK, FILE_TYPE_BINARY_MASK));
-            put("DataRandom",		EnumSet.of(FILE_TYPE_DATA_MASK, FILE_TYPE_RANDOM_MASK));
-            put("Binary",			EnumSet.of(FILE_TYPE_BINARY_MASK));
-            put("Ascii",			EnumSet.of(FILE_TYPE_ASCII_MASK));
-            put("Random",			EnumSet.of(FILE_TYPE_RANDOM_MASK));
-            put("Volume",			EnumSet.of(FILE_TYPE_VOLUME_MASK));
-            put("System",			EnumSet.of(FILE_TYPE_SYSTEM_MASK));
+        /** Map of attribute names and attribute relationships */
+        static final Map<String, EnumSet<FileTypeMask>> specialAttrNames = new LinkedHashMap<>() {{
+            put("MachineBinary", EnumSet.of(FILE_TYPE_MACHINE_MASK, FILE_TYPE_BINARY_MASK));
+            put("BasicBinary", EnumSet.of(FILE_TYPE_BASIC_MASK, FILE_TYPE_BINARY_MASK));
+            put("BasicAscii", EnumSet.of(FILE_TYPE_BASIC_MASK, FILE_TYPE_ASCII_MASK));
+            put("BasicInteger", EnumSet.of(FILE_TYPE_BASIC_MASK, FILE_TYPE_INTEGER_MASK));
+            put("DataAscii", EnumSet.of(FILE_TYPE_DATA_MASK, FILE_TYPE_ASCII_MASK));
+            put("DataBinary", EnumSet.of(FILE_TYPE_DATA_MASK, FILE_TYPE_BINARY_MASK));
+            put("DataRandom", EnumSet.of(FILE_TYPE_DATA_MASK, FILE_TYPE_RANDOM_MASK));
+            put("Binary", EnumSet.of(FILE_TYPE_BINARY_MASK));
+            put("Ascii", EnumSet.of(FILE_TYPE_ASCII_MASK));
+            put("Random", EnumSet.of(FILE_TYPE_RANDOM_MASK));
+            put("Volume", EnumSet.of(FILE_TYPE_VOLUME_MASK));
+            put("System", EnumSet.of(FILE_TYPE_SYSTEM_MASK));
         }};
 
-        /* 9.4 LoadMyAttributesInTypes – load attributes for all extension types */
+        /**
+         * SpecialAttributes/AttributesByExtension エレメントをロード
+         *
+         * @param node       子ノード
+         * @param localeName ローケル名
+         * @param errmsgs    [out] エラーメッセージ
+         * @param attrs      [out] 値
+         * @return true
+         */
         protected static boolean loadMyAttributesInTypes(Node node,
                                                          String localeName,
                                                          StringBuilder errmsgs,
-                                                         Parambase.MyAttributes attrs) {
-            if (node == null) return false;
-            NodeList children = node.getChildNodes();
-            for (int i = 0; i < children.getLength(); i++) {
-                Node child = children.item(i);
-                String childName = child.getLocalName();
-                if (childName != null && !childName.isEmpty()) {
-                    for (Map.Entry<String, EnumSet<FileTypeMask>> e : specialAttrNames.entrySet()) {
-                        if (childName.equals(e.getKey())) {
-                            /* load each attribute inside this element */
-                            Node sub = child.getFirstChild();
-                            while (sub != null) {
-                                loadMyAttribute(sub, localeName, e.getValue().stream().mapToInt(FileTypeMask::getValue).sum(), attrs);
-                                sub = sub.getNextSibling();
+                                                         List<MyAttribute> attrs) {
+            Node citemnode = node.getFirstChild();
+            while (citemnode != null) {
+                for (Map.Entry<String, EnumSet<FileTypeMask>> e : specialAttrNames.entrySet()) {
+                    if (citemnode.getNodeName().equals(e.getKey())) {
+                        loadMyAttribute(citemnode, localeName, e.getValue().stream().mapToInt(FileTypeMask::getValue).sum(), attrs);
+                        break;
+                    }
+                }
+                citemnode = citemnode.getNextSibling();
+            }
+            return true;
+        }
+
+        /**
+         * FileNameCharacters/VolumeNameCharacters エレメントをロード
+         *
+         * @param node       子ノード
+         * @param validChars [out] 値
+         * @param errmsgs    [out] エラー時メッセージ
+         * @return true
+         */
+        protected static boolean loadValidChars(Node node,
+                                                Parambase.ValidNameRule validChars,
+                                                StringBuilder errmsgs) {
+            boolean valid = true;
+            String[] chars = new String[4];
+            Node cnode = node.getFirstChild();
+            while (cnode != null && cnode.getNodeType() == Node.ELEMENT_NODE) {
+                int encoding = Utils.toInt(((Element) cnode).getAttribute("encoding"));
+                String name = cnode.getNodeName();
+                int num = -1;
+                if (name.startsWith("Valid")) {
+                    num = 0;
+                    name = name.substring(5);
+                } else if (name.startsWith("Invalid")) {
+                    num = 1;
+                    name = name.substring(7);
+                } else if (name.startsWith("Duplicate")) {
+                    num = 2;
+                    name = name.substring(9);
+                }
+
+                if (num == 0) {
+                    if (name.startsWith("First")) {
+                        num = 3;
+                        name = name.substring(5);
+                    }
+                }
+
+                if (num >= 0) {
+                    if (name.equals("CharSet")) {
+                        String[] rstr = new String[1];
+                        Utils.decodeEscape(cnode.getTextContent(), rstr);
+                        chars[num] = rstr[0];
+                    } else if (name.equals("Code")) {
+                        int c = Utils.toInt (cnode.getTextContent());
+                        if (encoding == 0) {
+                            if (c < 0 || c >= 0x80) {
+                                errmsgs.append("\n");
+                                errmsgs.append("Out of range in InvalidateCharacters::Code");
+                                errmsgs.append("(line #%d)".formatted(-1));
+                                valid = false;
+                            } else {
+                                chars[num] = String.valueOf((char) c);
+                            }
+                        } else {
+                            // unicode
+                            chars[num] = String.valueOf(c);
+                        }
+                    } else if (name.equals("CodeRange")) {
+                        int st = Utils.toInt(((Element) cnode).getAttribute("first"));
+                        int ed = Utils.toInt(((Element) cnode).getAttribute("last"));
+                        if (encoding == 0) {
+                            for (int c = st; c <= ed; c++) {
+                                if (c < 0 || c >= 0x80) {
+                                    errmsgs.append("\n");
+                                    errmsgs.append("Out of range in InvalidateCharacters::CodeRange");
+                                    errmsgs.append("(line #%d)".formatted(-1));
+                                    valid = false;
+                                    break;
+                                } else {
+                                    chars[num] = String.valueOf((char) c);
+                                }
+                            }
+                        } else {
+                            // unicode
+                            for (int c = st; c <= ed; c++) {
+                                chars[num] = String.valueOf(c);
                             }
                         }
                     }
                 }
-                child = child.getNextSibling();
+                cnode = cnode.getNextSibling();
             }
-            return true;
+            if (valid) {
+                validChars.setValidChars(chars[0]);
+                validChars.setInvalidChars(chars[1]);
+                validChars.setDeduplicateChars(chars[2]);
+                validChars.setValidFirstChars(chars[3]);
+            }
+            return valid;
         }
 
-        /* 9.5 LoadValidChars – load file name validation characters */
-        protected static boolean loadValidChars(Node node,
-                                                Parambase.ValidNameRule validChars,
-                                                StringBuilder errmsgs) {
-            if (node == null) return false;
-            /* The original code iterated over the children and added
-             * characters to the rule.  This translation keeps the same
-             * algorithm but uses Java string manipulation.
-             */
-            Node child = node.getFirstChild();
-            while (child != null) {
-                String name = child.getLocalName();
-                if (name == null) {
-                    child = child.getNextSibling();
-                    continue;
-                }
-
-                if (name.equals("ValidFirst"))
-                    validChars.setValidFirstChars(child.getTextContent());
-                else if (name.equals("Valid"))
-                    validChars.setValidChars(child.getTextContent());
-                else if (name.equals("Invalid"))
-                    validChars.setInvalidChars(child.getTextContent());
-                else if (name.equals("Deduplicate"))
-                    validChars.setDeduplicateChars(child.getTextContent());
-                else if (name.equals("MaxLength"))
-                    validChars.setMaxLength(Integer.parseInt(child.getTextContent()));
-                else if (name.equals("NameRequired"))
-                    validChars.requireName(Boolean.parseBoolean(child.getTextContent()));
-                /* ignore other tags */
-                child = child.getNextSibling();
-            }
-            return true;
-        }
-
-        /* 9.6 LoadFileNameCompareCase – compare case setting */
+        /** Load FileNameCompareCase element */
         protected static boolean loadFileNameCompareCase(Node node, boolean[] val) {
-            if (node == null) return false;
             String content = node.getTextContent();
-            val[0] = content.equalsIgnoreCase("Ignore");
+            val[0] = content.equalsIgnoreCase("INSENSITIVE");
             return true;
         }
 
-        /* ------------------------------------------------------------------ */
-        /* Constructor / destructor                                           */
-        /* ------------------------------------------------------------------ */
         public TemplatesBase() {
-            /* nothing special – the C++ ctor was empty                    */
         }
     }
 }

@@ -92,8 +92,8 @@ public class UiDirItemTFDOS extends UiDirItem {
 
     @Override
     public void changeTypeInAttrDialog(IntNameBox parent) {
-        Choice comType1 = (Choice)parent.getComponent(IDC_COMBO_TYPE1);
-        JCheckBox chkBaseComp = (JCheckBox)parent.getComponent(IDC_CHECK_BASECOMP);
+        Choice comType1 = (Choice) parent.getComponent(IDC_COMBO_TYPE1);
+        JCheckBox chkBaseComp = (JCheckBox) parent.getComponent(IDC_CHECK_BASECOMP);
         if (comType1 != null && chkBaseComp != null) {
             int sel = comType1.getSelection();
             chkBaseComp.setEnabled(sel == TYPE_NAME_TFDOS_TEX && (dirItem.m_show_flags & INTNAME_IMPORT_INTERNAL) == 0);
@@ -101,7 +101,7 @@ public class UiDirItemTFDOS extends UiDirItem {
     }
 
     private int getFileType1InAttrDialog(IntNameBox parent) {
-        Choice comType1 = (Choice)parent.getComponent(IDC_COMBO_TYPE1);
+        Choice comType1 = (Choice) parent.getComponent(IDC_COMBO_TYPE1);
         return comType1.getSelection();
     }
 
@@ -115,9 +115,9 @@ public class UiDirItemTFDOS extends UiDirItem {
 
     @Override
     public boolean setAttrInAttrDialog(IntNameBox parent, DiskBasicDirItemAttr attr, DiskBasicError errinfo) {
-        JCheckBox chkBaseComp = (JCheckBox)parent.getComponent(IDC_CHECK_BASECOMP);
-        JCheckBox chkReadOnly = (JCheckBox)parent.getComponent(IDC_CHECK_READONLY);
-        JCheckBox chkHidden = (JCheckBox)parent.getComponent(IDC_CHECK_HIDDEN);
+        JCheckBox chkBaseComp = (JCheckBox) parent.getComponent(IDC_CHECK_BASECOMP);
+        JCheckBox chkReadOnly = (JCheckBox) parent.getComponent(IDC_CHECK_READONLY);
+        JCheckBox chkHidden = (JCheckBox) parent.getComponent(IDC_CHECK_HIDDEN);
 
         int sel = getFileType1InAttrDialog(parent);
         int ext = 0;

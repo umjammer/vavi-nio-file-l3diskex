@@ -60,7 +60,7 @@ public class UiDirItemMSDOS extends UiDirItem {
     public void SetAttrSubInAttrDialog(IntNameBox parent, DiskBasicDirItemAttr attr) {
         int val = 0;
 
-        for(int i = 0; i <= TYPE_NAME_MS_ARCHIVE; i++) {
+        for (int i = 0; i <= TYPE_NAME_MS_ARCHIVE; i++) {
             // Assume parent.FindWindow returns the control
             // and that CheckBox analog has a getValue()
             // Object chkAttr = parent.FindWindow(IntNameBox.IDC_CHECK_ATTR + i);

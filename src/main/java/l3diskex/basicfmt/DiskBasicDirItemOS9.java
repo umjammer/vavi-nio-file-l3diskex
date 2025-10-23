@@ -29,6 +29,7 @@ import l3diskex.diskimg.DiskParam.SectorParam;
 import vavi.util.serdes.Serdes;
 
 import static l3diskex.Config.gConfig;
+import static l3diskex.Parambase.MyAttributes.findUpperCase;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_BINARY_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_DIRECTORY_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_NONSHARE_MASK;
@@ -47,13 +48,14 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     public static class DiskBasicDirItemOS9FD {
 
         static class DiskBasicDirItemOS9Util {
+
             // OS-9属性名
             public static final String[] G_TYPE_NAME_OS9 = {
                     "<DIR>", // wxTRANSLATE("<DIR>")
                     "Non-sharable", // wxTRANSLATE("Non-sharable")
             };
             public static final char[] G_TYPE_NAME_OS9_2 = {
-                    'X','W','R','x','w','r',0
+                    'X', 'W', 'R', 'x', 'w', 'r', 0
             };
             public static final String[] G_TYPE_NAME_OS9_2L = {
                     "Execute", // wxTRANSLATE("Execute")
@@ -67,8 +69,14 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
             TYPE_NAME_OS9_NONSHARE(1);
 
             private final int value;
-            EnTypeNameOs9(int value) { this.value = value; }
-            public int getValue() { return value; }
+
+            EnTypeNameOs9(int value) {
+                this.value = value;
+            }
+
+            public int getValue() {
+                return value;
+            }
         }
 
         public enum EnFileTypeMaskOs9 {
@@ -82,8 +90,14 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
             FILETYPE_MASK_OS9_USER_READ(0x01);
 
             private final int value;
-            EnFileTypeMaskOs9(int value) { this.value = value; }
-            public int getValue() { return value; }
+
+            EnFileTypeMaskOs9(int value) {
+                this.value = value;
+            }
+
+            public int getValue() {
+                return value;
+            }
         }
 
         private DiskBasic basic;
@@ -94,6 +108,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
         private final ZeroData zero_data = new ZeroData(); // union replacement
 
         private static class ZeroData {
+
             public Os9Date date = new Os9Date();
             public Os9Cdate cdate = new Os9Cdate();
         }
@@ -113,6 +128,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
 
         // No direct operator= in Java, implement as Dup
         // public DiskBasicDirItemOS9FD operator=(final DiskBasicDirItemOS9FD src) { this.Dup(src); return this; }
+
         /**
          * 複製
          */
@@ -1114,7 +1130,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
      */
     @Override
     public boolean preExportDataFile(String[] filename) {
-        if (!gConfig.IsAddExtensionExport()) return true;
+        if (!gConfig.isAddExtensionExport()) return true;
 
         if (!isDirectory()) {
             addExtensionByFileAttr(getFileAttr().getType(), 0x3f, filename, false);
@@ -1127,7 +1143,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
      */
     @Override
     public boolean preImportDataFile(String[] filename) {
-        if (gConfig.IsDecideAttrImport()) {
+        if (gConfig.isDecideAttrImport()) {
             trimExtensionByExtensionAttr(filename);
         }
         filename[0] = remakeFileNameAndExtStr(filename[0]);
@@ -1147,7 +1163,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
         t1 |= EnFileTypeMaskOs9.FILETYPE_MASK_OS9_USER_WRITE.getValue();
         t1 |= EnFileTypeMaskOs9.FILETYPE_MASK_OS9_USER_READ.getValue();
         // 拡張子で実行属性を付ける
-        MyAttribute sa = basic.diskBasicParam.getAttributesByExtension().findUpperCase(Utils.getExt(filename), FILE_TYPE_BINARY_MASK, FILE_TYPE_BINARY_MASK);
+        MyAttribute sa = findUpperCase(basic.diskBasicParam.getAttributesByExtension(), Utils.getExt(filename), FILE_TYPE_BINARY_MASK, FILE_TYPE_BINARY_MASK);
         if (sa != null) {
             // 実行属性を付ける
             t1 |= EnFileTypeMaskOs9.FILETYPE_MASK_OS9_PUBLIC_EXEC.getValue();
@@ -1172,7 +1188,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     public void setInternalDataInAttrDialog(KeyValArray vals) throws IOException {
         vals.add("self", m_data.isSelf());
 
-        vals.add("DE_NAM", m_data.data().deNam,m_data.data().deNam.length);
+        vals.add("DE_NAM", m_data.data().deNam, m_data.data().deNam.length);
         vals.add("DE_Reserved", m_data.data().deReserved);
         vals.add("DE_LSN", m_data.data().deLsn.getOs9Lsn());
 

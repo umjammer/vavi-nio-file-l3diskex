@@ -130,9 +130,9 @@ public class DiskDmkParser extends DiskImageParser {
     // No need for explicit destructor in Java
 
     // データマークをさがす
-    private boolean FindDataMark(InputStream istream, int sector_size, boolean double_density, int[] deleted) throws IOException {
+    private boolean findDataMark(InputStream istream, int sector_size, boolean double_density, int[] deleted) throws IOException {
         byte[] buf = new byte[64];
-        int currentFileOffset = (int) ((SeekableDataInputStream)istream).position();
+        int currentFileOffset = (int) ((SeekableDataInputStream) istream).position();
         int len = istream.read(buf, 0, buf.length);
         if (len < buf.length) {
             return false;
@@ -165,7 +165,7 @@ public class DiskDmkParser extends DiskImageParser {
     }
 
     // セクタデータの作成
-    private int ParseSector(InputStream istream, int sector_nums, int flags, DiskImageTrack track) throws IOException {
+    private int parseSector(InputStream istream, int sector_nums, int flags, DiskImageTrack track) throws IOException {
         TrsDmkSectorId id = new TrsDmkSectorId();
 
         try {
@@ -190,7 +190,7 @@ public class DiskDmkParser extends DiskImageParser {
 
         // データの開始位置をさがす
         int[] deleted = new int[1];
-        if (!FindDataMark(istream, sector_size, (flags & DMK_IDAM_DENSITY) != 0, deleted)) {
+        if (!findDataMark(istream, sector_size, (flags & DMK_IDAM_DENSITY) != 0, deleted)) {
             result.setError(DiskResult.ERRV_NO_SECTOR, 0, sector_number, track_number, side_number);
             return 0;
         }
@@ -215,10 +215,10 @@ public class DiskDmkParser extends DiskImageParser {
     }
 
     // トラックデータの作成
-    private int ParseTrack(InputStream istream, int track_size, int offset_pos, int offset, DiskImageDisk disk) throws IOException {
+    private int parseTrack(InputStream istream, int track_size, int offset_pos, int offset, DiskImageDisk disk) throws IOException {
         TrsDmkTrack track_header = new TrsDmkTrack();
 
-        int file_offset = (int) ((SeekableDataInputStream)istream).position();
+        int file_offset = (int) ((SeekableDataInputStream) istream).position();
 
         try {
             track_header.read(istream);
@@ -247,9 +247,9 @@ public class DiskDmkParser extends DiskImageParser {
 
             int next_offset = (ptr & DMK_IDAM_OFFSET);
             // move position in file
-            ((SeekableDataInputStream)istream).position(file_offset + next_offset); // wxFromStart
+            ((SeekableDataInputStream) istream).position(file_offset + next_offset); // wxFromStart
 
-            d88_track_size += ParseSector(istream, num_of_sectors, (ptr & ~DMK_IDAM_OFFSET), track);
+            d88_track_size += parseSector(istream, num_of_sectors, (ptr & ~DMK_IDAM_OFFSET), track);
         }
 
         if (result.getValid() >= 0) {
@@ -275,13 +275,13 @@ public class DiskDmkParser extends DiskImageParser {
         }
 
         // 次のトラックデータの先頭へ
-        ((SeekableDataInputStream)istream).position(file_offset + track_size); // wxFromStart
+        ((SeekableDataInputStream) istream).position(file_offset + track_size); // wxFromStart
 
         return d88_track_size;
     }
 
     // ディスクの解析
-    private int ParseDisk(InputStream istream) throws IOException {
+    private int parseDisk(InputStream istream) throws IOException {
         DiskImageDisk disk = file.newImageDisk(0);
 
         TrsDmkHeader header = new TrsDmkHeader();
@@ -302,7 +302,7 @@ public class DiskDmkParser extends DiskImageParser {
         int track_length = header.track_length & 0xFFFF;
 
         for (int pos = 0; pos < 204 && pos < max_tracks; pos++) {
-            d88_offset += ParseTrack(istream,
+            d88_offset += parseTrack(istream,
                     track_length,
                     d88_offset_pos, d88_offset, disk);
             d88_offset_pos++;
@@ -385,7 +385,7 @@ public class DiskDmkParser extends DiskImageParser {
         SeekableDataInputStream istream = (SeekableDataInputStream) inputStream;
 
         try {
-            ParseDisk(istream);
+            parseDisk(istream);
         } catch (IOException e) {
             // Handle IO exception during parsing, setting a general error
             result.setError(DiskResult.ERRV_INVALID_DISK, 0);

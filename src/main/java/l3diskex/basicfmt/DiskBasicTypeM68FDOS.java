@@ -22,8 +22,6 @@ import l3diskex.basicfmt.BasicFmt.DiskBasicIdentifiedData;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import vavi.util.ByteUtil;
 
-import static l3diskex.basicfmt.BasicFat.INVALID_GROUP_NUMBER;
-
 
 /**
  * Sord M68 FDOS (KDOS) の処理
@@ -279,7 +277,7 @@ public class DiskBasicTypeM68FDOS extends DiskBasicTypeMZBase {
                 //			used++;
                 fsts = FatAvailability.FAT_AVAIL_USED.getValue();
             }
-            fat_availability.Add(fsts, 0, 0);
+            fat_availability.add(fsts, 0, 0);
         }
 
         // ディレクトリエントリのグループ
@@ -304,7 +302,7 @@ public class DiskBasicTypeM68FDOS extends DiskBasicTypeMZBase {
         int fsize = grps * basic.diskBasicParam.getSectorsPerGroup() * basic.getSectorSize();
 
         fat_availability.setFreeSize(fsize);
-        fat_availability.SetFreeGroups(grps);
+        fat_availability.setFreeGroups(grps);
     }
 
     /**

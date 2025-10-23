@@ -5,18 +5,28 @@
 package l3diskex.ui;
 
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.Dialog;
+import java.awt.FlowLayout;
+import java.awt.Frame;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
+
 
 /**
  * ファイル種類選択ボックス
- *
+ * <p>
  * ※ wxWidgets の API を Java の Swing に置き換えて
- *    ほぼそのまま構造を維持しています。GUI の
- *    実装は簡易的にしています。
+ * ほぼそのまま構造を維持しています。GUI の
+ * 実装は簡易的にしています。
  */
 public class FileSelBox extends JDialog {
 
@@ -38,9 +48,10 @@ public class FileSelBox extends JDialog {
     /* ------------------------------------------------------------
      *  4. コンストラクタ
      * ------------------------------------------------------------ */
+
     /**
      * @param parent 親ウィンドウ（JFrame 等）
-     * @param id      ウィンドウID（使わないが置き換え用）
+     * @param id     ウィンドウID（使わないが置き換え用）
      */
     public FileSelBox(Frame parent, int id) {
         super(parent, "Select File Type", true);   // タイトルとモーダル設定
@@ -146,6 +157,7 @@ public class FileSelBox extends JDialog {
 
     /** 1 つのファイル形式情報 */
     private static class FileFormat {
+
         private final String name;
         private final String description;
 
@@ -165,6 +177,7 @@ public class FileSelBox extends JDialog {
 
     /** ファイル形式のリスト */
     private static class FileFormats {
+
         private final List<FileFormat> list = new ArrayList<>();
 
         public int count() {
@@ -184,6 +197,7 @@ public class FileSelBox extends JDialog {
 
     /** ファイル形式を管理するクラス（グローバルに 1 つ保持） */
     private static class FileTypes {
+
         private final FileFormats formats = new FileFormats();
 
         public FileFormats getFormats() {

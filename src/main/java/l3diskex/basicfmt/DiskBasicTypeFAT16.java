@@ -6,9 +6,9 @@ import l3diskex.basicfmt.BasicFmt.DiskBasic;
 
 /**
  * @file DiskBasicTypeFAT16.java
- *
+ * <p>
  * Disk BASIC FAT type implementation (FAT‑16)
- *
+ * <p>
  * This file is a direct, literal translation of the original C++ sources
  * (basictype_fat16.h and basictype_fat16.cpp) into Java.  The class
  * hierarchy and public API remain unchanged.
@@ -61,8 +61,8 @@ public class DiskBasicTypeFAT16 extends DiskBasicTypeFATBase {
      *
      * @param isFormatting {@code true} when formatting the disk.
      * @return 1.0   – success, no warning
-     *         0.0–1.0 – warnings exist
-     *        <0.0 – error
+     * 0.0–1.0 – warnings exist
+     * <0.0 – error
      */
     @Override
     public double checkFat(boolean isFormatting) {

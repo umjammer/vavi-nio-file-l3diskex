@@ -73,8 +73,8 @@ public class UiDirItemFAT8 extends UiDirItem {
     public void ChangeTypeInAttrDialog(IntNameBox parent) {
         // FindWindow methods are assumed to exist and return the correct type
         JTextField txtIntName = (JTextField) parent.getComponent(IntNameBox.IDC_TEXT_INTNAME);
-        ButtonGroup radType1 = (ButtonGroup)parent.getComponent(TypeNames.ATTR_DIALOG_IDC_RADIO_TYPE1);
-        ButtonGroup radType2 = (ButtonGroup)parent.getComponent(TypeNames.ATTR_DIALOG_IDC_RADIO_TYPE2);
+        ButtonGroup radType1 = (ButtonGroup) parent.getComponent(TypeNames.ATTR_DIALOG_IDC_RADIO_TYPE1);
+        ButtonGroup radType2 = (ButtonGroup) parent.getComponent(TypeNames.ATTR_DIALOG_IDC_RADIO_TYPE2);
 
         int selected_idx = 0;
         if (radType1 != null) {
@@ -95,20 +95,20 @@ public class UiDirItemFAT8 extends UiDirItem {
                     if (cur_pos == 2) {
                         radType2.SetSelection(0);
                     }
-                    radType2.setEnabled(2, false);	// ランダムアクセス指定不可
+                    radType2.setEnabled(2, false);    // ランダムアクセス指定不可
                 }
             } else if (selected_idx == 1) {
                 // データ
                 if (cur_pos == 0) {
                     radType2.SetSelection(1);
                 }
-                radType2.enable(0, false);	// バイナリ指定不可
+                radType2.enable(0, false);    // バイナリ指定不可
             } else if (selected_idx == 2) {
                 // 機械語
                 radType2.SetSelection(0);
-                radType2.enable(1, false);	// アスキー指定不可
+                radType2.enable(1, false);    // アスキー指定不可
                 if (cnt > 2) {
-                    radType2.enable(2, false);	// ランダムアクセス指定不可
+                    radType2.enable(2, false);    // ランダムアクセス指定不可
                 }
             }
             // 拡張子を付加
@@ -119,15 +119,15 @@ public class UiDirItemFAT8 extends UiDirItem {
     }
 
     public boolean SetAttrInAttrDialog(IntNameBox parent, DiskBasicDirItemAttr attr, DiskBasicError errinfo) {
-        ButtonGroup radType1 = (ButtonGroup)parent.getComponent(TypeNames.ATTR_DIALOG_IDC_RADIO_TYPE1);
-        ButtonGroup radType2 = (ButtonGroup)parent.getComponent(TypeNames.ATTR_DIALOG_IDC_RADIO_TYPE2);
+        ButtonGroup radType1 = (ButtonGroup) parent.getComponent(TypeNames.ATTR_DIALOG_IDC_RADIO_TYPE1);
+        ButtonGroup radType2 = (ButtonGroup) parent.getComponent(TypeNames.ATTR_DIALOG_IDC_RADIO_TYPE2);
 
         int pos1 = radType1.getSelection();
         int pos2 = radType2.GetSelection();
         int val = (pos1 >= TypeNames.TYPE_NAME_1_BASIC && pos1 <= TypeNames.TYPE_NAME_1_MACHINE ? 1 << pos1 : 0);
 
         // Constants are assumed to be defined in DiskBasic or a global constants class
-        switch(pos2) {
+        switch (pos2) {
             case TypeNames.TYPE_NAME_2_BINARY:
                 val |= FILE_TYPE_BINARY_MASK.getValue();
                 break;

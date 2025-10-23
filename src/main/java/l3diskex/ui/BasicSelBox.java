@@ -60,8 +60,7 @@ public class BasicSelBox extends JDialog {
                        int id,
                        DiskImageDisk disk,
                        DiskBasic basic,
-                       int showFlags)
-    {
+                       int showFlags) {
         super(parent, "Select BASIC Type", true);
 
         this.p_disk = disk;
@@ -121,20 +120,23 @@ public class BasicSelBox extends JDialog {
         //  Event wiring
         // --
         comBasic.addActionListener(new ActionListener() {
-            @Override public void actionPerformed(ActionEvent e) {
+            @Override
+            public void actionPerformed(ActionEvent e) {
                 int sel = comBasic.getSelectedIndex();
                 if (sel >= 0) changeBasic(sel);
             }
         });
 
         okBtn.addActionListener(new ActionListener() {
-            @Override public void actionPerformed(ActionEvent e) {
+            @Override
+            public void actionPerformed(ActionEvent e) {
                 onOK();
             }
         });
 
         cancelBtn.addActionListener(new ActionListener() {
-            @Override public void actionPerformed(ActionEvent e) {
+            @Override
+            public void actionPerformed(ActionEvent e) {
                 dispose();
             }
         });
@@ -197,6 +199,7 @@ public class BasicSelBox extends JDialog {
     //  VolumeCtrl – mirrors the C++ VolumeCtrl class
     // ------
     private class VolumeCtrl {
+
         private static final int VOLUME_ROWS = 3;
         private final JLabel[] lblVolume = new JLabel[VOLUME_ROWS];
         private final JTextField[] txtVolume = new JTextField[VOLUME_ROWS];
@@ -208,7 +211,7 @@ public class BasicSelBox extends JDialog {
             gbc.insets = new Insets(4, 4, 4, 4);
             gbc.fill = GridBagConstraints.HORIZONTAL;
 
-            String[] titles = { "Volume Name", "Volume Number", "Volume Date" };
+            String[] titles = {"Volume Name", "Volume Number", "Volume Date"};
 
             for (int i = 0; i < VOLUME_ROWS; i++) {
                 lblVolume[i] = new JLabel(titles[i]);
@@ -293,8 +296,13 @@ public class BasicSelBox extends JDialog {
 
     // Dummy document that limits max characters
     private class LimitedDocument extends javax.swing.text.PlainDocument {
+
         private final int maxLen;
-        public LimitedDocument(int maxLen) { this.maxLen = maxLen; }
+
+        public LimitedDocument(int maxLen) {
+            this.maxLen = maxLen;
+        }
+
         @Override
         public void insertString(int offs, String str, javax.swing.text.AttributeSet a)
                 throws javax.swing.text.BadLocationException {
@@ -307,14 +315,17 @@ public class BasicSelBox extends JDialog {
 
     // Dummy verifier – would normally check against a rule
     private class IntNameVerifier extends InputVerifier {
+
         private final int maxLen;
         private final String label;
         private final ValidNameRule rule;
+
         public IntNameVerifier(int maxLen, String label, ValidNameRule rule) {
             this.maxLen = maxLen;
             this.label = label;
             this.rule = rule;
         }
+
         @Override
         public boolean verify(JComponent input) {
             // Simplified – always accept

@@ -30,6 +30,7 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_SYSTEM_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_UNDELETE_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_VOLUME_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_WRITEONLY_MASK;
+import static l3diskex.basicfmt.DiskBasicType.INVALID_GROUP_NUMBER;
 
 
 public class DiskBasicDirItemProDOS extends DiskBasicDirItem<DirectoryProdos> {
@@ -42,37 +43,37 @@ public class DiskBasicDirItemProDOS extends DiskBasicDirItem<DirectoryProdos> {
     };
 
     // en_type_name_prodos_1
-    public static final int TYPE_NAME_PRODOS_FILE    = 0;
-    public static final int TYPE_NAME_PRODOS_SUBDIR  = 1;
-    public static final int TYPE_NAME_PRODOS_VOLUME  = 2;
+    public static final int TYPE_NAME_PRODOS_FILE = 0;
+    public static final int TYPE_NAME_PRODOS_SUBDIR = 1;
+    public static final int TYPE_NAME_PRODOS_VOLUME = 2;
 
     // en_file_type_mask_prodos_1
     public static final int FILETYPE_MASK_PRODOS_DELETED = 0x0;
     public static final int FILETYPE_MASK_PRODOS_SEEDING = 0x1;
     public static final int FILETYPE_MASK_PRODOS_SAPLING = 0x2;
-    public static final int FILETYPE_MASK_PRODOS_TREE    = 0x3;
-    public static final int FILETYPE_MASK_PRODOS_SUBDIR  = 0xd;
-    public static final int FILETYPE_MASK_PRODOS_SUBVOL  = 0xe;
-    public static final int FILETYPE_MASK_PRODOS_VOLUME  = 0xf;
+    public static final int FILETYPE_MASK_PRODOS_TREE = 0x3;
+    public static final int FILETYPE_MASK_PRODOS_SUBDIR = 0xd;
+    public static final int FILETYPE_MASK_PRODOS_SUBVOL = 0xe;
+    public static final int FILETYPE_MASK_PRODOS_VOLUME = 0xf;
 
     // en_type_name_prodos_2
-    public static final int TYPE_NAME_PRODOS_NOT   = 0;
-    public static final int TYPE_NAME_PRODOS_BAD   = 1;
-    public static final int TYPE_NAME_PRODOS_TXT   = 2;
-    public static final int TYPE_NAME_PRODOS_BIN   = 3;
-    public static final int TYPE_NAME_PRODOS_DIR   = 4;
-    public static final int TYPE_NAME_PRODOS_ADB   = 5;
-    public static final int TYPE_NAME_PRODOS_AWP   = 6;
-    public static final int TYPE_NAME_PRODOS_ASP   = 7;
-    public static final int TYPE_NAME_PRODOS_PAS   = 8;
-    public static final int TYPE_NAME_PRODOS_CMD   = 9;
-    public static final int TYPE_NAME_PRODOS_INT   = 10;
-    public static final int TYPE_NAME_PRODOS_IVR   = 11;
-    public static final int TYPE_NAME_PRODOS_BAS   = 12;
-    public static final int TYPE_NAME_PRODOS_VAR   = 13;
-    public static final int TYPE_NAME_PRODOS_REL   = 14;
-    public static final int TYPE_NAME_PRODOS_SYS   = 15;
-    public static final int TYPE_NAME_PRODOS_END   = 16;
+    public static final int TYPE_NAME_PRODOS_NOT = 0;
+    public static final int TYPE_NAME_PRODOS_BAD = 1;
+    public static final int TYPE_NAME_PRODOS_TXT = 2;
+    public static final int TYPE_NAME_PRODOS_BIN = 3;
+    public static final int TYPE_NAME_PRODOS_DIR = 4;
+    public static final int TYPE_NAME_PRODOS_ADB = 5;
+    public static final int TYPE_NAME_PRODOS_AWP = 6;
+    public static final int TYPE_NAME_PRODOS_ASP = 7;
+    public static final int TYPE_NAME_PRODOS_PAS = 8;
+    public static final int TYPE_NAME_PRODOS_CMD = 9;
+    public static final int TYPE_NAME_PRODOS_INT = 10;
+    public static final int TYPE_NAME_PRODOS_IVR = 11;
+    public static final int TYPE_NAME_PRODOS_BAS = 12;
+    public static final int TYPE_NAME_PRODOS_VAR = 13;
+    public static final int TYPE_NAME_PRODOS_REL = 14;
+    public static final int TYPE_NAME_PRODOS_SYS = 15;
+    public static final int TYPE_NAME_PRODOS_END = 16;
 
     // en_file_type_mask_prodos_2
     public static final int FILETYPE_MASK_PRODOS_NOT = 0x00;
@@ -94,39 +95,39 @@ public class DiskBasicDirItemProDOS extends DiskBasicDirItem<DirectoryProdos> {
 
     // gTypeNameProDOS2 from basicdiritem_prodos.cpp
     public static final Map<String, Object> G_TYPE_NAME_PRODOS2 = new LinkedHashMap<>() {{
-            put("<no type>", FILETYPE_MASK_PRODOS_NOT);
-            put("BAD", FILETYPE_MASK_PRODOS_BAD);
-            put("TXT", FILETYPE_MASK_PRODOS_TXT);
-            put("BIN", FILETYPE_MASK_PRODOS_BIN);
-            put("DIR", FILETYPE_MASK_PRODOS_DIR);
-            put("ADB", FILETYPE_MASK_PRODOS_ADB);
-            put("AWB", FILETYPE_MASK_PRODOS_AWP);
-            put("ASP", FILETYPE_MASK_PRODOS_ASP);
-            put("PAS", FILETYPE_MASK_PRODOS_PAS);
-            put("CMD", FILETYPE_MASK_PRODOS_CMD);
-            put("INT", FILETYPE_MASK_PRODOS_INT);
-            put("IVR", FILETYPE_MASK_PRODOS_IVR);
-            put("BAS", FILETYPE_MASK_PRODOS_BAS);
-            put("VAR", FILETYPE_MASK_PRODOS_VAR);
-            put("REL", FILETYPE_MASK_PRODOS_REL);
-            put("SYS", FILETYPE_MASK_PRODOS_SYS);
+        put("<no type>", FILETYPE_MASK_PRODOS_NOT);
+        put("BAD", FILETYPE_MASK_PRODOS_BAD);
+        put("TXT", FILETYPE_MASK_PRODOS_TXT);
+        put("BIN", FILETYPE_MASK_PRODOS_BIN);
+        put("DIR", FILETYPE_MASK_PRODOS_DIR);
+        put("ADB", FILETYPE_MASK_PRODOS_ADB);
+        put("AWB", FILETYPE_MASK_PRODOS_AWP);
+        put("ASP", FILETYPE_MASK_PRODOS_ASP);
+        put("PAS", FILETYPE_MASK_PRODOS_PAS);
+        put("CMD", FILETYPE_MASK_PRODOS_CMD);
+        put("INT", FILETYPE_MASK_PRODOS_INT);
+        put("IVR", FILETYPE_MASK_PRODOS_IVR);
+        put("BAS", FILETYPE_MASK_PRODOS_BAS);
+        put("VAR", FILETYPE_MASK_PRODOS_VAR);
+        put("REL", FILETYPE_MASK_PRODOS_REL);
+        put("SYS", FILETYPE_MASK_PRODOS_SYS);
     }};
 
     // en_file_type_mask_prodos_3
     public static final int FILETYPE_MASK_PRODOS_DESTROY = 0x80;
-    public static final int FILETYPE_MASK_PRODOS_RENAME  = 0x40;
-    public static final int FILETYPE_MASK_PRODOS_CHANGE  = 0x20;
-    public static final int FILETYPE_MASK_PRODOS_WRITE   = 0x02;
-    public static final int FILETYPE_MASK_PRODOS_READ    = 0x01;
+    public static final int FILETYPE_MASK_PRODOS_RENAME = 0x40;
+    public static final int FILETYPE_MASK_PRODOS_CHANGE = 0x20;
+    public static final int FILETYPE_MASK_PRODOS_WRITE = 0x02;
+    public static final int FILETYPE_MASK_PRODOS_READ = 0x01;
     public static final int FILETYPE_MASK_PRODOS_ACCESS_ALL = 0xe3;
 
     // gTypeNameProDOS3 from basicdiritem_prodos.cpp
     public static final Map<String, Object> G_TYPE_NAME_PRODOS3 = new LinkedHashMap<>() {{
-            put("Readable", FILETYPE_MASK_PRODOS_READ);
-            put("Writable", FILETYPE_MASK_PRODOS_WRITE);
-            put("Changed", FILETYPE_MASK_PRODOS_CHANGE);
-            put("Can Rename", FILETYPE_MASK_PRODOS_RENAME);
-            put("Can Destroy", FILETYPE_MASK_PRODOS_DESTROY);
+        put("Readable", FILETYPE_MASK_PRODOS_READ);
+        put("Writable", FILETYPE_MASK_PRODOS_WRITE);
+        put("Changed", FILETYPE_MASK_PRODOS_CHANGE);
+        put("Can Rename", FILETYPE_MASK_PRODOS_RENAME);
+        put("Can Destroy", FILETYPE_MASK_PRODOS_DESTROY);
     }};
 
     // gTypeNameProDOS3S from basicdiritem_prodos.cpp
@@ -134,12 +135,14 @@ public class DiskBasicDirItemProDOS extends DiskBasicDirItem<DirectoryProdos> {
 
     // prodos_dir_ptr_t
     public static class ProDOSDirPtrT {
+
         public int prevBlock; // wxUint16
         public int nextBlock; // wxUint16
     }
 
     // --- ProDOSOneIndex (from basicdiritem_prodos.h/cpp) ---
     static class ProDOSOneIndex {
+
         private final byte[][] mBuf = new byte[2][];
         private final int mSize;
         private final int mGroupNum; // int
@@ -163,15 +166,15 @@ public class DiskBasicDirItemProDOS extends DiskBasicDirItem<DirectoryProdos> {
         public short getGroupNumber(int pos) {
             // Emulate C++: ((wxUint16)m_buf[1][pos] << 8) | m_buf[0][pos];
             // This is a little-endian read of a 16-bit block number.
-            if (mBuf[0] == null || mBuf[1] == null) return (short)0;
+            if (mBuf[0] == null || mBuf[1] == null) return (short) 0;
             int val = (mBuf[1][pos] & 0xFF) << 8 | (mBuf[0][pos] & 0xFF);
-            return (short)val; // Needs byte swap if system is BE
+            return (short) val; // Needs byte swap if system is BE
         }
 
         public void setGroupNumber(int pos, short val) {
             // Emulate C++: m_buf[1][pos] = (val >> 8); m_buf[0][pos] = (val & 0xff);
-            mBuf[1][pos] = (byte)(val >> 8);
-            mBuf[0][pos] = (byte)(val & 0xff);
+            mBuf[1][pos] = (byte) (val >> 8);
+            mBuf[0][pos] = (byte) (val & 0xff);
         }
 
         public int getSize() {
@@ -185,6 +188,7 @@ public class DiskBasicDirItemProDOS extends DiskBasicDirItem<DirectoryProdos> {
 
     // --- ProDOSIndex (from basicdiritem_prodos.h/cpp) ---
     static class ProDOSIndex extends ArrayList<ProDOSOneIndex> {
+
         private DiskBasic mBasic;
 
         public ProDOSIndex() {
@@ -202,7 +206,7 @@ public class DiskBasicDirItemProDOS extends DiskBasicDirItem<DirectoryProdos> {
         }
 
         public short getGroupNumber(int pos) {
-            short groupNum = (short)0xffff; // wxUint16 0xffff
+            short groupNum = (short) 0xffff; // wxUint16 0xffff
 
             for (int idx = 0; idx < size(); idx++) {
                 ProDOSOneIndex item = get(idx);
@@ -353,7 +357,7 @@ public class DiskBasicDirItemProDOS extends DiskBasicDirItem<DirectoryProdos> {
 
     @Override
     public void setFileType1(int val) {
-        m_data.data().stypeAndNlen = (byte)((val << 4) | (m_data.data().stypeAndNlen & 0x0f));
+        m_data.data().stypeAndNlen = (byte) ((val << 4) | (m_data.data().stypeAndNlen & 0x0f));
     }
 
     @Override
@@ -363,7 +367,7 @@ public class DiskBasicDirItemProDOS extends DiskBasicDirItem<DirectoryProdos> {
 
     @Override
     public void setFileType2(int val) {
-        m_data.data().fileType = (byte)(val & 0xff);
+        m_data.data().fileType = (byte) (val & 0xff);
     }
 
     @Override
@@ -373,7 +377,7 @@ public class DiskBasicDirItemProDOS extends DiskBasicDirItem<DirectoryProdos> {
 
     @Override
     public void setFileType3(int val) {
-        m_data.data().access = (byte)(val & 0xff);
+        m_data.data().access = (byte) (val & 0xff);
     }
 
     public int getAuxType() {
@@ -383,7 +387,7 @@ public class DiskBasicDirItemProDOS extends DiskBasicDirItem<DirectoryProdos> {
 
     public void setAuxType(int val) {
         // m_data.data()->f.aux_type = wxUINT16_SWAP_ON_BE(val & 0xffff);
-        m_data.data().aux.f.auxType = (short)(val & 0xffff);
+        m_data.data().aux.f.auxType = (short) (val & 0xffff);
     }
 
     @Override
@@ -397,9 +401,9 @@ public class DiskBasicDirItemProDOS extends DiskBasicDirItem<DirectoryProdos> {
     }
 
     public void setVersion(int val) {
-        m_data.data().minVersion = (byte)(val & 0xff);
+        m_data.data().minVersion = (byte) (val & 0xff);
         val >>= 8;
-        m_data.data().version = (byte)(val & 0xff);
+        m_data.data().version = (byte) (val & 0xff);
     }
 
     public int getBlocksUsed() {
@@ -409,7 +413,7 @@ public class DiskBasicDirItemProDOS extends DiskBasicDirItem<DirectoryProdos> {
 
     public void setBlocksUsed(int val) {
         // m_data.data()->blocks_used = wxUINT16_SWAP_ON_BE(val & 0xffff);
-        m_data.data().blocksUsed = (short)(val & 0xffff);
+        m_data.data().blocksUsed = (short) (val & 0xffff);
     }
 
     @Override
@@ -574,11 +578,11 @@ public class DiskBasicDirItemProDOS extends DiskBasicDirItem<DirectoryProdos> {
         // grps += (int)m_index.Count();
         int grps = 0; // Placeholder
 
-        m_data.data().eof[0] = (byte)(val & 0xff);
+        m_data.data().eof[0] = (byte) (val & 0xff);
         val >>= 8;
-        m_data.data().eof[1] = (byte)(val & 0xff);
+        m_data.data().eof[1] = (byte) (val & 0xff);
         val >>= 8;
-        m_data.data().eof[2] = (byte)(val & 0xff);
+        m_data.data().eof[2] = (byte) (val & 0xff);
 
         setBlocksUsed(grps);
     }
@@ -591,7 +595,7 @@ public class DiskBasicDirItemProDOS extends DiskBasicDirItem<DirectoryProdos> {
                 | ((m_data.data().eof[2] & 0xff) << 16);
 
         int stype = getFileType1();
-        switch(stype) {
+        switch (stype) {
             case FILETYPE_MASK_PRODOS_SUBVOL:
             case FILETYPE_MASK_PRODOS_VOLUME:
                 val = 0;
@@ -632,7 +636,7 @@ public class DiskBasicDirItemProDOS extends DiskBasicDirItem<DirectoryProdos> {
             calc_file_size += getFileSize();
         } else if (stype == FILETYPE_MASK_PRODOS_SAPLING) {
             // インデックスを参照するファイル
-            for(int i=0; i < getBlocksUsed(); i++) {
+            for (int i = 0; i < getBlocksUsed(); i++) {
                 group_num = mIndex.getGroupNumber(i);
                 if (group_num == 0) {
                     break;
@@ -643,7 +647,7 @@ public class DiskBasicDirItemProDOS extends DiskBasicDirItem<DirectoryProdos> {
             calc_file_size += getFileSize();
         } else if (stype == FILETYPE_MASK_PRODOS_TREE) {
             // インデックスを参照するファイル ツリー形式
-            for(int i=0; i < getBlocksUsed(); i++) {
+            for (int i = 0; i < getBlocksUsed(); i++) {
                 group_num = mIndex.getGroupNumber(i + sector_size);
                 if (group_num == 0) {
                     break;
@@ -654,11 +658,11 @@ public class DiskBasicDirItemProDOS extends DiskBasicDirItem<DirectoryProdos> {
             calc_file_size += getFileSize();
         } else if (stype == FILETYPE_MASK_PRODOS_SUBDIR) {
             // サブディレクトリ
-            for(int i=0; i < getBlocksUsed(); i++) {
+            for (int i = 0; i < getBlocksUsed(); i++) {
                 ProDOSDirPtrT next = new ProDOSDirPtrT();
                 next.nextBlock = 0;
 
-                for(int ss = 0; ss < basic.getSectorsPerGroup(); ss++) {
+                for (int ss = 0; ss < basic.getSectorsPerGroup(); ss++) {
                     DiskImageSector sector = basic.getSectorFromSectorPos(sector_pos, new int[] {track_num}, new int[] {side_num});
                     if (sector == null) {
                         break;
@@ -745,7 +749,7 @@ public class DiskBasicDirItemProDOS extends DiskBasicDirItem<DirectoryProdos> {
     @Override
     public void setStartGroup(int fileunitNum, int val, int size) {
         // m_data.data()->key_pointer = wxUINT16_SWAP_ON_BE((wxUint16)val);
-        m_data.data().keyPointer = (short)val;
+        m_data.data().keyPointer = (short) val;
     }
 
     @Override
@@ -754,7 +758,7 @@ public class DiskBasicDirItemProDOS extends DiskBasicDirItem<DirectoryProdos> {
         int val = m_data.data().keyPointer & 0xffff;
 
         int stype = getFileType1();
-        switch(stype) {
+        switch (stype) {
             case FILETYPE_MASK_PRODOS_SUBVOL:
             case FILETYPE_MASK_PRODOS_VOLUME:
                 val = mDirGroupNum;
@@ -766,13 +770,13 @@ public class DiskBasicDirItemProDOS extends DiskBasicDirItem<DirectoryProdos> {
     @Override
     public void setParentGroup(int val) {
         int stype = getFileType1();
-        switch(stype) {
+        switch (stype) {
             case FILETYPE_MASK_PRODOS_SUBVOL:
             case FILETYPE_MASK_PRODOS_VOLUME:
                 break;
             default:
                 // m_data.data()->f.header_pointer = wxUINT16_SWAP_ON_BE(val);
-                m_data.data().aux.f.headerPointer = (short)val;
+                m_data.data().aux.f.headerPointer = (short) val;
                 break;
         }
     }
@@ -781,11 +785,10 @@ public class DiskBasicDirItemProDOS extends DiskBasicDirItem<DirectoryProdos> {
     public int getParentGroup() {
         int val;
         int stype = getFileType1();
-        switch(stype) {
+        switch (stype) {
             case FILETYPE_MASK_PRODOS_SUBVOL:
             case FILETYPE_MASK_PRODOS_VOLUME:
-                // Assuming INVALID_GROUP_NUMBER is defined
-                val = 0xffff_ffff; // INVALID_GROUP_NUMBER
+                val = INVALID_GROUP_NUMBER;
                 break;
             default:
                 // val = wxUINT16_SWAP_ON_BE(m_data.data()->f.header_pointer);
@@ -798,18 +801,18 @@ public class DiskBasicDirItemProDOS extends DiskBasicDirItem<DirectoryProdos> {
     @Override
     public int getExtraGroup() {
         int stype = getFileType1();
-        switch(stype) {
+        switch (stype) {
             case FILETYPE_MASK_PRODOS_SAPLING:
             case FILETYPE_MASK_PRODOS_TREE:
                 return getStartGroup(0);
         }
-        return 0xffff_ffff; // INVALID_GROUP_NUMBER
+        return INVALID_GROUP_NUMBER;
     }
 
     @Override
     public void getExtraGroups(java.util.List<Integer> arr) {
         int stype = getFileType1();
-        switch(stype) {
+        switch (stype) {
             case FILETYPE_MASK_PRODOS_SAPLING:
             case FILETYPE_MASK_PRODOS_TREE:
                 arr.add(getStartGroup(0));
@@ -833,7 +836,7 @@ public class DiskBasicDirItemProDOS extends DiskBasicDirItem<DirectoryProdos> {
 
     @Override
     public void addChainGroupNumber(int idx, int val) {
-        mIndex.setGroupNumber(idx, (short)val);
+        mIndex.setGroupNumber(idx, (short) val);
     }
 
     @Override
@@ -859,7 +862,7 @@ public class DiskBasicDirItemProDOS extends DiskBasicDirItem<DirectoryProdos> {
     // @Override
     @Override
     public boolean preExportDataFile(String[] filename) {
-        if (!gConfig.IsAddExtensionExport()) return true;
+        if (!gConfig.isAddExtensionExport()) return true;
 
         if (!isDirectory()) {
 // gTypeNameProDOS2 is external
@@ -879,7 +882,7 @@ public class DiskBasicDirItemProDOS extends DiskBasicDirItem<DirectoryProdos> {
     // @Override
     @Override
     public boolean preImportDataFile(String[] filename) {
-        if (gConfig.IsDecideAttrImport()) {
+        if (gConfig.isDecideAttrImport()) {
 // gTypeNameProDOS2 is external
             isContainAttrByExtension(filename[0], G_TYPE_NAME_PRODOS2, TYPE_NAME_PRODOS_NOT, TYPE_NAME_PRODOS_SYS, filename, null, null);
         }
@@ -1009,22 +1012,22 @@ public class DiskBasicDirItemProDOS extends DiskBasicDirItem<DirectoryProdos> {
 
     public static void convDateFromTm(LocalDateTime tm, byte[] data) {
         if (tm.getYear() >= 0 && tm.getMonth().ordinal() >= -1) {
-            data[1] = (byte)(((tm.getYear() & 0x7f) % 100) << 1 | (((tm.getMonth().ordinal() + 1) & 0x8) >> 3));
-            data[0] = (byte)((((tm.getMonth().ordinal() + 1) & 0x7) << 5) | (tm.getDayOfMonth() & 0x1f));
+            data[1] = (byte) (((tm.getYear() & 0x7f) % 100) << 1 | (((tm.getMonth().ordinal() + 1) & 0x8) >> 3));
+            data[0] = (byte) ((((tm.getMonth().ordinal() + 1) & 0x7) << 5) | (tm.getDayOfMonth() & 0x1f));
         }
     }
 
     public static void convTimeFromTm(LocalDateTime tm, byte[] data) {
         if (tm.getHour() >= 0 && tm.getMinute() >= 0) {
-            data[1] = (byte)(tm.getHour() & 0x1f);
-            data[0] = (byte)(tm.getMinute() & 0x3f);
+            data[1] = (byte) (tm.getHour() & 0x1f);
+            data[0] = (byte) (tm.getMinute() & 0x3f);
         }
     }
 
     @Override
     public int getStartAddress() {
         int ftype = getFileType2();
-        switch(ftype) {
+        switch (ftype) {
             case FILETYPE_MASK_PRODOS_BIN:
             case FILETYPE_MASK_PRODOS_BAS:
             case FILETYPE_MASK_PRODOS_SYS:
@@ -1037,7 +1040,7 @@ public class DiskBasicDirItemProDOS extends DiskBasicDirItem<DirectoryProdos> {
     public int getEndAddress() {
         int val = -1;
         int ftype = getFileType2();
-        switch(ftype) {
+        switch (ftype) {
             case FILETYPE_MASK_PRODOS_BIN:
             case FILETYPE_MASK_PRODOS_BAS:
             case FILETYPE_MASK_PRODOS_SYS:
@@ -1050,7 +1053,7 @@ public class DiskBasicDirItemProDOS extends DiskBasicDirItem<DirectoryProdos> {
     @Override
     public void setStartAddress(int val) {
         int ftype = getFileType2();
-        switch(ftype) {
+        switch (ftype) {
             case FILETYPE_MASK_PRODOS_BIN:
             case FILETYPE_MASK_PRODOS_BAS:
             case FILETYPE_MASK_PRODOS_SYS:
@@ -1111,7 +1114,7 @@ public class DiskBasicDirItemProDOS extends DiskBasicDirItem<DirectoryProdos> {
         vals.add("VERSION", m_data.data().version);
         vals.add("MIN_VERSION", m_data.data().minVersion);
         vals.add("ACCESS", m_data.data().access);
-        switch(stype) {
+        switch (stype) {
             case FILETYPE_MASK_PRODOS_VOLUME:
                 vals.add("ENTRY_LENGTH", m_data.data().aux.v.entryLen);
                 vals.add("ENTRIES_PER_BLOCK", m_data.data().aux.v.entriesPerBlock);

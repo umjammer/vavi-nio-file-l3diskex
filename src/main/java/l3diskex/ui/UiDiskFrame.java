@@ -6,19 +6,19 @@ import java.awt.MenuItem;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowEvent;
 import java.nio.file.Path;
-
 import javax.swing.JPanel;
 import javax.swing.JToolBar;
 
-import l3diskex.ui.Main.UiDiskAbout;
-import l3diskex.ui.Main.UiDiskPanel;
 import l3diskex.Utils;
 import l3diskex.basicfmt.BasicFmt.DiskBasic;
 import l3diskex.diskimg.DiskD88;
 import l3diskex.diskimg.DiskImage;
+import l3diskex.ui.Main.UiDiskAbout;
+import l3diskex.ui.Main.UiDiskPanel;
 import l3diskex.ui.UIBinDump.UiDiskBinDumpFrame;
 import l3diskex.ui.UiDiskFatArea.UiDiskFatAreaFrame;
 
+import static l3diskex.Config.gConfig;
 import static l3diskex.ui.UiDiskList.IDM_ADD_DISK_FROM_FILE;
 import static l3diskex.ui.UiDiskList.IDM_ADD_DISK_NEW;
 import static l3diskex.ui.UiDiskList.IDM_DELETE_DISK_FROM_FILE;
@@ -38,6 +38,7 @@ public class UiDiskFrame extends UiDiskProcess {
     }
 
     static class StatusCounter {
+
         private int m_current;
         private int m_count;
         private int m_using;
@@ -100,6 +101,7 @@ public class UiDiskFrame extends UiDiskProcess {
     }
 
     static class StatusCounters {
+
         private static final int StatusCountersMax = 3;
         private final StatusCounter[] m_sc;
         private final Object m_delay; // wxTimer placeholder
@@ -198,9 +200,9 @@ public class UiDiskFrame extends UiDiskProcess {
     private static final int TOOLBAR_STYLE = 0; // Mocked wxTB_FLAT | wxTB_DOCKABLE | wxTB_TEXT
 
     public UiDiskFrame(String title, Dimension size) {
-        super();
+        super(title);
 
-        p_image = new DiskD88();
+        p_image = new DiskD88.DiskD88Image();
 
         MakeMenu();
 
@@ -220,8 +222,8 @@ public class UiDiskFrame extends UiDiskProcess {
     // Java equivalent of destructor logic
     public void cleanup() {
         // Dimension sz = GetSize() / GetClientSize() mocked
-        gConfig.SetWindowWidth(0);
-        gConfig.SetWindowHeight(0);
+        gConfig.setWindowWidth(0);
+        gConfig.setWindowHeight(0);
 
         p_image = null; // delete p_image;
     }
@@ -264,7 +266,7 @@ public class UiDiskFrame extends UiDiskProcess {
 
     /// メニュー Aboutダイアログ表示選択
     public void OnAbout(ActionEvent event) {
-        new UiDiskAbout(this, 0).ShowModal();
+        new UiDiskAbout(this, 0).setVisible(true);
     }
 
     /// メニュー 新規作成選択
@@ -281,9 +283,9 @@ public class UiDiskFrame extends UiDiskProcess {
     public void OnOpenRecentFile(ActionEvent event) {
         MenuItem item = menuRecentFiles.FindItem(event.GetId());
         if (item == null) return;
-        FileName path = new FileName("dummy_path"); // item.GetItemLabel() mocked
+        Path path = Path.of("dummy_path"); // item.GetItemLabel() mocked
         if (!CloseDataFile()) return;
-        PreOpenDataFile(path.GetFullPath());
+        PreOpenDataFile(path.toAbsolutePath().toString());
     }
 
     /// メニュー 閉じる選択
@@ -377,7 +379,7 @@ public class UiDiskFrame extends UiDiskProcess {
 
     /// メニュー ファイル編集選択
     public void OnEditFileOnDisk(ActionEvent event) {
-        EditFileOnDisk(event.GetId() == Global.IDM_EDIT_FILE_BINARY ? enEditorTypes.EDITOR_TYPE_BINARY : enEditorTypes.EDITOR_TYPE_TEXT);
+        EditFileOnDisk(event.getActionCommand() == Global.IDM_EDIT_FILE_BINARY ? enEditorTypes.EDITOR_TYPE_BINARY : enEditorTypes.EDITOR_TYPE_TEXT);
     }
 
     /// メニュー プロパティ選択
@@ -579,7 +581,7 @@ public class UiDiskFrame extends UiDiskProcess {
 
         Object[] toolBarBitmaps = new Object[Tool_Max];
 
-        for(int i = 0; i < Tool_Max; i++) toolBarBitmaps[i] = new Object(); // INIT_TOOL_BMP mock
+        for (int i = 0; i < Tool_Max; i++) toolBarBitmaps[i] = new Object(); // INIT_TOOL_BMP mock
 
         Dimension toolSize = new Dimension(); // Mocked size
 
@@ -592,13 +594,13 @@ public class UiDiskFrame extends UiDiskProcess {
         toolBar.AddTool(Global.IDM_NEW_FILE, "New",
                 toolBarBitmaps[fd_5inch_16_new], wxNullBitmap, wxITEM_NORMAL,
                 "New disk image");
-        toolBar.AddTool(Global.IDM_OPEN_FILE, "Open",
+        toolBar.add(Global.IDM_OPEN_FILE, "Open",
                 toolBarBitmaps[fd_5inch_16_open], wxNullBitmap, wxITEM_NORMAL,
                 "Open disk image");
-        toolBar.AddTool(Global.IDM_SAVEAS_FILE, "Save As",
+        toolBar.add(Global.IDM_SAVEAS_FILE, "Save As",
                 toolBarBitmaps[fd_5inch_16_1], wxNullBitmap, wxITEM_NORMAL,
                 "Save disk image");
-        toolBar.AddTool(Global.IDM_ADD_DISK, "Add",
+        toolBar.add(Global.IDM_ADD_DISK, "Add",
                 toolBarBitmaps[fd_5inch_16_add], wxNullBitmap, wxITEM_DROPDOWN,
                 "Add a disk on disk image");
         MyMenu sm = new MyMenu();
@@ -606,11 +608,11 @@ public class UiDiskFrame extends UiDiskProcess {
         sm.Append(Global.IDM_ADD_DISK_FROM_FILE, "From &File...");
         toolBar.SetDropdownMenu(Global.IDM_ADD_DISK, sm);
         // toolBar->AddTool(IDM_DELETE_DISK_FROM_FILE, ... ignored
-        toolBar.AddSeparator();
-        toolBar.AddTool(Global.IDM_EXPORT_DATA, "Export",
+        toolBar.addSeparator();
+        toolBar.add(Global.IDM_EXPORT_DATA, "Export",
                 toolBarBitmaps[fd_5inch_16_export], wxNullBitmap, wxITEM_NORMAL,
                 "Export a file from the disk");
-        toolBar.AddTool(Global.IDM_IMPORT_DATA, "Import",
+        toolBar.add(Global.IDM_IMPORT_DATA, "Import",
                 toolBarBitmaps[fd_5inch_16_import], wxNullBitmap, wxITEM_NORMAL,
                 "Import a file to the disk");
         // toolBar->AddTool(IDM_DELETE_DISK, ... ignored
@@ -761,7 +763,7 @@ public class UiDiskFrame extends UiDiskProcess {
 
     /// ツールバーのディスクリスト項目を更新
     public void UpdateToolBarDiskList(UiDiskList list) {
-        ToolBar toolBar = GetToolBar();
+        JToolBar toolBar = GetToolBar();
         if (toolBar == null) return;
         boolean opened = (list != null && list.IsSelectedDiskImage());
         toolBar.EnableTool(Global.IDM_SAVE_DISK, opened);
@@ -861,10 +863,21 @@ public class UiDiskFrame extends UiDiskProcess {
     // --- カウンター操作ヘルパー (mocked/internal) ---
 
     // These methods were not explicitly defined in the C++ but are used in the counter logic.
-    private int StartStatusCounter(int count, String message) { return stat_counters.Start(count, message); }
-    private void AppendStatusCounter(int id, int count) { stat_counters.Append(id, count); }
-    private void IncreaseStatusCounter(int id) { stat_counters.Increase(id); }
-    private void FinishStatusCounter(int id, String message) { stat_counters.Finish(id, message, null); } // Mocked EvtHandler is null
+    private int StartStatusCounter(int count, String message) {
+        return stat_counters.Start(count, message);
+    }
+
+    private void AppendStatusCounter(int id, int count) {
+        stat_counters.Append(id, count);
+    }
+
+    private void IncreaseStatusCounter(int id) {
+        stat_counters.Increase(id);
+    }
+
+    private void FinishStatusCounter(int id, String message) {
+        stat_counters.Finish(id, message, null);
+    } // Mocked EvtHandler is null
 
     /// エクスポート用カウンタを開始
     @Override
@@ -872,16 +885,19 @@ public class UiDiskFrame extends UiDiskProcess {
         m_sw_export.Start();
         m_sw_export.setID(StartStatusCounter(count, message));
     }
+
     /// エクスポート用カウンタの母数を追加
     @Override
     public void AppendExportCounter(int count) {
         AppendStatusCounter(m_sw_export.getID(), count);
     }
+
     /// エクスポート用カウンタの数を＋１
     @Override
     public void IncreaseExportCounter() {
         IncreaseStatusCounter(m_sw_export.getID());
     }
+
     /// エクスポート用カウンタのアイコンを時計にする
     @Override
     public void BeginBusyCursorExportCounterIfNeed() {
@@ -889,12 +905,14 @@ public class UiDiskFrame extends UiDiskProcess {
             m_sw_export.busy();
         }
     }
+
     /// エクスポート用カウンタを終了
     @Override
     public void FinishExportCounter(String message) {
         FinishStatusCounter(m_sw_export.getID(), message);
         m_sw_export.finish();
     }
+
     /// エクスポート用カウンタを再スタート
     public void RestartExportCounter() {
         m_sw_export.restart();
@@ -906,16 +924,19 @@ public class UiDiskFrame extends UiDiskProcess {
         m_sw_import.Start();
         m_sw_import.setID(StartStatusCounter(count, message));
     }
+
     /// インポート用カウンタの母数を追加
     @Override
     public void AppendImportCounter(int count) {
         AppendStatusCounter(m_sw_import.getID(), count);
     }
+
     /// インポート用カウンタの数を＋１
     @Override
     public void IncreaseImportCounter() {
         IncreaseStatusCounter(m_sw_import.getID());
     }
+
     /// インポート用カウンタのアイコンを時計にする
     @Override
     public void BeginBusyCursorImportCounterIfNeed() {
@@ -923,12 +944,14 @@ public class UiDiskFrame extends UiDiskProcess {
             m_sw_import.busy();
         }
     }
+
     /// インポート用カウンタを終了
     @Override
     public void FinishImportCounter(String message) {
         FinishStatusCounter(m_sw_import.getID(), message);
         m_sw_import.finish();
     }
+
     /// インポート用カウンタを再スタート
     @Override
     public void RestartImportCounter() {
@@ -946,50 +969,142 @@ public class UiDiskFrame extends UiDiskProcess {
     // --- property ---
 
     /// ディスク操作用のインスタンス
-    public DiskImage GetDiskImage() { return p_image; }
+    public DiskImage GetDiskImage() {
+        return p_image;
+    }
 
     // --- Mocked methods for structural completeness (not found in CPP/Header are external or internal) ---
-    public boolean PreOpenDataFile(String path) { return false; }
-    public boolean CloseDataFile() { return false; }
-    public boolean CloseDataFile(boolean force) { return false; }
-    public JToolBar GetToolBar() { return null; }
-    public void SetToolBar(JToolBar tb) {}
-    public JToolBar CreateToolBar(int style, int id) { return null; }
-    public void SetStatusBar(JPanel sb) {}
-    public void PositionStatusBar() {}
-    public void Close(boolean force) {}
-    public void ShowCreateFileDialog() {}
-    public void ShowOpenFileDialog() {}
-    public void ShowSaveFileDialog() {}
+    public boolean PreOpenDataFile(String path) {
+        return false;
+    }
+
+    public boolean CloseDataFile() {
+        return false;
+    }
+
+    public boolean CloseDataFile(boolean force) {
+        return false;
+    }
+
+    public JToolBar GetToolBar() {
+        return null;
+    }
+
+    public void SetToolBar(JToolBar tb) {
+    }
+
+    public JToolBar CreateToolBar(int style, int id) {
+        return null;
+    }
+
+    public void SetStatusBar(JPanel sb) {
+    }
+
+    public void PositionStatusBar() {
+    }
+
+    public void Close(boolean force) {
+    }
+
+    public void ShowCreateFileDialog() {
+    }
+
+    public void ShowOpenFileDialog() {
+    }
+
+    public void ShowSaveFileDialog() {
+    }
+
     @Override
-    public UiDiskList GetDiskListPanel() { return null; }
-    public void ShowAddNewDiskDialog() {}
-    public void ShowAddFileDialog() {}
-    public void DeleteDisk() {}
-    public void RenameDisk() {}
-    public void InitializeDisk() {}
-    public void FormatDisk() {}
-    public void ExportDataFromDisk() {}
-    public void ImportDataToDisk() {}
-    public void DeleteDataFromDisk() {}
-    public void RenameDataOnDisk() {}
-    public void CopyDataFromDisk() {}
-    public void PasteDataToDisk() {}
-    public void MakeDirectoryOnDisk() {}
-    public void EditFileOnDisk(enEditorTypes type) {}
-    public void PropertyOnDisk() {}
-    public void ShowConfigureDialog() {}
-    public void ChangeRPanel(int mode, Object diskBasic) {}
-    public void SetFileListData() {}
-    public void OpenBinDumpWindow() {}
-    public void CloseBinDumpWindow() {}
-    public void OpenFatAreaWindow() {}
-    public void CloseFatAreaWindow() {}
+    public UiDiskList GetDiskListPanel() {
+        return null;
+    }
+
+    public void ShowAddNewDiskDialog() {
+    }
+
+    public void ShowAddFileDialog() {
+    }
+
+    public void DeleteDisk() {
+    }
+
+    public void RenameDisk() {
+    }
+
+    public void InitializeDisk() {
+    }
+
+    public void FormatDisk() {
+    }
+
+    public void ExportDataFromDisk() {
+    }
+
+    public void ImportDataToDisk() {
+    }
+
+    public void DeleteDataFromDisk() {
+    }
+
+    public void RenameDataOnDisk() {
+    }
+
+    public void CopyDataFromDisk() {
+    }
+
+    public void PasteDataToDisk() {
+    }
+
+    public void MakeDirectoryOnDisk() {
+    }
+
+    public void EditFileOnDisk(enEditorTypes type) {
+    }
+
+    public void PropertyOnDisk() {
+    }
+
+    public void ShowConfigureDialog() {
+    }
+
+    public void ChangeRPanel(int mode, Object diskBasic) {
+    }
+
+    public void SetFileListData() {
+    }
+
+    public void OpenBinDumpWindow() {
+    }
+
+    public void CloseBinDumpWindow() {
+    }
+
+    public void OpenFatAreaWindow() {
+    }
+
+    public void CloseFatAreaWindow() {
+    }
+
     @Override
-    public UiDiskFileList GetFileListPanel() { return null; }
-    public UiDiskRawPanel GetDiskRawPanel() { return null; }
-    public boolean IsFormattableDisk() { return false; }
-    public UiDiskList GetLPanel() { return null; }
+    public UiDiskFileList GetFileListPanel() {
+        return null;
+    }
+
+    public UiDiskRawPanel GetDiskRawPanel() {
+        return null;
+    }
+
+    public boolean IsFormattableDisk() {
+        return false;
+    }
+
+    public UiDiskList GetLPanel() {
+        return null;
+    }
+
     @Override
-    public boolean CanMakeDirectory(DiskBasic basic) { return false; }
+    public boolean CanMakeDirectory(DiskBasic basic) {
+        return false;
+    }
 }

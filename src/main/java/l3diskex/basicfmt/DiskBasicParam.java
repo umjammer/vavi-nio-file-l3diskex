@@ -1,5 +1,7 @@
 package l3diskex.basicfmt;
 
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -7,7 +9,7 @@ import java.util.Map;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
-import l3diskex.Parambase.MyAttributes;
+import l3diskex.Parambase.MyAttribute;
 import l3diskex.Parambase.TemplatesBase;
 import l3diskex.Parambase.ValidNameRule;
 import l3diskex.Utils;
@@ -19,6 +21,8 @@ import l3diskex.diskimg.DiskParam.SectorInterleave;
 
 /** DISK BASICのパラメータを保持するクラス */
 public class DiskBasicParam extends DiskBasicParamBase {
+
+    private static final Logger logger = System.getLogger(DiskBasicParam.class.getName());
 
     public static class DiskBasicParamBases extends TemplatesBase {
 
@@ -32,19 +36,19 @@ public class DiskBasicParam extends DiskBasicParamBase {
         public boolean load(Node node, String name, String value, String locale_name, DiskBasicParamBase param, StringBuilder errmsgs) {
             boolean valid = true;
             if (name.equals("SectorsPerGroup")) {
-                param.setSectorsPerGroup(Integer.parseInt(value));
+                param.setSectorsPerGroup(Utils.toInt(value));
             } else if (name.equals("GroupFinalCode")) {
-                param.setGroupFinalCode(Integer.parseInt(value));
+                param.setGroupFinalCode(Utils.toInt(value));
             } else if (name.equals("GroupSystemCode")) {
-                param.setGroupSystemCode(Integer.parseInt(value));
+                param.setGroupSystemCode(Utils.toInt(value));
             } else if (name.equals("GroupUnusedCode")) {
-                param.setGroupUnusedCode(Integer.parseInt(value));
+                param.setGroupUnusedCode(Utils.toInt(value));
             } else if (name.equals("DirTerminateCode")) {
-                param.setDirTerminateCode(Byte.parseByte(value));
+                param.setDirTerminateCode((byte) Utils.toInt(value));
             } else if (name.equals("DirSpaceCode")) {
-                param.setDirSpaceCode(Byte.parseByte(value));
+                param.setDirSpaceCode((byte) Utils.toInt(value));
             } else if (name.equals("DirTrimmingCode")) {
-                param.setDirTrimmingCode(Byte.parseByte(value));
+                param.setDirTrimmingCode((byte) Utils.toInt(value));
             } else if (name.equals("DirStartPosition")) {
                 param.setDirStartPos(Utils.toInt(value));
             } else if (name.equals("DirStartPositionOnRoot")) {
@@ -54,25 +58,25 @@ public class DiskBasicParam extends DiskBasicParamBase {
             } else if (name.equals("DirStartPositionOnGroup")) {
                 param.setDirStartPosOnGroup(Utils.toInt(value));
             } else if (name.equals("SpecialAttributes")) {
-                MyAttributes attrs = new MyAttributes();
+                List<MyAttribute> attrs = new ArrayList<>();
                 loadMyAttributesInTypes(node, locale_name, errmsgs, attrs);
                 param.setSpecialAttributes(attrs);
             } else if (name.equals("AttributesByExtension")) {
-                MyAttributes attrs = new MyAttributes();
+                List<MyAttribute> attrs = new ArrayList<>();
                 loadMyAttributesInTypes(node, locale_name, errmsgs, attrs);
                 param.setAttributesByExtension(attrs);
             } else if (name.equals("FillCodeOnFormat")) {
-                param.setFillCodeOnFormat(Byte.parseByte(value));
+                param.setFillCodeOnFormat((byte) Utils.toInt(value));
             } else if (name.equals("FillCodeOnFAT")) {
-                param.setFillCodeOnFAT(Byte.parseByte(value));
+                param.setFillCodeOnFAT((byte) Utils.toInt(value));
             } else if (name.equals("FillCodeOnDir")) {
-                param.setFillCodeOnDir(Byte.parseByte(value));
+                param.setFillCodeOnDir((byte) Utils.toInt(value));
             } else if (name.equals("DeleteCodeOnDir")) {
-                param.setDeleteCode(Byte.parseByte(value));
+                param.setDeleteCode((byte) Utils.toInt(value));
             } else if (name.equals("TextTerminateCode")) {
-                param.setTextTerminateCode(Byte.parseByte(value));
+                param.setTextTerminateCode((byte) Utils.toInt(value));
             } else if (name.equals("ExtensionPreCode")) {
-                param.setExtensionPreCode(Byte.parseByte(value));
+                param.setExtensionPreCode((byte) Utils.toInt(value));
             } else if (name.equals("FileNameCharacters")) {
                 valid = loadValidChars(node, param.getValidFileNameForMod(), errmsgs);
                 if (!m_set_volume_rule) {
@@ -186,35 +190,38 @@ public class DiskBasicParam extends DiskBasicParamBase {
     }
 
     /** DiskBasicFormat のリスト */
-    static class DiskBasicFormats extends TemplatesBase {
+    public static class DiskBasicFormats extends TemplatesBase {
 
-        List<DiskBasicFormat> content;
+        List<DiskBasicFormat> list = new ArrayList<>();
 
         /** DiskBasicFormatエレメントのロード */
         public boolean load(Node node, String locale_name, StringBuilder errmsgs) {
             boolean valid = false;
             while (node != null && !valid) {
-                if (node.getLocalName().equals("DiskBasicFormats")) {
+                if (node.getNodeName().equals("DiskBasicFormats")) {
                     valid = true;
                     break;
                 }
                 node = node.getNextSibling();
             }
-            if (!valid) return false;
+            if (!valid) {
+logger.log(Level.ERROR, "no DiskBasicFormats");
+                return false;
+            }
 
             valid = true;
             Node item = node.getFirstChild();
-            while(item != null && valid) {
-                if (item.getLocalName().equals("DiskBasicFormat")) {
+            while (item != null && valid) {
+                if (item.getNodeName().equals("DiskBasicFormat")) {
                     DiskBasicFormat f = new DiskBasicFormat();
-                    DiskBasicParamBases param_bases = null;
+                    DiskBasicParamBases param_bases = new DiskBasicParamBases();
                     String s_type_number = ((Element) item).getAttribute("type");
                     int type_number = Utils.toInt(s_type_number);
                     f.SetTypeNumber(DiskBasicFormatType.valueOf(type_number));
 
                     Node itemnode = item.getFirstChild();
                     while (itemnode != null) {
-                        String name = itemnode.getLocalName();
+                        String name = itemnode.getNodeName();
                         String str = itemnode.getTextContent();
                         if (name.equals("HasVolumeName")) {
                             f.HasVolumeName(Utils.toBool(str));
@@ -230,11 +237,12 @@ public class DiskBasicParam extends DiskBasicParamBase {
                     }
 
                     if (find(DiskBasicFormatType.valueOf(type_number)) == null) {
-                        content.add(f);
+                        list.add(f);
                     } else {
                         errmsgs.append("\n");
                         errmsgs.append("Duplicate type number in DiskBasicFormat : ");
                         errmsgs.append("%d".formatted(type_number));
+logger.log(Level.WARNING, "Duplicate type number in DiskBasicFormat : " + type_number);
                         valid = false;
                         break;
                     }
@@ -247,7 +255,7 @@ public class DiskBasicParam extends DiskBasicParamBase {
         /** @param format_type : フォーマット種類 */
         public DiskBasicFormat find(DiskBasicFormatType format_type) {
             DiskBasicFormat match = null;
-            for (DiskBasicFormat item : content) {
+            for (DiskBasicFormat item : list) {
                 if (item.GetTypeNumber() == format_type) {
                     match = item;
                     break;
@@ -813,7 +821,7 @@ public class DiskBasicParam extends DiskBasicParamBase {
     public boolean loadReservedGroupsInTypes(Node node, String locale_name, StringBuilder errmsgs) {
         Node citemnode = node.getFirstChild();
         while (citemnode != null) {
-            if (citemnode.getLocalName().equals("Group")) {
+            if (citemnode.getNodeName().equals("Group")) {
                 String first = ((Element) citemnode).getAttribute("first");
                 String last = ((Element) citemnode).getAttribute("last");
                 if (!first.isEmpty() && !last.isEmpty()) {
@@ -840,7 +848,7 @@ public class DiskBasicParam extends DiskBasicParamBase {
         List<Integer> map = new ArrayList<>();
         Node cnode = node.getFirstChild();
         while (cnode != null) {
-            String name = cnode.getLocalName();
+            String name = cnode.getNodeName();
             if (name.equals("Value")) {
                 map.add(Utils.toInt(cnode.getTextContent()));
             }
@@ -885,7 +893,7 @@ public class DiskBasicParam extends DiskBasicParamBase {
         boolean valid = true;
         Node item = node.getFirstChild(); // Placeholder for GetChildren
         while (item != null && valid) {
-            if (item.getLocalName().equals("Category")) {
+            if (item.getNodeName().equals("Category")) {
                 Node itemnode = item.getFirstChild();
                 while (itemnode != null) {
                     String name = item.getTextContent();
@@ -908,26 +916,24 @@ public class DiskBasicParam extends DiskBasicParamBase {
     /** DiskBasicParam のリスト */
     public static class DiskBasicParams extends TemplatesBase {
 
-        List<DiskBasicParam> content = new ArrayList<>();
+        List<DiskBasicParam> list = new ArrayList<>();
 
         /** DiskBasicTypeエレメントのロード */
         public boolean load(Node node, String locale_name, DiskBasicFormats formats, StringBuilder errmsgs) {
-            // Implementation based on basicparam.cpp logic
             boolean valid = false;
-            Node currentNode = node;
-            while (currentNode != null && !valid) {
-                if (currentNode.getLocalName().equals("DiskBasicTypes")) {
+            while (node != null && !valid) {
+                if (node.getNodeName().equals("DiskBasicTypes")) {
                     valid = true;
                     break;
                 }
-                currentNode = currentNode.getNextSibling();
+                node = node.getNextSibling();
             }
             if (!valid) return false;
 
             valid = true;
             Node item = node.getFirstChild();
             while (item != null && valid) {
-                if (item.getLocalName().equals("DiskBasicType")) {
+                if (item.getNodeName().equals("DiskBasicType")) {
                     DiskBasicParam p = new DiskBasicParam();
                     DiskBasicParamBases param_bases = new DiskBasicParamBases();
 
@@ -939,10 +945,13 @@ public class DiskBasicParam extends DiskBasicParamBase {
                     if (!format_name.isEmpty() && format_type != null) {
                         // フォーマットパラメータを初期値とする
                         p.setFormatType(format_type);
-                        // p.RequireFileName(format_type.IsFileNameRequired()); // Placeholder for missing method
+                        //p.RequireFileName(format_type.isFileNameRequired());
                         p.setBasicParamBase(format_type);
                     } else {
-                        // Error message
+                        // フォーマットタイプがない
+                        errmsgs.append("\n");
+                        errmsgs.append("Unknown format type in DiskBasicType : ");
+                        errmsgs.append(type_name);
                         return false;
                     }
 
@@ -950,14 +959,19 @@ public class DiskBasicParam extends DiskBasicParamBase {
 
                     int reserved_sectors = -2;
                     int fat_start_sector = 0;
+
                     int sectors_per_fat = 0;
                     int fat_end_sector = 0;
-                    StringBuilder desc = new StringBuilder(), desc_locale = new StringBuilder();
+
+                    String[] desc = {""}, desc_locale = {""};
 
                     Node itemnode = item.getFirstChild();
                     while (itemnode != null) {
-                        String name = itemnode.getLocalName();
+                        String name = itemnode.getNodeName();
                         String str = itemnode.getTextContent();
+//                        if (itemnode.getName().equals("FormatType")) {
+//                            DiskBasicFormat format_type = findFormat((DiskBasicFormatType) Utils.toInt(str));
+//                            p.SetFormatType(format_type);
                         if (name.equals("FormatSubType")) {
                             p.setFormatSubTypeNumber(Utils.toInt(str));
                         } else if (name.equals("SidesPerDisk")) {
@@ -1040,15 +1054,18 @@ public class DiskBasicParam extends DiskBasicParamBase {
                     }
                     p.setSectorsPerFat(sectors_per_fat);
 
-                    if (!desc_locale.isEmpty()) {
+                    if (!desc_locale[0].isEmpty()) {
                         desc = desc_locale;
                     }
-                    p.setBasicDescription(desc.toString());
+                    p.setBasicDescription(desc[0]);
 
                     if (find("", type_name) == null) {
-                        content.add(p);
+                        list.add(p);
                     } else {
-                        // Error message
+                        // タイプ名が重複している
+                        errmsgs.append("\n");
+                        errmsgs.append("Duplicate type name in DiskBasicType : ");
+                        errmsgs.append(type_name);
                         valid = false;
                         break;
                     }
@@ -1067,7 +1084,7 @@ public class DiskBasicParam extends DiskBasicParamBase {
          */
         public DiskBasicParam find(String n_category, String n_basic_type) {
             DiskBasicParam match_item = null;
-            for (DiskBasicParam item : content) {
+            for (DiskBasicParam item : list) {
                 if (n_category.isEmpty() || item.findBasicCategoryName(n_category)) {
                     if (n_basic_type.equals(item.getBasicTypeName())) {
                         match_item = item;
@@ -1109,7 +1126,7 @@ public class DiskBasicParam extends DiskBasicParamBase {
             match_item = find(n_category, n_basic_type);
             // カテゴリ、サイド数、セクタ数で一致するか
             if (match_item == null) {
-                for (DiskBasicParam item : content) {
+                for (DiskBasicParam item : list) {
                     if (n_category.equals(item.getBasicCategoryName())) {
                         if (n_sides == item.getSidesPerDiskOnBasic()) {
                             if (n_sectors < 0 || item.getSectorsPerTrackOnBasic() < 0 || n_sectors == item.getSectorsPerTrackOnBasic()) {
@@ -1131,16 +1148,16 @@ public class DiskBasicParam extends DiskBasicParamBase {
          * @return リストの数
          */
         public int findTypes(List<Integer> n_format_types, DiskBasicParams n_types) {
-            n_types.content.clear();
-            for (DiskBasicParam item : this.content) {
+            n_types.list.clear();
+            for (DiskBasicParam item : this.list) {
                 for (int format_type_val : n_format_types) {
                     DiskBasicFormat fmt = item.getFormatType();
                     if (fmt != null && format_type_val == fmt.GetTypeNumber().ordinal()) { // Placeholder for enum ordinal
-                        n_types.content.add(item);
+                        n_types.list.add(item);
                     }
                 }
             }
-            return n_types.content.size();
+            return n_types.list.size();
         }
 
         /**
@@ -1152,7 +1169,7 @@ public class DiskBasicParam extends DiskBasicParamBase {
          */
         public int findNames(String n_category_name, List<String> n_type_names) {
             n_type_names.clear();
-            for (DiskBasicParam item : this.content) {
+            for (DiskBasicParam item : this.list) {
                 if (item.findBasicCategoryName(n_category_name)) {
                     n_type_names.add(item.getBasicTypeName());
                 }
@@ -1188,9 +1205,9 @@ class DiskBasicParamBase {
     /** ディレクトリのグループ毎の開始位置 */
     protected int dirStartPosOnGroup;
     /** 特別な属性 */
-    protected MyAttributes specialAttrs = new MyAttributes();
+    protected List<MyAttribute> specialAttrs = new ArrayList<>();
     /** 拡張子と属性の関係 */
-    protected MyAttributes attrsByExtension = new MyAttributes();
+    protected List<MyAttribute> attrsByExtension = new ArrayList<>();
     /** フォーマット時に埋めるコード */
     protected byte fillcodeOnFormat;
     /** フォーマット時にFAT領域を埋めるコード */
@@ -1339,12 +1356,12 @@ class DiskBasicParamBase {
     }
 
     /** 特別な属性 */
-    public MyAttributes getSpecialAttributes() {
+    public List<MyAttribute> getSpecialAttributes() {
         return specialAttrs;
     }
 
     /** 拡張子と属性の関係 */
-    public MyAttributes getAttributesByExtension() {
+    public List<MyAttribute> getAttributesByExtension() {
         return attrsByExtension;
     }
 
@@ -1517,12 +1534,12 @@ class DiskBasicParamBase {
     }
 
     /** 特別な属性 */
-    public void setSpecialAttributes(MyAttributes arr) {
+    public void setSpecialAttributes(List<MyAttribute> arr) {
         specialAttrs = arr;
     }
 
     /** 拡張子と属性の関係 */
-    public void setAttributesByExtension(MyAttributes arr) {
+    public void setAttributesByExtension(List<MyAttribute> arr) {
         attrsByExtension = arr;
     }
 

@@ -20,7 +20,6 @@ import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_FREE;
 import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_SYSTEM;
 import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_USED;
 import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_USED_LAST;
-import static l3diskex.basicfmt.BasicFat.INVALID_GROUP_NUMBER;
 
 
 public class DiskBasicTypeCPM extends DiskBasicType<DirectoryCpm> {
@@ -37,6 +36,7 @@ public class DiskBasicTypeCPM extends DiskBasicType<DirectoryCpm> {
 
     /**
      * ディスクから各パラメータを取得＆必要なパラメータを計算
+     *
      * @param is_formatting フォーマット中か
      * @return 1.0 正常, 0.0 - 1.0 警告あり, <0.0 エラーあり
      */
@@ -171,9 +171,9 @@ public class DiskBasicTypeCPM extends DiskBasicType<DirectoryCpm> {
                 int gnum = group.group;
                 if (gnum <= basic.getFatEndGroup()) {
                     if (n + 1 == count) {
-                        fatAvailability.Set(gnum, FAT_AVAIL_USED_LAST.getValue());
+                        fatAvailability.set(gnum, FAT_AVAIL_USED_LAST.getValue());
                     } else {
-                        fatAvailability.Set(gnum, FAT_AVAIL_USED.getValue());
+                        fatAvailability.set(gnum, FAT_AVAIL_USED.getValue());
                     }
                 }
             }
@@ -185,8 +185,8 @@ public class DiskBasicTypeCPM extends DiskBasicType<DirectoryCpm> {
         for (int pos = 0; pos <= basic.getFatEndGroup(); pos++) {
             if (pos < dir_area) {
                 // ディレクトリエリアは使用済み
-                fatAvailability.Set(pos, FAT_AVAIL_SYSTEM.getValue());
-            } else if (fatAvailability.Get(pos) == FAT_AVAIL_FREE.getValue()) {
+                fatAvailability.set(pos, FAT_AVAIL_SYSTEM.getValue());
+            } else if (fatAvailability.get(pos) == FAT_AVAIL_FREE.getValue()) {
                 grps++;
             }
         }
@@ -194,7 +194,7 @@ public class DiskBasicTypeCPM extends DiskBasicType<DirectoryCpm> {
         int fsize = grps * basic.getSectorSize() * basic.getSectorsPerGroup();
 
         fatAvailability.setFreeSize(fsize);
-        fatAvailability.SetFreeGroups(grps);
+        fatAvailability.setFreeGroups(grps);
     }
 
     /**
@@ -202,7 +202,7 @@ public class DiskBasicTypeCPM extends DiskBasicType<DirectoryCpm> {
      */
     @Override
     public void setGroupNumber(int num, int val) {
-        fatAvailability.Set(num, val != 0 ? FAT_AVAIL_USED.getValue() : FAT_AVAIL_FREE.getValue());
+        fatAvailability.set(num, val != 0 ? FAT_AVAIL_USED.getValue() : FAT_AVAIL_FREE.getValue());
     }
 
     /**

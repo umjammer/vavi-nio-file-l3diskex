@@ -15,7 +15,6 @@ import l3diskex.diskimg.DiskImage.DiskImageTrack;
 
 import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_USED;
 import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_USED_LAST;
-import static l3diskex.basicfmt.BasicFat.INVALID_GROUP_NUMBER;
 
 
 /** */

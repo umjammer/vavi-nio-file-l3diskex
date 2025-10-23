@@ -1,12 +1,12 @@
 package l3diskex.ui;
 
 import java.awt.Dimension;
+import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-import javax.swing.ButtonGroup;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
@@ -24,6 +24,7 @@ public class UIBinDump {
         class UiDiskBinDumpTextCtrl
         ------------------------------------------------------------------ */
     public static class UiDiskBinDumpTextCtrl extends JTextArea {
+
         public UiDiskBinDumpTextCtrl(JWindow parent, int id) {
             super(parent, id);
         }
@@ -33,6 +34,7 @@ public class UIBinDump {
         class MyMemoryBuffer
         ------------------------------------------------------------------ */
     public static class MyMemoryBuffer {
+
         private final byte[] data;
 
         public MyMemoryBuffer() {
@@ -52,11 +54,12 @@ public class UIBinDump {
         class UiDiskBinDumpFrame
         ------------------------------------------------------------------ */
     public static class UiDiskBinDumpFrame extends JFrame {
+
         /*  Constants used in the frame ----------------------------------- */
         public static final int IDM_VIEW_INVERT = 1;
-        public static final int IDM_VIEW_TEXT   = 2;
+        public static final int IDM_VIEW_TEXT = 2;
         public static final int IDM_VIEW_BINARY = 3;
-        public static final int IDM_VIEW_FONT   = 4;
+        public static final int IDM_VIEW_FONT = 4;
         public static final int IDM_VIEW_CHAR_0 = 5;
 
         private final MyMenu menuFile;
@@ -132,6 +135,7 @@ public class UIBinDump {
         class UiDiskBinDumpPanel
         ------------------------------------------------------------------ */
     public static class UiDiskBinDumpPanel extends JSplitPane {
+
         private UiDiskBinDumpView view;
         private UiDiskBinDumpView view2;
 
@@ -152,12 +156,13 @@ public class UIBinDump {
         class UiDiskBinDumpAttr
         ------------------------------------------------------------------ */
     public static class UiDiskBinDumpAttr extends JPanel {
+
         /*  Constants ---------------------------------------------------- */
-        public static final int IDC_RADIO_TEXT   = 1;
+        public static final int IDC_RADIO_TEXT = 1;
         public static final int IDC_RADIO_BINARY = 2;
-        public static final int IDC_COMBO_CHAR  = 3;
+        public static final int IDC_COMBO_CHAR = 3;
         public static final int IDC_CHECK_INVERT = 4;
-        public static final int IDC_BUTTON_OK   = 5;
+        public static final int IDC_BUTTON_OK = 5;
 
         private ButtonGroup radioText;
         private ButtonGroup radioBinary;
@@ -182,6 +187,7 @@ public class UIBinDump {
         class UiDiskBinDump
         ------------------------------------------------------------------ */
     public static class UiDiskBinDump extends JScrollPane {
+
         /*  Constants ---------------------------------------------------- */
         public static final int IDC_TXT_HEX = 1;
         public static final int IDC_TXT_ASC = 2;

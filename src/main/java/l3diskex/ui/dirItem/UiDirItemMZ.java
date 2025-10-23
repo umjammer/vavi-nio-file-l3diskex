@@ -62,8 +62,8 @@ public class UiDirItemMZ extends UiDirItem {
 
         parent.SetUserData((type2 << 8) | type1);
 
-        int[] file_type_1_arr = new int[]{type1};
-        int[] file_type_2_arr = new int[]{type2};
+        int[] file_type_1_arr = new int[] {type1};
+        int[] file_type_2_arr = new int[] {type2};
         dirItem.setFileTypeForAttrDialog(show_flags, file_path, file_type_1_arr, file_type_2_arr);
         type1 = file_type_1_arr[0];
         type2 = file_type_2_arr[0];
@@ -106,7 +106,7 @@ public class UiDirItemMZ extends UiDirItem {
     @Override
     public void initializeForAttrDialog(IntNameBox parent, int show_flags, int[] user_data) {
         LocalDateTime tm = dirItem.getFileCreateDateTime();
-        parent.IgnoreDateTime(gConfig.DoesIgnoreDateTime() || tm.Ignorable());
+        parent.IgnoreDateTime(gConfig.doesIgnoreDateTime() || tm.Ignorable());
     }
 
     @Override
@@ -143,15 +143,31 @@ public class UiDirItemMZ extends UiDirItem {
 
     private int CalcFileTypeFromPos(int pos) {
         int val = -1;
-        switch(pos) {
-            case TYPE_NAME_MZ_OBJ: val = FILETYPE_MZ_OBJ; break;
-            case TYPE_NAME_MZ_BTX: val = FILETYPE_MZ_BTX; break;
-            case TYPE_NAME_MZ_BSD: val = FILETYPE_MZ_BSD; break;
-            case TYPE_NAME_MZ_BRD: val = FILETYPE_MZ_BRD; break;
-            case TYPE_NAME_MZ_DIR: val = FILETYPE_MZ_DIR; break;
-            case TYPE_NAME_MZ_VOL: val = FILETYPE_MZ_VOL; break;
-            case TYPE_NAME_MZ_VOLSWAP: val = FILETYPE_MZ_VOLSWAP; break;
-            default: val = dirItem.calcSpecialOriginalTypeFromPos(dirItem.getBasic(), pos, TYPE_NAME_MZ_END); break;
+        switch (pos) {
+            case TYPE_NAME_MZ_OBJ:
+                val = FILETYPE_MZ_OBJ;
+                break;
+            case TYPE_NAME_MZ_BTX:
+                val = FILETYPE_MZ_BTX;
+                break;
+            case TYPE_NAME_MZ_BSD:
+                val = FILETYPE_MZ_BSD;
+                break;
+            case TYPE_NAME_MZ_BRD:
+                val = FILETYPE_MZ_BRD;
+                break;
+            case TYPE_NAME_MZ_DIR:
+                val = FILETYPE_MZ_DIR;
+                break;
+            case TYPE_NAME_MZ_VOL:
+                val = FILETYPE_MZ_VOL;
+                break;
+            case TYPE_NAME_MZ_VOLSWAP:
+                val = FILETYPE_MZ_VOLSWAP;
+                break;
+            default:
+                val = dirItem.calcSpecialOriginalTypeFromPos(dirItem.getBasic(), pos, TYPE_NAME_MZ_END);
+                break;
         }
         return val;
     }
@@ -160,8 +176,8 @@ public class UiDirItemMZ extends UiDirItem {
     public boolean setAttrInAttrDialog(IntNameBox parent, DiskBasicDirItemAttr attr, DiskBasicError errinfo) {
         final int IDC_CHECK_READONLY = 52;
         final int IDC_CHECK_SEAMLESS = 53;
-        JCheckBox chkReadOnly = (JCheckBox)parent.getComponent(IDC_CHECK_READONLY);
-        JCheckBox chkSeamless = (JCheckBox)parent.getComponent(IDC_CHECK_SEAMLESS);
+        JCheckBox chkReadOnly = (JCheckBox) parent.getComponent(IDC_CHECK_READONLY);
+        JCheckBox chkSeamless = (JCheckBox) parent.getComponent(IDC_CHECK_SEAMLESS);
 
         int t1 = CalcFileTypeFromPos(GetFileType1InAttrDialog(parent));
         if (t1 < 0) {

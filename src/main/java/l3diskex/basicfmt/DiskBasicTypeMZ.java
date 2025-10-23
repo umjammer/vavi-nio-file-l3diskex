@@ -33,7 +33,6 @@ import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_FREE;
 import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_SYSTEM;
 import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_USED;
 import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_USED_LAST;
-import static l3diskex.basicfmt.BasicFat.INVALID_GROUP_NUMBER;
 
 
 public class DiskBasicTypeMZ extends DiskBasicTypeMZBase {
@@ -41,6 +40,7 @@ public class DiskBasicTypeMZ extends DiskBasicTypeMZBase {
     // Equivalent to struct st_fat_mz
     @SuppressWarnings("unused")
     private static class st_fat_mz {
+
         public byte volume;     // ボリューム番号 (0)
         public byte offset;     // オフセット データ領域開始クラスタ (1)
         public short used;      // 使用クラスタ数 (2-3)
@@ -79,7 +79,7 @@ public class DiskBasicTypeMZ extends DiskBasicTypeMZBase {
             return;
         }
         // FATには未使用使用テーブルがある
-        fatbuf.bit(pos, (byte)mask, val != 0, basic.isDataInverted());
+        fatbuf.bit(pos, (byte) mask, val != 0, basic.isDataInverted());
 
         // FATの使用済み最終クラスタ数を更新
         byte[] buf = fatbuf.getBuffer();
@@ -99,7 +99,7 @@ public class DiskBasicTypeMZ extends DiskBasicTypeMZBase {
         }
 
         // Write back 'used'
-        bb.putShort(2, basic.invertAndOrderUint16((short)used_group)); // invert
+        bb.putShort(2, basic.invertAndOrderUint16((short) used_group)); // invert
 
     }
 
@@ -144,6 +144,7 @@ public class DiskBasicTypeMZ extends DiskBasicTypeMZBase {
         int next_sec = basic.invertAndOrderUint16(next_sec_short) & 0xFFFF; // invert, convert to unsigned int
         return next_sec / basic.getSectorsPerGroup();
     }
+
     /** 空きFAT位置を返す */
     public int GetEmptyGroupNumber() {
         int new_num = INVALID_GROUP_NUMBER;
@@ -198,7 +199,7 @@ public class DiskBasicTypeMZ extends DiskBasicTypeMZBase {
         int mag = basic.invertUint8(mag_byte) & 0xFF; // invert, convert to unsigned int
 
         // オフセット(1バイト目)が16未満ならエラー
-        if (offset < 16) {	// invert
+        if (offset < 16) {    // invert
             valid_ratio = -1.0;
         }
         if (valid_ratio >= 0.0) {
@@ -206,7 +207,7 @@ public class DiskBasicTypeMZ extends DiskBasicTypeMZBase {
         }
 
         // クラスタ倍率(255バイト目)が16以上ならエラー
-        if (mag >= 16) {	// invert
+        if (mag >= 16) {    // invert
             valid_ratio = -1.0;
         }
         if (valid_ratio >= 0.0) {
@@ -260,12 +261,12 @@ public class DiskBasicTypeMZ extends DiskBasicTypeMZBase {
 
         // Offset 2 for 'used' short
         short used_short = bb.getShort(2);
-        int used_groups = basic.invertAndOrderUint16(used_short) & 0xFFFF;	// invert, convert to unsigned int
+        int used_groups = basic.invertAndOrderUint16(used_short) & 0xFFFF;    // invert, convert to unsigned int
 
         // 使用済みかチェック
         int grps = 0;
         int fsts;
-        for(int gnum = 0; gnum <= basic.getFatEndGroup(); gnum++) {
+        for (int gnum = 0; gnum <= basic.getFatEndGroup(); gnum++) {
             if (gnum < dataStartGroup) {
                 used++;
                 fsts = FAT_AVAIL_SYSTEM.getValue();
@@ -276,13 +277,13 @@ public class DiskBasicTypeMZ extends DiskBasicTypeMZBase {
                 used++;
                 fsts = FAT_AVAIL_USED.getValue();
             }
-            fatAvailability.Add(fsts, 0, 0);
+            fatAvailability.add(fsts, 0, 0);
         }
 
         // ディレクトリエントリのグループ
         List<DiskBasicDirItem> items = dir.getCurrentItems(null);
         if (items != null) {
-            for(int idx = 0; idx < items.size(); idx++) {
+            for (int idx = 0; idx < items.size(); idx++) {
                 DiskBasicDirItem item = items.get(idx);
                 if (item == null || !item.isUsed()) continue;
 
@@ -292,7 +293,7 @@ public class DiskBasicTypeMZ extends DiskBasicTypeMZBase {
                     DiskBasicGroupItem gitem = item.getGroup(gcnt - 1);
                     int gnum = gitem.group;
                     if (gnum <= basic.getFatEndGroup()) {
-                        fatAvailability.Set(gnum, FAT_AVAIL_USED_LAST.getValue());
+                        fatAvailability.set(gnum, FAT_AVAIL_USED_LAST.getValue());
                     }
                 }
             }
@@ -302,11 +303,11 @@ public class DiskBasicTypeMZ extends DiskBasicTypeMZBase {
 
         // 使用済みクラスタ数を更新
         if (wrote && used_groups != used) {
-            bb.putShort(2, basic.invertAndOrderUint16((short)used));	// invert
+            bb.putShort(2, basic.invertAndOrderUint16((short) used));    // invert
         }
 
         fatAvailability.setFreeSize(fsize);
-        fatAvailability.SetFreeGroups(grps);
+        fatAvailability.setFreeGroups(grps);
     }
     //@}
 
@@ -317,6 +318,7 @@ public class DiskBasicTypeMZ extends DiskBasicTypeMZBase {
 
     /** @name file chain */
     //@{
+
     /** データサイズ分のグループを確保する */
     public int AllocateUnitGroups(int fileunit_num, DiskBasicDirItem item, int data_size, AllocateGroupFlags flags, DiskBasicGroups group_items) {
         int file_size = 0;
@@ -360,7 +362,7 @@ public class DiskBasicTypeMZ extends DiskBasicTypeMZBase {
                 rc = -1;
                 return rc;
             }
-            sector.fill(basic.invertUint8((byte)0));	// invert
+            sector.fill(basic.invertUint8((byte) 0));    // invert
 
             byte[] sector_buffer = sector.getSectorBuffer();
             // wxUint16 *brd_maps = NULL;
@@ -385,7 +387,7 @@ public class DiskBasicTypeMZ extends DiskBasicTypeMZBase {
 
                 // 開始セクタ
                 int sec_pos = group_start * basic.getSectorsPerGroup();
-                short sec_pos_short = basic.invertAndOrderUint16((short)sec_pos);	// invert, convert to short
+                short sec_pos_short = basic.invertAndOrderUint16((short) sec_pos);    // invert, convert to short
 
                 // brd_maps[brd_pos] = wxUINT16_SWAP_ON_BE(sec_pos_short); // Equivalent to writing short at 2*brd_pos
                 ByteBuffer.wrap(sector_buffer).order(ByteOrder.BIG_ENDIAN).putShort(brd_pos * 2, sec_pos_short);
@@ -406,7 +408,7 @@ public class DiskBasicTypeMZ extends DiskBasicTypeMZBase {
                 remain -= block_remain;
                 file_size += block_remain;
                 brd_pos++;
-            } while((brd_pos * 2) < basic.getSectorSize());
+            } while ((brd_pos * 2) < basic.getSectorSize());
 
         } else {
             // BRD 以外
@@ -439,7 +441,7 @@ public class DiskBasicTypeMZ extends DiskBasicTypeMZBase {
         int prev_group = 0;
 
         int limit = basic.getFatEndGroup() + 1;
-        while(remain > 0 && limit >= 0) {
+        while (remain > 0 && limit >= 0) {
             // 使用しているか
             boolean used_group = IsUsedGroupNumber(group_num);
             if (!used_group) {
@@ -478,11 +480,13 @@ public class DiskBasicTypeMZ extends DiskBasicTypeMZBase {
     public boolean IsRootDirectory(int group_num) {
         // オフセット未満だったらルート
         // fat->Get(1) is the offset byte of the FAT structure (st_fat_mz.offset)
-        return (basic.invertUint8((byte)fat.get(1)) & 0xFF) > group_num;	// invert
+        return (basic.invertUint8((byte) fat.get(1)) & 0xFF) > group_num;    // invert
     }
 
     /** サブディレクトリを作成できるか */
-    public boolean CanMakeDirectory() { return true; }
+    public boolean CanMakeDirectory() {
+        return true;
+    }
 
     /** サブディレクトリを作成する前にディレクトリ名を編集する */
     public boolean RenameOnMakingDirectory(String[] dir_name) { // Use array to simulate pass-by-reference for String
@@ -493,6 +497,7 @@ public class DiskBasicTypeMZ extends DiskBasicTypeMZBase {
         }
         return true;
     }
+
     /** サブディレクトリを作成した後の個別処理 */
     public void AdditionalProcessOnMadeDirectory(DiskBasicDirItem item, DiskBasicGroups group_items, DiskBasicDirItem parent_item) throws IOException {
         if (group_items.count() <= 0) return;
@@ -541,12 +546,13 @@ public class DiskBasicTypeMZ extends DiskBasicTypeMZBase {
     }
 
     //@{
+
     /** セクタデータを埋めた後の個別処理 */
     public boolean AdditionalProcessOnFormatted(DiskBasicIdentifiedData data) {
         // IPL
         DiskImageSector sector = basic.getSectorFromSectorPos(0);
         if (sector != null) {
-            sector.fill(basic.invertUint8(basic.diskBasicParam.getFillCodeOnFAT()));	// invert
+            sector.fill(basic.invertUint8(basic.diskBasicParam.getFillCodeOnFAT()));    // invert
             byte[] buf = sector.getSectorBuffer();
             if (buf != null) {
                 String ipl_string = basic.diskBasicParam.getVariousStringParam("IPLString");
@@ -563,12 +569,12 @@ public class DiskBasicTypeMZ extends DiskBasicTypeMZBase {
         String volume_string = basic.diskBasicParam.getVariousStringParam("VolumeString");
         int volume_length = volume_string.length();
         if (volume_length > 0) {
-            volume_number = (byte)volume_string.charAt(0); // Assuming first char is the volume number byte
+            volume_number = (byte) volume_string.charAt(0); // Assuming first char is the volume number byte
         }
 
         // FATエリア
         DiskBasicFatArea fats = fat.getDiskBasicFatArea();
-        for(int n = 0; n < fats.size(); n++) {
+        for (int n = 0; n < fats.size(); n++) {
             DiskBasicFatBuffer fatbuf = fat.getDiskBasicFatBuffer(n, 0);
             byte[] buf = fatbuf.getBuffer();
             int size = fatbuf.getSize();
@@ -583,17 +589,17 @@ public class DiskBasicTypeMZ extends DiskBasicTypeMZBase {
             bb.put(0, volume_number);
             // Offset 1 for 'offset' byte
             // トラック1 サイド1 から
-            bb.put(1, (byte)(getSectorPosFromNum(1, 1, 1) / basic.getSectorsPerGroup()));
+            bb.put(1, (byte) (getSectorPosFromNum(1, 1, 1) / basic.getSectorsPerGroup()));
             // Offset 2 for 'used' short
             // 使用クラスタ数
             bb.putShort(2, bb.get(1)); // used = offset (assuming short casting is safe)
             // Offset 4 for 'all' short
             // 最大クラスタ数
             int all_groups = basic.getTracksPerSide() * basic.getSidesPerDiskOnBasic() * basic.getSectorsPerTrackOnBasic() / basic.getSectorsPerGroup();
-            bb.putShort(4, (short)all_groups);
+            bb.putShort(4, (short) all_groups);
             // Offset 251 for 'mag' byte
             // セクタ数/グループ
-            bb.put(251, (byte)(basic.getSectorsPerGroup() - 1));
+            bb.put(251, (byte) (basic.getSectorsPerGroup() - 1));
 
             // invert
             basic.invertMem(buf, size);
@@ -603,14 +609,14 @@ public class DiskBasicTypeMZ extends DiskBasicTypeMZBase {
         DirectoryMz ditv = new DirectoryMz();
         DirectoryMz ditm = new DirectoryMz();
 
-        ditv.type = (byte)0x80;	// VOL
-        Arrays.fill(ditv.name, (byte)0x0d);
+        ditv.type = (byte) 0x80;    // VOL
+        Arrays.fill(ditv.name, (byte) 0x0d);
         if (volume_length > 0) {
             byte[] vol_bytes = volume_string.getBytes();
             int copy_len = Math.min(volume_length, ditv.name.length);
             System.arraycopy(vol_bytes, 0, ditv.name, 0, copy_len);
         }
-        Arrays.fill(ditm.name, (byte)0x0d);
+        Arrays.fill(ditm.name, (byte) 0x0d);
 
         int[] trk_num = new int[1];
         int[] sid_num = new int[1];
@@ -624,7 +630,7 @@ public class DiskBasicTypeMZ extends DiskBasicTypeMZBase {
             if (sector != null) {
                 byte[] buf = sector.getSectorBuffer();
                 int pos = 0;
-                while(pos < sector.getSectorBufferSize()) {
+                while (pos < sector.getSectorBufferSize()) {
                     if (index == 0) {
                         // 先頭にはボリューム番号を設定
                         // Copy ditv fields into buf[pos]
@@ -711,7 +717,7 @@ public class DiskBasicTypeMZ extends DiskBasicTypeMZBase {
                 }
                 if (size > remain) {
                     // バッファの余りは0サプレス
-                    Arrays.fill(buffer, remain, size, (byte)0);
+                    Arrays.fill(buffer, remain, size, (byte) 0);
                 }
                 len = remain;
             } else {
@@ -734,7 +740,7 @@ public class DiskBasicTypeMZ extends DiskBasicTypeMZBase {
                 next_sector = (remain > size ? next_group * basic.getSectorsPerGroup() : 0);
             }
 
-            short next_sector_short = basic.invertAndOrderUint16((short)next_sector);
+            short next_sector_short = basic.invertAndOrderUint16((short) next_sector);
             // *((wxUint16 *)&buffer[size]) = basic->InvertAndOrderUint16(next_sector);
             ByteBuffer.wrap(buffer, size, 2).order(ByteOrder.LITTLE_ENDIAN).putShort(0, next_sector_short);
         }

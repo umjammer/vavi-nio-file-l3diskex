@@ -1,6 +1,6 @@
 package l3diskex.diskimg;
 
-import java.io.*;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -14,7 +14,7 @@ import vavi.io.SeekableDataOutputStream;
 
 
 /**
- *  べたディスクライター
+ * べたディスクライター
  */
 public class DiskPlainWriter extends DiskImageWriter {
 
@@ -23,14 +23,14 @@ public class DiskPlainWriter extends DiskImageWriter {
      */
 
     /**
-     *  ディスク1つを保存
+     * ディスク1つを保存
      *
-     *  @param disk        ディスク1つのイメージ
-     *  @param sideNumber  サイド番号(0-) / -1のときは両面
-     *  @param ostream     出力先
-     *  @return 0 正常, -1 エラー
+     * @param disk       ディスク1つのイメージ
+     * @param sideNumber サイド番号(0-) / -1のときは両面
+     * @param ostream    出力先
+     * @return 0 正常, -1 エラー
      */
-    private int SaveDisk(DiskImageDisk disk, int sideNumber, SeekableDataOutputStream ostream) {
+    private int saveDisk(DiskImageDisk disk, int sideNumber, SeekableDataOutputStream ostream) {
         if (disk == null) {
             p_result.setError(DiskResult.ERR_NO_DISK);
             return p_result.getValid();
@@ -42,9 +42,9 @@ public class DiskPlainWriter extends DiskImageWriter {
             return p_result.getValid();
         }
 
-        int trackStart  = sideNumber < 0 ? 0 : sideNumber;
-        int trackCount  = tracks.size();
-        int trackStep   = sideNumber < 0 ? 1 : 2;
+        int trackStart = sideNumber < 0 ? 0 : sideNumber;
+        int trackCount = tracks.size();
+        int trackStep = sideNumber < 0 ? 1 : 2;
 
         for (int trackNum = trackStart; trackNum < trackCount; trackNum += trackStep) {
             DiskImageTrack track = tracks.get(trackNum);
@@ -86,8 +86,8 @@ public class DiskPlainWriter extends DiskImageWriter {
     /**
      * コンストラクタ
      *
-     * @param dw_      DiskWriter
-     * @param result_  DiskResult
+     * @param dw_     DiskWriter
+     * @param result_ DiskResult
      */
     public DiskPlainWriter(DiskWriter dw_, DiskResult result_) {
         super(dw_, result_);
@@ -96,13 +96,13 @@ public class DiskPlainWriter extends DiskImageWriter {
     /**
      * べたイメージでファイルに保存
      *
-     * @param image        ディスクイメージ
-     * @param diskNumber   ディスク番号(0-) / -1のときは全体
-     * @param sideNumber   サイド番号(0-) / -1のときは両面
-     * @param ostream      出力先
+     * @param image      ディスクイメージ
+     * @param diskNumber ディスク番号(0-) / -1のときは全体
+     * @param sideNumber サイド番号(0-) / -1のときは両面
+     * @param ostream    出力先
      * @return 0 正常, -1 エラー
      */
-    public int SaveDisk(DiskImage image, int diskNumber, int sideNumber,
+    public int saveDisk(DiskImage image, int diskNumber, int sideNumber,
                         SeekableDataOutputStream ostream) {
         p_result.clear();
 
@@ -120,11 +120,11 @@ public class DiskPlainWriter extends DiskImageWriter {
             }
             for (int diskNum = 0; diskNum < 1; diskNum++) {
                 DiskImageDisk disk = disks.get(diskNum);
-                SaveDisk(disk, -1, ostream);
+                saveDisk(disk, -1, ostream);
             }
         } else {                                      // 指定ディスク保存
             DiskImageDisk disk = file.getDisk(diskNumber);
-            SaveDisk(disk, sideNumber, ostream);
+            saveDisk(disk, sideNumber, ostream);
         }
 
         return p_result.getValid();

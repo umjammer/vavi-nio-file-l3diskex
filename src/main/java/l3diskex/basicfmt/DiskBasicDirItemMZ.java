@@ -26,6 +26,8 @@ import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
 
 import static l3diskex.Config.gConfig;
+import static l3diskex.Parambase.MyAttributes.findValue;
+import static l3diskex.Parambase.MyAttributes.getTypeByValue;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_ASCII_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_BINARY_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_DIRECTORY_MASK;
@@ -34,7 +36,7 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_RANDOM_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_READONLY_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_TEMPORARY_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_VOLUME_MASK;
-import static l3diskex.basicfmt.BasicFat.INVALID_GROUP_NUMBER;
+import static l3diskex.basicfmt.DiskBasicType.INVALID_GROUP_NUMBER;
 import static l3diskex.basicfmt.DiskBasicDirItemMZ.MZConstants.DATATYPE_MZ_READ_ONLY;
 import static l3diskex.basicfmt.DiskBasicDirItemMZ.MZConstants.DATATYPE_MZ_SEAMLESS;
 import static l3diskex.basicfmt.DiskBasicDirItemMZ.MZConstants.DATATYPE_MZ_SEAMLESS_POS;
@@ -64,6 +66,7 @@ public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
 
     // MZ specific constants
     interface MZConstants {
+
         int FILETYPE_MZ_OBJ = 1;
         int FILETYPE_MZ_BTX = 2;
         int FILETYPE_MZ_BSD = 3;
@@ -90,10 +93,11 @@ public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
         int TYPE_NAME_MZ2_READ_ONLY = 0;
         int TYPE_NAME_MZ2_SEAMLESS = 1;
 
-        enum DateTimeFlags { DATETIME_ALL }
+        enum DateTimeFlags {DATETIME_ALL}
     }
 
     public static class Globals implements MZConstants {
+
         public static final Map<String, Object> gTypeNameMZ = new HashMap<>() {{
             put("???", TYPE_NAME_MZ_UNKNOWN);
             put("OBJ", FILETYPE_MZ_OBJ);
@@ -186,28 +190,28 @@ public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
 
         boolean valid = true;
         int t = getFileType1();
-        if ((t & 0x70) != 0 && basic.diskBasicParam.getSpecialAttributes().findValue(t) == null) {
+        if ((t & 0x70) != 0 && findValue(basic.diskBasicParam.getSpecialAttributes(), t) == null) {
             valid = false;
         }
         return valid;
     }
 
-//    public boolean Delete() {
-//        m_data.Fill(basic.InvertUint8(basic.GetDeleteCode()), 1);
-//        Used(false);
+//    public boolean delete() {
+//        m_data.fill(basic.invertUint8(basic.getDeleteCode()), 1);
+//        used(false);
 //        return true;
 //    }
 
     @Override
-    public void setFileAttr(DiskBasicFileType file_type) {
-        int ftype = file_type.getType();
+    public void setFileAttr(DiskBasicFileType fileType) {
+        int ftype = fileType.getType();
         if (ftype == -1) return;
 
         int t1 = 0;
         int t2 = 0;
-        if (file_type.getFormat() == basic.getFormatTypeNumber()) {
-            t1 = file_type.getOrigin() & 0xff;
-            t2 = (file_type.getOrigin() >> 8) & 0xff;
+        if (fileType.getFormat() == basic.getFormatTypeNumber()) {
+            t1 = fileType.getOrigin() & 0xff;
+            t2 = (fileType.getOrigin() >> 8) & 0xff;
         } else {
             t1 = convToNativeType(ftype);
             if ((ftype & FILE_TYPE_READONLY_MASK.getValue()) != 0) {
@@ -241,7 +245,7 @@ public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
     public DiskBasicFileType getFileAttr() {
         int t1 = getFileType1();
         int val = 0;
-        switch(t1) {
+        switch (t1) {
             case FILETYPE_MZ_OBJ:
                 val = FILE_TYPE_MACHINE_MASK.getValue() | FILE_TYPE_BINARY_MASK.getValue();
                 break;
@@ -264,7 +268,7 @@ public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
                 val = FILE_TYPE_VOLUME_MASK.getValue() | FILE_TYPE_TEMPORARY_MASK.getValue();
                 break;
             default:
-                val = basic.diskBasicParam.getSpecialAttributes().getTypeByValue(t1);
+                val = getTypeByValue(basic.diskBasicParam.getSpecialAttributes(), t1);
                 break;
         }
         int t2 = getFileType2();
@@ -314,6 +318,7 @@ public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
     }
 
     private static class StBrdParams {
+
         int pos;
         int cnt;
         short[] maps; // wxUint16
@@ -349,7 +354,7 @@ public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
                 // Need to mock data reading and byte order
                 for (int i = 0; i < brd.maps.length; i++) {
                     // Assuming basic.InvertAndOrderUint16 handles byte order and inversion
-                    brd.maps[i] = basic.invertAndOrderUint16((short) ((buffer[i*2+1] & 0xFF) | ((buffer[i*2] & 0xFF) << 8)));
+                    brd.maps[i] = basic.invertAndOrderUint16((short) ((buffer[i * 2 + 1] & 0xFF) | ((buffer[i * 2] & 0xFF) << 8)));
                 }
 
                 group_num[0] = basic.invertAndOrderUint16(brd.maps[brd.pos]);
@@ -367,11 +372,11 @@ public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
     protected void calcAllGroups(int calc_flags, int[] group_num, int[] remain, int[] sec_size, int[] end_sec, Object user_data) {
         boolean is_chain = ((calc_flags & 1) != 0);
         boolean is_brd = ((calc_flags & 2) != 0);
-        StBrdParams brd = (StBrdParams)user_data;
+        StBrdParams brd = (StBrdParams) user_data;
 
         if (is_chain) {
             // BSD
-             group_num[0] = type.getNextGroupNumber(group_num[0], end_sec[0]); // type is undefined here, assuming it's accessible via basic
+            group_num[0] = type.getNextGroupNumber(group_num[0], end_sec[0]); // type is undefined here, assuming it's accessible via basic
         } else {
             // BTX,OBJ
             group_num[0]++;
@@ -406,7 +411,7 @@ public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
         // BCD decoding
         return LocalDate.of(
                 ((inverted_ymd >> 20) & 0x0f) * 10 + ((inverted_ymd >> 16) & 0x0f) +
-                                     (tm.getYear() < 80 ? 100 : 0),
+                        (tm.getYear() < 80 ? 100 : 0),
                 ((inverted_ymd >> 15) & 1) * 10 + ((inverted_ymd >> 11) & 0x0f) - 1,
                 ((inverted_ymd >> 9) & 3) * 10 + ((inverted_ymd >> 5) & 0x0f)
         );
@@ -450,9 +455,9 @@ public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
         inverted_tmp |= (((tm.getDayOfMonth() / 10) & 3) << 9) | ((tm.getDayOfMonth() % 10) << 5);
         int final_tmp = basic.invertUint32(inverted_tmp);
 
-        m_data.data().dateTime[0] = (byte)(final_tmp >> 16);
-        m_data.data().dateTime[1] = (byte)(final_tmp >> 8);
-        m_data.data().dateTime[2] = (byte)(final_tmp & 0xff);
+        m_data.data().dateTime[0] = (byte) (final_tmp >> 16);
+        m_data.data().dateTime[1] = (byte) (final_tmp >> 8);
+        m_data.data().dateTime[2] = (byte) (final_tmp & 0xff);
     }
 
     @Override
@@ -466,8 +471,8 @@ public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
         inverted_tmp |= (((tm.getMinute() / 10) & 7) << 4) | (tm.getMinute() % 10);
         int final_tmp = basic.invertUint32(inverted_tmp & 0xFFFF_FFFF);
 
-        m_data.data().dateTime[2] = (byte)(final_tmp >> 8);
-        m_data.data().dateTime[3] = (byte)(final_tmp & 0xff);
+        m_data.data().dateTime[2] = (byte) (final_tmp >> 8);
+        m_data.data().dateTime[3] = (byte) (final_tmp & 0xff);
     }
 
     @Override
@@ -509,7 +514,7 @@ public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
     public void clearData() {
         if (!m_data.isValid()) return;
         m_data.fill(0);
-        Arrays.fill(m_data.data().name, (byte)0x0d);
+        Arrays.fill(m_data.data().name, (byte) 0x0d);
         // Note: Java doesn't use the direct memory inversion like C++ often does,
         // so this method call is a placeholder for the logic that applies the MZ-specific inversion.
         basic.invertMem(m_data.getRawData(), m_data.getDataSize());
@@ -519,7 +524,7 @@ public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
     public void setStartGroup(int fileunit_num, int val, int size) {
         int sval = val * basic.getSectorsPerGroup();
         sval = basic.invertAndOrderUint16((short) sval);
-        m_data.data().startSector = (short)sval;
+        m_data.data().startSector = (short) sval;
     }
 
     @Override
@@ -567,7 +572,7 @@ public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
 
     @Override
     public boolean preExportDataFile(String[] filename) {
-        if (!gConfig.IsAddExtensionExport()) return true;
+        if (!gConfig.isAddExtensionExport()) return true;
 
         if (!isDirectory()) {
             String[] ext = new String[1];
@@ -585,7 +590,7 @@ public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
 
     @Override
     public boolean preImportDataFile(String[] filename) {
-        if (gConfig.IsDecideAttrImport()) {
+        if (gConfig.isDecideAttrImport()) {
             isContainAttrByExtension(filename[0], Globals.gTypeNameMZ, TYPE_NAME_MZ_OBJ, TYPE_NAME_MZ_DIR, filename, null, null);
         }
         filename[0] = remakeFileNameAndExtStr(filename[0]);
@@ -603,15 +608,31 @@ public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
 
     public int convFileType1Pos(int native_type) {
         int pos = TYPE_NAME_MZ_UNKNOWN;
-        switch(native_type) {
-            case FILETYPE_MZ_OBJ: pos = TYPE_NAME_MZ_OBJ; break;
-            case FILETYPE_MZ_BTX: pos = TYPE_NAME_MZ_BTX; break;
-            case FILETYPE_MZ_BSD: pos = TYPE_NAME_MZ_BSD; break;
-            case FILETYPE_MZ_BRD: pos = TYPE_NAME_MZ_BRD; break;
-            case FILETYPE_MZ_DIR: pos = TYPE_NAME_MZ_DIR; break;
-            case FILETYPE_MZ_VOL: pos = TYPE_NAME_MZ_VOL; break;
-            case FILETYPE_MZ_VOLSWAP: pos = TYPE_NAME_MZ_VOLSWAP; break;
-            default: pos = -native_type; break;
+        switch (native_type) {
+            case FILETYPE_MZ_OBJ:
+                pos = TYPE_NAME_MZ_OBJ;
+                break;
+            case FILETYPE_MZ_BTX:
+                pos = TYPE_NAME_MZ_BTX;
+                break;
+            case FILETYPE_MZ_BSD:
+                pos = TYPE_NAME_MZ_BSD;
+                break;
+            case FILETYPE_MZ_BRD:
+                pos = TYPE_NAME_MZ_BRD;
+                break;
+            case FILETYPE_MZ_DIR:
+                pos = TYPE_NAME_MZ_DIR;
+                break;
+            case FILETYPE_MZ_VOL:
+                pos = TYPE_NAME_MZ_VOL;
+                break;
+            case FILETYPE_MZ_VOLSWAP:
+                pos = TYPE_NAME_MZ_VOLSWAP;
+                break;
+            default:
+                pos = -native_type;
+                break;
         }
         return pos;
     }

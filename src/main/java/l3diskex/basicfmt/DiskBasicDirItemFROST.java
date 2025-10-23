@@ -42,10 +42,10 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
     private final DiskBasicDirData<DirectoryFrost> m_data;
 
     public static final Map<String, Object> gTypeNameFROST_1 = new LinkedHashMap<>() {{
-            put("BAS", FILETYPE_FROST_BAS);
-            put("BIN", FILETYPE_FROST_BIN);
-            put("RGB", FILETYPE_FROST_RGB);
-            put("???", 0);
+        put("BAS", FILETYPE_FROST_BAS);
+        put("BIN", FILETYPE_FROST_BIN);
+        put("RGB", FILETYPE_FROST_RGB);
+        put("???", 0);
     }};
 
     private DiskBasicDirItemFROST() {
@@ -76,7 +76,7 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
         m_data = new DiskBasicDirData<>();
         m_data.attach(n_data);
 
-        boolean[] unuseRef = new boolean[]{n_unuse[0]};
+        boolean[] unuseRef = new boolean[] {n_unuse[0]};
         used(checkUsed(unuseRef[0]));
         unuseRef[0] = (unuseRef[0] || (m_data.data().name[0] == (byte) 0xff));
         n_unuse[0] = unuseRef[0];
@@ -351,7 +351,7 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
      * グループを追加する
      */
     private void addGroups(int group_num, int next_group, DiskBasicGroups group_items) {
-        int[] trk = { -1}, sid = { -1}, sec = { -1};
+        int[] trk = {-1}, sid = {-1}, sec = {-1};
         int div, divs;
         int[] divArr = new int[1];
         int[] divsArr = new int[1];
@@ -461,7 +461,7 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
     @Override
     public boolean preExportDataFile(String[] filename) {
         // Placeholder for gConfig.IsAddExtensionExport()
-        if (!gConfig.IsAddExtensionExport()) return true;
+        if (!gConfig.isAddExtensionExport()) return true;
 
         // 拡張子を付加する
         if (!isDirectory()) {
@@ -484,7 +484,7 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
      */
     @Override
     public boolean preImportDataFile(String[] filename) {
-        if (gConfig.IsDecideAttrImport()) {
+        if (gConfig.isDecideAttrImport()) {
             // IsContainAttrByExtension is a placeholder method in DiskBasicDirItem base
             isContainAttrByExtension(filename[0], gTypeNameFROST_1, TYPE_NAME_FROST_BAS, TYPE_NAME_FROST_RGB, filename, null, null);
         }

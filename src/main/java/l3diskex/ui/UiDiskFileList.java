@@ -3,6 +3,7 @@ package l3diskex.ui;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Point;
+import java.time.LocalDateTime;
 import java.util.Comparator;
 import javax.swing.BoxLayout;
 import javax.swing.DefaultListModel;
@@ -25,6 +26,7 @@ import l3diskex.basicfmt.DiskBasicDirItemMZ.Globals;
 
 
 public class UiDiskFileList {
+
     // Defines for column indices
     public static final int LISTCOL_NAME = 0;
     public static final int LISTCOL_ATTR = 1;
@@ -71,9 +73,16 @@ public class UiDiskFileList {
 
     // Type aliases/placeholders (assuming USE_LIST_CTRL_ON_FILE_LIST = true for simplicity in UiDiskFileListCtrl)
     static class MyFileListItem {
+
         int value;
-        MyFileListItem() { this.value = wxNOT_FOUND; }
-        public boolean IsOk() { return value != wxNOT_FOUND; }
+
+        MyFileListItem() {
+            this.value = wxNOT_FOUND;
+        }
+
+        public boolean IsOk() {
+            return value != wxNOT_FOUND;
+        }
     }
 
     private final JComponent parent;
@@ -372,46 +381,134 @@ public class UiDiskFileList {
         ChangeCharCode();
     }
 
-    private DiskBasicDirItem GetSelectedDirItem() { return null; }
-    private DiskBasicDirItem GetDirItem(MyFileListItem view_item, int[] item_pos) { return null; }
-    private DiskBasicDirItem GetFileName(MyFileListItem view_item, String[] name, int[] item_pos) { return null; }
-    private void ShowPopupMenu() {}
-    private void ShowColumnPopupMenu() {}
-    private void DoubleClicked() {}
-    private void ShowExportDataFileDialog() {}
-    private void ShowImportDataFileDialog() {}
-    private void ShowMakeDirectoryDialog() {}
-    private void DragDataSource() {}
-    private void CopyToClipboard() {}
-    private void PasteFromClipboard() {}
-    private void DeleteDataFile() {}
-    private void StartEditingFileName() {}
-    private void RenameDataFile(int listitem, String newname) {}
-    private void SelectAll() {}
-    private void ChangeBasicType() {}
-    private void ChangeCharCode() {}
-    private void EditDataFile(int editorType) {}
-    private void SelectItem(MyFileListItem item, int count) {}
-    private void UnselectItem(MyFileListItem item, int count) {}
-    private MyFileListItem GetEventItem(ListEvent event) { return new MyFileListItem(); }
-    public DiskBasic GetDiskBasic() { return m_current_basic; }
-    public UiDiskFileListCtrl GetListCtrl() { return listCtrl; }
-    public void ShowFileAttr() {}
-    public boolean ShowFileAttr(DiskBasicDirItem item) { return false; }
-    public void AcceptSubmittedFileAttr(DiskBasicDirItemAttr dlg) {}
-    public void CloseAllFileAttr() {}
-    public boolean IsWritableBasicFile() { return m_current_basic != null && m_current_basic.IsWritableIntoDisk(); }
-    public boolean IsDeletableBasicFile() { return m_current_basic != null && m_current_basic.IsDeletable(); }
-    public int GetListSelectedItemCount() { return listCtrl.GetListSelectedItemCount(); }
-    public boolean CanUseBasicDisk() { return m_current_basic != null && m_current_basic.CanUse(); }
-    public boolean IsAssignedBasicDisk() { return m_current_basic != null && m_current_basic.IsAssigned(); }
-    public boolean IsFormattableBasicDisk() { return m_current_basic != null && m_current_basic.IsFormattable(); }
-    public boolean IsFormattedBasicDisk() { return m_current_basic != null && m_current_basic.IsFormatted(); }
-    public void GetFatAvailability(int[] offset, int[] arr) {}
-    public void SetListFont(Font font) {}
+    private DiskBasicDirItem GetSelectedDirItem() {
+        return null;
+    }
+
+    private DiskBasicDirItem GetDirItem(MyFileListItem view_item, int[] item_pos) {
+        return null;
+    }
+
+    private DiskBasicDirItem GetFileName(MyFileListItem view_item, String[] name, int[] item_pos) {
+        return null;
+    }
+
+    private void ShowPopupMenu() {
+    }
+
+    private void ShowColumnPopupMenu() {
+    }
+
+    private void DoubleClicked() {
+    }
+
+    private void ShowExportDataFileDialog() {
+    }
+
+    private void ShowImportDataFileDialog() {
+    }
+
+    private void ShowMakeDirectoryDialog() {
+    }
+
+    private void DragDataSource() {
+    }
+
+    private void CopyToClipboard() {
+    }
+
+    private void PasteFromClipboard() {
+    }
+
+    private void DeleteDataFile() {
+    }
+
+    private void StartEditingFileName() {
+    }
+
+    private void RenameDataFile(int listitem, String newname) {
+    }
+
+    private void SelectAll() {
+    }
+
+    private void ChangeBasicType() {
+    }
+
+    private void ChangeCharCode() {
+    }
+
+    private void EditDataFile(int editorType) {
+    }
+
+    private void SelectItem(MyFileListItem item, int count) {
+    }
+
+    private void UnselectItem(MyFileListItem item, int count) {
+    }
+
+    private MyFileListItem GetEventItem(ListEvent event) {
+        return new MyFileListItem();
+    }
+
+    public DiskBasic GetDiskBasic() {
+        return m_current_basic;
+    }
+
+    public UiDiskFileListCtrl GetListCtrl() {
+        return listCtrl;
+    }
+
+    public void ShowFileAttr() {
+    }
+
+    public boolean ShowFileAttr(DiskBasicDirItem item) {
+        return false;
+    }
+
+    public void AcceptSubmittedFileAttr(DiskBasicDirItemAttr dlg) {
+    }
+
+    public void CloseAllFileAttr() {
+    }
+
+    public boolean IsWritableBasicFile() {
+        return m_current_basic != null && m_current_basic.IsWritableIntoDisk();
+    }
+
+    public boolean IsDeletableBasicFile() {
+        return m_current_basic != null && m_current_basic.IsDeletable();
+    }
+
+    public int GetListSelectedItemCount() {
+        return listCtrl.GetListSelectedItemCount();
+    }
+
+    public boolean CanUseBasicDisk() {
+        return m_current_basic != null && m_current_basic.CanUse();
+    }
+
+    public boolean IsAssignedBasicDisk() {
+        return m_current_basic != null && m_current_basic.IsAssigned();
+    }
+
+    public boolean IsFormattableBasicDisk() {
+        return m_current_basic != null && m_current_basic.IsFormattable();
+    }
+
+    public boolean IsFormattedBasicDisk() {
+        return m_current_basic != null && m_current_basic.IsFormatted();
+    }
+
+    public void GetFatAvailability(int[] offset, int[] arr) {
+    }
+
+    public void SetListFont(Font font) {
+    }
 }
 
 class UiDiskFileListStoreModel extends DefaultListModel {
+
     private final UiDiskFrame frame;
     private UiDiskFileList ctrl;
 
@@ -436,7 +533,7 @@ class UiDiskFileListStoreModel extends DefaultListModel {
         DiskBasicDirItems dir_items = basic.GetCurrentDirectoryItems();
         if (dir_items == null) return 0;
 
-        int[] idx = new int[] { -1 };
+        int[] idx = new int[] {-1};
         if (ctrl.GetListCtrl() == null || ctrl.GetListCtrl().FindColumn(col, idx) == 0) return 0;
 
         int cmp = 0;
@@ -467,12 +564,17 @@ class UiDiskFileListStoreModel extends DefaultListModel {
         }
         return cmp;
     }
+
     // Placeholder method for GetItemData
-    private int GetItemData(Object item) { return 0; }
+    private int GetItemData(Object item) {
+        return 0;
+    }
 }
 
 class UiDiskFileListCtrl extends UICListCtrl {
+
     public static class ListColumnDef {
+
         public String name;
         public String label;
         public boolean shown;
@@ -520,11 +622,11 @@ class UiDiskFileListCtrl extends UICListCtrl {
 
     protected void SetListData(DiskBasic basic, DiskBasicDirItem item, int row, int num, ListModel values) {
         int icon = ChooseIconNumber(item);
-        int[] track_num = new int[] { -1 };
-        int[] side_num = new int[] { -1 };
-        int[] sector_start = new int[] { -1 };
-        int[] div_num = new int[] { 0 };
-        int[] div_nums = new int[] { 1 };
+        int[] track_num = new int[] {-1};
+        int[] side_num = new int[] {-1};
+        int[] sector_start = new int[] {-1};
+        int[] div_num = new int[] {0};
+        int[] div_nums = new int[] {1};
         if (!basic.CalcStartNumFromGroupNum((int) item.GetStartGroup(0), track_num, side_num, sector_start, div_num, div_nums)) {
             track_num[0] = -1;
             side_num[0] = -1;
@@ -561,7 +663,9 @@ class UiDiskFileListCtrl extends UICListCtrl {
 
     protected void InsertListData(DiskBasic basic, DiskBasicDirItem item, int row, int num, int data) {
         MyFileListValue[] values = new MyFileListValue[UiDiskFileList.LISTCOL_END];
-        for(int i=0; i<UiDiskFileList.LISTCOL_END; i++) { values[i] = new MyFileListValue(); }
+        for (int i = 0; i < UiDiskFileList.LISTCOL_END; i++) {
+            values[i] = new MyFileListValue();
+        }
 
         SetListData(basic, item, row, num, values);
 
@@ -570,7 +674,9 @@ class UiDiskFileListCtrl extends UICListCtrl {
 
     protected void UpdateListData(DiskBasic basic, DiskBasicDirItem item, int row, int num, int data) {
         MyFileListValue[] values = new MyFileListValue[UiDiskFileList.LISTCOL_END];
-        for(int i=0; i<UiDiskFileList.LISTCOL_END; i++) { values[i] = new MyFileListValue(); }
+        for (int i = 0; i < UiDiskFileList.LISTCOL_END; i++) {
+            values[i] = new MyFileListValue();
+        }
 
         SetListData(basic, item, row, num, values);
 
@@ -638,6 +744,7 @@ class UiDiskFileListCtrl extends UICListCtrl {
 
     // struct st_file_list_sort_exp equivalent
     private static class FileListSortExp {
+
         DiskBasicDirItems items;
         Comparator<Integer> cmpfunc;
         int dir;
@@ -645,8 +752,12 @@ class UiDiskFileListCtrl extends UICListCtrl {
 
     // wxCALLBACK Compare equivalent (Comparator for indices)
     public static class ListCompare implements Comparator<Long> {
+
         private final FileListSortExp exp;
-        public ListCompare(FileListSortExp exp) { this.exp = exp; }
+
+        public ListCompare(FileListSortExp exp) {
+            this.exp = exp;
+        }
 
         @Override
         public int compare(int item1, int item2) {

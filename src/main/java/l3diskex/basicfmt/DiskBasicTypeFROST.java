@@ -19,13 +19,13 @@ import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_FREE;
 import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_SYSTEM;
 import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_USED;
 import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_USED_LAST;
-import static l3diskex.basicfmt.BasicFat.INVALID_GROUP_NUMBER;
 
 
 /**
  * Frost-DOSの処理
- *
+ * <p>
  * DiskBasicParam
+ *
  * @li ReservedGroups : Group 予約済みにするグループ（クラスタ）番号
  */
 public class DiskBasicTypeFROST extends DiskBasicTypeFAT8 {
@@ -39,6 +39,7 @@ public class DiskBasicTypeFROST extends DiskBasicTypeFAT8 {
 
     /**
      * FAT位置をセット
+     *
      * @param num グループ番号(0...)
      * @param val 値
      */
@@ -50,6 +51,7 @@ public class DiskBasicTypeFROST extends DiskBasicTypeFAT8 {
 
     /**
      * FAT位置を返す
+     *
      * @param num グループ番号(0...)
      */
     @Override
@@ -60,6 +62,7 @@ public class DiskBasicTypeFROST extends DiskBasicTypeFAT8 {
 
     /**
      * 次の空きFAT位置を返す
+     *
      * @param curr_group グループ番号(0...)
      * @return INVALID_GROUP_NUMBER 空きなし
      */
@@ -84,10 +87,11 @@ public class DiskBasicTypeFROST extends DiskBasicTypeFAT8 {
 
     /**
      * ディスクから各パラメータを取得＆必要なパラメータを計算
+     *
      * @param is_formatting フォーマット中か
      * @return 1.0       正常
-     *  0.0 - 1.0 警告あり
-     *  <0.0      エラーあり
+     * 0.0 - 1.0 警告あり
+     * <0.0      エラーあり
      */
     @Override
     public double parseParamOnDisk(boolean is_formatting) {
@@ -125,10 +129,11 @@ public class DiskBasicTypeFROST extends DiskBasicTypeFAT8 {
 
     /**
      * FATエリアをチェック
+     *
      * @param is_formatting フォーマット中か
      * @return 1.0       正常
-     *  0.0 - 1.0 警告あり
-     *  <0.0      エラーあり
+     * 0.0 - 1.0 警告あり
+     * <0.0      エラーあり
      */
     @Override
     public double checkFat(boolean is_formatting) {
@@ -149,6 +154,7 @@ public class DiskBasicTypeFROST extends DiskBasicTypeFAT8 {
 
     /**
      * 使用可能なディスクサイズを得る
+     *
      * @param disk_size  ディスクサイズ (Output parameter via an array or wrapper)
      * @param group_size グループ数 (Output parameter via an array or wrapper)
      */
@@ -189,7 +195,7 @@ public class DiskBasicTypeFROST extends DiskBasicTypeFAT8 {
                 fsts = FAT_AVAIL_USED_LAST.getValue();
             }
             // Assuming FatAvailability is a simple class/struct to hold the values
-            fatAvailability.Add(fsts, fsize, grps);
+            fatAvailability.add(fsts, fsize, grps);
         }
 
 //	free_disk_size = (int)fsize;
@@ -222,11 +228,12 @@ public class DiskBasicTypeFROST extends DiskBasicTypeFAT8 {
 
     /**
      * データサイズ分のグループを確保する
+     *
      * @param fileunit_num ファイル番号
-     * @param item ディレクトリアイテム
-     * @param data_size 確保するデータサイズ（バイト）
-     * @param flags 新規か追加か (Assuming AllocateGroupFlags is an enum/constant class)
-     * @param group_items 確保したセクタリスト
+     * @param item         ディレクトリアイテム
+     * @param data_size    確保するデータサイズ（バイト）
+     * @param flags        新規か追加か (Assuming AllocateGroupFlags is an enum/constant class)
+     * @param group_items  確保したセクタリスト
      * @return >0:正常 -1:空きなし(開始グループ設定前) -2:空きなし(開始グループ設定後)
      */
     @Override
@@ -267,7 +274,7 @@ public class DiskBasicTypeFROST extends DiskBasicTypeFAT8 {
             // 次の空きがない場合 or 残りサイズがこのグループで収まる場合
             if (next_group_num == INVALID_GROUP_NUMBER || sizeremain <= bytes_per_group) {
                 // 最後のグループ番号
-                next_group_num = calcLastGroupNumber(next_group_num, new int[]{sizeremain}); // sizeremain is passed as a mutable array
+                next_group_num = calcLastGroupNumber(next_group_num, new int[] {sizeremain}); // sizeremain is passed as a mutable array
             }
 
             basic.getNumsFromGroup(group_num, next_group_num, basic.getSectorSize(), sizeremain, group_items);
@@ -305,6 +312,7 @@ public class DiskBasicTypeFROST extends DiskBasicTypeFAT8 {
 
     /**
      * グループ番号から開始セクタ番号を得る
+     *
      * @param group_num グループ番号
      * @return 開始セクタ番号
      */
@@ -338,6 +346,7 @@ public class DiskBasicTypeFROST extends DiskBasicTypeFAT8 {
     /**
      * セクタ位置(トラック0,サイド0,セクタ1を0とした通し番号)からトラック、サイド、セクタの各番号を得る
      * セクタ位置は、機種によらずトラック0,サイド0,セクタ1を0とした通し番号
+     *
      * @param sector_pos セクタ位置(トラック0,サイド0,セクタ1を0とした通し番号)
      * @param track_num  トラック番号 (Output parameter)
      * @param side_num   サイド番号 (Output parameter)
@@ -373,11 +382,12 @@ public class DiskBasicTypeFROST extends DiskBasicTypeFAT8 {
     /**
      * トラック、サイド、セクタの各番号からセクタ位置(トラック0,サイド0,セクタ1を0とした通し番号)を得る
      * セクタ位置は、機種によらずトラック0,サイド0,セクタ1を0とした通し番号
-     * @param track_num   トラック番号
-     * @param side_num    サイド番号
-     * @param sector_num  セクタ番号
-     * @param div_num     分割番号
-     * @param div_nums    分割数
+     *
+     * @param track_num  トラック番号
+     * @param side_num   サイド番号
+     * @param sector_num セクタ番号
+     * @param div_num    分割番号
+     * @param div_nums   分割数
      * @return セクタ位置(トラック0,サイド0,セクタ1を0とした通し番号)
      */
     @Override
@@ -429,8 +439,9 @@ public class DiskBasicTypeFROST extends DiskBasicTypeFAT8 {
 
     /**
      * グループ確保時に最後のグループ番号を計算する
-     * @param group_num	現在のグループ番号
-     * @param size_remain	残りのデータサイズ (mutable via int array)
+     *
+     * @param group_num   現在のグループ番号
+     * @param size_remain 残りのデータサイズ (mutable via int array)
      * @return 最後のグループ番号
      */
     @Override
@@ -440,16 +451,17 @@ public class DiskBasicTypeFROST extends DiskBasicTypeFAT8 {
 
     /**
      * データの書き込み処理
-     * @param item			ディレクトリアイテム
-     * @param istream		ストリームデータ
-     * @param buffer			セクタ内の書き込み先バッファ
-     * @param size			書き込み先バッファサイズ
-     * @param remain			残りのデータサイズ
-     * @param sector_num		セクタ番号
-     * @param group_num		現在のグループ番号
-     * @param next_group		次のグループ番号
-     * @param sector_end		最終セクタ番号
-     * @param seq_num		通し番号(0...)
+     *
+     * @param item       ディレクトリアイテム
+     * @param istream    ストリームデータ
+     * @param buffer     セクタ内の書き込み先バッファ
+     * @param size       書き込み先バッファサイズ
+     * @param remain     残りのデータサイズ
+     * @param sector_num セクタ番号
+     * @param group_num  現在のグループ番号
+     * @param next_group 次のグループ番号
+     * @param sector_end 最終セクタ番号
+     * @param seq_num    通し番号(0...)
      * @return 書き込んだバイト数
      */
     @Override

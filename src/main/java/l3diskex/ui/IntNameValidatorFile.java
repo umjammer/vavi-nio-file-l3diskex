@@ -95,7 +95,9 @@ public class IntNameValidatorFile {
         }
 
         @Override
-        public Object clone() { return new IntNameValidator(this); }
+        public Object clone() {
+            return new IntNameValidator(this);
+        }
 
         public boolean Copy(IntNameValidator val) {
             /* copy all member variables – the C++ code does the same */
@@ -128,7 +130,7 @@ public class IntNameValidatorFile {
 
         private boolean ContainsIncludedCharactersAtFirst(String val, StringBuilder invchr) {
             if (m_fstchrs.isEmpty()) return true;          /* nothing to check */
-            if (val.isEmpty())   return true;              /* nothing to check */
+            if (val.isEmpty()) return true;              /* nothing to check */
 
             char first = val.charAt(0);
             if (m_fstchrs.indexOf(first) < 0) {
@@ -202,15 +204,22 @@ public class IntNameValidatorFile {
         /* The following methods are part of the original code but are     */
         /* essentially no‑ops in the simplified environment.              */
         /* ---------------------------------------------------------------- */
-        public boolean TransferToWindow()      { return true; }
-        public boolean TransferFromWindow()    { return true; }
-        public void OnChar(Object event)       { /* no-op */ }
+        public boolean TransferToWindow() {
+            return true;
+        }
+
+        public boolean TransferFromWindow() {
+            return true;
+        }
+
+        public void OnChar(Object event) { /* no-op */ }
     }
 
     /* ------------------------------------------------------------------ */
     /* 4.  DateTimeValidator class                                        */
     /* ------------------------------------------------------------------ */
     public static class DateTimeValidator extends Validator {
+
         private final boolean m_is_time;
         private final boolean m_require;
 
@@ -225,7 +234,9 @@ public class IntNameValidatorFile {
         }
 
         @Override
-        public Object clone() { return new DateTimeValidator(this); }
+        public Object clone() {
+            return new DateTimeValidator(this);
+        }
 
         public boolean Validate(Object parent) {
             /* The original code performed date/time parsing – here
@@ -240,10 +251,13 @@ public class IntNameValidatorFile {
     public static class AddressValidator extends Validator {
 
         public AddressValidator() { /* nothing to do */ }
+
         public AddressValidator(AddressValidator src) { /* nothing to do */ }
 
         @Override
-        public Object clone() { return new AddressValidator(); }
+        public Object clone() {
+            return new AddressValidator();
+        }
 
         public boolean Validate(Object parent) {
             /* Dummy implementation – always true */
@@ -260,8 +274,8 @@ public class IntNameValidatorFile {
         ValidNameRule rule = new ValidNameRule();
 
         IntNameValidator validator = new IntNameValidator(item,
-                                                          "example",
-                                                          rule);
+                "example",
+                rule);
 
         System.out.println("Validation result: " +
                 validator.Validate(null, "TestValue"));

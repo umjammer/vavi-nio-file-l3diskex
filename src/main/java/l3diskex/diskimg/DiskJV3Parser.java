@@ -34,6 +34,7 @@ public class DiskJV3Parser extends DiskImageParser {
      * セクタ番号情報 (Simulates st_jv3_sector_id struct)
      */
     private static class Jv3SectorId {
+
         public byte track_number;
         public byte sector_number;
         public byte flags;
@@ -50,6 +51,7 @@ public class DiskJV3Parser extends DiskImageParser {
      * ヘッダ情報 (Simulates st_jv3_header struct)
      */
     private static class Jv3Header {
+
         public Jv3SectorId[] ids = new Jv3SectorId[2901];
         public byte write_protected;
         // Total size: 2901 * 3 + 1
@@ -79,7 +81,7 @@ public class DiskJV3Parser extends DiskImageParser {
     /**
      * セクタデータの作成
      */
-    private int ParseSector(InputStream istream, int track_number, int side_number, int sector_number, int sector_size, int sector_nums, boolean single_density, DiskImageTrack track) throws IOException {
+    private int parseSector(InputStream istream, int track_number, int side_number, int sector_number, int sector_size, int sector_nums, boolean single_density, DiskImageTrack track) throws IOException {
         DiskImageSector sector = track.newImageSector(track_number, side_number, sector_number, sector_size, sector_nums, single_density, 0);
         track.add(sector);
 
@@ -101,7 +103,7 @@ public class DiskJV3Parser extends DiskImageParser {
     /**
      * ディスクの解析
      */
-    private int ParseDisk(InputStream istream) throws IOException {
+    private int parseDisk(InputStream istream) throws IOException {
         Jv3Header header = new Jv3Header();
 
         DiskImageDisk disk = file.newImageDisk(0);
@@ -145,7 +147,7 @@ public class DiskJV3Parser extends DiskImageParser {
                 }
                 int track_size = track.getSize();
                 // セクタ作成
-                int sector_newsize = ParseSector(istream, track_number, side_number, sector_number, sector_size, 1, single_density, track);
+                int sector_newsize = parseSector(istream, track_number, side_number, sector_number, sector_size, 1, single_density, track);
                 // トラックサイズ更新
                 track.setSize(track_size + sector_newsize);
                 d88_offset += sector_newsize;
@@ -193,23 +195,25 @@ public class DiskJV3Parser extends DiskImageParser {
 
     /**
      * ファイルを解析
-     * @param istream    解析対象データ
-     * @retval  0 正常
+     *
+     * @param istream 解析対象データ
+     * @retval 0 正常
      * @retval -1 エラーあり
-     * @retval  1 警告あり
+     * @retval 1 警告あり
      */
-    public int Parse(InputStream istream) throws IOException {
+    public int parse(InputStream istream) throws IOException {
         result.clear();
         // istream.SeekI(0); -> Not directly supported by base InputStream, assume it's at start or wrapped.
 
-        ParseDisk(istream);
+        parseDisk(istream);
 
         return result.getValid();
     }
 
     /**
      * チェック
-     * @param istream       解析対象データ
+     *
+     * @param istream 解析対象データ
      * @retval 0 正常 -1 対象データではない
      */
     @Override

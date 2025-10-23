@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import l3diskex.Parambase;
+import l3diskex.Utils;
 import l3diskex.basicfmt.BasicCommon.DirectoryFat8f;
 import l3diskex.basicfmt.BasicCommon.DirectoryT;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
@@ -15,6 +16,7 @@ import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
 
 import static l3diskex.Config.gConfig;
+import static l3diskex.Parambase.MyAttributes.findUpperCase;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_ASCII_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_BASIC_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_BINARY_MASK;
@@ -118,7 +120,7 @@ abstract class DiskBasicDirItemFAT8<T extends DirectoryT> extends DiskBasicDirIt
         // 開始アドレス
         m_start_address = sector.get16(3, is_bigendian);
         // 終了アドレス
-        m_end_address = (int)sector.get16(1, is_bigendian) + m_start_address - 1;
+        m_end_address = (int) sector.get16(1, is_bigendian) + m_start_address - 1;
 
         item = groups.last();
         sector = basic.getSector(item.track, item.side, item.sectorEnd);
@@ -239,7 +241,7 @@ abstract class DiskBasicDirItemFAT8<T extends DirectoryT> extends DiskBasicDirIt
         boolean working = true;
         int limit = basic.getFatEndGroup() + 1; // Assuming GetFatEndGroup returns int
 
-        while(working) {
+        while (working) {
             // Assuming type has GetGroupNumber
             int next_group = type.getGroupNumber(group_num); // Assumed to return int
 
@@ -314,29 +316,13 @@ abstract class DiskBasicDirItemFAT8<T extends DirectoryT> extends DiskBasicDirIt
     public int convFileTypeFromFileName(String filename) {
         int ftype = 0;
         // 拡張子で属性を設定する
-        String ext = getExtension(filename); // Assuming getExtension helper method
-        Parambase.MyAttribute sa = basic.diskBasicParam.getAttributesByExtension().findUpperCase(ext);
+        Parambase.MyAttribute sa = findUpperCase(basic.diskBasicParam.getAttributesByExtension(), Utils.getExt(filename));
         if (sa != null) {
             ftype = sa.getType();
         }
         return ftype;
     }
-
-    // Helper method assumed for extension extraction, as Path is used in C++
-    public String getExtension(String filename) {
-        int dotIndex = filename.lastIndexOf('.');
-        if (dotIndex > 0 && dotIndex < filename.length() - 1) {
-            return filename.substring(dotIndex + 1);
-        }
-        return "";
-    }
 }
-
-// File: DiskBasicDirItemFAT8F.java (part of the same file/package in C++, maintaining structure)
-
-// Assuming directory_fat8f_t and directory_t structs are mapped to Java classes
-// directory_fat8f_t is a structure for the directory entry data.
-// DiskBasicDirData is a utility class for managing directory data buffer.
 
 public class DiskBasicDirItemFAT8F extends DiskBasicDirItemFAT8<DirectoryFat8f> {
 
@@ -446,23 +432,23 @@ public class DiskBasicDirItemFAT8F extends DiskBasicDirItemFAT8<DirectoryFat8f> 
 
     @Override
     protected void setFileType1(int val) {
-        m_data.data().type = (byte)(val & 0xff);
+        m_data.data().type = (byte) (val & 0xff);
     }
 
     @Override
     protected void setFileType2(int val) {
-        m_data.data().type2 = (byte)(val & 0xff);
+        m_data.data().type2 = (byte) (val & 0xff);
     }
 
     @Override
     protected void setFileType3(int val) {
-        m_data.data().type3 = (byte)(val & 0xff);
+        m_data.data().type3 = (byte) (val & 0xff);
     }
 
     @Override
     public void setStartGroup(int fileunit_num, int val, int size) {
         // Assuming int maps to int for group numbers
-        m_data.data().startGroup = (byte)(val & 0xff);
+        m_data.data().startGroup = (byte) (val & 0xff);
     }
 
     @Override
@@ -497,13 +483,13 @@ public class DiskBasicDirItemFAT8F extends DiskBasicDirItemFAT8<DirectoryFat8f> 
 
     @Override
     public void clearData() {
-        m_data.fill((byte)0);
+        m_data.fill((byte) 0);
     }
 
     @Override
     public boolean preImportDataFile(String[] filename) {
         // Assuming gConfig.IsDecideAttrImport() and other helper methods are available
-        if (gConfig.IsDecideAttrImport()) {
+        if (gConfig.isDecideAttrImport()) {
             trimExtensionByExtensionAttr(filename); // Assuming helper takes String[] reference
         }
         filename[0] = remakeFileNameAndExtStr(filename[0]);

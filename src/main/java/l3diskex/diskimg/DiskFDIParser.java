@@ -23,31 +23,43 @@ public class DiskFDIParser extends DiskPlainParser {
      *  The FDI parser header structure – packed 1‑byte alignment.
      * ----------------------------------------------------------------*/
     static class FdiDskHeader {
-        byte[] unknown        = new byte[0x10];
-        int   sectorSize;
-        int   sectorsPerTrack;
-        int   sidesPerDisk;
-        int   tracksPerSide;
-        byte[] reserved       = new byte[0xfe0];
-        byte data             = 0;            // placeholder for the first data byte
+
+        byte[] unknown = new byte[0x10];
+        int sectorSize;
+        int sectorsPerTrack;
+        int sidesPerDisk;
+        int tracksPerSide;
+        byte[] reserved = new byte[0xfe0];
+        byte data = 0;            // placeholder for the first data byte
 
         /* Read the header from a DataInputStream (big‑endian). */
         public static FdiDskHeader readFrom(DataInputStream dis) throws IOException {
             FdiDskHeader hdr = new FdiDskHeader();
             dis.readFully(hdr.unknown);
-            hdr.sectorSize      = dis.readInt();
+            hdr.sectorSize = dis.readInt();
             hdr.sectorsPerTrack = dis.readInt();
-            hdr.sidesPerDisk    = dis.readInt();
-            hdr.tracksPerSide   = dis.readInt();
+            hdr.sidesPerDisk = dis.readInt();
+            hdr.tracksPerSide = dis.readInt();
             dis.readFully(hdr.reserved);
-            hdr.data            = dis.readByte();      // read the first data byte
+            hdr.data = dis.readByte();      // read the first data byte
             return hdr;
         }
 
-        public int getSectorSize() { return sectorSize; }
-        public int getSectorsPerTrack() { return sectorsPerTrack; }
-        public int getSidesPerDisk() { return sidesPerDisk; }
-        public int getTracksPerSide() { return tracksPerSide; }
+        public int getSectorSize() {
+            return sectorSize;
+        }
+
+        public int getSectorsPerTrack() {
+            return sectorsPerTrack;
+        }
+
+        public int getSidesPerDisk() {
+            return sidesPerDisk;
+        }
+
+        public int getTracksPerSide() {
+            return tracksPerSide;
+        }
     }
 
     /* ----------------------------------------------------------------
@@ -63,15 +75,15 @@ public class DiskFDIParser extends DiskPlainParser {
     @Override
     public int check(InputStream istream,
                      List<DiskTypeHint> diskHints,
-                     DiskParam     diskParam,
+                     DiskParam diskParam,
                      List<DiskParam> diskParams,
-                     DiskParam     manualParam) throws IOException {
+                     DiskParam manualParam) throws IOException {
 
         if (istream == null) return 0;
 
         /* Seek to beginning */
         if (istream instanceof SeekableDataInputStream) {
-            ((SeekableDataInputStream)istream).position(0);
+            ((SeekableDataInputStream) istream).position(0);
         } else {
             return -1;
         }
@@ -87,10 +99,10 @@ public class DiskFDIParser extends DiskPlainParser {
         }
 
         /* Validate header fields */
-        int sectorSize       = header.getSectorSize();
-        int sectorsPerTrack  = header.getSectorsPerTrack();
-        int sidesPerDisk     = header.getSidesPerDisk();
-        int tracksPerSide    = header.getTracksPerSide();
+        int sectorSize = header.getSectorSize();
+        int sectorsPerTrack = header.getSectorsPerTrack();
+        int sidesPerDisk = header.getSidesPerDisk();
+        int tracksPerSide = header.getTracksPerSide();
 
         if (sectorSize <= 0 || sectorSize > 4096) {
             result.setError(DiskResult.ERRV_SECTOR_SIZE_HEADER, 0, sectorSize);
@@ -120,13 +132,13 @@ public class DiskFDIParser extends DiskPlainParser {
         if (template == null) {
             /* No template – ask the caller to fill in the params. */
             manualParam.setDiskParam(sidesPerDisk,
-                                     tracksPerSide,
-                                     sectorsPerTrack,
-                                     sectorSize,
-                                     0,
-                                     0,
-                                     diskParam.getSingles(),
-                                     diskParam.getParticularTracks());
+                    tracksPerSide,
+                    sectorsPerTrack,
+                    sectorSize,
+                    0,
+                    0,
+                    diskParam.getSingles(),
+                    diskParam.getParticularTracks());
             return 1;                            // 1 → manual parameter set
         }
 
@@ -147,7 +159,7 @@ public class DiskFDIParser extends DiskPlainParser {
 
         /* Seek to beginning (or skip to start). */
         if (istream instanceof SeekableDataInputStream) {
-            ((SeekableDataInputStream)istream).position(0);
+            ((SeekableDataInputStream) istream).position(0);
         } else {
             return -1;
         }
@@ -165,7 +177,7 @@ public class DiskFDIParser extends DiskPlainParser {
         /* Skip the reserved block – the header occupies 4097 bytes,
            the actual image data starts at offset 0x1000 (4096). */
         if (istream instanceof SeekableDataInputStream) {
-            ((SeekableDataInputStream)istream).position(0x1000);
+            ((SeekableDataInputStream) istream).position(0x1000);
         } else {
             istream.skip(0x1000);
         }

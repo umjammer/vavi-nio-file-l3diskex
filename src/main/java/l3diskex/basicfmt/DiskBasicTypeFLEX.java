@@ -26,21 +26,23 @@ import vavi.util.serdes.Serdes;
 
 import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_FREE;
 import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_USED_LAST;
-import static l3diskex.basicfmt.BasicFat.INVALID_GROUP_NUMBER;
 import static l3diskex.basicfmt.DiskBasicType.AllocateGroupFlags.ALLOCATE_GROUPS_NEW;
 
 
 /**
  * FLEXの処理
- *
+ * <p>
  * DiskBasicParam
+ *
  * @li DirStartPositionOnSector : ディレクトリエントリの開始位置
  */
 public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
 
     private static final Logger logger = System.getLogger(DiskBasicTypeFLEX.class.getName());
 
-    private FlexSirT flex_sir;   /** SIRエリア */
+    private FlexSirT flex_sir;
+
+    /** SIRエリア */
 
     public DiskBasicTypeFLEX(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryFlex> dir) {
         super(basic, fat, dir);
@@ -51,27 +53,27 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
         }
     }
 
-    /// 論理セクタ番号からセクタ内の位置を得る
+    /** 論理セクタ番号からセクタ内の位置を得る */
     private int secBufOfs(int sector_number) {
         int pos = (sector_number - 1) % basic.diskBasicParam.getGroupsPerSector();
         return pos * basic.getSectorSize() / basic.diskBasicParam.getGroupsPerSector();
     }
 
-    /// 論理セクタサイズ
+    /** 論理セクタサイズ */
     private int logSecSiz(int sector_size) {
         return sector_size / basic.diskBasicParam.getGroupsPerSector();
     }
 
-    /// FAT位置をセット (seq_numをセット)
+    /** FAT位置をセット (seq_numをセット) */
     @Override
     public void setGroupNumber(int num, int val) throws IOException {
         int div_num = 0;
-        DiskImageSector sector = basic.getSectorFromSectorPos(num, new int[]{div_num});
+        DiskImageSector sector = basic.getSectorFromSectorPos(num, new int[] {div_num});
         if (sector == null) {
             // why?
             return;
         }
-        int[] div_num_holder = new int[]{div_num};
+        int[] div_num_holder = new int[] {div_num};
         FlexPtr p = new FlexPtr();
         byte[] b = sector.getSectorBuffer(secBufOfs(div_num_holder[0] + 1));
         Serdes.Util.deserialize(new ByteArrayInputStream(b), p);
@@ -82,25 +84,25 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
         p.seqNum = (short) val;
     }
 
-    /// FATオフセットを返す (FLEXではグループ番号=セクタ位置) */
+    /** FATオフセットを返す (FLEXではグループ番号=セクタ位置) */
     @Override
     public int getGroupNumber(int num) {
         return num;
     }
 
-    /// 使用しているグループ番号か (FLEXでは常にtrue) */
+    /** 使用しているグループ番号か (FLEXでは常にtrue) */
     @Override
     public boolean isUsedGroupNumber(int num) {
         return true;
     }
 
-    /// 次のグループ番号を得る (FLEXではグループはFATでなくチェインでたどるため、通常はINVALID_GROUP_NUMBER) */
+    /** 次のグループ番号を得る (FLEXではグループはFATでなくチェインでたどるため、通常はINVALID_GROUP_NUMBER) */
     @Override
     public int getNextGroupNumber(int num, int sector_pos) {
         return INVALID_GROUP_NUMBER;
     }
 
-    /// 空きFAT位置を返す
+    /** 空きFAT位置を返す */
     @Override
     public int getEmptyGroupNumber() throws IOException {
         DiskImageSector sector = null;
@@ -114,7 +116,7 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
         int div_num = 0;
         // グループ番号を得る
         group_num = getSectorPosFromNumS(sta_track_num, sta_lsector_num);
-        int[] div_num_holder = new int[]{div_num};
+        int[] div_num_holder = new int[] {div_num};
         sector = basic.getSectorFromSectorPos(group_num, div_num_holder);
         if (sector == null) {
             // no free space ?
@@ -151,7 +153,7 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
         return group_num;
     }
 
-    /// 次の空きFAT位置を返す */
+    /** 次の空きFAT位置を返す */
     @Override
     public int getNextEmptyGroupNumber(int curr_group) throws IOException {
         // 次の空き位置候補
@@ -167,11 +169,14 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
         return next_group_num;
     }
 
-    /// エリアをチェック
-    /// @param is_formatting フォーマット中か
-    /// @return 1.0       正常
-    /// @return 0.0 - 1.0 警告あり
-    /// @return <0.0      エラーあり
+    /**
+     * エリアをチェック
+     *
+     * @param is_formatting フォーマット中か
+     * @return 1.0       正常
+     *  0.0 - 1.0 警告あり
+     *   <0.0      エラーあり
+     */
     @Override
     public double checkFat(boolean is_formatting) throws IOException {
         // SIR area
@@ -236,11 +241,14 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
         return valid_ratio;
     }
 
-    /// ディスクから各パラメータを取得＆必要なパラメータを計算
-    /// @param is_formatting フォーマット中か
-    /// @return 1.0       正常
-    /// @return 0.0 - 1.0 警告あり
-    /// @return <0.0      エラーあり
+    /**
+     * ディスクから各パラメータを取得＆必要なパラメータを計算
+     *
+     * @param is_formatting フォーマット中か
+     * @return 1.0       正常
+     *  0.0 - 1.0 警告あり
+     *  <0.0      エラーあり
+     */
     @Override
     public double parseParamOnDisk(boolean is_formatting) throws IOException {
         if (is_formatting) return 1.0;
@@ -252,7 +260,7 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
             }
             FlexSirT flex = new FlexSirT();
             byte[] bb = sector.getSectorBuffer(secBufOfs(2 + 1));
-            Serdes.Util.deserialize(new ByteArrayInputStream(bb),flex);
+            Serdes.Util.deserialize(new ByteArrayInputStream(bb), flex);
             flex_sir = flex;
         }
 
@@ -268,7 +276,7 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
         return 1.0;
     }
 
-    /// ルートディレクトリのセクタリストを計算 */
+    /** ルートディレクトリのセクタリストを計算 */
     @Override
     public boolean calcGroupsOnRootDirectory(int start_sector, int end_sector, DiskBasicGroups group_items) throws IOException {
         boolean valid = true;
@@ -284,10 +292,10 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
         int div_num = 0;
         int div_nums = 1;
         // 開始セクタ
-        int[] trk_num_holder = new int[]{trk_num};
-        int[] sid_num_holder = new int[]{sid_num};
-        int[] div_num_holder = new int[]{div_num};
-        int[] div_nums_holder = new int[]{div_nums};
+        int[] trk_num_holder = new int[] {trk_num};
+        int[] sid_num_holder = new int[] {sid_num};
+        int[] div_num_holder = new int[] {div_num};
+        int[] div_nums_holder = new int[] {div_nums};
         DiskImageSector sector = basic.getManagedSector(start_sector - 1, trk_num_holder, sid_num_holder, null, div_num_holder, div_nums_holder);
         trk_num = trk_num_holder[0];
         sid_num = sid_num_holder[0];
@@ -346,14 +354,14 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
         return valid;
     }
 
-    /// 使用可能なディスクサイズを得る
+    /** 使用可能なディスクサイズを得る */
     @Override
     public void getUsableDiskSize(int[] disk_size, int[] group_size) {
         group_size[0] = basic.diskBasicParam.getFatEndGroup() + 1;
         disk_size[0] = group_size[0] * basic.getSectorSize() * basic.diskBasicParam.getSectorsPerGroup() / basic.diskBasicParam.getGroupsPerSector();
     }
 
-    /// 残りディスクサイズを計算
+    /** 残りディスクサイズを計算 */
     @Override
     public void calcDiskFreeSize(boolean wrote) throws IOException {
         int fsize = 0;
@@ -363,12 +371,12 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
 
         fatAvailability.empty();
 
-//        fatAvailability.SetCount(basic.diskBasicParam.GetFatEndGroup() + 1, FAT_AVAIL_USED.getValue());
+//        fatAvailability.setCount(basic.diskBasicParam.getFatEndGroup() + 1, FAT_AVAIL_USED.getValue());
 
         // SIR area
-        // DiskImageDisk *disk = basic.GetDisk();
-        DiskImageSector sector = null;
-        // flex_sir_t *flex = (flex_sir_t *)sector->GetSectorBuffer();
+        //DiskImageDisk disk = basic.getDisk();
+        DiskImageSector sector;
+        //flex_sir_t flex = (flex_sir_t)sector.getSectorBuffer();
 
         int track_num = flex_sir.free_start_track & 0xff;
         int lsector_num = flex_sir.free_start_sector & 0xff;
@@ -377,31 +385,31 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
         int div_nums = 1;
         while ((track_num != 0 || lsector_num != 0) && limit >= 0) {
             int sector_pos = getSectorPosFromNumS(track_num, lsector_num);
-            int[] div_num_holder = new int[]{div_num};
-            int[] div_nums_holder = new int[]{div_nums};
+            int[] div_num_holder = new int[] {div_num};
+            int[] div_nums_holder = new int[] {div_nums};
             sector = basic.getSectorFromSectorPos(sector_pos, div_num_holder, div_nums_holder);
             div_num = div_num_holder[0];
             div_nums = div_nums_holder[0];
 
-            // sector = basic.GetSector(track_num, sector_num);
+            //sector = basic.GetSector(track_num, sector_num);
             if (sector == null) {
                 // error
                 break;
             }
             if (sector_pos < fatAvailability.count()) {
-                if (fatAvailability.Get(sector_pos) == FAT_AVAIL_FREE.getValue()) {
+                if (fatAvailability.get(sector_pos) == FAT_AVAIL_FREE.getValue()) {
                     // 既に空きエリアにしているのに同じセクタにきている
                     // 無限ループしている？
                     break;
                 }
-                fatAvailability.Set(sector_pos, FAT_AVAIL_FREE.getValue());
+                fatAvailability.set(sector_pos, FAT_AVAIL_FREE.getValue());
             }
 
             // セクタ先頭4バイトは除く
             fsize += (logSecSiz(sector.getSectorSize()) - 4);
             grps++;
 
-            // logger.log(Level.DEBUG, "trk:%d sec:%d size:%d", track_num, sector_num, fsize);
+            //logger.log(Level.DEBUG, "trk:%d sec:%d size:%d", track_num, sector_num, fsize);
 
             FlexPtr p = new FlexPtr();
             byte[] b = sector.getSectorBuffer(secBufOfs(div_num + 1));
@@ -412,10 +420,10 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
         }
 
         // ディレクトリエントリのグループ
-        List<DiskBasicDirItem> items = dir.getCurrentItems(null);
+        List<DiskBasicDirItem<DirectoryFlex>> items = dir.getCurrentItems(null);
         if (items != null) {
             for (int idx = 0; idx < items.size(); idx++) {
-                DiskBasicDirItem item = items.get(idx);
+                DiskBasicDirItem<DirectoryFlex> item = items.get(idx);
                 if (item == null || !item.isUsed()) continue;
 
                 // 最後のグループ
@@ -423,22 +431,22 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
                 if (gcnt > 0) {
                     int gnum = item.getGroup(gcnt - 1).group;
                     if (gnum <= basic.diskBasicParam.getFatEndGroup()) {
-                        fatAvailability.Set(gnum, FAT_AVAIL_USED_LAST.getValue());
+                        fatAvailability.set(gnum, FAT_AVAIL_USED_LAST.getValue());
                     }
                 }
             }
         }
 
         fatAvailability.setFreeSize(fsize);
-        fatAvailability.SetFreeGroups(grps);
+        fatAvailability.setFreeGroups(grps);
     }
 
-    /// データサイズ分のグループを確保する */
+    /** データサイズ分のグループを確保する */
     @Override
     public int allocateUnitGroups(int fileunit_num, DiskBasicDirItem<DirectoryFlex> item, int data_size, AllocateGroupFlags flags, DiskBasicGroups group_items) throws IOException {
-        // logger.log(Level.DEBUG, "DiskBasicTypeFLEX::AllocateGroups {");
+        //logger.log(Level.DEBUG, "DiskBasicTypeFLEX::AllocateGroups {");
 
-        // int file_size = data_size;
+        //int file_size = data_size;
         int groups = 0;
 
         // FAT
@@ -462,7 +470,7 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
                 }
                 // セクタをクリア
                 int div_num = 0;
-                int[] div_num_holder = new int[]{div_num};
+                int[] div_num_holder = new int[] {div_num};
                 DiskImageSector sector = basic.getSectorFromGroup(group_num, div_num_holder, null);
                 div_num = div_num_holder[0];
                 if (sector != null) {
@@ -491,7 +499,7 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
                 first_group = false;
             }
 
-            // logger.log(Level.DEBUG, "  group_num:0x%03x", group_num);
+            //logger.log(Level.DEBUG, "  group_num:0x%03x", group_num);
 
             basic.getNumsFromGroup(group_num, 0, logSecSiz(basic.getSectorSize()), sizeremain, group_items);
 
@@ -548,7 +556,7 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
                 boolean finished = false;
                 for (int sec = 0; sec < random_file && !finished; sec++) {
                     int div_num = 0;
-                    int[] div_num_holder = new int[]{div_num};
+                    int[] div_num_holder = new int[] {div_num};
                     isector = basic.getSectorFromGroup(current_idx_start, div_num_holder, null);
                     div_num = div_num_holder[0];
                     if (isector == null) break;
@@ -559,8 +567,8 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
                         DiskBasicGroupItem ritem = random_groups.itemPtr(idx);
                         int trk_num_fsm = 0;
                         int sec_num_fsm = 0;
-                        int[] trk_num_fsm_holder = new int[]{trk_num_fsm};
-                        int[] sec_num_fsm_holder = new int[]{sec_num_fsm};
+                        int[] trk_num_fsm_holder = new int[] {trk_num_fsm};
+                        int[] sec_num_fsm_holder = new int[] {sec_num_fsm};
                         getNumFromSectorPosS(ritem.group, trk_num_fsm_holder, sec_num_fsm_holder);
                         trk_num_fsm = trk_num_fsm_holder[0];
                         sec_num_fsm = sec_num_fsm_holder[0];
@@ -594,7 +602,7 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
             int last_group = item.getLastGroup();
             if (last_group != 0) {
                 int div_num = 0;
-                int[] div_num_holder = new int[]{div_num};
+                int[] div_num_holder = new int[] {div_num};
                 DiskImageSector sector = basic.getSectorFromGroup(last_group, div_num_holder, null);
                 div_num = div_num_holder[0];
                 if (sector != null) {
@@ -620,12 +628,12 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
         return rc;
     }
 
-    /// グループをつなげる */
+    /** グループをつなげる */
     @Override
     public int chainGroups(int group_num, int append_group_num) throws IOException {
         // 現在のセクタに次のセクタへのポインタをセット
         int div_num = 0;
-        int[] div_num_holder = new int[]{div_num};
+        int[] div_num_holder = new int[] {div_num};
         DiskImageSector sector = basic.getSectorFromSectorPos(group_num, div_num_holder);
         div_num = div_num_holder[0];
         if (sector == null) {
@@ -641,8 +649,8 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
         }
         int next_track_num = 0;
         int next_sector_num = 0;
-        int[] next_track_num_holder = new int[]{next_track_num};
-        int[] next_sector_num_holder = new int[]{next_sector_num};
+        int[] next_track_num_holder = new int[] {next_track_num};
+        int[] next_sector_num_holder = new int[] {next_sector_num};
         getNumFromSectorPosS(append_group_num, next_track_num_holder, next_sector_num_holder);
         next_track_num = next_track_num_holder[0];
         next_sector_num = next_sector_num_holder[0];
@@ -656,19 +664,19 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
         return 0;
     }
 
-    /// グループ番号から開始セクタ番号を得る */
+    /** グループ番号から開始セクタ番号を得る */
     @Override
     public int getStartSectorFromGroup(int group_num) {
         return group_num;
     }
 
-    /// グループ番号から最終セクタ番号を得る */
+    /** グループ番号から最終セクタ番号を得る */
     @Override
     public int getEndSectorFromGroup(int group_num, int next_group, int sector_start, int sector_size, int remain_size) {
         return group_num;
     }
 
-    /// セクタ位置(トラック0,サイド0,セクタ1を0とした通し番号)からトラック、サイド、セクタの各番号を得る */
+    /** セクタ位置(トラック0,サイド0,セクタ1を0とした通し番号)からトラック、サイド、セクタの各番号を得る */
     @Override
     public void getNumFromSectorPos(int sector_pos, int[] track_num, int[] side_num, int[] sector_num, int[] div_num, int[] div_nums) {
         int selected_side = basic.getSelectedSide();
@@ -706,7 +714,7 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
         if (div_nums != null) div_nums[0] = groups_per_sector;
     }
 
-    /// セクタ位置(トラック0,サイド0,セクタ1を0とした通し番号)からトラック、セクタの各番号を得る
+    /** セクタ位置(トラック0,サイド0,セクタ1を0とした通し番号)からトラック、セクタの各番号を得る */
     @Override
     public void getNumFromSectorPosS(int sector_pos, int[] track_num, int[] sector_num) {
         int selected_side = basic.getSelectedSide();
@@ -724,7 +732,7 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
         }
     }
 
-    /// トラック、サイド、セクタの各番号からセクタ位置(トラック0,サイド0,セクタ1を0とした通し番号)を得る
+    /** トラック、サイド、セクタの各番号からセクタ位置(トラック0,サイド0,セクタ1を0とした通し番号)を得る */
     @Override
     public int getSectorPosFromNum(int track_num, int side_num, int sector_num, int div_num, int div_nums) {
         int groups_per_track = basic.diskBasicParam.getGroupsPerTrack();
@@ -759,7 +767,7 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
         return sector_pos;
     }
 
-    /// トラック、セクタの各番号からセクタ位置(トラック0,サイド0,セクタ1を0とした通し番号)を得る
+    /** トラック、セクタの各番号からセクタ位置(トラック0,サイド0,セクタ1を0とした通し番号)を得る */
     @Override
     public int getSectorPosFromNumS(int track_num, int sector_num) {
         int selected_side = basic.getSelectedSide();
@@ -777,19 +785,19 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
         return sector_pos;
     }
 
-    /// ルートディレクトリか */
+    /** ルートディレクトリか */
     @Override
     public boolean isRootDirectory(int group_num) {
         return false;
     }
 
-    /// サブディレクトリを作成できるか */
+    /** サブディレクトリを作成できるか */
     @Override
     public boolean canMakeDirectory() {
         return false;
     }
 
-    /// フォーマット時セクタデータを指定コードで埋める */
+    /** フォーマット時セクタデータを指定コードで埋める */
     @Override
     public void fillSector(DiskImageTrack track, DiskImageSector sector) throws IOException {
         for (int div_num = 0; div_num < basic.diskBasicParam.getGroupsPerSector(); div_num++) {
@@ -823,7 +831,7 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
         }
     }
 
-    /// フォーマット時セクタデータを埋めた後の個別処理 */
+    /** フォーマット時セクタデータを埋めた後の個別処理 */
     @Override
     public boolean additionalProcessOnFormatted(DiskBasicIdentifiedData data) throws IOException {
         // SIR area
@@ -910,7 +918,7 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
         return true;
     }
 
-    /// データの読み込み/比較処理
+    /** データの読み込み/比較処理 */
     @Override
     public int accessFile(int fileunit_num, DiskBasicDirItem<DirectoryFlex> item, InputStream istream, OutputStream ostream, byte[] sector_buffer, int sector_size, int remain_size, int sector_num, int sector_end) throws IOException {
         byte[] buf = Arrays.copyOfRange(sector_buffer, 4, sector_buffer.length);
@@ -935,7 +943,7 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
         return size;
     }
 
-    /// データの書き込み処理
+    /** データの書き込み処理 */
     @Override
     public int writeFile(DiskBasicDirItem<DirectoryFlex> item, InputStream istream, byte[] buffer, int size, int remain, int sector_num, int group_num, int next_group, int sector_end, int seq_num) throws IOException {
         boolean need_eof_code = item.needCheckEofCode();
@@ -972,12 +980,12 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
         return len;
     }
 
-    /// 指定したグループ番号のFAT領域を削除する (FLEXでは何もしない)
+    /** 指定したグループ番号のFAT領域を削除する (FLEXでは何もしない) */
     @Override
     public void deleteGroupNumber(int group_num) {
     }
 
-    /// ファイル削除後の処理
+    /** ファイル削除後の処理 */
     @Override
     public boolean additionalProcessOnDeletedFile(DiskBasicDirItem<DirectoryFlex> item) throws IOException {
         DirectoryFlex d = item.getData();
@@ -1002,7 +1010,7 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
             flex_sir.free_last_sector = (byte) last_sector_num;
         } else {
             // チェインする
-            int[] div_num_holder = new int[]{div_num};
+            int[] div_num_holder = new int[] {div_num};
             sector = basic.getSectorFromSectorPos(getSectorPosFromNumS(flex_sir.free_last_track & 0xff, flex_sir.free_last_sector & 0xff), div_num_holder);
             div_num = div_num_holder[0];
             if (sector == null) return false;
@@ -1027,7 +1035,7 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
         return true;
     }
 
-    /// 空きエリアのチェインを作り直す
+    /** 空きエリアのチェインを作り直す */
     public void remakeChainOnFreeArea() throws IOException {
         DiskImageSector sector;
         FlexPtr p;
@@ -1040,7 +1048,7 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
             int free_group_num = getSectorPosFromNumS(free_track_num, free_sector_num);
             group_items.add(free_group_num, 0, free_track_num, 0, free_sector_num, 0);
             int div_num = 0;
-            int[] div_num_holder = new int[]{div_num};
+            int[] div_num_holder = new int[] {div_num};
             sector = basic.getSectorFromSectorPos(getSectorPosFromNumS(free_track_num, free_sector_num), div_num_holder);
             div_num = div_num_holder[0];
             if (sector == null) break;
@@ -1059,7 +1067,7 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
         for (int idx = 0; idx < group_items_count; idx++) {
             DiskBasicGroupItem gitem = group_items.itemPtr(idx);
             int div_num = 0;
-            int[] div_num_holder = new int[]{div_num};
+            int[] div_num_holder = new int[] {div_num};
             sector = basic.getSectorFromSectorPos(getSectorPosFromNumS(gitem.track, gitem.sectorStart), div_num_holder);
             div_num = div_num_holder[0];
             if (sector == null) break;
@@ -1095,7 +1103,7 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
         flex_sir.free_sector_nums = (short) group_items_count;
     }
 
-    /// IPLや管理エリアの属性を得る */
+    /** IPLや管理エリアの属性を得る */
     @Override
     public void getIdentifiedData(DiskBasicIdentifiedData data) {
         // volume label
@@ -1107,14 +1115,14 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
         // volume date
         int y = (flex_sir.cyear & 0xff) % 100;
         LocalDateTime tm = LocalDateTime.of(
-                 y +
-                   (y >= 0 && y < 80 ? 100 : 0),
+                y +
+                        (y >= 0 && y < 80 ? 100 : 0),
                 (flex_sir.cmonth & 0xff) - 1,
                 flex_sir.cday & 0xff, 0, 0);
         data.setVolumeDate(Utils.formatYMDStr(tm));
     }
 
-    /// IPLや管理エリアの属性をセット */
+    /** IPLや管理エリアの属性をセット */
     @Override
     public void setIdentifiedData(DiskBasicIdentifiedData data) {
         DiskBasicFormat fmt = basic.getFormatType();
@@ -1132,6 +1140,7 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
 
     // Helper class for data serialization/deserialization for FlexSirT
     public static class FlexSirT {
+
         public byte[] reserved0 = new byte[16];
         public byte[] volume_label = new byte[8];
         public byte[] reserved1 = new byte[3];
@@ -1200,6 +1209,7 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
 
     // Helper class for data serialization/deserialization for StFlexFsm
     public static class StFlexFsm {
+
         public byte track;
         public byte sector;
         public byte count;

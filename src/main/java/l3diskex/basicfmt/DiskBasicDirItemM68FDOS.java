@@ -26,7 +26,7 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_HIDDEN_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_READONLY_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_SYSTEM_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_WRITEONLY_MASK;
-import static l3diskex.basicfmt.BasicFat.INVALID_GROUP_NUMBER;
+import static l3diskex.basicfmt.DiskBasicType.INVALID_GROUP_NUMBER;
 
 
 /**
@@ -77,25 +77,25 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
     static class M68FDOSData {
 
         public static final Map<String, Object> gTypeNameM68FDOS = new HashMap<>() {{
-                put("A - Attribute Protected", en_file_type_m68fdos.FILETYPE_M68_FDOS_A);
-                put("P - Permanent", en_file_type_m68fdos.FILETYPE_M68_FDOS_P);
-                put("W - Write Protected", en_file_type_m68fdos.FILETYPE_M68_FDOS_W);
-                put("R - Read Protected", en_file_type_m68fdos.FILETYPE_M68_FDOS_R);
-                put("X - Xfer Protected", en_file_type_m68fdos.FILETYPE_M68_FDOS_X);
-                put("S - Saved Memory Image", en_file_type_m68fdos.FILETYPE_M68_FDOS_S);
-                put("C - Continuous", en_file_type_m68fdos.FILETYPE_M68_FDOS_C);
-                put("D - Device", en_file_type_m68fdos.FILETYPE_M68_FDOS_D);
+            put("A - Attribute Protected", en_file_type_m68fdos.FILETYPE_M68_FDOS_A);
+            put("P - Permanent", en_file_type_m68fdos.FILETYPE_M68_FDOS_P);
+            put("W - Write Protected", en_file_type_m68fdos.FILETYPE_M68_FDOS_W);
+            put("R - Read Protected", en_file_type_m68fdos.FILETYPE_M68_FDOS_R);
+            put("X - Xfer Protected", en_file_type_m68fdos.FILETYPE_M68_FDOS_X);
+            put("S - Saved Memory Image", en_file_type_m68fdos.FILETYPE_M68_FDOS_S);
+            put("C - Continuous", en_file_type_m68fdos.FILETYPE_M68_FDOS_C);
+            put("D - Device", en_file_type_m68fdos.FILETYPE_M68_FDOS_D);
         }};
 
         public static final Map<String, Object> gTypeNameShortM68FDOS = new HashMap<>() {{
-                put("A", en_file_type_m68fdos.FILETYPE_M68_FDOS_A);
-                put("P", en_file_type_m68fdos.FILETYPE_M68_FDOS_P);
-                put("W", en_file_type_m68fdos.FILETYPE_M68_FDOS_W);
-                put("R", en_file_type_m68fdos.FILETYPE_M68_FDOS_R);
-                put("X", en_file_type_m68fdos.FILETYPE_M68_FDOS_X);
-                put("S", en_file_type_m68fdos.FILETYPE_M68_FDOS_S);
-                put("C", en_file_type_m68fdos.FILETYPE_M68_FDOS_C);
-                put("D", en_file_type_m68fdos.FILETYPE_M68_FDOS_D);
+            put("A", en_file_type_m68fdos.FILETYPE_M68_FDOS_A);
+            put("P", en_file_type_m68fdos.FILETYPE_M68_FDOS_P);
+            put("W", en_file_type_m68fdos.FILETYPE_M68_FDOS_W);
+            put("R", en_file_type_m68fdos.FILETYPE_M68_FDOS_R);
+            put("X", en_file_type_m68fdos.FILETYPE_M68_FDOS_X);
+            put("S", en_file_type_m68fdos.FILETYPE_M68_FDOS_S);
+            put("C", en_file_type_m68fdos.FILETYPE_M68_FDOS_C);
+            put("D", en_file_type_m68fdos.FILETYPE_M68_FDOS_D);
         }};
 
         public static final char[] sM68FDOS_CharMap = {
@@ -106,7 +106,7 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
         };
 
         public static final Map<String, Object> gExtNameM68FDOS = new LinkedHashMap<>() {{
-                put("SAV", en_file_type_m68fdos.FILETYPE_M68_FDOS_C);
+            put("SAV", en_file_type_m68fdos.FILETYPE_M68_FDOS_C);
         }};
     }
 

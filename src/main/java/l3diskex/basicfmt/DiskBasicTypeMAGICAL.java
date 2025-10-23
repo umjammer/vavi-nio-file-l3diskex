@@ -176,7 +176,7 @@ public class DiskBasicTypeMAGICAL extends DiskBasicTypeXDOS {
                 sector.fill(basic.invertUint8(basic.diskBasicParam.getFillCodeOnDir()));
                 if (pos == basic.diskBasicParam.getDirStartSector()) {
                     sector.fill(basic.invertUint8(basic.diskBasicParam.getFillCodeOnFAT()),
-                                 basic.diskBasicParam.getDirStartPosOnRoot(), 0);
+                            basic.diskBasicParam.getDirStartPosOnRoot(), 0);
                     int[] trk = new int[1];
                     int[] sid = new int[1];
                     int[] sec = new int[1];
@@ -201,6 +201,7 @@ public class DiskBasicTypeMAGICAL extends DiskBasicTypeXDOS {
 
     /** Simple representation of the XDOS segment structure */
     static class XdosSeg {
+
         int track;
         int sector;
         int size;

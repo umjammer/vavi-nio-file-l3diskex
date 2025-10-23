@@ -13,15 +13,15 @@ import l3diskex.diskimg.DiskImage.DiskImageSector;
 
 import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_MISSING;
 import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_USED;
-import static l3diskex.basicfmt.BasicFat.INVALID_GROUP_NUMBER;
 import static l3diskex.basicfmt.DiskBasicDirItemX1HU.EXTERNAL_X1_DEFAULT;
 import static l3diskex.basicfmt.DiskBasicDirItemX1HU.EXTERNAL_X1_SWORD;
 
 
 /**
  * X1 Hu-BASICの処理
- *
+ * <p>
  * DiskBasicParam 固有パラメータ
+ *
  * @li IPLString : セクタ1のIPL
  */
 public class DiskBasicTypeX1HU extends DiskBasicType {
@@ -35,10 +35,10 @@ public class DiskBasicTypeX1HU extends DiskBasicType {
     @Override
     public void setGroupNumber(int num, int val) {
         DiskBasicFatArea bufs = fat.getDiskBasicFatArea();
-        for(int j=0; j<bufs.size(); j++) {
+        for (int j = 0; j < bufs.size(); j++) {
             DiskBasicFatBuffers fatbufs = bufs.get(j);
             // 8bit FAT + 8bit
-            for(int i=0; i<fatbufs.size(); i++) {
+            for (int i = 0; i < fatbufs.size(); i++) {
                 DiskBasicFatBuffer fatbuf = fatbufs.get(i);
                 int half_size = fatbuf.getSize() >> 1;
                 if (num < half_size) {
@@ -60,13 +60,13 @@ public class DiskBasicTypeX1HU extends DiskBasicType {
             return new_num;
         }
         // 8bit FAT + 8bit
-        for(int i=0; i<fatbufs.size(); i++) {
+        for (int i = 0; i < fatbufs.size(); i++) {
             DiskBasicFatBuffer fatbuf = fatbufs.get(i);
             int half_size = fatbuf.getSize() >> 1;
             if (num < half_size) {
                 new_num = basic.invertUint8((byte) fatbuf.get(num));
                 if (basic.getFatEndGroup() >= 0x80) {
-                    new_num |= ((int)basic.invertUint8((byte) fatbuf.get(num + half_size)) << 8);
+                    new_num |= ((int) basic.invertUint8((byte) fatbuf.get(num + half_size)) << 8);
                 }
                 break;
             }
@@ -129,7 +129,7 @@ public class DiskBasicTypeX1HU extends DiskBasicType {
             int pt = 0;
             for (int i = 0; i < 2; i++) {
                 DiskImageSector sector = null;
-                switch(i) {
+                switch (i) {
                     case 0:
                         // IPL領域
                         sector = basic.getSector(0, 0, 1);
@@ -197,7 +197,7 @@ public class DiskBasicTypeX1HU extends DiskBasicType {
                 fsize = 0;
                 grps = 0;
             }
-            fatAvailability.Add(fsts, fsize, grps);
+            fatAvailability.add(fsts, fsize, grps);
         }
     }
 

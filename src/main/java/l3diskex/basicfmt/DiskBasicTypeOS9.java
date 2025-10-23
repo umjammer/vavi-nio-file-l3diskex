@@ -25,7 +25,6 @@ import l3diskex.basicfmt.DiskBasicParam.DiskBasicFormat;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskImage.DiskImageTrack;
 
-import static l3diskex.basicfmt.BasicFat.INVALID_GROUP_NUMBER;
 import static l3diskex.basicfmt.DiskBasicDirItemOS9.DiskBasicDirItemOS9FD.EnFileTypeMaskOs9.FILETYPE_MASK_OS9_DIRECTORY;
 import static l3diskex.basicfmt.DiskBasicDirItemOS9.DiskBasicDirItemOS9FD.EnFileTypeMaskOs9.FILETYPE_MASK_OS9_PUBLIC_EXEC;
 import static l3diskex.basicfmt.DiskBasicDirItemOS9.DiskBasicDirItemOS9FD.EnFileTypeMaskOs9.FILETYPE_MASK_OS9_PUBLIC_READ;
@@ -126,9 +125,9 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
         }
 
         /**
-        /// Mapを元にして使用状況を作成する
-        ///
-        /// @param fat [out] 使用状況
+         * /// Mapを元にして使用状況を作成する
+         * ///
+         * /// @param fat [out] 使用状況
          */
         public void MakeAvailable(DiskBasicAvailability fat) {
             int bytes = 0;
@@ -143,9 +142,9 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
                         boolean used = ((buf[pos] & (0x80 >> bit)) != 0);
                         for (int i = 0; i < secs_per_bit && lsn <= end_lsn; i++) {
                             if (!used) {
-                                fat.Add(FatAvailability.FAT_AVAIL_FREE.getValue(), sector_size, 1);
+                                fat.add(FatAvailability.FAT_AVAIL_FREE.getValue(), sector_size, 1);
                             } else {
-                                fat.Add(FatAvailability.FAT_AVAIL_USED.getValue(), 0, 0);
+                                fat.add(FatAvailability.FAT_AVAIL_USED.getValue(), 0, 0);
                             }
                             lsn++;
                         }
@@ -157,8 +156,8 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
 
         /// LSNをMapにセット
         ///
-        /// @param lsn  LSN
-        /// @param val  セット / リセット
+        /// @param lsn LSN
+        /// @param val セット / リセット
         public void SetLSN(int lsn, boolean val) {
             lsn /= secs_per_bit;
 
@@ -167,8 +166,8 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
 
         /// LSNを使用しているか
         ///
+        /// @param lsn LSN
         /// @return true 使用している
-        /// @param lsn  LSN
         public boolean IsUsedLSN(int lsn) {
             lsn /= secs_per_bit;
 
@@ -561,13 +560,13 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
     }
 
     /**
-    /// ディレクトリエリアのサイズに達したらアサイン終了するか
-    ///
-    /// @return 0 : 終了しない
-    /// @return 1 : 強制的に未使用とする アサインは継続
-    /// @param pos         [in,out] ディレクトリの位置
-    /// @param size        [in,out] ディレクトリのセクタサイズ
-    /// @param size_remain [in,out] ディレクトリの残りサイズ
+     * /// ディレクトリエリアのサイズに達したらアサイン終了するか
+     * ///
+     * /// @return 0 : 終了しない
+     * /// @return 1 : 強制的に未使用とする アサインは継続
+     * /// @param pos         [in,out] ディレクトリの位置
+     * /// @param size        [in,out] ディレクトリのセクタサイズ
+     * /// @param size_remain [in,out] ディレクトリの残りサイズ
      */
     @Override
     public int finishAssigningDirectory(int[] pos, int[] size, int[] size_remain) {
@@ -603,7 +602,7 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
                     DiskBasicGroupItem gitem = item.getGroup(gcnt - 1);
                     int gnum = gitem.group;
                     if (gnum <= basic.getFatEndGroup()) {
-                        fat_availability.Set(gnum, FatAvailability.FAT_AVAIL_USED_LAST.getValue());
+                        fat_availability.set(gnum, FatAvailability.FAT_AVAIL_USED_LAST.getValue());
                     }
                 }
             }

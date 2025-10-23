@@ -50,7 +50,7 @@ public class UiDirItemFLEX extends UiDirItem {
         staType1.setBorder(BorderFactory.createTitledBorder("File Attributes"));
         staType1.setLayout(new BoxLayout(staType1, BoxLayout.Y_AXIS));
 
-        for(int i = 0; i<= en_type_name_flex.TYPE_NAME_FLEX_RANDOM.ordinal(); i++) {
+        for (int i = 0; i <= en_type_name_flex.TYPE_NAME_FLEX_RANDOM.ordinal(); i++) {
             JCheckBox chkAttr1 = new JCheckBox(Utils.keyAt(gTypeNameFLEX, i));
             chkAttr1.setName(String.valueOf(IDC_CHECK_ATTR1 + i)); // Set name for FindWindow
             chkAttr1.setSelected((file_type_1 & (int) Utils.valueAt(gTypeNameFLEX, i)) != 0);
@@ -76,8 +76,8 @@ public class UiDirItemFLEX extends UiDirItem {
     @Override
     public boolean setAttrInAttrDialog(IntNameBox parent, DiskBasicDirItemAttr attr, DiskBasicError errinfo) {
         int val = 0;
-        for(int i=0; i<=en_type_name_flex.TYPE_NAME_FLEX_RANDOM.ordinal(); i++) {
-            JCheckBox chkAttr1 = (JCheckBox)parent.getComponent(IDC_CHECK_ATTR1 + i);
+        for (int i = 0; i <= en_type_name_flex.TYPE_NAME_FLEX_RANDOM.ordinal(); i++) {
+            JCheckBox chkAttr1 = (JCheckBox) parent.getComponent(IDC_CHECK_ATTR1 + i);
             if (chkAttr1 != null && chkAttr1.isSelected()) {
                 val |= Utils.valueAt(gTypeNameFLEX, i);
             }

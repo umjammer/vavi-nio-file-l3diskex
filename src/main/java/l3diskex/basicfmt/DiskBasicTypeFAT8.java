@@ -29,6 +29,7 @@ public class DiskBasicTypeFAT8<T extends DirectoryT> extends DiskBasicType<T> {
     /*----------------------------------------------------------------
       @name access to FAT area
       ----------------------------------------------------------------*/
+
     /** FAT位置をセット */
     @Override
     public void setGroupNumber(int num, int val) {
@@ -46,6 +47,7 @@ public class DiskBasicTypeFAT8<T extends DirectoryT> extends DiskBasicType<T> {
     /*----------------------------------------------------------------
       @name check / assign FAT area
       ----------------------------------------------------------------*/
+
     /** FATエリアをチェック */
     @Override
     public double checkFat(boolean isFormatting) {

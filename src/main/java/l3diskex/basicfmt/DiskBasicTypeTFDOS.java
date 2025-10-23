@@ -15,17 +15,18 @@ import l3diskex.basicfmt.DiskBasicParam.DiskBasicFormat;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 
 import static l3diskex.Utils.TEMP_DATA_SIZE;
-import static l3diskex.basicfmt.BasicFat.INVALID_GROUP_NUMBER;
 
 
 public class DiskBasicTypeTFDOS extends DiskBasicTypeMZBase<DirectoryTfdos> {
 
     static class st_ipl_tfdos {
+
         public byte[] ipl = new byte[0xf0];
         public byte[] auto_start = new byte[0x10];
     }
 
     static class st_fat_tfdos {
+
         public byte[] fat = new byte[0xc0];
         public byte volume_num;
         public byte reserved1;

@@ -57,7 +57,7 @@ public class UiDirItemC1541 extends UiDirItem {
         int file_type_1 = file_type_1_arr[0];
 
         List<String> types1 = new ArrayList<>();
-        for(int i = TYPE_NAME_C1541_DEL; i <= TYPE_NAME_C1541_REL; i++) {
+        for (int i = TYPE_NAME_C1541_DEL; i <= TYPE_NAME_C1541_REL; i++) {
             types1.add(Utils.keyAt(gTypeNameC1541, i)); // Mock of wxGetTranslation
         }
         // Mocking UI creation
@@ -76,7 +76,7 @@ public class UiDirItemC1541 extends UiDirItem {
 
         Object[] txtRecSizeArr = {txtRecSize};
         // IntNameBox.CreateFileSize(parent, IDC_TEXT_RECSIZE, "Record Length", 12, true, null, null, null, txtRecSizeArr); // Mock call
-        txtRecSize = (JTextField)txtRecSizeArr[0]; // Assuming it's set by the mock call
+        txtRecSize = (JTextField) txtRecSizeArr[0]; // Assuming it's set by the mock call
 
         txtRecSize.setColumns(3);
         int rec_len = dirItem.getRecordLength();
@@ -88,9 +88,9 @@ public class UiDirItemC1541 extends UiDirItem {
             // wxFlexGridSizer *szrG = new wxFlexGridSizer(3, 4, 4);
             Object[] txtSideSecArr = {txtSideSec};
             // IntNameBox::CreateFileSize(parent, IDC_TEXT_SIDESEC, "Size of Side Sector", 20, true, null, null, szrG, txtSideSecArr); // Mock call
-            txtSideSec = (JTextField)txtSideSecArr[0]; // Assuming it's set by the mock call
+            txtSideSec = (JTextField) txtSideSecArr[0]; // Assuming it's set by the mock call
 
-            int sid_size = (int)m_ss_groups.getSize();
+            int sid_size = (int) m_ss_groups.getSize();
             String sid_size_str = IntNameBox.convFileSize(sid_size);
             txtSideSec.setText(sid_size_str);
             txtSideSec.setEditable(false);
@@ -112,8 +112,8 @@ public class UiDirItemC1541 extends UiDirItem {
 
     /// 機種依存の属性を設定する
     public boolean SetAttrInAttrDialog(IntNameBox parent, DiskBasicDirItemAttr attr, DiskBasicError errinfo) {
-        JComboBox comType1 = (JComboBox)parent.getComponent(IDC_COMBO_TYPE1);
-        JTextField txtRecSize = (JTextField)parent.getComponent(IDC_TEXT_RECSIZE);
+        JComboBox comType1 = (JComboBox) parent.getComponent(IDC_COMBO_TYPE1);
+        JTextField txtRecSize = (JTextField) parent.getComponent(IDC_TEXT_RECSIZE);
         boolean valid = true;
         int ori = 0;
 

@@ -4,10 +4,13 @@
 
 package l3diskex.diskimg;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import l3diskex.diskimg.DiskImage.DiskImageDisk;
 import l3diskex.diskimg.DiskImage.DiskImageFile;
@@ -26,8 +29,10 @@ public class DiskG64Parser extends DiskImageParser {
     /* -----------------------------------------------------------------
      *  Data structures
      * ----------------------------------------------------------------- */
+
     /** G64 header (packed, 1‑byte alignment) */
     private static final class G64Header {
+
         /** 8‑byte signature ("GCR-1541") */
         public byte[] sig = new byte[8];
         public byte version;
@@ -40,6 +45,7 @@ public class DiskG64Parser extends DiskImageParser {
 
     /** G64 sector header (packed, 1‑byte alignment) */
     private static final class G64SectorHeader {
+
         public byte block_id;
         public byte format_id0;
         public byte format_id1;
@@ -52,6 +58,7 @@ public class DiskG64Parser extends DiskImageParser {
 
     /** G64 sector data (packed, 1‑byte alignment) */
     private static final class G64SectorData {
+
         public byte block_id;
         public byte[] data = new byte[256];
         public byte chksum;
@@ -108,10 +115,10 @@ public class DiskG64Parser extends DiskImageParser {
      *  GCR (5‑bit) -> HEX (4‑bit) map
      * ----------------------------------------------------------------- */
     private static final int[] GCR_BIN_MAP = {
-        0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-        0xff, 0x08, 0x00, 0x01, 0xff, 0x0c, 0x04, 0x05,
-        0xff, 0xff, 0x02, 0x03, 0xff, 0x0f, 0x06, 0x07,
-        0xff, 0x09, 0x0a, 0x0b, 0xff, 0x0d, 0x0e, 0xff
+            0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+            0xff, 0x08, 0x00, 0x01, 0xff, 0x0c, 0x04, 0x05,
+            0xff, 0xff, 0x02, 0x03, 0xff, 0x0f, 0x06, 0x07,
+            0xff, 0x09, 0x0a, 0x0b, 0xff, 0x0d, 0x0e, 0xff
     };
 
     /* -----------------------------------------------------------------

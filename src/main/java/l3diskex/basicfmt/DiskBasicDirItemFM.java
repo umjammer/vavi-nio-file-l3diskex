@@ -22,10 +22,10 @@ public class DiskBasicDirItemFM extends DiskBasicDirItemFAT8F {
     }
 
     /**
-     * @param basic   the disk basic object
-     * @param sector  the sector that contains this directory item
-     * @param secPos  the position within the sector
-     * @param data    the raw data of the directory item
+     * @param basic  the disk basic object
+     * @param sector the sector that contains this directory item
+     * @param secPos the position within the sector
+     * @param data   the raw data of the directory item
      */
     public DiskBasicDirItemFM(DiskBasic basic,
                               DiskImageSector sector,
@@ -35,15 +35,15 @@ public class DiskBasicDirItemFM extends DiskBasicDirItemFAT8F {
     }
 
     /**
-     * @param basic   the disk basic object
-     * @param num     the item number
-     * @param gItem   the group item that this directory item refers to
-     * @param sector  the sector that contains this directory item
-     * @param secPos  the position within the sector
-     * @param data    the raw data of the directory item
-     * @param next    parameters for the next sector (may be {@code null})
-     * @param unuse   a flag indicating whether the item is unused; passed
-     *                by reference in C++ – here represented by a {@code boolean[]}
+     * @param basic  the disk basic object
+     * @param num    the item number
+     * @param gItem  the group item that this directory item refers to
+     * @param sector the sector that contains this directory item
+     * @param secPos the position within the sector
+     * @param data   the raw data of the directory item
+     * @param next   parameters for the next sector (may be {@code null})
+     * @param unuse  a flag indicating whether the item is unused; passed
+     *               by reference in C++ – here represented by a {@code boolean[]}
      */
     public DiskBasicDirItemFM(DiskBasic basic,
                               int num,

@@ -79,8 +79,8 @@ public class UiDirItemCPM extends UiDirItem {
      */
     @Override
     public void createControlsForAttrDialog(IntNameBox parent, int show_flags, String file_path, BoxLayout sizer, Object flags) {
-        int[] file_type_1 = new int[]{GetFileType1Pos()};
-        int[] file_type_2 = new int[]{GetFileType2Pos()};
+        int[] file_type_1 = new int[] {GetFileType1Pos()};
+        int[] file_type_2 = new int[] {GetFileType2Pos()};
         ButtonGroup radBinAsc;
         JSpinner spnUserId;
         JCheckBox chkReadOnly;
@@ -90,7 +90,7 @@ public class UiDirItemCPM extends UiDirItem {
         SetFileTypeForAttrDialog(show_flags, file_path, file_type_1, file_type_2);
 
         List<String> choices = new ArrayList<>();
-        for(int i = 0; BasicDirItemCPM.gTypeNameCPM_2[i] != null; i++) {
+        for (int i = 0; BasicDirItemCPM.gTypeNameCPM_2[i] != null; i++) {
             choices.add(rb.getString(BasicDirItemCPM.gTypeNameCPM_2[i]));
         }
         radBinAsc = new ButtonGroup(parent, BasicDirItemCPM.IDC_RADIO_BINASC, "Select File Type", null, null, choices, 0, 0); // wxRA_SPECIFY_COLS
@@ -131,11 +131,11 @@ public class UiDirItemCPM extends UiDirItem {
      */
     @Override
     public boolean setAttrInAttrDialog(IntNameBox parent, DiskBasicDirItemAttr attr, DiskBasicError errinfo) {
-        JSpinner spnUserId = (JSpinner)parent.getComponent(BasicDirItemCPM.IDC_SPIN_USERID);
-        ButtonGroup radBinAsc = (ButtonGroup)parent.getComponent(BasicDirItemCPM.IDC_RADIO_BINASC);
-        JCheckBox chkReadOnly = (JCheckBox)parent.getComponent(IDC_CHECK_READONLY);
-        JCheckBox chkSystem = (JCheckBox)parent.getComponent(BasicDirItemCPM.IDC_CHECK_SYSTEM);
-        JCheckBox chkArchive = (JCheckBox)parent.getComponent(BasicDirItemCPM.IDC_CHECK_ARCHIVE);
+        JSpinner spnUserId = (JSpinner) parent.getComponent(BasicDirItemCPM.IDC_SPIN_USERID);
+        ButtonGroup radBinAsc = (ButtonGroup) parent.getComponent(BasicDirItemCPM.IDC_RADIO_BINASC);
+        JCheckBox chkReadOnly = (JCheckBox) parent.getComponent(IDC_CHECK_READONLY);
+        JCheckBox chkSystem = (JCheckBox) parent.getComponent(BasicDirItemCPM.IDC_CHECK_SYSTEM);
+        JCheckBox chkArchive = (JCheckBox) parent.getComponent(BasicDirItemCPM.IDC_CHECK_ARCHIVE);
 
         int user_id = (int) spnUserId.getValue();
         // val = (val << FILETYPE_CPM_USERID_POS) & FILETYPE_CPM_USERID_MASK; // User ID is SetFileType1()

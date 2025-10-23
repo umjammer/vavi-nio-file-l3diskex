@@ -6,10 +6,10 @@ import java.awt.GridBagLayout;
 import java.awt.Window;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import javax.swing.ButtonGroup;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
-import javax.swing.ButtonGroup;
 import javax.swing.JTextField;
 
 import l3diskex.basicfmt.DiskBasicParam.DiskBasicParamPtrs;
@@ -286,7 +286,7 @@ public class DiskParamBox extends JDialog {
         if (comCategory != null) {
             int num = comCategory.getSelectedIndex();
             if (num > 0) {
-                str = gDiskBasicTemplates.getCategoryName(num-1);
+                str = gDiskBasicTemplates.getCategoryName(num - 1);
             }
         }
         return str;

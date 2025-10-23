@@ -29,8 +29,8 @@ public class UiDiskDiskAttr extends JPanel {
     /* -- */
     private static final int TEXT_ATTR_SIZE = 500;
 
-    public static final int IDC_TXT_ATTR    = 1;
-    public static final int IDC_BTN_CHANGE  = 2;
+    public static final int IDC_TXT_ATTR = 1;
+    public static final int IDC_BTN_CHANGE = 2;
     public static final int IDC_COM_DENSITY = 3;
     public static final int IDC_CHK_WPROTECT = 4;
 
@@ -40,11 +40,11 @@ public class UiDiskDiskAttr extends JPanel {
     private final JComponent parent;          // parent window (JWindow equivalent)
     private final UiDiskFrame frame;          // reference to the main frame
 
-    private final JTextArea   txtAttr;        // disk description area
-    private final JButton     btnChange;      // “Change” button
+    private final JTextArea txtAttr;        // disk description area
+    private final JButton btnChange;      // “Change” button
     private final JComboBox<String> comDensity;  // density selector
-    private final JCheckBox  chkWprotect;      // write‑protect checkbox
-    private final JPanel      szrButtons;      // horizontal box for buttons
+    private final JCheckBox chkWprotect;      // write‑protect checkbox
+    private final JPanel szrButtons;      // horizontal box for buttons
 
     private DiskImageDisk p_disk;        // current disk image
 
@@ -54,7 +54,7 @@ public class UiDiskDiskAttr extends JPanel {
     public UiDiskDiskAttr(UiDiskFrame parentframe, JComponent parent) {
         super();
         this.parent = parent;
-        this.frame  = parentframe;
+        this.frame = parentframe;
         this.p_disk = null;
 
         /* Layout – vertical box */
@@ -133,6 +133,7 @@ public class UiDiskDiskAttr extends JPanel {
     /* -- */
     /*                          Event Handlers                                */
     /* -- */
+
     /**
      * Called when the component is resized.
      * The original wxWidgets code moves the controls manually;
@@ -168,6 +169,7 @@ public class UiDiskDiskAttr extends JPanel {
     /* -- */
     /*                            Helper Methods                             */
     /* -- */
+
     /**
      * Show a dialog to change disk parameters.
      */
@@ -304,6 +306,7 @@ public class UiDiskDiskAttr extends JPanel {
 
     /** Utility methods. */
     public static class Utils {
+
         public static int toInt(String str) {
             try {
                 return Integer.parseInt(str.replaceAll("[^0-9a-fA-F]", ""), 16);

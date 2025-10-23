@@ -13,6 +13,7 @@ import l3diskex.basicfmt.BasicFmt.DiskBasic;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
 
+import static l3diskex.Parambase.MyAttributes.findUpperCase;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_ASCII_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_BASIC_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_BINARY_MASK;
@@ -58,6 +59,7 @@ public class DiskBasicDirItemN88 extends DiskBasicDirItemFAT8<DirectoryN88> {
     int DATATYPE_MASK_N88_ENCRYPTED = 0x20;
 
     public interface DialogIDs {
+
         int IDC_RADIO_TYPE1 = 51;
         int IDC_CHECK_READONLY = 52;
         int IDC_CHECK_READWRITE = 53;
@@ -84,7 +86,7 @@ public class DiskBasicDirItemN88 extends DiskBasicDirItemFAT8<DirectoryN88> {
 
         boolean unuse = nUnuse[0];
         used(checkUsed(unuse));
-        nUnuse[0] = (unuse || (mData.data().name[0] == (byte)0xff)); // C++ byte is signed
+        nUnuse[0] = (unuse || (mData.data().name[0] == (byte) 0xff)); // C++ byte is signed
 
         // ファイルサイズとグループ数を計算
         calcFileSize();
@@ -129,7 +131,7 @@ public class DiskBasicDirItemN88 extends DiskBasicDirItemFAT8<DirectoryN88> {
     @Override
     public boolean checkUsed(boolean unuse) {
         // C++ wxUint8 is unsigned, so (byte)0xff is -1.
-        return (!unuse && mData.data().name[0] != 0x00 && mData.data().name[0] != (byte)0xff);
+        return (!unuse && mData.data().name[0] != 0x00 && mData.data().name[0] != (byte) 0xff);
     }
 
     @Override
@@ -137,7 +139,7 @@ public class DiskBasicDirItemN88 extends DiskBasicDirItemFAT8<DirectoryN88> {
         if (!mData.isValid()) return false;
 
         boolean valid = true;
-        if (mData.data().name[0] == (byte)0xff) {
+        if (mData.data().name[0] == (byte) 0xff) {
             last[0] = true;
             return valid;
         }
@@ -195,14 +197,14 @@ public class DiskBasicDirItemN88 extends DiskBasicDirItemFAT8<DirectoryN88> {
         int t1 = getFileType1();
         int val = 0;
         if ((t1 & FILETYPE_N88_MACHINE) != 0) {
-            val = FILE_TYPE_MACHINE_MASK.getValue();		// machine
-            val |= FILE_TYPE_BINARY_MASK.getValue();		// binary
+            val = FILE_TYPE_MACHINE_MASK.getValue();        // machine
+            val |= FILE_TYPE_BINARY_MASK.getValue();        // binary
         } else {
-            val = FILE_TYPE_BASIC_MASK.getValue();			// basic
+            val = FILE_TYPE_BASIC_MASK.getValue();            // basic
             if ((t1 & FILETYPE_N88_BINARY) != 0) {
-                val |= FILE_TYPE_BINARY_MASK.getValue();	// binary
+                val |= FILE_TYPE_BINARY_MASK.getValue();    // binary
             } else {
-                val |= FILE_TYPE_ASCII_MASK.getValue();	// ascii
+                val |= FILE_TYPE_ASCII_MASK.getValue();    // ascii
             }
         }
         if ((t1 & DATATYPE_MASK_N88_READ_ONLY) != 0) {
@@ -290,7 +292,8 @@ public class DiskBasicDirItemN88 extends DiskBasicDirItemFAT8<DirectoryN88> {
     public void setEndMark(DiskBasicDirItem nextItem) {
         if (nextItem == null) return;
 
-        if (hasEndMark()) ((DirectoryN88) nextItem.getData()).name[0] = (byte)basic.diskBasicParam.getGroupUnusedCode();
+        if (hasEndMark())
+            ((DirectoryN88) nextItem.getData()).name[0] = (byte) basic.diskBasicParam.getGroupUnusedCode();
     }
 
     @Override
@@ -335,13 +338,15 @@ public class DiskBasicDirItemN88 extends DiskBasicDirItemFAT8<DirectoryN88> {
     }
 
     @Override
-    public boolean hasExecuteAddress() { return false; }
+    public boolean hasExecuteAddress() {
+        return false;
+    }
 
     @Override
     public int convFileTypeFromFileName(String filename) {
         int ftype = 0;
         // 拡張子で属性を設定する
-        MyAttribute sa = basic.diskBasicParam.getAttributesByExtension().findUpperCase(Utils.getExt(filename));
+        MyAttribute sa = findUpperCase(basic.diskBasicParam.getAttributesByExtension(), Utils.getExt(filename));
         if (sa != null) {
             ftype = sa.getType();
         } else {
@@ -354,7 +359,7 @@ public class DiskBasicDirItemN88 extends DiskBasicDirItemFAT8<DirectoryN88> {
     public int convOriginalTypeFromFileName(String filename) {
         int t1 = 0;
         // 拡張子で属性を設定する
-        MyAttribute sa = basic.diskBasicParam.getAttributesByExtension().findUpperCase(Utils.getExt(filename));
+        MyAttribute sa = findUpperCase(basic.diskBasicParam.getAttributesByExtension(), Utils.getExt(filename));
         if (sa != null) {
             t1 = convFileType1(sa.getType());
         } else {

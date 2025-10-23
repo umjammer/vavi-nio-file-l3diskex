@@ -44,13 +44,14 @@ public class DiskImageCreator {
     /* ------------------------------------------------------------------ */
     /*  セクタデータの作成                                                  */
     /* ------------------------------------------------------------------ */
+
     /**
-     * @param trackNumber      トラック番号
-     * @param sideNumber       サイド番号
-     * @param sectorNumber     セクタ番号
-     * @param sectorSize       セクタサイズ
+     * @param trackNumber     トラック番号
+     * @param sideNumber      サイド番号
+     * @param sectorNumber    セクタ番号
+     * @param sectorSize      セクタサイズ
      * @param sectorsPerTrack セクタ数
-     * @param track             トラック
+     * @param track           トラック
      * @return 作成したセクタのサイズ（ヘッダ含む）
      */
     private int createSector(int trackNumber, int sideNumber,
@@ -60,7 +61,7 @@ public class DiskImageCreator {
         // 特殊なセクタにするか
         int[][] sectorId = new int[1][];
         if (p_param.findParticularSector(trackNumber, sideNumber,
-                                         sectorNumber, sectorSize, sectorId)) {
+                sectorNumber, sectorSize, sectorId)) {
             if ((sectorId[0][1] & TrackParam.ID_IS_VALID) != 0) {
                 sideNumber = sectorId[0][1] & ~TrackParam.ID_IS_VALID;
             }
@@ -84,12 +85,13 @@ public class DiskImageCreator {
     /* ------------------------------------------------------------------ */
     /*  トラックデータの作成                                                */
     /* ------------------------------------------------------------------ */
+
     /**
      * @param trackNumber トラック番号
      * @param sideNumber  サイド番号
      * @param offsetPos   オフセット番号
-     * @param offset       トラックのあるオフセット位置
-     * @param disk         ディスク
+     * @param offset      トラックのあるオフセット位置
+     * @param disk        ディスク
      * @return 作成したトラックサイズ
      */
     public int createTrack(int trackNumber, int sideNumber,
@@ -106,7 +108,7 @@ public class DiskImageCreator {
 
         /* 特殊なトラックにするか */
         p_param.findParticularTrack(trackNumber, sideNumber,
-                                    sectorMax, sectorSize);
+                sectorMax, sectorSize);
 
         /* トラック全体が単密度の場合セクタ数とサイズを得る */
         p_param.findSingleDensity(trackNumber, sideNumber,
@@ -155,6 +157,7 @@ public class DiskImageCreator {
     /* ------------------------------------------------------------------ */
     /*  ディスクデータの作成                                                */
     /* ------------------------------------------------------------------ */
+
     /**
      * @param diskNumber ディスク番号
      * @param modFlags   新規 or 追加？(DiskImageFile::MODIFY_NONE/MODIFY_ADD)

@@ -26,7 +26,7 @@ public class UiDirItemDOS80 extends UiDirItem {
     DiskBasicDirItemDOS80 dirItem;
 
     /**
-     *  GUI / dialog helper methods – kept as placeholders
+     * GUI / dialog helper methods – kept as placeholders
      **/
     @Override
     public void createControlsForAttrDialog(IntNameBox parent,

@@ -29,6 +29,7 @@ public class Disk2MGParser extends DiskPlainParser {
     /*  Representation of the 80‑byte header                            */
     /* ------------------------------------------------------------------ */
     private static class TwomgHeader {
+
         byte[] ident = new byte[4];
         byte[] creator = new byte[4];
         short header_size;

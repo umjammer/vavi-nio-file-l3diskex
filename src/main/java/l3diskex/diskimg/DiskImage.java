@@ -3,6 +3,10 @@ package l3diskex.diskimg;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -12,13 +16,17 @@ import java.util.Map;
 import l3diskex.ResultInfo;
 import l3diskex.basicfmt.BasicFmt.DiskBasic;
 import l3diskex.basicfmt.BasicFmt.DiskBasics;
+import vavi.io.SeekableDataInputStream;
 
 import static l3diskex.diskimg.DiskParam.gDiskTemplates;
 
 
 public abstract class DiskImage {
 
+    private static final Logger logger = System.getLogger(DiskImage.class.getName());
+
     public static class IntHashMapUtil {
+
         public static void increaseValue(Map<Integer, Integer> hashMap, int key) {
             hashMap.put(key, hashMap.getOrDefault(key, 0) + 1);
         }
@@ -55,11 +63,15 @@ public abstract class DiskImage {
     }
 
     public static abstract class DiskImageSectorHeader {
-        public DiskImageSectorHeader() {}
+
+        public DiskImageSectorHeader() {
+        }
+
         public abstract int getHeaderType();
     }
 
     public static abstract class DiskImageSector {
+
         protected int mNum;
 
         public DiskImageSector(int nNum) {
@@ -118,7 +130,8 @@ public abstract class DiskImage {
             return false;
         }
 
-        public void setDeletedMark(boolean val) {}
+        public void setDeletedMark(boolean val) {
+        }
 
         public boolean isSameSector(int sectorNumber, int density, boolean deletedMark) {
             return false;
@@ -132,7 +145,8 @@ public abstract class DiskImage {
             return 0;
         }
 
-        public void setSectorSize(int val) {}
+        public void setSectorSize(int val) {
+        }
 
         public abstract int getSectorBufferSize();
 
@@ -150,13 +164,15 @@ public abstract class DiskImage {
             return 0;
         }
 
-        public void setSectorsPerTrack(short val) {}
+        public void setSectorsPerTrack(short val) {
+        }
 
         public byte getSectorStatus() {
             return 0;
         }
 
-        public void setSectorStatus(byte val) {}
+        public void setSectorStatus(byte val) {
+        }
 
         public DiskImageSectorHeader getHeader() {
             return null;
@@ -178,27 +194,34 @@ public abstract class DiskImage {
             return 0;
         }
 
-        public void setIDC(byte val) {}
+        public void setIDC(byte val) {
+        }
 
-        public void setIDH(byte val) {}
+        public void setIDH(byte val) {
+        }
 
-        public void setIDR(byte val) {}
+        public void setIDR(byte val) {
+        }
 
-        public void setIDN(byte val) {}
+        public void setIDN(byte val) {
+        }
 
         public boolean isSingleDensity() {
             return false;
         }
 
-        public void setSingleDensity(boolean val) {}
+        public void setSingleDensity(boolean val) {
+        }
 
         public boolean isModified() {
             return false;
         }
 
-        public void setModify() {}
+        public void setModify() {
+        }
 
-        public void clearModify() {}
+        public void clearModify() {
+        }
 
         public static int compare(DiskImageSector item1, DiskImageSector item2) {
             return item1.mNum - item2.mNum;
@@ -229,6 +252,7 @@ public abstract class DiskImage {
     }
 
     public static abstract class DiskImageTrack {
+
         protected DiskImageDisk parent;
         protected int mTrkNum;
         protected int mSidNum;
@@ -240,8 +264,11 @@ public abstract class DiskImage {
         protected byte[] extraData;
         protected int extraSize;
 
-        protected DiskImageTrack() {}
-        protected DiskImageTrack(DiskImageTrack src) {}
+        protected DiskImageTrack() {
+        }
+
+        protected DiskImageTrack(DiskImageTrack src) {
+        }
 
         public DiskImageTrack(DiskImageDisk disk) {
             parent = disk;
@@ -690,17 +717,23 @@ public abstract class DiskImage {
     }
 
     public static abstract class DiskImageDiskHeader {
-        public DiskImageDiskHeader() {}
+
+        public DiskImageDiskHeader() {
+        }
+
         public abstract int getHeaderType();
+
         public String getName(boolean real) {
             return "";
         }
+
         public boolean isWriteProtected() {
             return false;
         }
     }
 
     public static abstract class DiskImageDisk extends DiskParam {
+
         protected DiskImageFile parent;
         protected int mNum;
         protected String mName;
@@ -756,6 +789,7 @@ public abstract class DiskImage {
         }
 
         public abstract DiskImageTrack newImageTrack();
+
         public abstract DiskImageTrack newImageTrack(int nTrkNum, int nSidNum, int nOffsetPos, int nInterleave);
 
         public int add(DiskImageTrack newtrk) {
@@ -936,9 +970,11 @@ public abstract class DiskImage {
             return "";
         }
 
-        public void setName(String val) {}
+        public void setName(String val) {
+        }
 
-        public void setName(byte[] buf, int len) {}
+        public void setName(byte[] buf, int len) {
+        }
 
         public DiskImageDiskHeader getHeader() {
             return null;
@@ -1001,7 +1037,7 @@ public abstract class DiskImage {
         public DiskParam calcMajorNumber() {
             Map<Integer, Integer>[] sectorNumbersMap = new HashMap[2];
             sectorNumbersMap[0] = new HashMap<>();
-            sectorNumbersMap[1]= new HashMap<>();
+            sectorNumbersMap[1] = new HashMap<>();
             Map<Integer, Integer> sectorSizeMap = new HashMap<>();
             Map<Integer, Integer> interleaveMap = new HashMap<>();
 
@@ -1237,7 +1273,8 @@ public abstract class DiskImage {
             return true;
         }
 
-        public void setWriteProtect(boolean val) {}
+        public void setWriteProtect(boolean val) {
+        }
 
         public String getDensityText() {
             return "";
@@ -1247,27 +1284,32 @@ public abstract class DiskImage {
             return 0;
         }
 
-        public void setDensity(int val) {}
+        public void setDensity(int val) {
+        }
 
         public int getSize() {
             return 0;
         }
 
-        public void setSize(int val) {}
+        public void setSize(int val) {
+        }
 
         public int getSizeWithoutHeader() {
             return 0;
         }
 
-        public void setSizeWithoutHeader(int val) {}
+        public void setSizeWithoutHeader(int val) {
+        }
 
         public int getOffset(int num) {
             return 0;
         }
 
-        public void setOffset(int num, int offset) {}
+        public void setOffset(int num, int offset) {
+        }
 
-        public void setOffsetWithoutHeader(int num, int offset) {}
+        public void setOffsetWithoutHeader(int num, int offset) {
+        }
 
         public int getOffsetStart() {
             return mOffsetStart;
@@ -1289,7 +1331,8 @@ public abstract class DiskImage {
             return 0;
         }
 
-        public void setModify() {}
+        public void setModify() {
+        }
 
         public boolean isModified() {
             boolean modified = false;
@@ -1395,14 +1438,17 @@ public abstract class DiskImage {
     }
 
     public static abstract class DiskImageFile {
+
         protected DiskImage pImage;
         protected List<DiskImageDisk> disks;
         protected List<Short> mods;
         protected String mBasicTypeHint;
 
-        protected DiskImageFile() {}
+        protected DiskImageFile() {
+        }
 
-        protected DiskImageFile(DiskImageFile src) {}
+        protected DiskImageFile(DiskImageFile src) {
+        }
 
         public DiskImageFile(DiskImage image) {
             pImage = image;
@@ -1411,7 +1457,9 @@ public abstract class DiskImage {
         }
 
         public abstract DiskImageDisk newImageDisk(int nNum);
+
         public abstract DiskImageDisk newImageDisk(int nNum, DiskParam nParam, String nDiskname, boolean nWriteProtect);
+
         public abstract DiskImageDisk newImageDisk(int nNum, DiskImageDiskHeader nHeader);
 
         public static final short MODIFY_NONE = 0;
@@ -1503,7 +1551,7 @@ public abstract class DiskImage {
 
     protected String mFilename;
     protected DiskImageFile pFile;
-    protected DiskResult mResult;
+    protected DiskResult mResult = new DiskResult();
     protected String mFormatType;
 
     protected void newFile(String filepath) {
@@ -1562,7 +1610,8 @@ public abstract class DiskImage {
     public int open(String filepath, String fileFormat, DiskParam paramHint) {
         mResult.clear();
         try {
-            FileInputStream fstream = new FileInputStream(filepath);
+            Path p = Path.of(filepath);
+            SeekableDataInputStream fstream = new SeekableDataInputStream(Files.newByteChannel(p));
             newFile(filepath);
             DiskParser ps = new DiskParser(filepath, fstream, pFile, mResult);
             int validDisk = ps.parse(fileFormat, paramHint);
@@ -1573,6 +1622,7 @@ public abstract class DiskImage {
             }
             return validDisk;
         } catch (IOException e) {
+            logger.log(Level.ERROR, e.getMessage(), e);
             mResult.setError(DiskResult.ERR_CANNOT_OPEN);
             return -1;
         }
@@ -1581,7 +1631,7 @@ public abstract class DiskImage {
     public int check(String filepath, String fileFormat, List<DiskParam> params, DiskParam manualParam) {
         mResult.clear();
         try {
-            FileInputStream fstream = new FileInputStream(filepath);
+            SeekableDataInputStream fstream = new SeekableDataInputStream(Files.newByteChannel(Path.of(filepath)));
             DiskParser ps = new DiskParser(filepath, fstream, pFile, mResult);
             return ps.check(fileFormat, params, manualParam);
         } catch (IOException e) {

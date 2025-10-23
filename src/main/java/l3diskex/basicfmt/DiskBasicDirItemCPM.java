@@ -23,6 +23,7 @@ import l3diskex.diskimg.DiskParam.SectorParam;
 import vavi.util.ByteUtil;
 import vavi.util.serdes.Serdes;
 
+import static l3diskex.Parambase.MyAttributes.findUpperCase;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_ARCHIVE_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_BINARY_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_READONLY_MASK;
@@ -51,8 +52,14 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> implemen
         TYPE_NAME_CPM_ARCHIVE(2);
 
         private final int value;
-        EnTypeNameCPM(int value) { this.value = value; }
-        public int getValue() { return value; }
+
+        EnTypeNameCPM(int value) {
+            this.value = value;
+        }
+
+        public int getValue() {
+            return value;
+        }
     }
 
     public static final String[] gTypeNameCPM_2 = {
@@ -66,8 +73,14 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> implemen
         TYPE_NAME_CPM_ASCII(1);
 
         private final int value;
-        EnTypeNameCPM2(int value) { this.value = value; }
-        public int getValue() { return value; }
+
+        EnTypeNameCPM2(int value) {
+            this.value = value;
+        }
+
+        public int getValue() {
+            return value;
+        }
     }
 
     public static final int SECTOR_UNIT_CPM = 128;
@@ -133,12 +146,13 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> implemen
 
     /**
      * アイテムへのポインタを設定
-     * @param n_num 通し番号
-     * @param n_gitem トラック番号などのデータ
+     *
+     * @param n_num    通し番号
+     * @param n_gitem  トラック番号などのデータ
      * @param n_sector セクタ
      * @param n_secpos セクタ内のディレクトリエントリの位置
-     * @param n_data ディレクトリアイテム
-     * @param n_next 次のセクタ
+     * @param n_data   ディレクトリアイテム
+     * @param n_next   次のセクタ
      */
     @Override
     public void setDataPtr(int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, SectorParam n_next) throws IOException {
@@ -205,8 +219,7 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> implemen
      * 拡張子からアスキーorバイナリ属性を判断する
      */
     public int getFileTypeByExt(int val, String ext) {
-        // Assuming GetAttributesByExtension returns a structure that can search by extension
-        MyAttribute sa = basic.diskBasicParam.getAttributesByExtension().findUpperCase(ext, FILE_TYPE_BINARY_MASK.getValue(), 0x3f);
+        MyAttribute sa = findUpperCase(basic.diskBasicParam.getAttributesByExtension(), ext, FILE_TYPE_BINARY_MASK.getValue(), 0x3f);
         if (sa != null) {
             val |= FILE_TYPE_BINARY_MASK.getValue();
         }
@@ -228,9 +241,9 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> implemen
     protected void setFileType2(int val) {
         if (basic.isDataInverted()) Common.mem_invert(m_data.getRawData(), m_data.data().ext.length);    // invert
 
-        m_data.data().ext[0] = (byte)((m_data.data().ext[0] & 0x7f) | ((val & FILE_TYPE_READONLY_MASK.getValue()) != 0 ? 0x80 : 0));
-        m_data.data().ext[1] = (byte)((m_data.data().ext[1] & 0x7f) | ((val & FILE_TYPE_SYSTEM_MASK.getValue()) != 0 ? 0x80 : 0));
-        m_data.data().ext[2] = (byte)((m_data.data().ext[2] & 0x7f) | ((val & FILE_TYPE_ARCHIVE_MASK.getValue()) != 0 ? 0x80 : 0));
+        m_data.data().ext[0] = (byte) ((m_data.data().ext[0] & 0x7f) | ((val & FILE_TYPE_READONLY_MASK.getValue()) != 0 ? 0x80 : 0));
+        m_data.data().ext[1] = (byte) ((m_data.data().ext[1] & 0x7f) | ((val & FILE_TYPE_SYSTEM_MASK.getValue()) != 0 ? 0x80 : 0));
+        m_data.data().ext[2] = (byte) ((m_data.data().ext[2] & 0x7f) | ((val & FILE_TYPE_ARCHIVE_MASK.getValue()) != 0 ? 0x80 : 0));
         externalAttr = (val & FILE_TYPE_BINARY_MASK.getValue());
 
         if (basic.isDataInverted()) Common.mem_invert(m_data.getRawData(), m_data.data().ext.length);    // invert
@@ -244,13 +257,14 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> implemen
         super.getNativeFileName(name, nlen, ext, elen);
 
         // 拡張子部分のMSBは属性ビットなので除く
-        for(int en = 0; en < elen[0]; en++) {
+        for (int en = 0; en < elen[0]; en++) {
             ext[en] &= 0x7f;
         }
     }
 
     /**
      * 拡張子を返す
+     *
      * @return 拡張子
      */
     @Override
@@ -259,7 +273,7 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> implemen
 
         byte[] ext = new byte[m_data.data().ext.length];
         basic.invertMem(m_data.data().ext, m_data.data().ext.length, ext);
-        for(int i = 0; i < m_data.data().ext.length; i++) {
+        for (int i = 0; i < m_data.data().ext.length; i++) {
             ext[i] &= 0x7f;
         }
         // Assuming a constructor exists to create String from byte[] (like wxString(ext, size))
@@ -268,10 +282,11 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> implemen
 
     /**
      * ファイル名を設定
+     *
      * @param filename ファイル名
-     * @param size バッファサイズ
-     * @param length 長さ
-     * filename はデータビットが反転している場合あり
+     * @param size     バッファサイズ
+     * @param length   長さ
+     *                 filename はデータビットが反転している場合あり
      */
     @Override
     protected void setNativeName(byte[] filename, int size, int[] length) {
@@ -285,10 +300,11 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> implemen
 
     /**
      * 拡張子を設定
+     *
      * @param fileext 拡張子
-     * @param size バッファサイズ
-     * @param length 長さ
-     * fileext はデータビットが反転している場合あり
+     * @param size    バッファサイズ
+     * @param length  長さ
+     *                fileext はデータビットが反転している場合あり
      */
     @Override
     protected void setNativeExt(byte[] fileext, int size, int length) {
@@ -298,9 +314,9 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> implemen
 
         if (el[0] > size) el[0] = size;
 
-        for(int i = 0; i < el[0]; i++) {
+        for (int i = 0; i < el[0]; i++) {
             // MSBは属性ビットなのでのこす
-            e[i] = (byte)((e[i] & 0x80) | (fileext[i] & 0x7f));
+            e[i] = (byte) ((e[i] & 0x80) | (fileext[i] & 0x7f));
         }
 
         // 複数ある時
@@ -335,6 +351,7 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> implemen
 
     /**
      * ディレクトリアイテムのチェック
+     *
      * @param last チェックを終了するか
      * @return チェックOK
      */
@@ -347,7 +364,7 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> implemen
         if (getFileType1() < 0x10) {
             byte[] name = new byte[m_data.data().name.length];
             basic.invertMem(m_data.data().name, m_data.data().name.length, name);
-            for(int n = 0; n < m_data.data().name.length; n++) {
+            for (int n = 0; n < m_data.data().name.length; n++) {
                 if (name[n] != 0) {
                     valid = true;
                     break;
@@ -359,7 +376,7 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> implemen
             }
             // グループ番号が超えていたらダメ
             if (valid) {
-                for(int i = 0; i < group_entries; i++) {
+                for (int i = 0; i < group_entries; i++) {
                     if (getGroupNumber(i) > basic.getFatEndGroup()) {
                         valid = false;
                         break;
@@ -457,7 +474,7 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> implemen
         // ファイルサイズは1エントリ分にする
         remain_size = ((remain_size + group_size - 1) % group_size) + 1;
 
-        for(int map_pos = 0; map_pos < map_size; map_pos++) {
+        for (int map_pos = 0; map_pos < map_size; map_pos++) {
             int group_num = getGroupNumber(map_pos);
             if (group_num == 0) break;
             basic.getNumsFromGroup(group_num, 0, basic.getSectorSize(), remain_size, group_items);
@@ -479,13 +496,14 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> implemen
             // グループサイズ
             group_items.setSizePerGroup(bytes_per_group);
             // 最終セクタのサイズを計算
-            group_items.setSize(recalcFileSize(group_items, (int)group_items.getSize()));
+            group_items.setSize(recalcFileSize(group_items, (int) group_items.getSize()));
         }
     }
 
     /**
      * 最終セクタのサイズを計算してファイルサイズを返す
-     * @param group_items グループリスト
+     *
+     * @param group_items   グループリスト
      * @param occupied_size 占有サイズ
      * @return 計算後のファイルサイズ
      */
@@ -616,7 +634,7 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> implemen
             // Assuming helper function for writing 16-bit word to byte array with endian swap
             ByteUtil.writeBeShort((short) val, m_data.data().mapBytes, pos * 2);
         } else {
-            m_data.data().mapBytes[pos] = (byte)val;
+            m_data.data().mapBytes[pos] = (byte) val;
         }
     }
 
@@ -669,11 +687,11 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> implemen
         } else {
             val = (val + SECTOR_UNIT_CPM - 1) / SECTOR_UNIT_CPM;
             if ((val % SECTOR_UNIT_CPM) == 0) {
-                m_data.data().extentNum = (byte)((val / SECTOR_UNIT_CPM) - 1);
-                m_data.data().recordNum = (byte)SECTOR_UNIT_CPM;
+                m_data.data().extentNum = (byte) ((val / SECTOR_UNIT_CPM) - 1);
+                m_data.data().recordNum = (byte) SECTOR_UNIT_CPM;
             } else {
-                m_data.data().extentNum = (byte)(val / SECTOR_UNIT_CPM);
-                m_data.data().recordNum = (byte)(((val - 1) % SECTOR_UNIT_CPM) + 1);
+                m_data.data().extentNum = (byte) (val / SECTOR_UNIT_CPM);
+                m_data.data().recordNum = (byte) (((val - 1) % SECTOR_UNIT_CPM) + 1);
             }
         }
         if (basic.isDataInverted()) {
@@ -686,7 +704,7 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> implemen
      * 次のアイテムをセット
      */
     public void setNextItem(DiskBasicDirItem val) {
-        next_item = (DiskBasicDirItemCPM)val;
+        next_item = (DiskBasicDirItemCPM) val;
     }
 
     /**
@@ -700,8 +718,8 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> implemen
      * アイテムソート用
      */
     public static int compare(DiskBasicDirItem<?>[] item1, DiskBasicDirItem<?>[] item2) {
-        DiskBasicDirItemCPM cpm_item1 = (DiskBasicDirItemCPM)item1[0];
-        DiskBasicDirItemCPM cpm_item2 = (DiskBasicDirItemCPM)item2[0];
+        DiskBasicDirItemCPM cpm_item1 = (DiskBasicDirItemCPM) item1[0];
+        DiskBasicDirItemCPM cpm_item2 = (DiskBasicDirItemCPM) item2[0];
         DirectoryCpm d1 = cpm_item1.getData().clone(); // Assuming clone or deep copy
         DirectoryCpm d2 = cpm_item2.getData().clone();
         byte[] d1_bytes = cpm_item1.m_data.getRawData(); // TODO clone
@@ -717,7 +735,7 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> implemen
 
         // ユーザID＋ファイル名＋拡張子＋エクステント番号
         // memcmp(&d1, &d2, sizeof(d1.type)+sizeof(d1.name)+sizeof(d1.ext)+sizeof(d1.extent_num));
-        for(int i = 0; i < into_compare; i++) {
+        for (int i = 0; i < into_compare; i++) {
             if (d1_bytes[i] != d2_bytes[i]) {
                 cmp = (d1_bytes[i] & 0xff) - (d2_bytes[i] & 0xff); // unsigned comparison
                 return cmp;
@@ -731,7 +749,7 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> implemen
         // ＋マップ
         // cmp = memcmp(&d1.map, &d2.map, 16); // sizeof(d1.map) is 16
         if (cmp == 0) {
-            for(int i = 0; i < d1.mapBytes.length; i++) {
+            for (int i = 0; i < d1.mapBytes.length; i++) {
                 if (d1.mapBytes[i] != d2.mapBytes[i]) {
                     cmp = (d1.mapBytes[i] & 0xff) - (d2.mapBytes[i] & 0xff); // unsigned comparison
                     return cmp;
@@ -745,8 +763,8 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> implemen
      * 名前比較
      */
     public static int compareName(DiskBasicDirItem<?>[] item1, DiskBasicDirItem<?>[] item2) {
-        DiskBasicDirItemCPM cpm_item1 = (DiskBasicDirItemCPM)item1[0];
-        DiskBasicDirItemCPM cpm_item2 = (DiskBasicDirItemCPM)item2[0];
+        DiskBasicDirItemCPM cpm_item1 = (DiskBasicDirItemCPM) item1[0];
+        DiskBasicDirItemCPM cpm_item2 = (DiskBasicDirItemCPM) item2[0];
         DirectoryCpm d1 = cpm_item1.getData().clone();
         DirectoryCpm d2 = cpm_item2.getData().clone();
         byte[] d1_bytes = cpm_item1.m_data.getRawData(); // TODO clone
@@ -762,14 +780,14 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> implemen
         // memcmp(&d1.name, &d2.name, sizeof(d1.name) + sizeof(d1.ext)); // 8 + 3 = 11 bytes
 
         // Compare name (8 bytes)
-        for(int i = 0; i < d1.name.length; i++) {
+        for (int i = 0; i < d1.name.length; i++) {
             if (d1.name[i] != d2.name[i]) {
                 cmp = (d1.name[i] & 0xff) - (d2.name[i] & 0xff);
                 return cmp;
             }
         }
         // Compare ext (3 bytes)
-        for(int i = 0; i < d1.ext.length; i++) {
+        for (int i = 0; i < d1.ext.length; i++) {
             if (d1.ext[i] != d2.ext[i]) {
                 cmp = (d1.ext[i] & 0xff) - (d2.ext[i] & 0xff);
                 return cmp;
@@ -790,7 +808,9 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> implemen
         return ftype;
     }
 
-    int getGroupEntries() { return group_entries; }
+    int getGroupEntries() {
+        return group_entries;
+    }
 
     /**
      * プロパティで表示する内部データを設定

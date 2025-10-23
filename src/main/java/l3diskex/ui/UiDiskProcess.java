@@ -28,6 +28,7 @@ import l3diskex.ui.UIBinDump.UiDiskBinDumpFrame;
 
 /// ディスク＆ファイル操作
 class UiDiskProcess extends JFrame {
+
     protected int m_unique_number;
 
     // Constructor
@@ -37,12 +38,13 @@ class UiDiskProcess extends JFrame {
     }
 
     /// 指定したファイルをインポート
-    /// @param     paths     ファイルパスのリスト
+    ///
+    /// @param paths     ファイルパスのリスト
     /// @param dir_basic [in,out] 保存先のOS
     /// @param dir_item  [in,out] 保存先ディレクトリアイテム
-    /// @param     confirm   ディレクトリを含む場合に確認ダイアログを表示するか
-    /// @param     start_msg 開始メッセージ
-    /// @param     end_msg   終了メッセージ
+    /// @param confirm   ディレクトリを含む場合に確認ダイアログを表示するか
+    /// @param start_msg 開始メッセージ
+    /// @param end_msg   終了メッセージ
     /// @return true:OK false:Error
     public boolean ImportDataFiles(List<String> paths, DiskBasic dir_basic, DiskBasicDirItem dir_item, boolean confirm, String start_msg, String end_msg) {
         if (dir_basic == null) {
@@ -85,7 +87,8 @@ class UiDiskProcess extends JFrame {
         if (file_list != null) ((UiDiskFileList) file_list).RefreshFiles(); // Placeholder method
         // 左パネルのツリーを更新
         UiDiskList disk_list = GetDiskListPanel();
-        if (disk_list != null) ((UiDiskList) disk_list).RefreshAllDirectoryNodes(dir_basic.GetDisk(), dir_basic.GetSelectedSide(), dir_item); // Placeholder method
+        if (disk_list != null)
+            ((UiDiskList) disk_list).RefreshAllDirectoryNodes(dir_basic.GetDisk(), dir_basic.GetSelectedSide(), dir_item); // Placeholder method
         if (sts != 0) {
             dir_basic.ShowErrorMessage();
         }
@@ -93,16 +96,17 @@ class UiDiskProcess extends JFrame {
     }
 
     /// 指定したファイルをインポート
-    /// @attention 再帰的に呼ばれる。 This function is called recursively.
-    /// @param data_dir      データフォルダ
-    /// @param attr_dir      属性フォルダ
-    /// @param names         ファイル名のリスト
+    ///
+    /// @param data_dir  データフォルダ
+    /// @param attr_dir  属性フォルダ
+    /// @param names     ファイル名のリスト
     /// @param dir_basic [in,out] 保存先のOS
     /// @param dir_item  [in,out] 保存先ディレクトリアイテム
-    /// @param depth         深さ
-    /// @return  1 警告あり
-    /// @return  0 正常
+    /// @param depth     深さ
+    /// @return 1 警告あり
+    /// @return 0 正常
     /// @return -1 エラー
+    /// @attention 再帰的に呼ばれる。 This function is called recursively.
     protected int ImportDataFiles(String data_dir, String attr_dir, List<String> names, DiskBasic dir_basic, DiskBasicDirItem dir_item, int depth) {
         if (depth > gConfig.GetDirDepth()) {
             dir_basic.GetErrinfo().SetError(DiskBasicError.ERR_PATH_TOO_DEEP);
@@ -170,13 +174,14 @@ class UiDiskProcess extends JFrame {
     }
 
     /// 指定したファイルをインポート
-    /// @param     full_data_path データファイルパス
-    /// @param     full_attr_path 属性ファイルパス
-    /// @param     file_name      ファイル名
-    /// @param dir_basic [in,out]      保存先のOS
-    /// @param dir_item  [in,out]      保存先ディレクトリアイテム
-    /// @return  1 警告あり処理継続
-    /// @return  0 正常
+    ///
+    /// @param full_data_path データファイルパス
+    /// @param full_attr_path 属性ファイルパス
+    /// @param file_name      ファイル名
+    /// @param dir_basic      [in,out]      保存先のOS
+    /// @param dir_item       [in,out]      保存先ディレクトリアイテム
+    /// @return 1 警告あり処理継続
+    /// @return 0 正常
     /// @return -1 エラー継続不可
     protected int ImportDataFile(String full_data_path, String full_attr_path, String file_name, DiskBasic dir_basic, DiskBasicDirItem dir_item) {
         if (dir_basic == null) {
@@ -239,12 +244,13 @@ class UiDiskProcess extends JFrame {
     }
 
     /// 指定したファイルを上書きでインポート
-    /// @param item          保存するファイルのディレクトリアイテム（属性などを持っている）
-    /// @param path          保存するデータファイルパス
+    ///
+    /// @param item      保存するファイルのディレクトリアイテム（属性などを持っている）
+    /// @param path      保存するデータファイルパス
     /// @param dir_basic [in,out] 保存先のOS
     /// @param dir_item  [in,out] 保存先ディレクトリアイテム
-    /// @param start_msg     開始メッセージ
-    /// @param end_msg       終了メッセージ
+    /// @param start_msg 開始メッセージ
+    /// @param end_msg   終了メッセージ
     /// @return true:OK false:Error
     public boolean ImportDataFile(DiskBasicDirItem item, String path, DiskBasic dir_basic, DiskBasicDirItem dir_item, String start_msg, String end_msg) {
         if (dir_basic == null) {
@@ -269,19 +275,21 @@ class UiDiskProcess extends JFrame {
         if (file_list != null) ((UiDiskFileList) file_list).RefreshFiles(); // Placeholder method
         // 左パネルのツリーを更新
         UiDiskList disk_list = GetDiskListPanel();
-        if (disk_list != null) ((UiDiskList) disk_list).RefreshAllDirectoryNodes(dir_basic.GetDisk(), dir_basic.GetSelectedSide(), dir_item); // Placeholder method
+        if (disk_list != null)
+            ((UiDiskList) disk_list).RefreshAllDirectoryNodes(dir_basic.GetDisk(), dir_basic.GetSelectedSide(), dir_item); // Placeholder method
 
         // delete pitem (Java garbage collection handles this)
         return valid;
     }
 
     /// 指定したファイルにエクスポート
+    ///
+    /// @return true:OK false:Error
     /// @param[in] dir_basic    抽出元のOS
     /// @param[in] item         抽出したいディレクトリアイテム
     /// @param[in] path         ファイルパス
     /// @param[in] start_msg    開始メッセージ
     /// @param[in] end_msg      終了メッセージ
-    /// @return true:OK false:Error
     public boolean ExportDataFile(DiskBasic dir_basic, DiskBasicDirItem item, String path, String start_msg, String end_msg) {
         if (dir_basic == null) return false;
 
@@ -304,16 +312,17 @@ class UiDiskProcess extends JFrame {
     }
 
     /// 指定したフォルダにエクスポート
-    /// @attention 再帰的に呼ばれる。 This function is called recursively.
-    /// @param     dir_basic   抽出元のOS
-    /// @param     dir_items   選択したリスト
-    /// @param     data_dir    データファイル出力先フォルダ
-    /// @param     attr_dir    属性ファイル出力先フォルダ
+    ///
+    /// @param dir_basic   抽出元のOS
+    /// @param dir_items   選択したリスト
+    /// @param data_dir    データファイル出力先フォルダ
+    /// @param attr_dir    属性ファイル出力先フォルダ
     /// @param file_object [in,out] ファイルオブジェクト
-    /// @param     depth       深さ
-    /// @return  1 警告あり
-    /// @return  0 正常
+    /// @param depth       深さ
+    /// @return 1 警告あり
+    /// @return 0 正常
     /// @return -1 エラー
+    /// @attention 再帰的に呼ばれる。 This function is called recursively.
     public int ExportDataFiles(DiskBasic dir_basic, List<DiskBasicDirItem> dir_items, String data_dir, String attr_dir, Path file_object, int depth) {
         if (dir_items == null) return 0;
 
@@ -437,9 +446,10 @@ class UiDiskProcess extends JFrame {
     }
 
     /// 指定したファイルを削除
-    /// @param[in]     dir_basic BASIC
-    /// @param[in,out] dst_item  削除対象アイテム
+    ///
     /// @return 0:OK >0:Warning <0:Error
+    /// @param[in] dir_basic BASIC
+    /// @param[in,out] dst_item  削除対象アイテム
     public int DeleteDataFile(DiskBasic dir_basic, DiskBasicDirItem dst_item) {
         if (dst_item == null) return -1;
 
@@ -459,7 +469,8 @@ class UiDiskProcess extends JFrame {
 
             // リスト更新
             UiDiskList disk_list = GetDiskListPanel();
-            if (disk_list != null) ((UiDiskList) disk_list).DeleteDirectoryNode(dir_basic.GetDisk(), dst_item); // Placeholder method
+            if (disk_list != null)
+                ((UiDiskList) disk_list).DeleteDirectoryNode(dir_basic.GetDisk(), dst_item); // Placeholder method
             UiDiskFileList file_list = GetFileListPanel();
             if (file_list != null) ((UiDiskFileList) file_list).RefreshFiles(); // Placeholder method
         }
@@ -470,12 +481,13 @@ class UiDiskProcess extends JFrame {
     }
 
     /// 指定したファイルを一括削除（再帰的）
-    /// @attention 再帰的に呼ばれる。 This function is called recursively.
-    /// @param[in]     dir_basic       BASIC
-    /// @param[in,out] items           削除対象アイテムリスト
-    /// @param[in]     depth           深さ
-    /// @param[in,out] dir_items       サブディレクトリアイテムリスト
+    ///
     /// @return 0:OK >0:Warning <0:Error
+    /// @attention 再帰的に呼ばれる。 This function is called recursively.
+    /// @param[in] dir_basic       BASIC
+    /// @param[in,out] items           削除対象アイテムリスト
+    /// @param[in] depth           深さ
+    /// @param[in,out] dir_items       サブディレクトリアイテムリスト
     public int DeleteDataFiles(DiskBasic dir_basic, List<DiskBasicDirItem> items, int depth, List<DiskBasicDirItem> dir_items) {
         if (depth > gConfig.GetDirDepth()) {
             return 1;
@@ -523,6 +535,7 @@ class UiDiskProcess extends JFrame {
     }
 
     /// ディレクトリを作成できるか
+    ///
     /// @return true:できる false:できない
     public boolean CanMakeDirectory(DiskBasic dir_basic) {
         return dir_basic != null ? dir_basic.CanMakeDirectory() : false;
@@ -530,12 +543,13 @@ class UiDiskProcess extends JFrame {
 
     /// ディレクトリ作成
     /// ディレクトリ名が重複する時にダイアログを表示
+    ///
+    /// @return 1:同じ名前がある -1:その他エラー
     /// @param[in,out] dir_basic 作成先のOS
     /// @param[in,out] dir_item  作成先のディレクトリ
-    /// @param[in]     name      ディレクトリ名
-    /// @param[in]     title     ダイアログのタイトル
-    /// @param[out]    nitem     作成したディレクトリアイテム
-    /// @return 1:同じ名前がある -1:その他エラー
+    /// @param[in] name      ディレクトリ名
+    /// @param[in] title     ダイアログのタイトル
+    /// @param[out] nitem     作成したディレクトリアイテム
     public int MakeDirectory(DiskBasic dir_basic, DiskBasicDirItem dir_item, String name, String title, DiskBasicDirItem[] nitem) {
         int sts = 1;
         String dir_name = name;
@@ -583,8 +597,9 @@ class UiDiskProcess extends JFrame {
     }
 
     /// ディレクトリをアサインする
+    ///
     /// @param dir_basic 現在のOS
-    /// @param dir_item ディレクトリのアイテム
+    /// @param dir_item  ディレクトリのアイテム
     /// @return true:OK false:Error
     public boolean AssignDirectory(DiskBasic dir_basic, DiskBasicDirItem dir_item) {
         if (dir_basic == null) return false;
@@ -593,14 +608,16 @@ class UiDiskProcess extends JFrame {
         if (sts) {
             // リスト更新
             UiDiskList disk_list = GetDiskListPanel();
-            if (disk_list != null) ((UiDiskList) disk_list).SelectDirectoryNode(dir_basic.GetDisk(), dir_item); // Placeholder method
+            if (disk_list != null)
+                ((UiDiskList) disk_list).SelectDirectoryNode(dir_basic.GetDisk(), dir_item); // Placeholder method
         }
         return sts;
     }
 
     /// ディレクトリを移動する
-    /// @param dir_basic 現在のOS
-    /// @param dir_item 移動先ディレクトリのアイテム
+    ///
+    /// @param dir_basic    現在のOS
+    /// @param dir_item     移動先ディレクトリのアイテム
     /// @param refresh_list ファイルリストを更新するか
     /// @return true:OK false:Error
     public boolean ChangeDirectory(DiskBasic dir_basic, DiskBasicDirItem dir_item, boolean refresh_list) {
@@ -614,12 +631,14 @@ class UiDiskProcess extends JFrame {
                 if (file_list != null) ((UiDiskFileList) file_list).SetFiles(); // Placeholder method
             }
             UiDiskList disk_list = GetDiskListPanel();
-            if (disk_list != null) ((UiDiskList) disk_list).SelectDirectoryNode(dir_basic.GetDisk(), dir_item); // Placeholder method
+            if (disk_list != null)
+                ((UiDiskList) disk_list).SelectDirectoryNode(dir_basic.GetDisk(), dir_item); // Placeholder method
         }
         return sts;
     }
 
     /// ディレクトリを削除する
+    ///
     /// @param dir_basic 現在のOS
     /// @param dir_item  削除するディレクトリのアイテム
     /// @return true:OK false:Error
@@ -637,6 +656,7 @@ class UiDiskProcess extends JFrame {
     }
 
     /// ファイル名ダイアログ表示と同じファイル名が存在する際のメッセージダイアログ表示
+    ///
     /// @param dir_basic 現在のOS
     /// @param dir_item  現在のディレクトリ
     /// @param temp_item ディレクトリアイテム
@@ -760,6 +780,7 @@ class UiDiskProcess extends JFrame {
     }
 
     /// ファイル名ダイアログの内容を反映させる
+    ///
     /// @param item   ディレクトリアイテム
     /// @param dlg    ファイル名ダイアログ
     /// @param basic  BASIC
@@ -807,6 +828,7 @@ class UiDiskProcess extends JFrame {
     }
 
     /// ファイル名を反映させる
+    ///
     /// @param item      ディレクトリアイテム
     /// @param file_path ファイルパス
     /// @param intname   内部ファイル名
@@ -844,10 +866,12 @@ class UiDiskProcess extends JFrame {
     // --- Virtual methods from uimainprocess.h ---
 
     /// リストウィンドウのデフォルトフォントを得る
-    public void GetDefaultListFont(Object font) {} // wxFont is replaced by Object, as it's just a placeholder
+    public void GetDefaultListFont(Object font) {
+    } // wxFont is replaced by Object, as it's just a placeholder
 
     /// @name 左パネルのディスクツリー
     //@{
+
     /// 左パネルのディスクツリーを返す
     public UiDiskList GetDiskListPanel() {
         return null;
@@ -856,10 +880,12 @@ class UiDiskProcess extends JFrame {
 
     /// @name 右下パネルのファイルリスト
     //@{
+
     /// 右下パネルのファイルリストパネルを返す
     public UiDiskFileList GetFileListPanel(boolean inst) {
         return null;
     }
+
     public UiDiskFileList GetFileListPanel() {
         return GetFileListPanel(false);
     }
@@ -872,26 +898,48 @@ class UiDiskProcess extends JFrame {
 
     /// @name ステータスカウンター
     //@{
-    public void StartExportCounter(int count, String message) {}
-    public void AppendExportCounter(int count) {}
-    public void IncreaseExportCounter() {}
-    public void BeginBusyCursorExportCounterIfNeed() {}
-    public void FinishExportCounter(String message) {}
+    public void StartExportCounter(int count, String message) {
+    }
 
-    public void StartImportCounter(int count, String message) {}
-    public void AppendImportCounter(int count) {}
-    public void IncreaseImportCounter() {}
-    public void BeginBusyCursorImportCounterIfNeed() {}
-    public void FinishImportCounter(String message) {}
-    public void RestartImportCounter() {}
+    public void AppendExportCounter(int count) {
+    }
+
+    public void IncreaseExportCounter() {
+    }
+
+    public void BeginBusyCursorExportCounterIfNeed() {
+    }
+
+    public void FinishExportCounter(String message) {
+    }
+
+    public void StartImportCounter(int count, String message) {
+    }
+
+    public void AppendImportCounter(int count) {
+    }
+
+    public void IncreaseImportCounter() {
+    }
+
+    public void BeginBusyCursorImportCounterIfNeed() {
+    }
+
+    public void FinishImportCounter(String message) {
+    }
+
+    public void RestartImportCounter() {
+    }
     //@}
 
     /// @name プロパティ
     //@{
+
     /// ユニーク番号
     public int GetUniqueNumber() {
         return m_unique_number;
     }
+
     /// ユニーク番号を＋１
     public void IncreaseUniqueNumber() {
         m_unique_number++;

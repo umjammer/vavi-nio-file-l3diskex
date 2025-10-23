@@ -18,7 +18,6 @@ import l3diskex.diskimg.DiskImage.DiskImageSector;
 import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_FREE;
 import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_SYSTEM;
 import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_USED;
-import static l3diskex.basicfmt.BasicFat.INVALID_GROUP_NUMBER;
 import static l3diskex.basicfmt.DiskBasicType.AllocateGroupFlags.ALLOCATE_GROUPS_APPEND;
 
 
@@ -32,20 +31,33 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
     // In a real conversion, these would be fully defined.
 
     static class DataAccessor {
+
         private byte[] data;
         private int size;
+
         public void SetData(byte[] buf, int size, boolean invert) {
             this.size = size;
             this.data = Arrays.copyOfRange(buf, 0, size);
             if (invert) InvertData(true);
         }
-        public void SetSize(int size) { this.size = size; this.data = new byte[size]; }
-        public byte[] GetData() { return data; }
-        public int GetSize() { return size; }
+
+        public void SetSize(int size) {
+            this.size = size;
+            this.data = new byte[size];
+        }
+
+        public byte[] GetData() {
+            return data;
+        }
+
+        public int GetSize() {
+            return size;
+        }
+
         public void InvertData(boolean invert) {
             if (!invert) return;
             for (int i = 0; i < size; i++) {
-                data[i] = (byte)(data[i] ^ 0xFF);
+                data[i] = (byte) (data[i] ^ 0xFF);
             }
         }
     }
@@ -58,11 +70,13 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
      * C1541 BAM
      */
     static class c1541_map_t {
+
         public byte remain; // free blocks
         public byte[] bits = new byte[3]; // Little Endien : Byte0 LSB -> MSB -> byte 1 LSB -> MSB
     }
 
     static class c1541_bam_t {
+
         public C1541Ptr start_dir = new C1541Ptr();
         public byte format_type;
         public byte unused;
@@ -86,6 +100,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
      * C1541 side sector
      */
     static class c1541_side_sector_t {
+
         public C1541Ptr next = new C1541Ptr();
         public byte side_num;
         public byte record_length;
@@ -107,6 +122,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
      * C1541 BAM ビットマップ
      */
     static class C1541Bitmap {
+
         private int m_my_group_num;
         private c1541_bam_t m_bam;
 
@@ -115,9 +131,17 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
             m_bam = null;
         }
 
-        public void setBitmap(c1541_bam_t bam) { m_bam = bam; }
-        public void setMyGroupNumber(int val) { m_my_group_num = val; }
-        public int getMyGroupNumber() { return m_my_group_num; }
+        public void setBitmap(c1541_bam_t bam) {
+            m_bam = bam;
+        }
+
+        public void setMyGroupNumber(int val) {
+            m_my_group_num = val;
+        }
+
+        public int getMyGroupNumber() {
+            return m_my_group_num;
+        }
 
         /**
          * 指定位置のビットを変更する
@@ -133,17 +157,18 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
 
             if (use) {
                 // bits[pos] &= ~(1 << bit); -> clear bit
-                m_bam.map[track_num].bits[pos] = (byte)(currentByte & ~mask);
+                m_bam.map[track_num].bits[pos] = (byte) (currentByte & ~mask);
                 m_bam.map[track_num].remain--;
             } else {
                 // bits[pos] |= (1 << bit); -> set bit
-                m_bam.map[track_num].bits[pos] = (byte)(currentByte | mask);
+                m_bam.map[track_num].bits[pos] = (byte) (currentByte | mask);
                 m_bam.map[track_num].remain++;
             }
         }
 
         /**
          * 指定位置が空いているか
+         *
          * @return 空いている場合 true
          */
         public boolean isFree(int track_num, int sector_num) {
@@ -163,11 +188,11 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
 
             for (int pos = 0; pos < 3; pos++) {
                 // C++: m_bam->map[track_num].bits[pos] = (val & 0xff);
-                m_bam.map[track_num].bits[pos] = (byte)(val & 0xff);
+                m_bam.map[track_num].bits[pos] = (byte) (val & 0xff);
                 // C++: val >>= 8;
                 val >>= 8;
             }
-            m_bam.map[track_num].remain = (byte)num_of_sector;
+            m_bam.map[track_num].remain = (byte) num_of_sector;
         }
 
         /**
@@ -209,7 +234,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
          */
         public void setDiskID(int val) {
             // C++: m_bam->disk_id = wxUINT16_SWAP_ON_LE(val);
-            m_bam.disk_id = Short.reverseBytes((short)val);
+            m_bam.disk_id = Short.reverseBytes((short) val);
         }
     }
 
@@ -217,6 +242,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
      * C1541 セクタ位置変換マップリスト
      */
     static class C1541SectorPosTrans extends DiskBasicSectorPosTrans {
+
         @Override
         public void createSectorSkewMap(DiskBasic basic) {
             // インポート時の空きセクタの探し方をセット
@@ -295,7 +321,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
         // and then read/write fields.
 
         // Check - checking against hardcoded values from the buffer
-        if (buffer[0x02] != (byte)0xa0 || buffer[0x81] != (byte)0xa0) { // space0, space1 positions
+        if (buffer[0x02] != (byte) 0xa0 || buffer[0x81] != (byte) 0xa0) { // space0, space1 positions
             // This is a guess for the offset of space0 and space1 based on typical BAM structure
             valid_ratio = 0.0;
         } else {
@@ -483,18 +509,18 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
             int sec_anum = sec_num[0] - basic.getSectorNumberBase();
 
             if (c1541_bam.isFree(trk_anum, sec_anum)) {
-                fatAvailability.Add(FAT_AVAIL_FREE.getValue(), basic.getSectorSize(), 1);
+                fatAvailability.add(FAT_AVAIL_FREE.getValue(), basic.getSectorSize(), 1);
             } else {
-                fatAvailability.Add(FAT_AVAIL_USED.getValue(), 0, 0);
+                fatAvailability.add(FAT_AVAIL_USED.getValue(), 0, 0);
             }
         }
-        fatAvailability.Set(c1541_bam.getMyGroupNumber(), FAT_AVAIL_SYSTEM.getValue());
+        fatAvailability.set(c1541_bam.getMyGroupNumber(), FAT_AVAIL_SYSTEM.getValue());
         DiskBasicDirItem root = dir.getRootItem();
         if (root != null) {
             DiskBasicGroups root_groups = root.getGroups();
             if (root_groups != null) {
                 for (int i = 0; i < root_groups.count(); i++) {
-                    fatAvailability.Set(root_groups.item(i).group, FAT_AVAIL_SYSTEM.getValue());
+                    fatAvailability.set(root_groups.item(i).group, FAT_AVAIL_SYSTEM.getValue());
                 }
             }
         }
@@ -719,8 +745,8 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
         int[] next_sector_num = {0};
         getNumFromSectorPosS(append_group_num, next_track_num, next_sector_num);
 
-        buffer[0] = (byte)(next_track_num[0] + C1541_START_TRACK_OFFSET);
-        buffer[1] = (byte)(next_sector_num[0] + C1541_START_SECTOR_OFFSET);
+        buffer[0] = (byte) (next_track_num[0] + C1541_START_TRACK_OFFSET);
+        buffer[1] = (byte) (next_sector_num[0] + C1541_START_SECTOR_OFFSET);
 
         return 0;
     }
@@ -745,7 +771,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
         // track = 0
         buffer[0] = 0;
         // sector = (byte)(remain + 1);
-        buffer[1] = (byte)(remain + 1);
+        buffer[1] = (byte) (remain + 1);
 
         return 0;
     }
@@ -965,8 +991,8 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
 
         // Update BAM fields (via direct buffer access or mapped object)
         // C1541Ptr start_dir
-        buffer[0] = (byte)(trk_num + C1541_START_TRACK_OFFSET);
-        buffer[1] = (byte)(sec_num + 1 + C1541_START_SECTOR_OFFSET);
+        buffer[0] = (byte) (trk_num + C1541_START_TRACK_OFFSET);
+        buffer[1] = (byte) (sec_num + 1 + C1541_START_SECTOR_OFFSET);
 
         // format_type (offset 2)
         buffer[2] = 'A';
@@ -999,7 +1025,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
         // Use ByteBuffer to manage raw access for non-setter fields if necessary.
         ByteBuffer bb = ByteBuffer.wrap(buffer).order(ByteOrder.LITTLE_ENDIAN);
         bb.position(2); // format_type
-        bb.put((byte)'A');
+        bb.put((byte) 'A');
         // bb.position(162); // disk_id offset
         // bb.putShort(Short.reverseBytes((short)0x3030)); // 0x3030 is "00" in ASCII, L-E swap (0x3030)
         // SetDiskID handles the swap:
@@ -1037,7 +1063,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
         // C1541Ptr *next = (C1541Ptr *)sector->GetSectorBuffer();
         sector.fill((byte) 0);
         // next->sector = 0xff;
-        dirBuffer[1] = (byte)0xff;
+        dirBuffer[1] = (byte) 0xff;
 
         basic.diskBasicParam.setDirStartSector(sec_num);
 
@@ -1070,7 +1096,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
             }
             if (write_size > remain) {
                 // バッファの余りは0サプレス
-                Arrays.fill(buffer, buf_offset + remain, buf_offset + write_size, (byte)0);
+                Arrays.fill(buffer, buf_offset + remain, buf_offset + write_size, (byte) 0);
             }
             len = remain;
         } else {
@@ -1155,8 +1181,8 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
                 System.arraycopy(side_sectors[ss_idx - 1].side_pos, 0, side_sectors[ss_idx].side_pos, 0, side_sectors[ss_idx].side_pos.length);
             }
 
-            side_sector.side_num = (byte)(ss_idx & 0xff);
-            side_sector.record_length = (byte)(rec_len & 0xff);
+            side_sector.side_num = (byte) (ss_idx & 0xff);
+            side_sector.record_length = (byte) (rec_len & 0xff);
 
             int[] sec_num = {0};
             getNumFromSectorPosS(group_num, track_num, sec_num);
@@ -1166,8 +1192,8 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
             // サイドセクタへのポインタを設定
             for (int i = 0; i <= ss_idx; i++) {
                 c1541_side_sector_t ss = side_sectors[i];
-                ss.side_pos[ss_idx].track = (byte)(tNum & 0xff);
-                ss.side_pos[ss_idx].sector = (byte)(sNum & 0xff);
+                ss.side_pos[ss_idx].track = (byte) (tNum & 0xff);
+                ss.side_pos[ss_idx].sector = (byte) (sNum & 0xff);
             }
 
             // データへのポインタを設定
@@ -1176,8 +1202,8 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
                 tNum = track_num[0] + C1541_START_TRACK_OFFSET;
                 sNum = sec_num[0] + C1541_START_SECTOR_OFFSET;
 
-                side_sector.data_pos[i].track = (byte)(tNum & 0xff);
-                side_sector.data_pos[i].sector = (byte)(sNum & 0xff);
+                side_sector.data_pos[i].track = (byte) (tNum & 0xff);
+                side_sector.data_pos[i].sector = (byte) (sNum & 0xff);
 
                 data_pos++;
             }
@@ -1232,7 +1258,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
     public void getIdentifiedData(DiskBasicIdentifiedData data) {
         // volume name
         byte[] name = new byte[c1541_bam.getDiskNameSize() + 1];
-        Arrays.fill(name, (byte)0);
+        Arrays.fill(name, (byte) 0);
         int len = c1541_bam.getDiskName(name, name.length);
 
         // Assuming utility methods for string manipulation exist
@@ -1263,7 +1289,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
         // volume name
         if (fmt.HasVolumeName()) {
             byte[] name = new byte[c1541_bam.getDiskNameSize() + 1];
-            Arrays.fill(name, (byte)0);
+            Arrays.fill(name, (byte) 0);
             System.arraycopy(data.getVolumeName().getBytes(basic.getCharCodes().charset()), 0, name, 0, Math.min(data.getVolumeName().length(), c1541_bam.getDiskNameSize()));
             for (int i = data.getVolumeName().length(); i < c1541_bam.getDiskNameSize(); i++) {
                 name[i] = basic.diskBasicParam.getDirSpaceCode();

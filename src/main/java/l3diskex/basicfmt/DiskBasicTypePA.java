@@ -41,8 +41,8 @@ public class DiskBasicTypePA extends DiskBasicTypeN88 {
         int grpPerSid = sides * grpPerTrk;                         // groups per surface
 
         int ngrp = (groupNum / grpPerSid) * grpPerSid
-                    + (groupNum % sides) * grpPerTrk
-                    + ((groupNum % grpPerSid) / sides);
+                + (groupNum % sides) * grpPerTrk
+                + ((groupNum % grpPerSid) / sides);
 
         return ngrp * basic.getSectorsPerGroup();
     }

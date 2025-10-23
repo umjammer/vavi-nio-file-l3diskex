@@ -4,6 +4,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.StringJoiner;
 
 import l3diskex.diskimg.DiskImage.DiskImageDisk;
 import l3diskex.diskimg.DiskImage.DiskImageDiskHeader;
@@ -11,11 +12,14 @@ import l3diskex.diskimg.DiskImage.DiskImageFile;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskImage.DiskImageSectorHeader;
 import l3diskex.diskimg.DiskImage.DiskImageTrack;
+import vavi.util.serdes.Element;
+import vavi.util.serdes.Serdes;
 
 
 public class DiskD88 {
 
     public static class DiskDensity {
+
         byte val;
         String name;
 
@@ -36,33 +40,66 @@ public class DiskD88 {
     public static final int DISKD88_MAX_TRACKS = 164;
     public static final int HEADER_TYPE_D88 = 1;
 
+    @Serdes(bigEndian = false)
     static class D88SectorId {
 
+        @Element(sequence = 1)
         byte c;
+        @Element(sequence = 2)
         byte h;
+        @Element(sequence = 3)
         byte r;
+        @Element(sequence = 4)
         byte n;
     }
 
+    @Serdes(bigEndian = false)
     static class D88SectorHeader {
 
+        @Element(sequence = 1)
         D88SectorId id = new D88SectorId();
+        @Element(sequence = 2)
         short secnums;
+        @Element(sequence = 3)
         byte density;
+        @Element(sequence = 4)
         byte deleted;
+        @Element(sequence = 5)
         byte status;
+        @Element(sequence = 6)
         byte[] reserved = new byte[5];
+        @Element(sequence = 7)
         short size;
     }
 
+    @Serdes(bigEndian = false)
     static class D88Header {
+
         public static final int SIZE = 17 + 9 + 1 + 1 + 4 + 4 * DiskD88.DISKD88_MAX_TRACKS;
+        @Element(sequence = 1)
         byte[] diskname = new byte[17];
+        @Element(sequence = 2)
         byte[] reserved1 = new byte[9];
+        @Element(sequence = 3)
         byte write_protect;
+        @Element(sequence = 4)
         byte disk_density;
+        @Element(sequence = 5)
         int disk_size;
+        @Element(sequence = 6)
         int[] offsets = new int[DiskD88.DISKD88_MAX_TRACKS];
+
+        @Override
+        public String toString() {
+            return new StringJoiner(", ", D88Header.class.getSimpleName() + "[", "]")
+                    .add("diskname=" + Arrays.toString(diskname))
+                    .add("reserved1=" + Arrays.toString(reserved1))
+                    .add("write_protect=" + write_protect)
+                    .add("disk_density=" + disk_density)
+                    .add("disk_size=" + disk_size)
+                    .add("offsets=" + Arrays.toString(offsets))
+                    .toString();
+        }
     }
 
     static class DiskD88SectorHeader extends DiskImageSectorHeader {
@@ -610,6 +647,8 @@ public class DiskD88 {
 
     public static class DiskD88DiskHeader extends DiskImageDiskHeader {
 
+        public static final int SIZE = 688;
+
         private D88Header m_header;
 
         public DiskD88DiskHeader() {
@@ -626,7 +665,7 @@ public class DiskD88 {
         }
 
         public int getHeaderSize() {
-            return 688;
+            return SIZE;
         }
 
         public void alloc() {

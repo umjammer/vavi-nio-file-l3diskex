@@ -5,8 +5,14 @@
 package l3diskex.ui;
 
 
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Font;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.JSplitPane;
+import javax.swing.SwingUtilities;
+import javax.swing.Timer;
 
 
 /* ------------------------------------------------------------------
@@ -19,20 +25,20 @@ public class UiDiskRPanel extends JSplitPane {
     private final UiDiskFrame frame;
 
     private final UiDiskDiskAttr diskattr;
-    private final UiDiskRBPanel  bpanel;   // 下部パネル
+    private final UiDiskRBPanel bpanel;   // 下部パネル
 
     /* ---------------- コンストラクタ -------------------- */
     public UiDiskRPanel(UiDiskFrame parentframe, Component parentwindow, int selected_window) {
         super(VERTICAL_SPLIT);
-        this.parent   = parentwindow;
-        this.frame    = parentframe;
+        this.parent = parentwindow;
+        this.frame = parentframe;
 
         /* サイズ合わせ */
         setPreferredSize(parentwindow.getPreferredSize());
 
         /* 下部パネル作成 */
         diskattr = new UiDiskDiskAttr(parentframe, this);
-        bpanel   = new UiDiskRBPanel(parentframe, this, selected_window);
+        bpanel = new UiDiskRBPanel(parentframe, this, selected_window);
 
         /* 分割 */
         setTopComponent(diskattr);
@@ -94,7 +100,7 @@ public class UiDiskRPanel extends JSplitPane {
         public UiDiskRBPanel(UiDiskFrame parentframe, UiDiskRPanel parentwindow, int selected_window) {
             super(HORIZONTAL_SPLIT);
             this.parent = parentwindow;
-            this.frame  = parentframe;
+            this.frame = parentframe;
 
             /* サイズ合わせ */
             setPreferredSize(parentwindow.getPreferredSize());

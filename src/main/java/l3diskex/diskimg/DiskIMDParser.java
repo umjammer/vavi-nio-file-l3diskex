@@ -23,6 +23,7 @@ import vavi.util.serdes.Serdes;
 // ------------------------------------------------------------------
 // The translated parser
 // ------------------------------------------------------------------
+
 /**
  * IMageDisk IMD format disk image parser.
  */
@@ -31,8 +32,10 @@ public class DiskIMDParser extends DiskImageParser {
      *  Data types translated from the header
      * ----------------------------------------------------------------
      */
+
     /** IMD track header (packed 1 byte each) */
     private static class ImdTrackHeader {
+
         int mode;
         int track_num;
         int head_num_n_flg;
@@ -49,6 +52,7 @@ public class DiskIMDParser extends DiskImageParser {
     public DiskIMDParser(DiskImageFile file, short modFlags, DiskResult result) {
         super(file, modFlags, result);
     }
+
     public void destroy() { /* no‑op */ } // mimics C++ destructor
 
     /* ----------------------------------------------------------------
@@ -74,15 +78,15 @@ public class DiskIMDParser extends DiskImageParser {
      *  ParseSector
      * ----------------------------------------------------------------
      */
-    private int ParseSector(InputStream istream,
-                             int diskNumber,
-                             int trackNumber,
-                             int sideNumber,
-                             int sectorNums,
-                             int sectorNumber,
-                             int sectorSize,
-                             boolean singleDensity,
-                             DiskImageTrack track) throws IOException {
+    private int parseSector(InputStream istream,
+                            int diskNumber,
+                            int trackNumber,
+                            int sideNumber,
+                            int sectorNums,
+                            int sectorNumber,
+                            int sectorSize,
+                            boolean singleDensity,
+                            DiskImageTrack track) throws IOException {
 
         // Read header byte
         int h_sector;
@@ -95,8 +99,8 @@ public class DiskIMDParser extends DiskImageParser {
 
         // Create sector
         DiskImageSector sector = track.newImageSector(trackNumber, sideNumber,
-                                                      sectorNumber, sectorSize,
-                                                      sectorNums, false, 0);
+                sectorNumber, sectorSize,
+                sectorNums, false, 0);
         track.add(sector);
         byte[] buffer = sector.getSectorBuffer();
 
@@ -129,11 +133,11 @@ public class DiskIMDParser extends DiskImageParser {
      *  ParseTrack
      * ----------------------------------------------------------------
      */
-    private int ParseTrack(InputStream istream,
-                            int diskNumber,
-                            int offsetPos,
-                            int offset,
-                            DiskImageDisk disk) throws IOException {
+    private int parseTrack(InputStream istream,
+                           int diskNumber,
+                           int offsetPos,
+                           int offset,
+                           DiskImageDisk disk) throws IOException {
 
         // Read track header
         byte[] headerBuf = new byte[ImdTrackHeader.SIZE];
@@ -151,13 +155,13 @@ public class DiskIMDParser extends DiskImageParser {
         }
         if ((hTrack.head_num_n_flg & 0x0F) > 1) {
             result.setError(DiskResult.ERRV_ID_SIDE, diskNumber,
-                              hTrack.track_num, hTrack.track_num,
-                              hTrack.head_num_n_flg & 0x0F, 1);
+                    hTrack.track_num, hTrack.track_num,
+                    hTrack.head_num_n_flg & 0x0F, 1);
             return -1;
         }
         if (hTrack.sector_size_n > 6) {
             result.setError(DiskResult.ERRV_SECTOR_SIZE_HEADER, diskNumber,
-                              hTrack.sector_size_n);
+                    hTrack.sector_size_n);
             return -1;
         }
 
@@ -165,13 +169,13 @@ public class DiskIMDParser extends DiskImageParser {
 
         // Sector, track and head maps
         byte[] sectorMap = null;
-        byte[] trackMap  = null;
-        byte[] headMap   = null;
+        byte[] trackMap = null;
+        byte[] headMap = null;
 
         if (hTrack.num_of_sectors > 0) {
             sectorMap = new byte[hTrack.num_of_sectors];
-            trackMap  = new byte[hTrack.num_of_sectors];
-            headMap   = new byte[hTrack.num_of_sectors];
+            trackMap = new byte[hTrack.num_of_sectors];
+            headMap = new byte[hTrack.num_of_sectors];
 
             // sector map
             readFully(istream, sectorMap, 0, hTrack.num_of_sectors);
@@ -198,21 +202,21 @@ public class DiskIMDParser extends DiskImageParser {
 
         // Create track
         DiskImageTrack track = disk.newImageTrack(hTrack.track_num,
-                                                   hTrack.head_num_n_flg & 0x0F,
-                                                   offsetPos, 1);
+                hTrack.head_num_n_flg & 0x0F,
+                offsetPos, 1);
         disk.setMaxTrackNumber(hTrack.track_num);
 
         int d88TrackSize = 0;
         for (int pos = 0; pos < hTrack.num_of_sectors && result.getValid() >= 0; pos++) {
-            d88TrackSize += ParseSector(istream,
-                                        diskNumber,
-                                        trackMap[pos] & 0xFF,
-                                        headMap[pos] & 0xFF,
-                                        hTrack.num_of_sectors,
-                                        sectorMap[pos] & 0xFF,
-                                        sectorSize,
-                                        hTrack.mode <= 2,
-                                        track);
+            d88TrackSize += parseSector(istream,
+                    diskNumber,
+                    trackMap[pos] & 0xFF,
+                    headMap[pos] & 0xFF,
+                    hTrack.num_of_sectors,
+                    sectorMap[pos] & 0xFF,
+                    sectorSize,
+                    hTrack.mode <= 2,
+                    track);
         }
 
         if (result.getValid() >= 0) {
@@ -234,7 +238,7 @@ public class DiskIMDParser extends DiskImageParser {
      *  ParseDisk
      * ----------------------------------------------------------------
      */
-    private int ParseDisk(InputStream istream, int diskNumber) throws IOException {
+    private int parseDisk(InputStream istream, int diskNumber) throws IOException {
         // skip comment line at the start of the stream
         int ch = 0;
         while (ch != 0x1A && ch != -1) {
@@ -248,14 +252,14 @@ public class DiskIMDParser extends DiskImageParser {
         int limitOffsetPos = disk.getCreatableTracks();
 
         for (int pos = 0; pos < 204; pos++) {
-            int offset = ParseTrack(istream, diskNumber, d88OffsetPos,
-                                     d88Offset, disk);
+            int offset = parseTrack(istream, diskNumber, d88OffsetPos,
+                    d88Offset, disk);
             if (offset == -1) break;
             d88Offset += offset;
             d88OffsetPos++;
             if (d88OffsetPos >= limitOffsetPos) {
                 result.setError(DiskResult.ERRV_OVERFLOW_SIZE,
-                                  diskNumber, d88Offset);
+                        diskNumber, d88Offset);
             }
         }
 
@@ -287,8 +291,10 @@ public class DiskIMDParser extends DiskImageParser {
      *  Public interface
      * ----------------------------------------------------------------
      */
+
     /**
      * Check if the stream contains a valid IMD image.
+     *
      * @return 1 if a dialog should be shown (unused here)
      * @return 0 if everything is OK
      */
@@ -312,6 +318,7 @@ public class DiskIMDParser extends DiskImageParser {
 
     /**
      * Parse the IMD file.
+     *
      * @param istream   the input stream
      * @param diskParam optional disk parameters (ignored here)
      * @return 0 on success, -1 on error, 1 on warning
@@ -321,7 +328,7 @@ public class DiskIMDParser extends DiskImageParser {
         istream.reset();
 
         for (int diskNumber = 0; diskNumber < 1; diskNumber++) {
-            if (ParseDisk(istream, diskNumber) < 0) break;
+            if (parseDisk(istream, diskNumber) < 0) break;
         }
 
         return result.getValid();

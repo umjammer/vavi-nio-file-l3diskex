@@ -22,6 +22,8 @@ import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
 
 import static l3diskex.Config.gConfig;
+import static l3diskex.Parambase.MyAttributes.findValue;
+import static l3diskex.Parambase.MyAttributes.getTypeByValue;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_ASCII_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_BINARY_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_DATA_MASK;
@@ -43,18 +45,18 @@ public class DiskBasicDirItemCDOS extends DiskBasicDirItemMZBase<DirectoryCdos> 
 
     /* type name enum (converted to integer constants) */
     public static final int TYPE_NAME_CDOS_UNKNOWN = 0;
-    public static final int TYPE_NAME_CDOS_OBJ     = 1;
-    public static final int TYPE_NAME_CDOS_TEX     = 2;
-    public static final int TYPE_NAME_CDOS_CMD     = 3;
-    public static final int TYPE_NAME_CDOS_SYS     = 4;
-    public static final int TYPE_NAME_CDOS_END     = 5;
+    public static final int TYPE_NAME_CDOS_OBJ = 1;
+    public static final int TYPE_NAME_CDOS_TEX = 2;
+    public static final int TYPE_NAME_CDOS_CMD = 3;
+    public static final int TYPE_NAME_CDOS_SYS = 4;
+    public static final int TYPE_NAME_CDOS_END = 5;
 
     public static final Map<String, Object> gTypeNameCDOS = new LinkedHashMap<>() {{
-            put("???", TYPE_NAME_CDOS_UNKNOWN);
-            put("OBJECT", TYPE_NAME_CDOS_OBJ);
-            put("TEXT", TYPE_NAME_CDOS_TEX);
-            put("COMMAND", TYPE_NAME_CDOS_CMD);
-            put("SYSTEM", TYPE_NAME_CDOS_SYS);
+        put("???", TYPE_NAME_CDOS_UNKNOWN);
+        put("OBJECT", TYPE_NAME_CDOS_OBJ);
+        put("TEXT", TYPE_NAME_CDOS_TEX);
+        put("COMMAND", TYPE_NAME_CDOS_CMD);
+        put("SYSTEM", TYPE_NAME_CDOS_SYS);
     }};
 
     /* type name 2 array (converted to String[]) */
@@ -83,6 +85,7 @@ public class DiskBasicDirItemCDOS extends DiskBasicDirItemMZBase<DirectoryCdos> 
     /* -------------------------------------------------------------
      *  PRIVATE METHODS (overrides)
      * ------------------------------------------------------------- */
+
     /** ファイル名を格納する位置を返す */
     @Override
     protected byte[] getFileNamePos(int num, int[] size, int[] len) {
@@ -281,7 +284,7 @@ public class DiskBasicDirItemCDOS extends DiskBasicDirItemMZBase<DirectoryCdos> 
 
         boolean valid = true;
         int t = getFileType1();
-        if (num != 0 && (t & 0x70) != 0 && basic.diskBasicParam.getSpecialAttributes().findValue(t) == null) {
+        if (num != 0 && (t & 0x70) != 0 && findValue(basic.diskBasicParam.getSpecialAttributes(), t) == null) {
             valid = false;
         }
         return valid;
@@ -322,25 +325,25 @@ public class DiskBasicDirItemCDOS extends DiskBasicDirItemMZBase<DirectoryCdos> 
     public DiskBasicFileType getFileAttr() {
         int t1 = getFileType1();
         int val = 0;
-        switch(t1) {
+        switch (t1) {
             case FILETYPE_CDOS_OBJ:
-                val = FILE_TYPE_DATA_MASK.getValue();		// DATA
-                val |= FILE_TYPE_BINARY_MASK.getValue();	// binary
+                val = FILE_TYPE_DATA_MASK.getValue();       // DATA
+                val |= FILE_TYPE_BINARY_MASK.getValue();    // binary
                 break;
             case FILETYPE_CDOS_TEX:
-                val = FILE_TYPE_DATA_MASK.getValue();		// DATA
-                val |= FILE_TYPE_ASCII_MASK.getValue();	// ascii
+                val = FILE_TYPE_DATA_MASK.getValue();       // DATA
+                val |= FILE_TYPE_ASCII_MASK.getValue();     // ascii
                 break;
             case FILETYPE_CDOS_CMD:
-                val = FILE_TYPE_MACHINE_MASK.getValue();	// machine
-                val |= FILE_TYPE_BINARY_MASK.getValue();	// binary
+                val = FILE_TYPE_MACHINE_MASK.getValue();    // machine
+                val |= FILE_TYPE_BINARY_MASK.getValue();    // binary
                 break;
             case FILETYPE_CDOS_SYS:
                 val = FILE_TYPE_SYSTEM_MASK.getValue();
 
                 break;
             default:
-                val = basic.diskBasicParam.getSpecialAttributes().getTypeByValue(t1);
+                val = getTypeByValue(basic.diskBasicParam.getSpecialAttributes(), t1);
                 break;
         }
         int t2 = getFileType2();
@@ -383,13 +386,19 @@ public class DiskBasicDirItemCDOS extends DiskBasicDirItemMZBase<DirectoryCdos> 
     }
 
     @Override
-    public boolean hasCreateDateTime() { return true; }
+    public boolean hasCreateDateTime() {
+        return true;
+    }
 
     @Override
-    public boolean hasCreateDate() { return true; }
+    public boolean hasCreateDate() {
+        return true;
+    }
 
     @Override
-    public int canIgnoreDateTime() { return DATETIME_ALL; }
+    public int canIgnoreDateTime() {
+        return DATETIME_ALL;
+    }
 
     @Override
     public LocalDate getFileCreateDate(LocalDateTime tm) {
@@ -414,7 +423,9 @@ public class DiskBasicDirItemCDOS extends DiskBasicDirItemMZBase<DirectoryCdos> 
     }
 
     @Override
-    public boolean hasAddress() { return true; }
+    public boolean hasAddress() {
+        return true;
+    }
 
     @Override
     public int getStartAddress() {
@@ -457,12 +468,12 @@ public class DiskBasicDirItemCDOS extends DiskBasicDirItemMZBase<DirectoryCdos> 
         if (!m_data.isValid()) return;
         m_data.fill(0);
         Arrays.fill(m_data.data().name, 0, m_data.data().name.length, (byte) 0x0d);
-        basic.invertMem(m_data.getRawData(), getDataSize());	// invert
+        basic.invertMem(m_data.getRawData(), getDataSize());    // invert
     }
 
     @Override
     public boolean preExportDataFile(String[] filename) {
-        if (!gConfig.IsAddExtensionExport()) return true;
+        if (!gConfig.isAddExtensionExport()) return true;
 
         String[] ext = new String[1];
         if (getFileAttrName(convFileType1Pos(getFileType1()), gTypeNameCDOS, ext)) {
@@ -478,7 +489,7 @@ public class DiskBasicDirItemCDOS extends DiskBasicDirItemMZBase<DirectoryCdos> 
 
     @Override
     public boolean preImportDataFile(String[] filename) {
-        if (gConfig.IsDecideAttrImport()) {
+        if (gConfig.isDecideAttrImport()) {
             isContainAttrByExtension(filename[0], gTypeNameCDOS, TYPE_NAME_CDOS_OBJ, TYPE_NAME_CDOS_SYS, filename, null, null);
         }
         filename[0] = remakeFileNameAndExtStr(filename[0]);
