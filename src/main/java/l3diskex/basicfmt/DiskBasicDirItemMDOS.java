@@ -8,9 +8,10 @@ import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
-import l3diskex.basicfmt.BasicFmt.DiskBasic;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
+
+import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_BINARY_MASK;
 
 
 /**
@@ -75,24 +76,26 @@ public class DiskBasicDirItemMDOS extends DiskBasicDirItem<DirectoryMdos> {
 //    void setFileTypeForAttrDialog(int show_flags, final String name, int file_type_1, int file_type_2);
 
 //    /// ファイル内部のアドレスを取り出す
-//    void TakeAddressesInFile();
+//    void takeAddressesInFile();
 
     public DiskBasicDirItemMDOS(DiskBasic basic) {
         super(basic);
+
         m_data.alloc(DirectoryMdos.class);
     }
 
-    public DiskBasicDirItemMDOS(DiskBasic basic, DiskImageSector n_sector, int n_secpos, byte[] n_data) {
-        super(basic, n_sector, n_secpos, n_data);
-        m_data.attach(n_data);
+    public DiskBasicDirItemMDOS(DiskBasic basic, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP) {
+        super(basic, n_sector, n_secpos, n_data, dataP);
+
+        m_data.attach(DirectoryMdos.class, n_data, dataP);
     }
 
-    public DiskBasicDirItemMDOS(DiskBasic basic, int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, SectorParam n_next, boolean[] n_unuse) throws IOException {
-        super(basic, n_num, n_gitem, n_sector, n_secpos, n_data, n_next, n_unuse);
-        m_data.attach(n_data);
-        boolean is_unuse = n_unuse[0];
-        used(checkUsed(is_unuse));
-        n_unuse[0] = (is_unuse || (m_data.data() != null && m_data.data().name != null && m_data.data().name[0] == 0));
+    public DiskBasicDirItemMDOS(DiskBasic basic, int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP, SectorParam n_next, boolean[] n_unuse) throws IOException {
+        super(basic, n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next, n_unuse);
+
+        m_data.attach(DirectoryMdos.class, n_data, dataP);
+        used(checkUsed(n_unuse[0]));
+        n_unuse[0] = (n_unuse[0] || (m_data.data() != null && m_data.data().name != null && m_data.data().name[0] == 0));
 
         // ファイルサイズとグループ数を計算
         calcFileSize();
@@ -100,9 +103,10 @@ public class DiskBasicDirItemMDOS extends DiskBasicDirItem<DirectoryMdos> {
 
     /** アイテムへのポインタを設定 */
     @Override
-    public void setDataPtr(int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, SectorParam n_next) throws IOException {
-        super.setDataPtr(n_num, n_gitem, n_sector, n_secpos, n_data, n_next);
-        m_data.attach(n_data);
+    public void setDataPtr(int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP, SectorParam n_next) throws IOException {
+        super.setDataPtr(n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next);
+
+        m_data.attach(DirectoryMdos.class, n_data);
     }
 
     /** ディレクトリアイテムのチェック */
@@ -129,13 +133,10 @@ public class DiskBasicDirItemMDOS extends DiskBasicDirItem<DirectoryMdos> {
 //    /// 属性を設定
 //    void			SetFileAttr(final DiskBasicFileType file_type);
 
-    // Assuming FILE_TYPE_BINARY_MASK is defined elsewhere
-    private static final int FILE_TYPE_BINARY_MASK = 0x0001; // Example value, needs actual definition
-
     /** 属性を返す */
     @Override
     public DiskBasicFileType getFileAttr() {
-        int val = FILE_TYPE_BINARY_MASK; // Placeholder, assuming this is an integer constant
+        int val = FILE_TYPE_BINARY_MASK.getValue();
 
         return new DiskBasicFileType(basic.getFormatTypeNumber(), val, 0);
     }
@@ -250,14 +251,12 @@ public class DiskBasicDirItemMDOS extends DiskBasicDirItem<DirectoryMdos> {
     /** ディレクトリアイテムのサイズ */
     @Override
     public int getDataSize() {
-        // Assuming sizeof(DirectoryMdos) is implemented via a method on the class or known size
         return m_data.getDataSize();
     }
 
     /** アイテムを返す */
     @Override
     public DirectoryMdos getData() {
-        // Assuming DirectoryMdos extends directory_t or is castable
         return m_data.data();
     }
 
@@ -282,7 +281,7 @@ public class DiskBasicDirItemMDOS extends DiskBasicDirItem<DirectoryMdos> {
     /** ファイル名から属性を決定する */
     @Override
     public int convFileTypeFromFileName(String filename) {
-        int ftype = FILE_TYPE_BINARY_MASK;
+        int ftype = FILE_TYPE_BINARY_MASK.getValue();
         return ftype;
     }
 
@@ -293,25 +292,20 @@ public class DiskBasicDirItemMDOS extends DiskBasicDirItem<DirectoryMdos> {
         return t1;
     }
 
-    //	/// @name プロパティダイアログ用
-    //	//@{
 //	/// ダイアログ内の属性部分のレイアウトを作成
-//	void	CreateControlsForAttrDialog(IntNameBox parent, int show_flags, final String file_path, BoxSizer sizer, SizerFlags flags);
+//	void createControlsForAttrDialog(IntNameBox parent, int show_flags, final String file_path, BoxSizer sizer, SizerFlags flags);
 //	/// 属性を変更した際に呼ばれるコールバック
-//	void	ChangeTypeInAttrDialog(IntNameBox parent);
+//	void changeTypeInAttrDialog(IntNameBox parent);
 //	/// 機種依存の属性を設定する
-//	boolean	SetAttrInAttrDialog(final IntNameBox parent, DiskBasicDirItemAttr attr, DiskBasicError errinfo) const;
+//	boolean setAttrInAttrDialog(final IntNameBox parent, DiskBasicDirItemAttr attr, DiskBasicError errinfo) const;
 
     /** プロパティで表示する内部データを設定 */
     @Override
-    public void setInternalDataInAttrDialog(KeyValArray vals) { // Assuming KeyValArray is a Map
-        DirectoryMdos data = m_data.data();
-        vals.add("self", m_data.isSelf());
-        vals.add("NAME", data.name, data.name.length); // Assuming byte[] is added
-        vals.add("EXT", data.ext, data.ext.length); // Assuming byte[] is added
-        vals.add("UNKNOWN", data.unknown);
-        vals.add("START_GROUP", data.startGroup);
-        vals.add("FILE_SIZE", data.fileSize);
+    public void setInternalDataInAttrDialog(KeyValArray vals) {
+        vals.add("NAME", m_data.data().name, m_data.data().name.length);
+        vals.add("EXT", m_data.data().ext, m_data.data().ext.length);
+        vals.add("UNKNOWN", m_data.data().unknown);
+        vals.add("START_GROUP", m_data.data().startGroup);
+        vals.add("FILE_SIZE", m_data.data().fileSize);
     }
-    //	//@}
 }

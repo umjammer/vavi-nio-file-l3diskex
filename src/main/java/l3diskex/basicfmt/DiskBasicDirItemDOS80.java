@@ -13,7 +13,6 @@ import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
-import l3diskex.basicfmt.BasicFmt.DiskBasic;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
 
@@ -35,7 +34,6 @@ public class DiskBasicDirItemDOS80 extends DiskBasicDirItemFAT8<DirectoryDos80> 
     static final int TYPE_NAME_DOS80_BASIC = 0;
     static final int TYPE_NAME_DOS80_MACHINE = 1;
     static final int TYPE_NAME_DOS80_BASIC_MACHINE = 2;
-    static final int TYPE_NAME_DOS80_END = 3;
 
     /**
      * Array of translated type names.
@@ -47,11 +45,8 @@ public class DiskBasicDirItemDOS80 extends DiskBasicDirItemFAT8<DirectoryDos80> 
             "BASIC + Machine"
     };
 
-    /**
-     * Private data members
-     **/
-    private final DiskBasicDirData<DirectoryDos80> m_data;   //  directory_dos80_t
-    private final DiskBasicDirData<DirectoryDos80_2> m_data2;  //  directory_dos80_2_t
+    private final DiskBasicDirData<DirectoryDos80> m_data = new DiskBasicDirData<>();   //  directory_dos80_t
+    private final DiskBasicDirData<DirectoryDos80_2> m_data2 = new DiskBasicDirData<>();  //  directory_dos80_2_t
     private final DiskBasicGroups[] m_file_unit = new DiskBasicGroups[2];
     private int m_cached_type = 0;
 
@@ -60,18 +55,23 @@ public class DiskBasicDirItemDOS80 extends DiskBasicDirItemFAT8<DirectoryDos80> 
      **/
     public DiskBasicDirItemDOS80(DiskBasic basic) {
         super(basic);
-        m_data = new DiskBasicDirData<>();
-        m_data2 = new DiskBasicDirData<>();
-        // file units are already zero‑initialised
+
+        m_cached_type = 0;
+        m_data.alloc(DirectoryDos80.class);
+        m_data2.alloc(DirectoryDos80_2.class);
+        m_data2.fill(0);
     }
 
     public DiskBasicDirItemDOS80(DiskBasic basic,
                                  DiskImageSector sector,
                                  int secPos,
-                                 byte[] data) {
-        super(basic, sector, secPos, data);
-        m_data = new DiskBasicDirData<>();
-        m_data2 = new DiskBasicDirData<>();
+                                 byte[] data, int dataP) {
+        super(basic, sector, secPos, data, dataP);
+
+        m_cached_type = 0;
+        m_data.attach(DirectoryDos80.class, data, dataP);
+        m_data2.alloc(DirectoryDos80_2.class);
+        m_data2.fill(0);
     }
 
     public DiskBasicDirItemDOS80(DiskBasic basic,
@@ -79,17 +79,26 @@ public class DiskBasicDirItemDOS80 extends DiskBasicDirItemFAT8<DirectoryDos80> 
                                  DiskBasicGroupItem gitem,
                                  DiskImageSector sector,
                                  int secPos,
-                                 byte[] data,
+                                 byte[] data, int dataP,
                                  SectorParam next,
-                                 boolean[] unuse) {
-        super(basic, num, gitem, sector, secPos, data, next, unuse);
-        m_data = new DiskBasicDirData<>();
-        m_data2 = new DiskBasicDirData<>();
-    }
+                                 boolean[] unuse) throws IOException {
+        super(basic, num, gitem, sector, secPos, data, dataP, next, unuse);
 
-    /*
-     *  Override of virtual functions
-     */
+        m_cached_type = 0;
+        m_data.attach(DirectoryDos80.class, data, dataP);
+
+        // 2セクタ後に属性などがある
+        DiskImageSector sector_2 = basic.getSector(gitem.track, gitem.side, sector.getSectorNumber() + 2);
+        if (sector_2 != null) {
+            byte[] buffer2 = sector_2.getSectorBuffer();
+            m_data2.attach(DirectoryDos80_2.class, buffer2, secPos);
+        }
+
+        used(checkUsed(unuse[0]));
+
+        // ファイルサイズとグループ数を計算
+        calcFileSize();
+    }
 
     /**
      * Get the position of the file name within the directory data.
@@ -214,7 +223,7 @@ public class DiskBasicDirItemDOS80 extends DiskBasicDirItemFAT8<DirectoryDos80> 
      */
     @Override
     public void calcFileSize() throws IOException {
-        this.groups.empty();
+        this.groups.clear();
         for (int fileunit_num = 0; fileunit_num < 4; fileunit_num++) {
             if (!isValidFileUnit(fileunit_num)) {
                 break;
@@ -232,7 +241,6 @@ public class DiskBasicDirItemDOS80 extends DiskBasicDirItemFAT8<DirectoryDos80> 
     @Override
     public void setInternalDataInAttrDialog(KeyValArray vals) {
         // Dump internal data for debugging
-        vals.add("self", m_data.isSelf());
         vals.add("NAME", m_data.data().name, m_data.data().name.length);
     }
 
@@ -245,18 +253,16 @@ public class DiskBasicDirItemDOS80 extends DiskBasicDirItemFAT8<DirectoryDos80> 
                            DiskImageSector sector,
                            int secPos,
                            byte[] data,
-                           SectorParam next) throws IOException {
-        super.setDataPtr(num, gItem, sector, secPos, data, next);
+                           int dataP, SectorParam next) throws IOException {
+        super.setDataPtr(num, gItem, sector, secPos, data, dataP, next);
 
-        m_data.attach(data);
-
-        m_data2.delete();
+        m_data.attach(DirectoryDos80.class, data, dataP);
 
         // 2セクタ後に属性などがある
         DiskImageSector sector_2 = basic.getSector(gItem.track, gItem.side, sector.getSectorNumber() + 2);
         if (sector_2 != null) {
             byte[] buffer2 = sector_2.getSectorBuffer();
-            m_data2.attach(buffer2, secPos);
+            m_data2.attach(DirectoryDos80_2.class, buffer2, secPos);
         }
     }
 
@@ -312,7 +318,7 @@ public class DiskBasicDirItemDOS80 extends DiskBasicDirItemFAT8<DirectoryDos80> 
 
     @Override
     public void getAllGroups(DiskBasicGroups groupItems) throws IOException {
-        groupItems.empty();
+        groupItems.clear();
         for (int fileunit_num = 0; fileunit_num < 4; fileunit_num++) {
             if (!isValidFileUnit(fileunit_num)) {
                 break;

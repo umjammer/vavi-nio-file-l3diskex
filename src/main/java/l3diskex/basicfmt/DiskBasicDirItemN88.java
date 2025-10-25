@@ -1,3 +1,7 @@
+///
+/// @author Copyright (c) Sasaji. All rights reserved.
+///
+
 package l3diskex.basicfmt;
 
 import java.io.IOException;
@@ -9,9 +13,10 @@ import l3diskex.basicfmt.BasicCommon.DirectoryN88;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
-import l3diskex.basicfmt.BasicFmt.DiskBasic;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
+import vavi.util.Debug;
+import vavi.util.StringUtil;
 
 import static l3diskex.Parambase.MyAttributes.findUpperCase;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_ASCII_MASK;
@@ -24,122 +29,128 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_READONLY_MASK
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_READWRITE_MASK;
 
 
-// DiskBasicDirItemN88.java
+// disk basic directory item for N88-BASIC
 public class DiskBasicDirItemN88 extends DiskBasicDirItemFAT8<DirectoryN88> {
 
-    String[] G_TYPE_NAME_N88_1 = {
+    // N88-BASIC attribute names
+    public static final String[] G_TYPE_NAME_N88_1 = {
             "Ascii",
             "Binary",
             "Machine",
             "Ascii(Random Access)",
     };
 
-    int TYPE_NAME_N88_ASCII = 0;
-    int TYPE_NAME_N88_BINARY = 1;
-    int TYPE_NAME_N88_MACHINE = 2;
-    int TYPE_NAME_N88_RANDOM = 3;
+    public static final int TYPE_NAME_N88_ASCII = 0;
+    public static final int TYPE_NAME_N88_BINARY = 1;
+    public static final int TYPE_NAME_N88_MACHINE = 2;
+    public static final int TYPE_NAME_N88_RANDOM = 3;
 
-    int FILETYPE_N88_ASCII = 0x00;
-    int FILETYPE_N88_BINARY = 0x80;
-    int FILETYPE_N88_MACHINE = 0x01;
+    public static final int FILETYPE_N88_ASCII = 0x00;
+    public static final int FILETYPE_N88_BINARY = 0x80;
+    public static final int FILETYPE_N88_MACHINE = 0x01;
 
     // N88-BASIC attribute names 2
-    String[] G_TYPE_NAME_N88_2 = {
+    public static final String[] G_TYPE_NAME_N88_2 = {
             "Write Protected",
-            "Read After Write", // Corresponds to DATATYPE_MASK_N88_READ_WRITE
+            "Read After Write",
             "Encrypted",
     };
 
-    int TYPE_NAME_N88_READ_ONLY = 0;
-    int TYPE_NAME_N88_READ_WRITE = 1;
-    int TYPE_NAME_N88_ENCRYPTED = 2;
+    public static final int TYPE_NAME_N88_READ_ONLY = 0;
+    public static final int TYPE_NAME_N88_READ_WRITE = 1;
+    public static final int TYPE_NAME_N88_ENCRYPTED = 2;
 
-    int DATATYPE_MASK_N88_READ_ONLY = 0x10;
-    int DATATYPE_MASK_N88_READ_WRITE = 0x40;
-    int DATATYPE_MASK_N88_ENCRYPTED = 0x20;
-
-    public interface DialogIDs {
-
-        int IDC_RADIO_TYPE1 = 51;
-        int IDC_CHECK_READONLY = 52;
-        int IDC_CHECK_READWRITE = 53;
-        int IDC_CHECK_ENCRYPT = 54;
-        int IDC_RADIO_TYPE2 = 55;
-    }
-
-    private final DiskBasicDirData<DirectoryN88> mData = new DiskBasicDirData<>();
+    public static final int DATATYPE_MASK_N88_READ_ONLY = 0x10;
+    public static final int DATATYPE_MASK_N88_READ_WRITE = 0x40;
+    public static final int DATATYPE_MASK_N88_ENCRYPTED = 0x20;
 
     public DiskBasicDirItemN88(DiskBasic basic) {
         super(basic);
-        mData.alloc(DirectoryN88.class);
+
+        m_data.alloc(DirectoryN88.class);
     }
 
-    public DiskBasicDirItemN88(DiskBasic basic, DiskImageSector nSector, int nSecpos, byte[] nData) {
-        super(basic, nSector, nSecpos, nData);
-        mData.attach(nData);
+    public DiskBasicDirItemN88(DiskBasic basic, DiskImageSector nSector, int nSecpos, byte[] nData, int dataP) {
+        super(basic, nSector, nSecpos, nData, dataP);
+
+        m_data.attach(DirectoryN88.class, nData, dataP);
     }
 
-    public DiskBasicDirItemN88(DiskBasic basic, int nNum, DiskBasicGroupItem nGitem, DiskImageSector nSector, int nSecpos, byte[] nData, SectorParam nNext, boolean[] nUnuse) throws IOException {
-        super(basic, nNum, nGitem, nSector, nSecpos, nData, nNext, nUnuse);
+    public DiskBasicDirItemN88(DiskBasic basic, int nNum, DiskBasicGroupItem nGitem, DiskImageSector nSector, int nSecpos, byte[] nData, int dataP, SectorParam nNext, boolean[] nUnuse) throws IOException {
+        super(basic, nNum, nGitem, nSector, nSecpos, nData, dataP, nNext, nUnuse);
+
         // n88
-        mData.attach(nData);
+        m_data.attach(DirectoryN88.class, nData);
+Debug.printStackTrace(new Exception());
+Debug.println("1)\n" + StringUtil.getDump(m_data.getRawData(), DirectoryN88.SIZE));
 
-        boolean unuse = nUnuse[0];
-        used(checkUsed(unuse));
-        nUnuse[0] = (unuse || (mData.data().name[0] == (byte) 0xff)); // C++ byte is signed
+        used(checkUsed(nUnuse[0]));
+        nUnuse[0] = (nUnuse[0] || (m_data.data().name[0] == (byte) 0xff));
 
         // ファイルサイズとグループ数を計算
         calcFileSize();
     }
 
-    // C++ method: SetDataPtr
+    /**
+     * アイテムへのポインタを設定
+     *
+     * @param num    通し番号
+     * @param gItem  トラック番号などのデータ
+     * @param sector セクタ
+     * @param secPos セクタ内のディレクトリエントリの位置
+     * @param data   ディレクトリアイテム
+     * @param next   [out] 次のセクタ
+     * @see DiskBasicType#checkDirectory
+     */
     @Override
-    public void setDataPtr(int num, DiskBasicGroupItem gItem, DiskImageSector sector, int secPos, byte[] data, SectorParam next) throws IOException {
-        super.setDataPtr(num, gItem, sector, secPos, data, next);
-        mData.attach(data);
+    public void setDataPtr(int num, DiskBasicGroupItem gItem, DiskImageSector sector, int secPos, byte[] data, int dataP, SectorParam next) throws IOException {
+        super.setDataPtr(num, gItem, sector, secPos, data, dataP, next);
+
+        m_data.attach(DirectoryN88.class, data, dataP);
+//Debug.println("2)\n" + StringUtil.getDump(m_data.getRawData(), DirectoryN88.SIZE));
     }
 
-    // C++ method: GetFileNamePos
+    /// ファイル名を格納する位置を返す
     @Override
     protected byte[] getFileNamePos(int num, int[] size, int[] len) {
         // N88
         if (num == 0) {
-            size[0] = len[0] = mData.data().name.length;
-            return mData.data().name;
+            size[0] = len[0] = m_data.data().name.length;
+            return m_data.data().name;
         } else {
             size[0] = len[0] = 0;
             return null;
         }
     }
 
+    /// 拡張子を格納する位置を返す
     @Override
     protected byte[] getFileExtPos(int[] len) {
-        len[0] = mData.data().ext.length;
-        return mData.data().ext;
+        len[0] = m_data.data().ext.length;
+        return m_data.data().ext;
     }
 
     @Override
     public int getFileType1() {
-        return mData.data().type;
+        return m_data.data().type;
     }
 
     @Override
     protected void setFileType1(int val) {
-        mData.data().type = (byte) (val & 0xff);
+        m_data.data().type = (byte) (val & 0xff);
     }
 
     @Override
     public boolean checkUsed(boolean unuse) {
-        // C++ wxUint8 is unsigned, so (byte)0xff is -1.
-        return (!unuse && mData.data().name[0] != 0x00 && mData.data().name[0] != (byte) 0xff);
+        return (!unuse && m_data.data().name[0] != 0x00 && m_data.data().name[0] != (byte) 0xff);
     }
 
     @Override
     public boolean check(boolean[] last) {
-        if (!mData.isValid()) return false;
+        if (!m_data.isValid()) return false;
 
         boolean valid = true;
-        if (mData.data().name[0] == (byte) 0xff) {
+        if (m_data.data().name[0] == (byte) 0xff) {
             last[0] = true;
             return valid;
         }
@@ -153,7 +164,7 @@ public class DiskBasicDirItemN88 extends DiskBasicDirItemFAT8<DirectoryN88> {
     @Override
     public boolean delete() {
         // 削除はエントリの先頭にコードを入れるだけ
-        mData.fill(basic.diskBasicParam.getDeleteCode(), 1);
+        m_data.fill(basic.diskBasicParam.getDeleteCode(), 1);
         used(false);
         return true;
     }
@@ -197,14 +208,14 @@ public class DiskBasicDirItemN88 extends DiskBasicDirItemFAT8<DirectoryN88> {
         int t1 = getFileType1();
         int val = 0;
         if ((t1 & FILETYPE_N88_MACHINE) != 0) {
-            val = FILE_TYPE_MACHINE_MASK.getValue();        // machine
-            val |= FILE_TYPE_BINARY_MASK.getValue();        // binary
+            val = FILE_TYPE_MACHINE_MASK.getValue();     // machine
+            val |= FILE_TYPE_BINARY_MASK.getValue();     // binary
         } else {
-            val = FILE_TYPE_BASIC_MASK.getValue();            // basic
+            val = FILE_TYPE_BASIC_MASK.getValue();       // basic
             if ((t1 & FILETYPE_N88_BINARY) != 0) {
-                val |= FILE_TYPE_BINARY_MASK.getValue();    // binary
+                val |= FILE_TYPE_BINARY_MASK.getValue(); // binary
             } else {
-                val |= FILE_TYPE_ASCII_MASK.getValue();    // ascii
+                val |= FILE_TYPE_ASCII_MASK.getValue();  // ascii
             }
         }
         if ((t1 & DATATYPE_MASK_N88_READ_ONLY) != 0) {
@@ -250,14 +261,14 @@ public class DiskBasicDirItemN88 extends DiskBasicDirItemFAT8<DirectoryN88> {
     // C++ method: TakeAddressesInFile
     @Override
     protected void takeAddressesInFile() {
-        if (groups.count() == 0 || (getFileType1() & FILETYPE_N88_MACHINE) == 0) {
+        if (groups.size() == 0 || (getFileType1() & FILETYPE_N88_MACHINE) == 0) {
             m_start_address = -1;
             m_end_address = -1;
             m_exec_address = -1;
             return;
         }
 
-        DiskBasicGroupItem item = groups.item(0);
+        DiskBasicGroupItem item = groups.get(0);
         DiskImageSector sector = basic.getSector(item.track, item.side, item.sectorStart);
         if (sector == null) return;
 
@@ -272,19 +283,19 @@ public class DiskBasicDirItemN88 extends DiskBasicDirItemFAT8<DirectoryN88> {
     @Override
     public void setStartGroup(int fileunitNum, int val, int size) {
         // n88
-        mData.data().startGroup = (byte) (val & 0xff);
+        m_data.data().startGroup = (byte) (val & 0xff);
     }
 
     @Override
     public int getStartGroup(int fileunitNum) {
         // n88
-        return mData.data().startGroup;
+        return m_data.data().startGroup;
     }
 
     @Override
     public boolean hasEndMark() {
         boolean val;
-        val = ((mData.data().name[0] & 0xFF) == basic.diskBasicParam.getGroupUnusedCode());
+        val = ((m_data.data().name[0] & 0xFF) == basic.diskBasicParam.getGroupUnusedCode());
         return val;
     }
 
@@ -318,23 +329,24 @@ public class DiskBasicDirItemN88 extends DiskBasicDirItemFAT8<DirectoryN88> {
 
     @Override
     public int getDataSize() {
-        return mData.getDataSize();
+        return m_data.getDataSize();
     }
 
     @Override
     public DirectoryN88 getData() {
-        return mData.data();
+        return m_data.data();
     }
 
     @Override
     public boolean copyData(DirectoryN88 val) { // directory_t replaced by Object
-        return mData.copy(val, getDataSize());
+        return m_data.copy(val, getDataSize());
     }
 
     @Override
     public void clearData() {
-        mData.fill(basic.diskBasicParam.getFillCodeOnDir(), getDataSize());
-        mData.data().type = 0;
+        m_data.fill(basic.diskBasicParam.getFillCodeOnDir(), getDataSize());
+
+        m_data.data().type = 0;
     }
 
     @Override
@@ -387,11 +399,10 @@ public class DiskBasicDirItemN88 extends DiskBasicDirItemFAT8<DirectoryN88> {
 
     @Override
     public void setInternalDataInAttrDialog(KeyValArray vals) {
-        vals.add("self", mData.isSelf());
-        vals.add("NAME", mData.data().name, mData.data().name.length);
-        vals.add("EXT", mData.data().ext, mData.data().ext.length);
-        vals.add("TYPE", mData.data().type);
-        vals.add("START_GROUP", mData.data().startGroup);
-        vals.add("RESERVED", mData.data().reserved, mData.data().reserved.length);
+        vals.add("NAME", m_data.data().name, m_data.data().name.length);
+        vals.add("EXT", m_data.data().ext, m_data.data().ext.length);
+        vals.add("TYPE", m_data.data().type);
+        vals.add("START_GROUP", m_data.data().startGroup);
+        vals.add("RESERVED", m_data.data().reserved, m_data.data().reserved.length);
     }
 }

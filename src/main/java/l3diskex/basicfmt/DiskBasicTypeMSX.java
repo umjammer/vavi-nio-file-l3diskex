@@ -7,9 +7,7 @@ package l3diskex.basicfmt;
 import java.io.IOException;
 
 import l3diskex.basicfmt.BasicCommon.DirectoryMsDos;
-import l3diskex.basicfmt.BasicFat.DiskBasicFat;
-import l3diskex.basicfmt.BasicFmt.DiskBasic;
-import l3diskex.basicfmt.BasicFmt.DiskBasicIdentifiedData;
+import l3diskex.basicfmt.DiskBasic.DiskBasicIdentifiedData;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 
 
@@ -49,7 +47,7 @@ public class DiskBasicTypeMSX extends DiskBasicTypeMSDOS {
         }
 
         /* ① ParseMSDOSParamOnDisk()  */
-        double valid_ratio = ParseMSDOSParamOnDisk(
+        double valid_ratio = parseMSDOSParamOnDisk(
                 basic.getDisk(), is_formatting);
 
         if (valid_ratio >= 0.0) {

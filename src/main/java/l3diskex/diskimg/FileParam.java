@@ -6,6 +6,8 @@ package l3diskex.diskimg;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -17,19 +19,25 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import l3diskex.Parambase.TemplatesBase;
 import org.xml.sax.SAXException;
 
 
 public class FileParam {
+
+    private static final Logger logger = System.getLogger(FileParam.class.getName());
 
     /**
      * FileFormat
      */
     public static class FileFormat {
 
-        private final int m_idx;          // index inside the list
-        private String m_name;         // file type ("d88","plain",...)
-        private final String m_description;  // description
+        // index inside the list
+        private final int m_idx;
+        // file type ("d88","plain",...)
+        private String m_name;
+        // description
+        private final String m_description;
 
         public FileFormat() {
             m_idx = 0;
@@ -43,7 +51,6 @@ public class FileParam {
             m_description = desc;
         }
 
-        /* getters / setters ------------------------------------------------*/
         public int getIndex() {
             return m_idx;
         }
@@ -148,7 +155,7 @@ public class FileParam {
         setFileParam(src);
     }
 
-    public FileParam(String n_ext, ArrayList<FileParamFormat> n_formats, String n_desc) {
+    public FileParam(String n_ext, List<FileParamFormat> n_formats, String n_desc) {
         setFileParam(n_ext, n_formats, n_desc);
     }
 
@@ -165,7 +172,7 @@ public class FileParam {
         m_description = src.m_description;
     }
 
-    public void setFileParam(String n_ext, ArrayList<FileParamFormat> n_formats, String n_desc) {
+    public void setFileParam(String n_ext, List<FileParamFormat> n_formats, String n_desc) {
         m_extension = n_ext;
         m_formats = n_formats;
         m_description = n_desc;
@@ -228,7 +235,7 @@ public class FileParam {
     /**
      * FileTypes
      */
-    public static class FileTypes /* extends TemplatesBase */ {
+    public static class FileTypes extends TemplatesBase {
 
         private final List<FileFormat> formats = new ArrayList<>(); // file formats
         private final List<FileParam> types = new ArrayList<>();  // file parameters
@@ -245,7 +252,7 @@ public class FileParam {
             @SuppressWarnings("unchecked")
             List<List<String>> exts = new ArrayList<>(3);
             for (int i = 0; i < 3; ++i) {
-                exts.add(new ArrayList<String>());
+                exts.add(new ArrayList<>());
             }
 
             for (int i = 0; i < DiskWriter.cFormatTypeNamesForSave.length; ++i) {
@@ -311,7 +318,13 @@ public class FileParam {
         }
 
         /**
-         * XML parsing
+         * XMLファイルをロード
+         *
+         * @param dataPath   ファイルパス
+         * @param localeName ローケル(jaなど)
+         * @param errmsgs [out] エラーメッセージ
+         * @return false: エラー
+         * @see "file_types.xml"
          */
         public boolean load(String dataPath, String localeName, StringBuilder errmsgs) {
             String xmlFile = dataPath + "file_types.xml";
@@ -349,7 +362,7 @@ public class FileParam {
                             // <FileType Extension="d88">
                             String extAttr = elem.getAttribute("Extension");
                             String desc = getDescriptionFromChildren(elem, "Description");
-                            ArrayList<FileParamFormat> fpFormats = new ArrayList<FileParamFormat>();
+                            List<FileParamFormat> fpFormats = new ArrayList<>();
 
                             // Process nested <Format> elements
                             NodeList subNodes = elem.getChildNodes();
@@ -380,18 +393,22 @@ public class FileParam {
                         }
                     }
                 }
-                makeWildcard();     // build the wildcard strings
+
+                makeWildcard();
+logger.log(Level.INFO, "formats: " + formats.size());
+logger.log(Level.INFO, "types: " + types.size());
                 return true;
 
             } catch (ParserConfigurationException | SAXException | IOException e) {
+logger.log(Level.ERROR, e.getMessage(), e);
                 errmsgs.append("XML parse error: ").append(e.getMessage());
                 return false;
             }
         }
 
-        /*
-         *  FindExt
-         **/
+        /**
+         * FindExt
+         */
         public FileParam findExt(String n_ext) {
             for (FileParam fp : types) {
                 if (fp.getExt().equalsIgnoreCase(n_ext)) {
@@ -525,21 +542,4 @@ public class FileParam {
      * Global instance (equivalent to the C++ `extern FileTypes gFileTypes;`)
      */
     public static FileTypes gFileTypes = new FileTypes();
-
-    /**
-     * Main – optional test harness
-     */
-    public static void main(String[] args) {
-        String dataPath = ".";           // adjust as needed
-        String locale = "en_US";
-        StringBuilder errmsgs = new StringBuilder();
-
-        boolean ok = gFileTypes.load(dataPath, locale, errmsgs);
-        System.out.println("Load OK: " + ok);
-        if (!ok) {
-            System.out.println("Error: " + errmsgs);
-        }
-
-        System.out.println("Wildcards for load: " + gFileTypes.getWildcardForLoad());
-    }
 }

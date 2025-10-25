@@ -7,7 +7,7 @@ package l3diskex.basicfmt;
 import java.io.IOException;
 
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
-import l3diskex.basicfmt.BasicFmt.DiskBasic;
+import l3diskex.basicfmt.DiskBasicDirItemFAT8.DiskBasicDirItemFAT8F;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
 
@@ -30,8 +30,8 @@ public class DiskBasicDirItemFM extends DiskBasicDirItemFAT8F {
     public DiskBasicDirItemFM(DiskBasic basic,
                               DiskImageSector sector,
                               int secPos,
-                              byte[] data) {
-        super(basic, sector, secPos, data);
+                              byte[] data, int dataP) {
+        super(basic, sector, secPos, data, dataP);
     }
 
     /**
@@ -51,8 +51,9 @@ public class DiskBasicDirItemFM extends DiskBasicDirItemFAT8F {
                               DiskImageSector sector,
                               int secPos,
                               byte[] data,
+                              int dataP,
                               SectorParam next,
                               boolean[] unuse) throws IOException {
-        super(basic, num, gItem, sector, secPos, data, next, unuse);
+        super(basic, num, gItem, sector, secPos, data, dataP, next, unuse);
     }
 }

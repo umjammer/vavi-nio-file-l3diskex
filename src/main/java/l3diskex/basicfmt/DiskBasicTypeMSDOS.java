@@ -11,10 +11,8 @@ import java.util.Arrays;
 
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
-import l3diskex.basicfmt.BasicFat.DiskBasicFat;
-import l3diskex.basicfmt.BasicFat.DiskBasicFatArea;
-import l3diskex.basicfmt.BasicFmt.DiskBasic;
-import l3diskex.basicfmt.BasicFmt.DiskBasicIdentifiedData;
+import l3diskex.basicfmt.DiskBasic.DiskBasicIdentifiedData;
+import l3diskex.basicfmt.DiskBasicFat.DiskBasicFatArea;
 import l3diskex.basicfmt.DiskBasicParam.DiskBasicFormat;
 import l3diskex.diskimg.DiskImage.DiskImageDisk;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
@@ -32,17 +30,11 @@ import static l3diskex.basicfmt.DiskBasicTemplates.gDiskBasicTemplates;
  * --- */
 public class DiskBasicTypeMSDOS extends DiskBasicTypeFAT12 {
 
-    /* ------------------------------------------------------------------
-     *  Public constructor
-     * ------------------------------------------------------------------ */
     public DiskBasicTypeMSDOS(DiskBasic basic, DiskBasicFat fat, DiskBasicDir dir) {
         super(basic, fat, dir);
     }
 
-    /* ------------------------------------------------------------------
-     *  Volume label handling (protected helper)
-     * ------------------------------------------------------------------ */
-    protected boolean ModifyOrMakeVolumeLabel(String filename) throws IOException {
+    protected boolean modifyOrMakeVolumeLabel(String filename) throws IOException {
         /*  The original C++ code searched the root directory for an
          *  entry with the volume‑label attribute.  If none was found
          *  it allocated a new empty directory item and set the label.
@@ -94,10 +86,7 @@ public class DiskBasicTypeMSDOS extends DiskBasicTypeFAT12 {
         return ret;
     }
 
-    /* ------------------------------------------------------------------
-     *  MSDOS specific parameter parsing
-     * ------------------------------------------------------------------ */
-    public double ParseMSDOSParamOnDisk(DiskImageDisk disk, boolean isFormatting) throws IOException {
+    public double parseMSDOSParamOnDisk(DiskImageDisk disk, boolean isFormatting) throws IOException {
         if (isFormatting) {
             return 1.0;
         }
@@ -214,28 +203,35 @@ public class DiskBasicTypeMSDOS extends DiskBasicTypeFAT12 {
         return true;
     }
 
+    /// サブディレクトリを作成した後の個別処理
     @Override
     public void additionalProcessOnMadeDirectory(DiskBasicDirItem item,
                                                  DiskBasicGroups groupItems,
                                                  DiskBasicDirItem parentItem) throws IOException {
-        if (groupItems.count() <= 0) return;
+        if (groupItems.size() <= 0) return;
 
-        DiskBasicGroupItem gitem = groupItems.item(0);
+        // カレントと親ディレクトリのエントリを作成する
+        DiskBasicGroupItem gitem = groupItems.get(0);
+
         DiskImageSector sector = basic.getDisk().getSector(gitem.track, gitem.side, gitem.sectorStart);
-        byte[] buf = sector.getSectorBuffer();
-        DiskBasicDirItem newItem = basic.createDirItem(sector, 0, buf);
 
-        /* current entry */
+        byte[] buf = sector.getSectorBuffer();
+        int bufOffset = 0;
+        DiskBasicDirItem newItem = basic.createDirItem(sector, 0, buf, bufOffset);
+
+        // current entry
         newItem.copyData(item.getData());
         newItem.setFileNamePlain(".");
         newItem.setFileAttr(FORMAT_TYPE_UNKNOWN, FILE_TYPE_DIRECTORY_MASK.getValue(), 0);
 
-        /* parent entry */
-        buf = buf.clone(); // dummy copy for pointer arithmetic
-        newItem.setDataPtr(0, null, sector, 0, buf, null);
+        // parent entry
+        bufOffset += newItem.getDataSize();
+        newItem.setDataPtr(0, null, sector, 0, buf, bufOffset, null);
         if (parentItem != null) {
+            // 親がサブディレクトリ
             newItem.copyData(parentItem.getData());
         } else {
+            // 親がルート
             newItem.copyData(item.getData());
             newItem.setStartGroup(0, 0);
         }
@@ -244,35 +240,35 @@ public class DiskBasicTypeMSDOS extends DiskBasicTypeFAT12 {
         newItem.setFileAccessDateTime(item.getFileAccessDateTime());
         newItem.setFileNamePlain("..");
         newItem.setFileAttr(FORMAT_TYPE_UNKNOWN, FILE_TYPE_DIRECTORY_MASK.getValue(), 0);
-        newItem = null; // allow GC
     }
 
-    /* ------------------------------------------------------------------
-     *  Formatting helpers
-     * ------------------------------------------------------------------ */
+    /// セクタデータを埋めた後の個別処理
+    /// フォーマット IPLの書き込み
     @Override
     public boolean additionalProcessOnFormatted(DiskBasicIdentifiedData data) throws IOException {
-        if (!CreateBiosParameterBlock("\u00eb\u003c\u0090", "FAT12", null)) {
+        if (!createBiosParameterBlock("\u00eb\u003c\u0090", "FAT12", null)) {
             return false;
         }
 
-        /* volume label */
+        // volume label
         DiskBasicFormat fmt = basic.getFormatType();
-        if (fmt.HasVolumeName()) {
+        if (fmt.hasVolumeName()) {
             int dirStart = basic.diskBasicParam.getReservedSectors()
                     + basic.diskBasicParam.getNumberOfFats() * basic.diskBasicParam.getSectorsPerFat();
             DiskImageSector sec = basic.getSectorFromSectorPos(dirStart);
-            DiskBasicDirItem ditem = dir.newItem(sec, 0, sec.getSectorBuffer());
+            DiskBasicDirItem ditem = dir.newItem(sec, 0, sec.getSectorBuffer(), 0);
+
             ditem.setFileNamePlain(data.getVolumeName());
             ditem.setFileAttr(FORMAT_TYPE_UNKNOWN, FILE_TYPE_VOLUME_MASK.getValue(), 0);
             LocalDateTime tm = LocalDateTime.now();
             ditem.setFileModifyDateTime(tm);
-            ditem = null; // GC
         }
+
         return true;
     }
 
-    public boolean CreateBiosParameterBlock(String jmp, String name, byte[][] secBuf) throws IOException {
+    /// BIOS Parameter Block を作成
+    public boolean createBiosParameterBlock(String jmp, String name, byte[][] secBuf) throws IOException {
         DiskImageSector sec = basic.getSector(0, 0, 1);
         if (sec == null) return false;
         byte[] buf = sec.getSectorBuffer();
@@ -298,6 +294,7 @@ public class DiskBasicTypeMSDOS extends DiskBasicTypeFAT12 {
 
         byte[] s_name = basic.diskBasicParam.getVariousStringParam("OEMName").getBytes();
         if (s_name.length > 0) name = new String(s_name);
+        // 上記パラメータ領域をまたがって設定可能にする
         len = Math.min(name.length(), 16);
         Arrays.fill(hed.BS_OEMName, (byte) 0x20);
         System.arraycopy(name.getBytes(), 0, hed.BS_OEMName, 0, len);
@@ -309,15 +306,11 @@ public class DiskBasicTypeMSDOS extends DiskBasicTypeFAT12 {
         hed.BPB_SecPerTrk = basic.diskBasicParam.getSectorsPerTrackOnBasic();
         hed.BPB_NumHeads = basic.diskBasicParam.getSidesPerDiskOnBasic();
 
-        /* set the media ID in the first FAT entry */
+        // set the media ID in the first FAT entry
         setGroupNumber(0, 0xffff_ff00 | basic.diskBasicParam.getMediaId());
         setGroupNumber(1, 0xffff_ffff);
         return true;
     }
-
-    /*
-     * Identification helpers
-     */
 
     @Override
     public void getIdentifiedData(DiskBasicIdentifiedData data) {
@@ -331,7 +324,7 @@ public class DiskBasicTypeMSDOS extends DiskBasicTypeFAT12 {
     @Override
     public void setIdentifiedData(DiskBasicIdentifiedData data) {
         DiskBasicFormat fmt = basic.getFormatType();
-        if (fmt.HasVolumeName()) {
+        if (fmt.hasVolumeName()) {
             DiskBasicDirItem ditem = dir.findFileByAttrOnRoot(FILE_TYPE_VOLUME_MASK.getValue(),
                     FILE_TYPE_VOLUME_MASK.getValue() | FILE_TYPE_DIRECTORY_MASK.getValue(), null);
             if (ditem != null) {

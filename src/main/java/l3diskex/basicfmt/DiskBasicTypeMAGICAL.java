@@ -6,10 +6,8 @@ package l3diskex.basicfmt;
 
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
-import l3diskex.basicfmt.BasicFat.DiskBasicFat;
-import l3diskex.basicfmt.BasicFat.DiskBasicFatBuffer;
-import l3diskex.basicfmt.BasicFmt.DiskBasic;
-import l3diskex.basicfmt.BasicFmt.DiskBasicIdentifiedData;
+import l3diskex.basicfmt.DiskBasic.DiskBasicIdentifiedData;
+import l3diskex.basicfmt.DiskBasicFat.DiskBasicFatBuffer;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 
 
@@ -90,8 +88,8 @@ public class DiskBasicTypeMAGICAL extends DiskBasicTypeXDOS {
     public void additionalProcessOnMadeDirectory(DiskBasicDirItem item,
                                                  DiskBasicGroups group_items,
                                                  DiskBasicDirItem parent_item) {
-        if (group_items.count() == 0) return;
-        DiskBasicGroupItem group = group_items.itemPtr(0);
+        if (group_items.size() == 0) return;
+        DiskBasicGroupItem group = group_items.get(0);
 
         item.setStartGroup(0, group.group, basic.getSubDirGroupSize());
 

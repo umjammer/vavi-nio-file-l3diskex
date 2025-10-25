@@ -18,7 +18,6 @@ import l3diskex.basicfmt.BasicCommon.DirectoryM68fdos;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
-import l3diskex.basicfmt.BasicFmt.DiskBasic;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
 
@@ -36,79 +35,50 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
 
     static final ResourceBundle rb = ResourceBundle.getBundle("messages");
 
-    public static class enTypeNameM68FDOS {
+    public static final int FILETYPE_M68_FDOS_D = 0x0001;
+    public static final int FILETYPE_M68_FDOS_C = 0x0080;
+    public static final int FILETYPE_M68_FDOS_S = 0x0100;
+    public static final int FILETYPE_M68_FDOS_X = 0x0800;
+    public static final int FILETYPE_M68_FDOS_R = 0x1000;
+    public static final int FILETYPE_M68_FDOS_W = 0x2000;
+    public static final int FILETYPE_M68_FDOS_P = 0x4000;
+    public static final int FILETYPE_M68_FDOS_A = 0x8000;
 
-        public static final int TYPE_NAME_M68_FDOS_A = 0;
-        public static final int TYPE_NAME_M68_FDOS_P = 1;
-        public static final int TYPE_NAME_M68_FDOS_W = 2;
-        public static final int TYPE_NAME_M68_FDOS_R = 3;
-        public static final int TYPE_NAME_M68_FDOS_X = 4;
-        public static final int TYPE_NAME_M68_FDOS_S = 5;
-        public static final int TYPE_NAME_M68_FDOS_C = 6;
-        public static final int TYPE_NAME_M68_FDOS_D = 7;
-        public static final int TYPE_NAME_M68_FDOS_END = 8;
-    }
+    public static final int EXT_NAME_M68_FDOS_SAV = 0;
+    public static final int EXT_NAME_M68_FDOS_END = 1;
 
-    static class en_file_type_m68fdos {
+    public static final Map<String, Object> gTypeNameM68FDOS = new HashMap<>() {{
+        put("A - Attribute Protected", FILETYPE_M68_FDOS_A);
+        put("P - Permanent", FILETYPE_M68_FDOS_P);
+        put("W - Write Protected", FILETYPE_M68_FDOS_W);
+        put("R - Read Protected", FILETYPE_M68_FDOS_R);
+        put("X - Xfer Protected", FILETYPE_M68_FDOS_X);
+        put("S - Saved Memory Image", FILETYPE_M68_FDOS_S);
+        put("C - Continuous", FILETYPE_M68_FDOS_C);
+        put("D - Device", FILETYPE_M68_FDOS_D);
+    }};
 
-        public static final int FILETYPE_M68_FDOS_UNKNOWN = 0;
-        public static final int FILETYPE_M68_FDOS_D = 0x0001;
-        public static final int FILETYPE_M68_FDOS_C = 0x0080;
-        public static final int FILETYPE_M68_FDOS_S = 0x0100;
-        public static final int FILETYPE_M68_FDOS_X = 0x0800;
-        public static final int FILETYPE_M68_FDOS_R = 0x1000;
-        public static final int FILETYPE_M68_FDOS_W = 0x2000;
-        public static final int FILETYPE_M68_FDOS_P = 0x4000;
-        public static final int FILETYPE_M68_FDOS_A = 0x8000;
-    }
+    public static final Map<String, Object> gTypeNameShortM68FDOS = new HashMap<>() {{
+        put("A", FILETYPE_M68_FDOS_A);
+        put("P", FILETYPE_M68_FDOS_P);
+        put("W", FILETYPE_M68_FDOS_W);
+        put("R", FILETYPE_M68_FDOS_R);
+        put("X", FILETYPE_M68_FDOS_X);
+        put("S", FILETYPE_M68_FDOS_S);
+        put("C", FILETYPE_M68_FDOS_C);
+        put("D", FILETYPE_M68_FDOS_D);
+    }};
 
-    static class enExtNameM68FDOS {
+    public static final char[] sM68FDOS_CharMap = {
+            ' ', '?', '0', '1', '2', '3', '4', '5', '6', '7',
+            '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
+            'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R',
+            'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '+', '-',
+    };
 
-        public static final int EXT_NAME_M68_FDOS_SAV = 0;
-        public static final int EXT_NAME_M68_FDOS_END = 1;
-    }
-
-    static class enDateTime {
-
-        public static final int DATETIME_ALL = 0; // Placeholder
-    }
-
-    // Corresponding to basicdiritem_m68fdos.cpp data
-    static class M68FDOSData {
-
-        public static final Map<String, Object> gTypeNameM68FDOS = new HashMap<>() {{
-            put("A - Attribute Protected", en_file_type_m68fdos.FILETYPE_M68_FDOS_A);
-            put("P - Permanent", en_file_type_m68fdos.FILETYPE_M68_FDOS_P);
-            put("W - Write Protected", en_file_type_m68fdos.FILETYPE_M68_FDOS_W);
-            put("R - Read Protected", en_file_type_m68fdos.FILETYPE_M68_FDOS_R);
-            put("X - Xfer Protected", en_file_type_m68fdos.FILETYPE_M68_FDOS_X);
-            put("S - Saved Memory Image", en_file_type_m68fdos.FILETYPE_M68_FDOS_S);
-            put("C - Continuous", en_file_type_m68fdos.FILETYPE_M68_FDOS_C);
-            put("D - Device", en_file_type_m68fdos.FILETYPE_M68_FDOS_D);
-        }};
-
-        public static final Map<String, Object> gTypeNameShortM68FDOS = new HashMap<>() {{
-            put("A", en_file_type_m68fdos.FILETYPE_M68_FDOS_A);
-            put("P", en_file_type_m68fdos.FILETYPE_M68_FDOS_P);
-            put("W", en_file_type_m68fdos.FILETYPE_M68_FDOS_W);
-            put("R", en_file_type_m68fdos.FILETYPE_M68_FDOS_R);
-            put("X", en_file_type_m68fdos.FILETYPE_M68_FDOS_X);
-            put("S", en_file_type_m68fdos.FILETYPE_M68_FDOS_S);
-            put("C", en_file_type_m68fdos.FILETYPE_M68_FDOS_C);
-            put("D", en_file_type_m68fdos.FILETYPE_M68_FDOS_D);
-        }};
-
-        public static final char[] sM68FDOS_CharMap = {
-                ' ', '?', '0', '1', '2', '3', '4', '5', '6', '7',
-                '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
-                'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R',
-                'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '+', '-',
-        };
-
-        public static final Map<String, Object> gExtNameM68FDOS = new LinkedHashMap<>() {{
-            put("SAV", en_file_type_m68fdos.FILETYPE_M68_FDOS_C);
-        }};
-    }
+    public static final Map<String, Object> gExtNameM68FDOS = new LinkedHashMap<>() {{
+        put("SAV", FILETYPE_M68_FDOS_C);
+    }};
 
     /// ディレクトリデータ
     private final DiskBasicDirData<DirectoryM68fdos> m_data = new DiskBasicDirData<>();
@@ -116,17 +86,20 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
     // Constructor required for the base class and used in cpp
     public DiskBasicDirItemM68FDOS(DiskBasic basic) {
         super(basic);
+
         m_data.alloc(DirectoryM68fdos.class);
     }
 
-    public DiskBasicDirItemM68FDOS(DiskBasic basic, DiskImageSector n_sector, int n_secpos, byte[] n_data) {
-        super(basic);
-        m_data.attach(n_data);
+    public DiskBasicDirItemM68FDOS(DiskBasic basic, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP) {
+        super(basic, n_sector, n_secpos, n_data, dataP);
+
+        m_data.attach(DirectoryM68fdos.class, n_data, dataP);
     }
 
-    public DiskBasicDirItemM68FDOS(DiskBasic basic, int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, SectorParam n_next, boolean[] n_unuse) throws IOException {
-        super(basic);
-        m_data.attach(n_data);
+    public DiskBasicDirItemM68FDOS(DiskBasic basic, int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP, SectorParam n_next, boolean[] n_unuse) throws IOException {
+        super(basic, n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next, n_unuse);
+
+        m_data.attach(DirectoryM68fdos.class, n_data, dataP);
 
         used(checkUsed(n_unuse[0]));
 
@@ -283,16 +256,16 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
     private int convToNativeType(int file_type) {
         int val = 0;
         if ((file_type & FILE_TYPE_SYSTEM_MASK.getValue()) != 0) {
-            val = en_file_type_m68fdos.FILETYPE_M68_FDOS_S;
+            val = FILETYPE_M68_FDOS_S;
         }
         if ((file_type & FILE_TYPE_HIDDEN_MASK.getValue()) != 0) {
-            val |= en_file_type_m68fdos.FILETYPE_M68_FDOS_P;
+            val |= FILETYPE_M68_FDOS_P;
         }
         if ((file_type & FILE_TYPE_READONLY_MASK.getValue()) != 0) {
-            val |= en_file_type_m68fdos.FILETYPE_M68_FDOS_W;
+            val |= FILETYPE_M68_FDOS_W;
         }
         if ((file_type & FILE_TYPE_WRITEONLY_MASK.getValue()) != 0) {
-            val |= en_file_type_m68fdos.FILETYPE_M68_FDOS_R;
+            val |= FILETYPE_M68_FDOS_R;
         }
         return val;
     }
@@ -356,7 +329,7 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
         int sta = size > 2 ? 2 : size;
         for (int i = sta; i >= 0; i--) {
             int c = (code % 40);
-            name[offset + i] = (byte) M68FDOSData.sM68FDOS_CharMap[c];
+            name[offset + i] = (byte) sM68FDOS_CharMap[c];
             code /= 40;
         }
     }
@@ -370,7 +343,7 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
 
             int match = -1;
             for (int c = 0; c < 40; c++) {
-                if ((name[offset + i] & 0xff) == (M68FDOSData.sM68FDOS_CharMap[c] & 0xff)) {
+                if ((name[offset + i] & 0xff) == (sM68FDOS_CharMap[c] & 0xff)) {
                     match = c;
                     break;
                 }
@@ -386,10 +359,10 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
 
     /// アイテムへのポインタを設定
     @Override
-    public void setDataPtr(int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, SectorParam n_next) {
-        // DiskBasicDirItemMZBase::SetDataPtr
-        // super.SetDataPtr(n_num, n_gitem, n_sector, n_secpos, n_data, n_next);
-        m_data.attach(n_data);
+    public void setDataPtr(int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP, SectorParam n_next) throws IOException {
+        super.setDataPtr(n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next);
+
+        m_data.attach(DirectoryM68fdos.class, n_data, dataP);
     }
 
     /// ディレクトリアイテムのチェック
@@ -449,16 +422,16 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
     public DiskBasicFileType getFileAttr() {
         int t1 = getFileType1();
         int val = 0;
-        if ((t1 & en_file_type_m68fdos.FILETYPE_M68_FDOS_S) != 0) {
+        if ((t1 & FILETYPE_M68_FDOS_S) != 0) {
             val = FILE_TYPE_SYSTEM_MASK.getValue();
         }
-        if ((t1 & en_file_type_m68fdos.FILETYPE_M68_FDOS_P) != 0) {
+        if ((t1 & FILETYPE_M68_FDOS_P) != 0) {
             val |= FILE_TYPE_HIDDEN_MASK.getValue();
         }
-        if ((t1 & en_file_type_m68fdos.FILETYPE_M68_FDOS_R) != 0) {
+        if ((t1 & FILETYPE_M68_FDOS_R) != 0) {
             val |= FILE_TYPE_WRITEONLY_MASK.getValue();
         }
-        if ((t1 & en_file_type_m68fdos.FILETYPE_M68_FDOS_W) != 0) {
+        if ((t1 & FILETYPE_M68_FDOS_W) != 0) {
             val |= FILE_TYPE_READONLY_MASK.getValue();
         }
         int t2 = getFileType2();
@@ -473,7 +446,7 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
     public String getFileAttrStr() {
         StringBuilder attr = new StringBuilder();
         int ftype = getFileType1();
-        for (Map.Entry<String, Object> e : M68FDOSData.gTypeNameShortM68FDOS.entrySet()) {
+        for (Map.Entry<String, Object> e : gTypeNameShortM68FDOS.entrySet()) {
             if ((ftype & (int) e.getValue()) != 0) {
                 if (!attr.isEmpty()) attr.append(", ");
                 attr.append(e.getKey());
@@ -555,8 +528,9 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
     }
 
     /// アイテムの時間設定を無視することができるか
-    public int CanIgnoreDateTime() {
-        return enDateTime.DATETIME_ALL;
+    @Override
+    public int canIgnoreDateTime() {
+        return DATETIME_ALL;
     }
 
     /// 日付を返す
@@ -658,7 +632,7 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
     /// データをチェインする必要があるか（非連続データか）
     @Override
     public boolean needChainInData() {
-        return ((getFileType1() & en_file_type_m68fdos.FILETYPE_M68_FDOS_C) == 0);
+        return ((getFileType1() & FILETYPE_M68_FDOS_C) == 0);
     }
 
     /// データをエクスポートする前に必要な処理
@@ -677,7 +651,7 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
         int t1 = 0;
 
         // Placeholder for IsContainAttrByExtension
-        // IsContainAttrByExtension(filename, M68FDOSData.gExtNameM68FDOS, 0, enExtNameM68FDOS.EXT_NAME_M68_FDOS_END - 1, null, t1, null);
+        // IsContainAttrByExtension(filename, gExtNameM68FDOS, 0, enExtNameM68FDOS.EXT_NAME_M68_FDOS_END - 1, null, t1, null);
 
         return t1;
     }
@@ -691,7 +665,6 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
     /// プロパティで表示する内部データを設定
     @Override
     public void setInternalDataInAttrDialog(KeyValArray vals) {
-        vals.add("self", m_data.isSelf());
         vals.add("NAME", m_data.data().name.b, m_data.data().name.b.length);
         vals.add("EXT", m_data.data().ext.b, m_data.data().ext.b.length);
         vals.add("ATTR1", (byte) m_data.data().attr1, basic.isBigEndian());

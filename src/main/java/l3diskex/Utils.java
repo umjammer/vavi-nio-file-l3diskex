@@ -268,7 +268,7 @@ public final class Utils {
          *
          * @return Data (0-255) or -1 if empty.
          */
-        public int PeekByte() {
+        public int peekByte() {
             if (m_rpos < m_wpos) {
                 return m_data[m_rpos] & 0xFF; // Treat as unsigned
             } else {

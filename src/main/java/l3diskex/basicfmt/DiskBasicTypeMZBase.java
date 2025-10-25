@@ -6,14 +6,12 @@ package l3diskex.basicfmt;
 
 import l3diskex.basicfmt.BasicCommon.DirectoryT;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
-import l3diskex.basicfmt.BasicFat.DiskBasicAvailability;
-import l3diskex.basicfmt.BasicFat.DiskBasicFat;
-import l3diskex.basicfmt.BasicFat.DiskBasicFatBuffer;
-import l3diskex.basicfmt.BasicFmt.DiskBasic;
+import l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability;
+import l3diskex.basicfmt.DiskBasicFat.DiskBasicFatBuffer;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskImage.DiskImageTrack;
 
-import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_FREE;
+import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_FREE;
 
 
 /**
@@ -136,7 +134,7 @@ public class DiskBasicTypeMZBase<T extends DirectoryT> extends DiskBasicType<T> 
             }
         }
 
-        fatAvailability.add(FAT_AVAIL_FREE.getValue(), 0, 0);
+        fatAvailability.add(FAT_AVAIL_FREE.ordinal(), 0, 0);
         fatAvailability.setFreeSize(0);
         fatAvailability.setFreeGroups(0);
     }

@@ -2,6 +2,7 @@ package l3diskex.basicfmt;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.System.Logger;
 
 import l3diskex.Parambase;
 import l3diskex.Utils;
@@ -11,7 +12,6 @@ import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
-import l3diskex.basicfmt.BasicFmt.DiskBasic;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
 
@@ -26,7 +26,9 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_RANDOM_MASK;
 
 
 // Java equivalent of DiskBasicDirItemFAT8
-abstract class DiskBasicDirItemFAT8<T extends DirectoryT> extends DiskBasicDirItem<T> {
+public abstract class DiskBasicDirItemFAT8<T extends DirectoryT> extends DiskBasicDirItem<T> {
+
+    private static final Logger logger = System.getLogger(DiskBasicDirItemFAT8.class.getName());
 
     public static final String[] G_TYPE_NAME_1 = {
             "BASIC",
@@ -51,44 +53,43 @@ abstract class DiskBasicDirItemFAT8<T extends DirectoryT> extends DiskBasicDirIt
     public static final int TYPE_NAME_2_ASCII = 1;
     public static final int TYPE_NAME_2_RANDOM = 2;
 
-    // UI Control IDs equivalent
-    public static final int ATTR_DIALOG_IDC_RADIO_TYPE1 = 51;
-    public static final int ATTR_DIALOG_IDC_RADIO_TYPE2 = 52;
-
     protected int m_start_address;
     protected int m_end_address;
     protected int m_exec_address;
 
+    protected DiskBasicDirData<T> m_data = new DiskBasicDirData<>();
+
     // Assuming constructors
     public DiskBasicDirItemFAT8(DiskBasic basic) {
         super(basic);
+
         m_start_address = -1;
         m_end_address = -1;
         m_exec_address = -1;
     }
 
-    public DiskBasicDirItemFAT8(DiskBasic basic, DiskImageSector n_sector, int n_secpos, byte[] n_data) {
-        super(basic, n_sector, n_secpos, n_data);
+    public DiskBasicDirItemFAT8(DiskBasic basic, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP) {
+        super(basic, n_sector, n_secpos, n_data, dataP);
+
         m_start_address = -1;
         m_end_address = -1;
         m_exec_address = -1;
     }
 
     // Assuming constructor with more parameters for initialization
-    public DiskBasicDirItemFAT8(DiskBasic basic, int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, SectorParam n_next, boolean[] n_unuse) {
-        super(basic, n_num, n_gitem, n_sector, n_secpos, n_data, n_next, n_unuse);
+    public DiskBasicDirItemFAT8(DiskBasic basic, int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP, SectorParam n_next, boolean[] n_unuse) {
+        super(basic, n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next, n_unuse);
+
         m_start_address = -1;
         m_end_address = -1;
         m_exec_address = -1;
 
-        boolean unuseValue = n_unuse[0];
-        used(checkUsed(unuseValue));
-        n_unuse[0] = unuseValue; // Update back if CheckUsed modifies unuse in C++ (though unlikely here)
+        used(super.checkUsed(n_unuse[0]));
     }
 
     // Protected methods
     public int getFileType1Pos() {
-        int t1 = getFileType1(); // Assumed virtual method from base class, implemented in FAT8F
+        int t1 = getFileType1();
         if (t1 < TYPE_NAME_1_BASIC || t1 > TYPE_NAME_1_MACHINE) {
             t1 = TYPE_NAME_1_UNKNOWN;
         }
@@ -96,8 +97,8 @@ abstract class DiskBasicDirItemFAT8<T extends DirectoryT> extends DiskBasicDirIt
     }
 
     public int getFileType2Pos() {
-        int t2 = getFileType2(); // Assumed virtual method from base class, implemented in FAT8F
-        int t3 = getFileType3(); // Assumed virtual method from base class, implemented in FAT8F
+        int t2 = getFileType2();
+        int t3 = getFileType3();
         t2 = ((t2 & 1) != 0 ? ((t3 & 1) != 0 ? TYPE_NAME_2_RANDOM : TYPE_NAME_2_ASCII) : TYPE_NAME_2_BINARY);
         return t2;
     }
@@ -111,7 +112,7 @@ abstract class DiskBasicDirItemFAT8<T extends DirectoryT> extends DiskBasicDirIt
         }
 
         // Assuming m_groups has Item(0) and Last() methods
-        DiskBasicGroupItem item = groups.item(0);
+        DiskBasicGroupItem item = groups.get(0);
         DiskImageSector sector = basic.getSector(item.track, item.side, item.sectorStart);
         if (sector == null) return;
 
@@ -202,7 +203,7 @@ abstract class DiskBasicDirItemFAT8<T extends DirectoryT> extends DiskBasicDirIt
 
     @Override
     public int recalcFileSize(DiskBasicGroups group_items, int occupied_size) throws IOException {
-        if (group_items.count() == 0) return occupied_size;
+        if (group_items.size() == 0) return occupied_size;
 
         DiskBasicGroupItem litem = group_items.last();
         DiskImageSector sector = basic.getSector(litem.track, litem.side, litem.sectorEnd);
@@ -322,212 +323,196 @@ abstract class DiskBasicDirItemFAT8<T extends DirectoryT> extends DiskBasicDirIt
         }
         return ftype;
     }
-}
 
-public class DiskBasicDirItemFAT8F extends DiskBasicDirItemFAT8<DirectoryFat8f> {
+    public static class DiskBasicDirItemFAT8F extends DiskBasicDirItemFAT8<DirectoryFat8f> {
 
-    // Assuming DiskBasicDirData is a generic class/interface
-    protected DiskBasicDirData<DirectoryFat8f> m_data;
+        public DiskBasicDirItemFAT8F(DiskBasic basic) {
+            super(basic);
 
-    public DiskBasicDirItemFAT8F(DiskBasic basic) {
-        super(basic);
-        // Assuming Alloc() initializes the data structure inside m_data
-        m_data = new DiskBasicDirData<>();
-        m_data.alloc(DirectoryFat8f.class);
-    }
-
-    public DiskBasicDirItemFAT8F(DiskBasic basic, DiskImageSector n_sector, int n_secpos, byte[] n_data) {
-        super(basic, n_sector, n_secpos, n_data);
-        // Assuming Attach() links the byte array to the data structure
-        m_data = new DiskBasicDirData<>();
-        m_data.attach(n_data);
-    }
-
-    public DiskBasicDirItemFAT8F(DiskBasic basic, int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, SectorParam n_next, boolean[] n_unuse) throws IOException {
-        super(basic, n_num, n_gitem, n_sector, n_secpos, n_data, n_next, n_unuse);
-        // Assuming Attach() links the byte array to the data structure
-        m_data = new DiskBasicDirData<>();
-        m_data.attach(n_data);
-
-        boolean unuseValue = n_unuse[0];
-        used(checkUsed(unuseValue));
-        n_unuse[0] = unuseValue; // Update back
-
-        // ファイルサイズとグループ数を計算
-        calcFileSize(); // Assuming CalcFileSize is a base class method that calls CalcFileUnitSize
-    }
-
-    @Override
-    public void setDataPtr(int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, SectorParam n_next) throws IOException {
-        super.setDataPtr(n_num, n_gitem, n_sector, n_secpos, n_data, n_next);
-        // Re-attach data pointer if necessary
-        if (m_data == null) {
-            m_data = new DiskBasicDirData<>();
+            m_data.alloc(DirectoryFat8f.class);
         }
-        m_data.attach(n_data);
-    }
 
-    @Override
-    public boolean check(boolean[] last) {
-        if (!m_data.isValid()) return false;
+        public DiskBasicDirItemFAT8F(DiskBasic basic, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP) {
+            super(basic, n_sector, n_secpos, n_data, dataP);
 
-        boolean valid = true;
-        DirectoryFat8f p = m_data.data();
-        // Assuming byte array element access
-        if ((p.name[0] & 0xFF) == 0xff) {
-            last[0] = true;
+            m_data.attach(DirectoryFat8f.class, n_data, dataP);
+        }
+
+        public DiskBasicDirItemFAT8F(DiskBasic basic, int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP, SectorParam n_next, boolean[] n_unuse) throws IOException {
+            super(basic, n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next, n_unuse);
+
+            m_data.attach(DirectoryFat8f.class, n_data);
+
+            used(checkUsed(n_unuse[0]));
+
+            // ファイルサイズとグループ数を計算
+            calcFileSize();
+        }
+
+        @Override
+        public void setDataPtr(int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP, SectorParam n_next) throws IOException {
+            super.setDataPtr(n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next);
+
+            m_data.attach(DirectoryFat8f.class, n_data, dataP);
+        }
+
+        @Override
+        public boolean check(boolean[] last) {
+            if (!m_data.isValid()) return false;
+
+            boolean valid = true;
+            DirectoryFat8f p = m_data.data();
+            // Assuming byte array element access
+            if ((p.name[0] & 0xFF) == 0xff) {
+                last[0] = true;
+                return valid;
+            }
+            // 属性に想定外の値がある場合はエラー
+            // Type2/Type3 are bytes, so & 0xFF is needed for unsigned comparison
+            if ((p.type2 & 0xFF) != 0 && (p.type2 & 0xFF) != 0xff) {
+                valid = false;
+            } else if ((p.type3 & 0xFF) != 0 && (p.type3 & 0xFF) != 0xff) {
+                valid = false;
+            }
             return valid;
         }
-        // 属性に想定外の値がある場合はエラー
-        // Type2/Type3 are bytes, so & 0xFF is needed for unsigned comparison
-        if ((p.type2 & 0xFF) != 0 && (p.type2 & 0xFF) != 0xff) {
-            valid = false;
-        } else if ((p.type3 & 0xFF) != 0 && (p.type3 & 0xFF) != 0xff) {
-            valid = false;
+
+        @Override
+        public boolean checkUsed(boolean unuse) {
+            // Assuming byte array element access
+            return (m_data.data().name[0] != 0 && (m_data.data().name[0] & 0xFF) != 0xff);
         }
-        return valid;
-    }
 
-    @Override
-    public boolean checkUsed(boolean unuse) {
-        // Assuming byte array element access
-        return (m_data.data().name[0] != 0 && (m_data.data().name[0] & 0xFF) != 0xff);
-    }
-
-    @Override
-    public boolean delete() {
-        // 削除はエントリの先頭にコードを入れるだけ
-        // Assuming Fill(value, count) sets the first 'count' bytes of the underlying data.
-        m_data.fill(basic.invertUint8(basic.diskBasicParam.getDeleteCode()), 1); // InvertUint8 assumed to exist in DiskBasic
-        used(false);
-        return true;
-    }
-
-    @Override
-    protected byte[] getFileNamePos(int num, int[] size, int[] len) {
-        // 8chars
-        if (num == 0) {
-            size[0] = len[0] = m_data.data().name.length;
-            return m_data.data().name;
-        } else {
-            size[0] = len[0] = 0;
-            return null;
+        @Override
+        public boolean delete() {
+            // 削除はエントリの先頭にコードを入れるだけ
+            // Assuming Fill(value, count) sets the first 'count' bytes of the underlying data.
+            m_data.fill(basic.invertUint8(basic.diskBasicParam.getDeleteCode()), 1); // InvertUint8 assumed to exist in DiskBasic
+            used(false);
+            return true;
         }
-    }
 
-    @Override
-    protected int getFileType1() {
-        return m_data.data().type & 0xFF;
-    }
-
-    @Override
-    public int getFileType2() {
-        return m_data.data().type2 & 0xFF;
-    }
-
-    @Override
-    protected int getFileType3() {
-        return m_data.data().type3 & 0xFF;
-    }
-
-    @Override
-    protected void setFileType1(int val) {
-        m_data.data().type = (byte) (val & 0xff);
-    }
-
-    @Override
-    protected void setFileType2(int val) {
-        m_data.data().type2 = (byte) (val & 0xff);
-    }
-
-    @Override
-    protected void setFileType3(int val) {
-        m_data.data().type3 = (byte) (val & 0xff);
-    }
-
-    @Override
-    public void setStartGroup(int fileunit_num, int val, int size) {
-        // Assuming int maps to int for group numbers
-        m_data.data().startGroup = (byte) (val & 0xff);
-    }
-
-    @Override
-    public int getStartGroup(int fileunit_num) {
-        // Assuming int maps to int for group numbers, returning as unsigned int (0-255)
-        return m_data.data().startGroup & 0xFF;
-    }
-
-    @Override
-    public void setFileSize(int val) {
-        //	m_file_size = val; // In C++, the size is stored in the base class member
-        groups.setSize(val);
-    }
-
-    @Override
-    public int getDataSize() {
-        return 19; // sizeof(directory_fat8f_t) = 19
-    }
-
-    // Assuming DirectoryT is the base/generic directory item structure
-    @Override
-    public DirectoryFat8f getData() {
-        // C++ returns (directory_t *)m_data.data();
-        return m_data.data(); // Requires DirectoryFat8f to inherit from/be castable to DirectoryT
-    }
-
-    @Override
-    public boolean copyData(DirectoryFat8f val) {
-        // Assuming Copy(val) copies the data from val to the underlying buffer.
-        return m_data.copy(val);
-    }
-
-    @Override
-    public void clearData() {
-        m_data.fill((byte) 0);
-    }
-
-    @Override
-    public boolean preImportDataFile(String[] filename) {
-        // Assuming gConfig.IsDecideAttrImport() and other helper methods are available
-        if (gConfig.isDecideAttrImport()) {
-            trimExtensionByExtensionAttr(filename); // Assuming helper takes String[] reference
+        @Override
+        protected byte[] getFileNamePos(int num, int[] size, int[] len) {
+            // 8chars
+            if (num == 0) {
+                size[0] = len[0] = m_data.data().name.length;
+                return m_data.data().name;
+            } else {
+                size[0] = len[0] = 0;
+                return null;
+            }
         }
-        filename[0] = remakeFileNameAndExtStr(filename[0]);
-        return true;
-    }
 
-    @Override
-    public boolean needCheckEofCode() {
-        // ランダムアクセス時は除く
-        return getFileType3() != 0xff;
-    }
-
-    @Override
-    public int recalcFileSizeOnSave(InputStream istream, int file_size) {
-        if (needCheckEofCode()) {
-            // ファイルの最終が終端記号で終わっているかを調べる
-            // Assuming CheckEofCode is a base class method
-            file_size = checkEofCode(istream, file_size);
+        @Override
+        protected int getFileType1() {
+            return m_data.data().type & 0xFF;
         }
-        return file_size;
-    }
 
-    // Assuming CheckEofCode implementation details are in the base class, taking Object for InputStream
-    // private int CheckEofCode(Object istream, int file_size) { /* ... */ return file_size; }
+        @Override
+        public int getFileType2() {
+            return m_data.data().type2 & 0xFF;
+        }
 
-    @Override
-    public void setInternalDataInAttrDialog(KeyValArray vals) {
-        // Assuming KeyValArray has Add methods for various types
-        vals.add("self", m_data.isSelf());
-        // Add(name, byte[], size)
-        vals.add("NAME", m_data.data().name, m_data.data().name.length);
-        vals.add("(EXT)", m_data.data().ext, m_data.data().ext.length);
-        // Add(name, byte) - The C++ uses int, but the field is byte, so passing byte/int
-        vals.add("TYPE", m_data.data().type & 0xFF);
-        vals.add("TYPE2", m_data.data().type2 & 0xFF);
-        vals.add("TYPE3", m_data.data().type3 & 0xFF);
-        vals.add("START_GROUP", m_data.data().startGroup & 0xFF);
-        // Add(name, byte[], size)
-        vals.add("RESERVED", m_data.data().reserved, m_data.data().reserved.length);
+        @Override
+        protected int getFileType3() {
+            return m_data.data().type3 & 0xFF;
+        }
+
+        @Override
+        protected void setFileType1(int val) {
+            m_data.data().type = (byte) (val & 0xff);
+        }
+
+        @Override
+        protected void setFileType2(int val) {
+            m_data.data().type2 = (byte) (val & 0xff);
+        }
+
+        @Override
+        protected void setFileType3(int val) {
+            m_data.data().type3 = (byte) (val & 0xff);
+        }
+
+        @Override
+        public void setStartGroup(int fileunit_num, int val, int size) {
+            // Assuming int maps to int for group numbers
+            m_data.data().startGroup = (byte) (val & 0xff);
+        }
+
+        @Override
+        public int getStartGroup(int fileunit_num) {
+            // Assuming int maps to int for group numbers, returning as unsigned int (0-255)
+            return m_data.data().startGroup & 0xFF;
+        }
+
+        @Override
+        public void setFileSize(int val) {
+            //	m_file_size = val; // In C++, the size is stored in the base class member
+            groups.setSize(val);
+        }
+
+        @Override
+        public int getDataSize() {
+            return 19; // sizeof(directory_fat8f_t) = 19
+        }
+
+        // Assuming DirectoryT is the base/generic directory item structure
+        @Override
+        public DirectoryFat8f getData() {
+            // C++ returns (directory_t *)m_data.data();
+            return m_data.data(); // Requires DirectoryFat8f to inherit from/be castable to DirectoryT
+        }
+
+        @Override
+        public boolean copyData(DirectoryFat8f val) {
+            // Assuming Copy(val) copies the data from val to the underlying buffer.
+            return m_data.copy(val);
+        }
+
+        @Override
+        public void clearData() {
+            m_data.fill((byte) 0);
+        }
+
+        @Override
+        public boolean preImportDataFile(String[] filename) {
+            // Assuming gConfig.IsDecideAttrImport() and other helper methods are available
+            if (gConfig.isDecideAttrImport()) {
+                trimExtensionByExtensionAttr(filename); // Assuming helper takes String[] reference
+            }
+            filename[0] = remakeFileNameAndExtStr(filename[0]);
+            return true;
+        }
+
+        @Override
+        public boolean needCheckEofCode() {
+            // ランダムアクセス時は除く
+            return getFileType3() != 0xff;
+        }
+
+        @Override
+        public int recalcFileSizeOnSave(InputStream istream, int file_size) {
+            if (needCheckEofCode()) {
+                // ファイルの最終が終端記号で終わっているかを調べる
+                // Assuming CheckEofCode is a base class method
+                file_size = checkEofCode(istream, file_size);
+            }
+            return file_size;
+        }
+
+        // Assuming CheckEofCode implementation details are in the base class, taking Object for InputStream
+        // private int CheckEofCode(Object istream, int file_size) { /* ... */ return file_size; }
+
+        @Override
+        public void setInternalDataInAttrDialog(KeyValArray vals) {
+            vals.add("NAME", m_data.data().name, m_data.data().name.length);
+            vals.add("(EXT)", m_data.data().ext, m_data.data().ext.length);
+            vals.add("TYPE", m_data.data().type & 0xFF);
+            vals.add("TYPE2", m_data.data().type2 & 0xFF);
+            vals.add("TYPE3", m_data.data().type3 & 0xFF);
+            vals.add("START_GROUP", m_data.data().startGroup & 0xFF);
+            vals.add("RESERVED", m_data.data().reserved, m_data.data().reserved.length);
+        }
     }
 }

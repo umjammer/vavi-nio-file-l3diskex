@@ -52,7 +52,7 @@ public class UiDirItemOS9 extends UiDirItem {
     public void CreateControlsForAttrDialog(IntNameBox parent, int show_flags, String file_path, BoxLayout sizer, Object flags) {
         int file_type_1 = dirItem.getFileType1Pos();
         // int file_type_2 = 0;
-        int user_id = dirItem.GetUserID();
+        int user_id = dirItem.getUserID();
 
         // Placeholder for wxTextCtrl, JCheckBox, wxStaticText, BoxLayout, wxBoxLayout, wxFlexGridSizer
         // For C++ to Java conversion, we skip the actual GUI creation logic and just represent the flow

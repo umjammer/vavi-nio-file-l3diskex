@@ -2,6 +2,8 @@ package l3diskex.diskimg;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
 import java.util.ArrayList;
 import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
@@ -17,6 +19,8 @@ import org.xml.sax.SAXException;
 
 
 public class DiskParam {
+
+    private static final Logger logger = System.getLogger(DiskParam.class.getName());
 
     public static DiskTemplates gDiskTemplates = new DiskTemplates();
 
@@ -547,6 +551,9 @@ public class DiskParam {
         this.tracks_per_side = src.tracks_per_side;
         this.sectors_per_track = src.sectors_per_track;
         this.sector_size = src.sector_size;
+if (sector_size == 0) {
+ new Exception("sector_size: " + sector_size).printStackTrace();
+}
         this.numbering_sector = src.numbering_sector;
         this.disk_density = src.disk_density;
         this.interleave = src.interleave;
@@ -1087,6 +1094,7 @@ public class DiskParam {
     }
 
     public void setSectorSize(int val) {
+if (val == 0) { logger.log(Level.WARNING, "srctor_size = 0", new Exception("srctor_size = 0")); }
         sector_size = val;
     }
 
@@ -1178,6 +1186,7 @@ public class DiskParam {
     }
 
     public int getSectorSize() {
+//logger.log(Level.INFO, "sector_size: " + sector_size);
         return sector_size;
     }
 
@@ -1247,6 +1256,7 @@ public class DiskParam {
          * @param locale_name ローケル名
          * @param errmsgs     [out] エラーメッセージ
          * @return true / false
+         * @see ""disk_types.xml"
          */
         public boolean load(String data_path, String locale_name, StringBuilder errmsgs) {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -1255,11 +1265,13 @@ public class DiskParam {
                 DocumentBuilder builder = factory.newDocumentBuilder();
                 doc = builder.parse(new File(data_path + "disk_types.xml"));
             } catch (ParserConfigurationException | SAXException | IOException e) {
+logger.log(Level.ERROR, e.getMessage(), e);
                 return false;
             }
 
             // start processing the XML file
             if (!doc.getDocumentElement().getNodeName().equals("DiskTypes")) {
+logger.log(Level.ERROR, "no DiskTypes element found");
                 return false;
             }
 
@@ -1355,6 +1367,7 @@ public class DiskParam {
                 item = item.getNextSibling();
             }
             assert !params.isEmpty();
+logger.log(Level.INFO, "params: " + params.size());
             return true;
         }
 

@@ -105,7 +105,7 @@ public class DiskBasicParam extends DiskBasicParamBase {
                 Object[] nval = new Object[1];
                 param.getVariousParam(name, nval);
                 loadVariousParam(node, value, nval);
-                param.setVariousParam(name, nval);
+                param.setVariousParam(name, nval[0]);
             }
             return valid;
         }
@@ -124,7 +124,7 @@ public class DiskBasicParam extends DiskBasicParamBase {
         private boolean hasVolumeDate;
 
         /** 初期化 */
-        private void ClearBasicFormatPrivate() {
+        private void clearBasicFormatPrivate() {
             typeNumber = DiskBasicFormatType.FORMAT_TYPE_UNKNOWN;
             hasVolumeName = false;
             hasVolumeNumber = false;
@@ -133,32 +133,32 @@ public class DiskBasicParam extends DiskBasicParamBase {
 
         public DiskBasicFormat() {
             super();
-            ClearBasicFormatPrivate();
+            clearBasicFormatPrivate();
         }
 
         /** 初期化 */
-        public void ClearBasicFormat() {
+        public void clearBasicFormat() {
             clearBasicParamBase(); // Assuming this is the intended call for base class
-            ClearBasicFormatPrivate();
+            clearBasicFormatPrivate();
         }
 
         /** フォーマットタイプ番号 */
-        public DiskBasicFormatType GetTypeNumber() {
+        public DiskBasicFormatType getTypeNumber() {
             return typeNumber;
         }
 
         /** ボリューム名 */
-        public boolean HasVolumeName() {
+        public boolean hasVolumeName() {
             return hasVolumeName;
         }
 
         /** ボリューム番号 */
-        public boolean HasVolumeNumber() {
+        public boolean hasVolumeNumber() {
             return hasVolumeNumber;
         }
 
         /** ボリューム日付 */
-        public boolean HasVolumeDate() {
+        public boolean hasVolumeDate() {
             return hasVolumeDate;
         }
 
@@ -166,27 +166,27 @@ public class DiskBasicParam extends DiskBasicParamBase {
 //        public bool isFileNameRequired() { return filename_require; }
 
         /** フォーマットタイプ番号 */
-        public void SetTypeNumber(DiskBasicFormatType val) {
+        public void setTypeNumber(DiskBasicFormatType val) {
             typeNumber = val;
         }
 
         /** ボリューム名 */
-        public void HasVolumeName(boolean val) {
+        public void hasVolumeName(boolean val) {
             hasVolumeName = val;
         }
 
         /** ボリューム番号 */
-        public void HasVolumeNumber(boolean val) {
+        public void hasVolumeNumber(boolean val) {
             hasVolumeNumber = val;
         }
 
         /** ボリューム日付 */
-        public void HasVolumeDate(boolean val) {
+        public void hasVolumeDate(boolean val) {
             hasVolumeDate = val;
         }
 
 //	      /** ファイル名が必須か */
-//	      public void RequireFileName(bool val) { filename_require = val; }
+//	      public void requireFileName(bool val) { filename_require = val; }
     }
 
     /** DiskBasicFormat のリスト */
@@ -194,7 +194,10 @@ public class DiskBasicParam extends DiskBasicParamBase {
 
         List<DiskBasicFormat> list = new ArrayList<>();
 
-        /** DiskBasicFormatエレメントのロード */
+        /**
+         * DiskBasicFormatエレメントのロード
+         * @see "basic_types.xml"
+         */
         public boolean load(Node node, String locale_name, StringBuilder errmsgs) {
             boolean valid = false;
             while (node != null && !valid) {
@@ -217,18 +220,18 @@ logger.log(Level.ERROR, "no DiskBasicFormats");
                     DiskBasicParamBases param_bases = new DiskBasicParamBases();
                     String s_type_number = ((Element) item).getAttribute("type");
                     int type_number = Utils.toInt(s_type_number);
-                    f.SetTypeNumber(DiskBasicFormatType.valueOf(type_number));
+                    f.setTypeNumber(DiskBasicFormatType.valueOf(type_number));
 
                     Node itemnode = item.getFirstChild();
                     while (itemnode != null) {
                         String name = itemnode.getNodeName();
                         String str = itemnode.getTextContent();
                         if (name.equals("HasVolumeName")) {
-                            f.HasVolumeName(Utils.toBool(str));
+                            f.hasVolumeName(Utils.toBool(str));
                         } else if (name.equals("HasVolumeNumber")) {
-                            f.HasVolumeNumber(Utils.toBool(str));
+                            f.hasVolumeNumber(Utils.toBool(str));
                         } else if (name.equals("HasVolumeDate")) {
-                            f.HasVolumeDate(Utils.toBool(str));
+                            f.hasVolumeDate(Utils.toBool(str));
                         } else {
                             boolean rc = param_bases.load(itemnode, name, str, locale_name, f, errmsgs);
                             valid = (valid && rc);
@@ -256,7 +259,7 @@ logger.log(Level.WARNING, "Duplicate type number in DiskBasicFormat : " + type_n
         public DiskBasicFormat find(DiskBasicFormatType format_type) {
             DiskBasicFormat match = null;
             for (DiskBasicFormat item : list) {
-                if (item.GetTypeNumber() == format_type) {
+                if (item.getTypeNumber() == format_type) {
                     match = item;
                     break;
                 }
@@ -371,7 +374,6 @@ logger.log(Level.WARNING, "Duplicate type number in DiskBasicFormat : " + type_n
     }
 
     public DiskBasicParam() {
-        super();
         clearBasicParamPrivate();
     }
 
@@ -918,7 +920,10 @@ logger.log(Level.WARNING, "Duplicate type number in DiskBasicFormat : " + type_n
 
         List<DiskBasicParam> list = new ArrayList<>();
 
-        /** DiskBasicTypeエレメントのロード */
+        /**
+         * DiskBasicTypeエレメントのロード
+         * @see "basic_types.xml"
+         */
         public boolean load(Node node, String locale_name, DiskBasicFormats formats, StringBuilder errmsgs) {
             boolean valid = false;
             while (node != null && !valid) {
@@ -1152,7 +1157,7 @@ logger.log(Level.WARNING, "Duplicate type number in DiskBasicFormat : " + type_n
             for (DiskBasicParam item : this.list) {
                 for (int format_type_val : n_format_types) {
                     DiskBasicFormat fmt = item.getFormatType();
-                    if (fmt != null && format_type_val == fmt.GetTypeNumber().ordinal()) { // Placeholder for enum ordinal
+                    if (fmt != null && format_type_val == fmt.getTypeNumber().ordinal()) { // Placeholder for enum ordinal
                         n_types.list.add(item);
                     }
                 }
@@ -1181,6 +1186,8 @@ logger.log(Level.WARNING, "Duplicate type number in DiskBasicFormat : " + type_n
 
 /** DISK BASICの共通パラメータ */
 class DiskBasicParamBase {
+
+    private static final Logger logger = System.getLogger(DiskBasicParamBase.class.getName());
 
     /** グループ(クラスタ)サイズ */
     protected int sectorsPerGroup;
@@ -1290,14 +1297,14 @@ class DiskBasicParamBase {
         this.deleteCode = src.deleteCode;
         this.textTerminateCode = src.textTerminateCode;
         this.extensionPreCode = src.extensionPreCode;
-        this.validFileName = src.validFileName; // Deep copy may be needed
-        this.validVolumeName = src.validVolumeName; // Deep copy may be needed
+        this.validFileName = src.validFileName;
+        this.validVolumeName = src.validVolumeName;
         this.compareCaseInsense = src.compareCaseInsense;
         this.toUpperBeforeDialog = src.toUpperBeforeDialog;
         this.toUpperAfterRenamed = src.toUpperAfterRenamed;
         this.bigEndian = src.bigEndian;
         this.variousParams.clear();
-        this.variousParams.putAll(src.variousParams); // Deep copy may be needed for wxVariant
+        this.variousParams.putAll(src.variousParams);
     }
 
     /** グループ(クラスタ)サイズ */
@@ -1451,6 +1458,7 @@ class DiskBasicParamBase {
     /** 固有のパラメータ */
     public int getVariousIntegerParam(String key) {
         Object value = variousParams.get(key);
+logger.log(Level.TRACE, "key: " + key + ", value: " + value);
         if (value != null) {
             return (int) value;
         } else {

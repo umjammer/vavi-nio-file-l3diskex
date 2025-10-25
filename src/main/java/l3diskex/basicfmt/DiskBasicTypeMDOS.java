@@ -3,9 +3,7 @@ package l3diskex.basicfmt;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import l3diskex.basicfmt.BasicFat.DiskBasicFat;
-import l3diskex.basicfmt.BasicFmt.DiskBasic;
-import l3diskex.basicfmt.BasicFmt.DiskBasicIdentifiedData;
+import l3diskex.basicfmt.DiskBasic.DiskBasicIdentifiedData;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 
 

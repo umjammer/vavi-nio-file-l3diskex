@@ -12,14 +12,12 @@ import java.util.List;
 import l3diskex.basicfmt.BasicCommon.DirectoryFalcom;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
-import l3diskex.basicfmt.BasicFat.DiskBasicFat;
-import l3diskex.basicfmt.BasicFmt.DiskBasic;
-import l3diskex.basicfmt.BasicFmt.DiskBasicIdentifiedData;
+import l3diskex.basicfmt.DiskBasic.DiskBasicIdentifiedData;
 
-import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_FREE;
-import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_SYSTEM;
-import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_USED;
-import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_USED_LAST;
+import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_FREE;
+import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_SYSTEM;
+import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_USED;
+import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_USED_LAST;
 
 
 /**
@@ -61,15 +59,15 @@ public class DiskBasicTypeFalcom extends DiskBasicType<DirectoryFalcom> {
 
             // グループ番号のマップを調べる
             DiskBasicGroups groups = item.getGroups();
-            int count = groups.count();
+            int count = groups.size();
             for (int n = 0; n < count; n++) {
-                DiskBasicGroupItem group = groups.itemPtr(n);
+                DiskBasicGroupItem group = groups.get(n);
                 int gnum = group.group;
                 if (gnum <= basic.getFatEndGroup()) {
                     if (n + 1 == count) {
-                        fatAvailability.set(gnum, FAT_AVAIL_USED_LAST.getValue());
+                        fatAvailability.set(gnum, FAT_AVAIL_USED_LAST.ordinal());
                     } else {
-                        fatAvailability.set(gnum, FAT_AVAIL_USED.getValue());
+                        fatAvailability.set(gnum, FAT_AVAIL_USED.ordinal());
                     }
                 }
             }
@@ -81,8 +79,8 @@ public class DiskBasicTypeFalcom extends DiskBasicType<DirectoryFalcom> {
         for (int pos = 0; pos <= basic.getFatEndGroup(); pos++) {
             if (pos < dir_area) {
                 // ディレクトリエリアは使用済み
-                fatAvailability.set(pos, FAT_AVAIL_SYSTEM.getValue());
-            } else if (fatAvailability.get(pos) == FAT_AVAIL_FREE.getValue()) {
+                fatAvailability.set(pos, FAT_AVAIL_SYSTEM.ordinal());
+            } else if (fatAvailability.get(pos) == FAT_AVAIL_FREE.ordinal()) {
 //				fat_availability.Item(pos).set(FAT_AVAIL_FREE);
                 grps++;
             }

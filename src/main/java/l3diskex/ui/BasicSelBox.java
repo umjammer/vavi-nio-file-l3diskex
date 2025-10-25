@@ -15,15 +15,13 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
 
 import l3diskex.Parambase.ValidNameRule;
-import l3diskex.basicfmt.BasicFmt.DiskBasic;
+import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasicParam;
 import l3diskex.basicfmt.DiskBasicParam.DiskBasicFormat;
 import l3diskex.basicfmt.DiskBasicParam.DiskBasicParamPtrs;
@@ -178,12 +176,12 @@ public class BasicSelBox extends JDialog {
         if (fmt == null) return;
 
         volumeCtrl.enableVolumeName(
-                fmt.HasVolumeName(),
+                fmt.hasVolumeName(),
                 fmt.getValidVolumeName().getMaxLength(),
                 fmt.getValidVolumeName());
 
-        volumeCtrl.enableVolumeNumber(fmt.HasVolumeNumber());
-        volumeCtrl.enableVolumeDate(fmt.HasVolumeDate());
+        volumeCtrl.enableVolumeNumber(fmt.hasVolumeNumber());
+        volumeCtrl.enableVolumeDate(fmt.hasVolumeDate());
     }
 
     // ------
@@ -331,27 +329,5 @@ public class BasicSelBox extends JDialog {
             // Simplified – always accept
             return true;
         }
-    }
-
-    // ------
-    //  Main method – entry point for manual testing
-    // ------
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            JFrame f = new JFrame("Parent");
-            f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-            f.setSize(400, 300);
-            f.setLocationRelativeTo(null);
-            f.setVisible(true);
-
-            BasicSelBox dlg = new BasicSelBox(
-                    f,
-                    100,
-                    new DiskImageDisk(),
-                    new DiskBasic(),
-                    0);
-            int ret = dlg.showModal();
-            System.out.println("Dialog returned: " + ret);
-        });
     }
 }

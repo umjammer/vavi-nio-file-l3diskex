@@ -18,7 +18,6 @@ import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
-import l3diskex.basicfmt.BasicFmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasicDirItemXDOS.DiskBasicDirItemXDOSChain;
 import l3diskex.basicfmt.DiskBasicDirItemXDOS.XdosChainT;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
@@ -197,45 +196,48 @@ public class DiskBasicDirItemXDOS extends DiskBasicDirItemXDOSBase<DirectoryXdos
         }
     }
 
-    private DiskBasicDirData<DirectoryXdos> mData;
+    private DiskBasicDirData<DirectoryXdos> mData = new DiskBasicDirData<>();
 
-    protected DiskBasicDirItemXDOS(DiskBasic basic, int nNum, DiskBasicGroupItem nGitem, DiskImageSector nSector, int nSecpos, byte[] nData, SectorParam nNext, boolean[] nUnuse, boolean[] nInherit) {
-        super(basic, nNum, nGitem, nSector, nSecpos, nData, nNext, nUnuse);
+    protected DiskBasicDirItemXDOS(DiskBasic basic, int nNum, DiskBasicGroupItem nGitem, DiskImageSector nSector, int nSecpos, byte[] nData, int dataP, SectorParam nNext, boolean[] nUnuse, boolean[] nInherit) {
+        super(basic, nNum, nGitem, nSector, nSecpos, nData, dataP, nNext, nUnuse);
     }
 
     public DiskBasicDirItemXDOS(DiskBasic basic) {
         super(basic);
-        mData = new DiskBasicDirData<>();
+
         mData.alloc(DirectoryXdos.class);
     }
 
-    public DiskBasicDirItemXDOS(DiskBasic basic, DiskImageSector nSector, int nSecpos, byte[] nData) {
-        super(basic, nSector, nSecpos, nData);
-        mData = new DiskBasicDirData<>();
-        mData.attach(nData);
+    public DiskBasicDirItemXDOS(DiskBasic basic, DiskImageSector nSector, int nSecpos, byte[] nData, int dataP) {
+        super(basic, nSector, nSecpos, nData, dataP);
+
+        mData.attach(DirectoryXdos.class, nData, dataP);
     }
 
-    public DiskBasicDirItemXDOS(DiskBasic basic, int nNum, DiskBasicGroupItem nGitem, DiskImageSector nSector, int nSecpos, byte[] nData, SectorParam nNext, boolean[] nUnuse) throws IOException {
-        super(basic, nNum, nGitem, nSector, nSecpos, nData, nNext, nUnuse);
-        mData = new DiskBasicDirData<>();
-        mData.attach(nData);
+    public DiskBasicDirItemXDOS(DiskBasic basic, int nNum, DiskBasicGroupItem nGitem, DiskImageSector nSector, int nSecpos, byte[] nData, int dataP, SectorParam nNext, boolean[] nUnuse) throws IOException {
+        super(basic, nNum, nGitem, nSector, nSecpos, nData, dataP, nNext, nUnuse);
+
+        mData.attach(DirectoryXdos.class, nData, dataP);
 
         used(checkUsed(nUnuse[0]));
 
+        // チェインセクタへのポインタをセット
         if (isUsed()) {
             attachChain(getStartGroup(0));
         }
 
+        // ファイルサイズとグループ数を計算
         calcFileSize();
 
+        // 親ディレクトリはツリーに表示しない
         String name = getFileNamePlainStr();
         visibleOnTree(!(isDirectory() && name.equals("!")));
     }
 
     @Override
-    public void setDataPtr(int nNum, DiskBasicGroupItem nGitem, DiskImageSector nSector, int nSecpos, byte[] nData, SectorParam nNext) throws IOException {
-        super.setDataPtr(nNum, nGitem, nSector, nSecpos, nData, nNext);
-        mData.attach(nData);
+    public void setDataPtr(int nNum, DiskBasicGroupItem nGitem, DiskImageSector nSector, int nSecpos, byte[] nData, int dataP, SectorParam nNext) throws IOException {
+        super.setDataPtr(nNum, nGitem, nSector, nSecpos, nData, dataP, nNext);
+        mData.attach(DirectoryXdos.class, nData);
     }
 
     @Override
@@ -645,7 +647,6 @@ public class DiskBasicDirItemXDOS extends DiskBasicDirItemXDOSBase<DirectoryXdos
 
     @Override
     public void setInternalDataInAttrDialog(KeyValArray vals) throws IOException {
-        vals.add("self", mData.isSelf());
         vals.add("FTYPE", (byte) mData.data().ftype, true);
         vals.add("NAME", mData.data().name, mData.data().name.length);
         vals.add("LOAD_ADDR", (byte) mData.data().loadAddr, basic.isBigEndian());
@@ -737,46 +738,39 @@ public class DiskBasicDirItemXDOS extends DiskBasicDirItemXDOSBase<DirectoryXdos
 
 abstract class DiskBasicDirItemXDOSBase<T extends DirectoryT> extends DiskBasicDirItem<T> {
 
-    protected DiskBasicDirItemXDOSChain chain;
+    protected DiskBasicDirItemXDOSChain chain = new DiskBasicDirItemXDOSChain();
 
-    protected DiskBasicDirItemXDOSBase() {
-        super();
-    }
-
-    protected DiskBasicDirItemXDOSBase(DiskBasicDirItemXDOSBase src) {
-        super(src);
-    }
-
-    protected DiskBasicDirItemXDOSBase(DiskBasic basic, int nNum, DiskBasicGroupItem nGitem, DiskImageSector nSector, int nSecpos, byte[] nData, SectorParam nNext, boolean[] nUnuse, boolean[] nInherit) {
-        super(basic, nNum, nGitem, nSector, nSecpos, nData, nNext, nUnuse);
+    protected DiskBasicDirItemXDOSBase(DiskBasic basic, int nNum, DiskBasicGroupItem nGitem, DiskImageSector nSector, int nSecpos, byte[] nData, int dataP, SectorParam nNext, boolean[] nUnuse, boolean nInherit) {
+        super(basic, nNum, nGitem, nSector, nSecpos, nData, dataP, nNext, nUnuse);
     }
 
     public DiskBasicDirItemXDOSBase(DiskBasic basic) {
         super(basic);
-        chain = new DiskBasicDirItemXDOSChain();
+
         chain.setBasic(basic);
         chain.alloc();
     }
 
-    public DiskBasicDirItemXDOSBase(DiskBasic basic, DiskImageSector nSector, int nSecpos, byte[] nData) {
-        super(basic, nSector, nSecpos, nData);
-        chain = new DiskBasicDirItemXDOSChain();
+    public DiskBasicDirItemXDOSBase(DiskBasic basic, DiskImageSector nSector, int nSecpos, byte[] nData, int dataP) {
+        super(basic, nSector, nSecpos, nData, dataP);
+
         chain.setBasic(basic);
         chain.alloc();
     }
 
-    public DiskBasicDirItemXDOSBase(DiskBasic basic, int nNum, DiskBasicGroupItem nGitem, DiskImageSector nSector, int nSecpos, byte[] nData, SectorParam nNext, boolean[] nUnuse) {
-        super(basic, nNum, nGitem, nSector, nSecpos, nData, nNext, nUnuse);
+    public DiskBasicDirItemXDOSBase(DiskBasic basic, int nNum, DiskBasicGroupItem nGitem, DiskImageSector nSector, int nSecpos, byte[] nData, int dataP, SectorParam nNext, boolean[] nUnuse) {
+        super(basic, nNum, nGitem, nSector, nSecpos, nData, dataP, nNext, nUnuse);
     }
 
     protected boolean allocateItem() {
         return true;
     }
 
-    protected boolean allocateItem(SectorParam next) {
+    protected boolean allocateItem(SectorParam next) throws IOException {
         return true;
     }
 
+    /// チェイン情報を設定
     protected void attachChain(int groupNum) throws IOException {
         if (groupNum != 0) {
             DiskImageSector sector = basic.getSectorFromGroup(groupNum);
@@ -788,6 +782,7 @@ abstract class DiskBasicDirItemXDOSBase<T extends DirectoryT> extends DiskBasicD
         }
     }
 
+    /// グループを追加する
     protected void addGroups(int groupNum, int nextGroup, DiskBasicGroups groupItems) {
         int[] trk = new int[1];
         int[] sid = new int[1];
@@ -851,7 +846,7 @@ abstract class DiskBasicDirItemXDOSBase<T extends DirectoryT> extends DiskBasicD
                     break;
                 }
                 if (idx != 0) {
-                    if (groupItems.count() > 0) {
+                    if (groupItems.size() > 0) {
                         DiskBasicGroupItem gitem = groupItems.last();
                         gitem.next = groupNum[0];
                     }
@@ -871,7 +866,7 @@ abstract class DiskBasicDirItemXDOSBase<T extends DirectoryT> extends DiskBasicD
 
     @Override
     public int recalcFileSize(DiskBasicGroups groupItems, int occupiedSize) throws IOException {
-        if (groupItems.count() == 0) return occupiedSize;
+        if (groupItems.size() == 0) return occupiedSize;
 
         DiskBasicGroupItem litem = groupItems.last();
         DiskImageSector sector = basic.getSector(litem.track, litem.side, litem.sectorEnd);

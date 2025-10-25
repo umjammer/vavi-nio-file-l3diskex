@@ -1,5 +1,6 @@
 package l3diskex.basicfmt;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -34,7 +35,6 @@ import l3diskex.basicfmt.BasicCommon.DiskBasicFormatType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
-import l3diskex.basicfmt.BasicFmt.DiskBasic;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
 import vavi.util.serdes.Serdes;
@@ -61,51 +61,42 @@ public abstract class DiskBasicDirItem<T extends DirectoryT> {
     protected static class DiskBasicDirData<TYPE extends DirectoryT> {
 
         private TYPE data;
-        /// < 自分でメモリを確保した時true
-        private boolean self;
-        byte[] raw;
+        private byte[] raw;
+        private int size;
 
         public DiskBasicDirData() {
             data = null;
-            self = false;
-        }
-
-        /// 削除
-        /// 削除 確保したメモリは開放する
-        public void delete() {
-            if (self) data = null;
-            data = null;
-            self = false;
         }
 
         /// メモリ確保
         /// メモリの初期化は行わない
         public void alloc(Class<TYPE> clazz) {
-            delete();
             try {
-                data = clazz.getDeclaredConstructor().newInstance();
-                self = true;
+                this.size = (int) clazz.getDeclaredField("SIZE").get(null);
+                this.data = clazz.getDeclaredConstructor().newInstance();
+                this.raw = new byte[this.size];
             } catch (Exception e) {
-                throw new RuntimeException(e);
+logger.log(Level.ERROR, e.getMessage(), e);
             }
         }
 
         /// ポインタ割り当て
         ///
         /// @param data ポインタ
-        @Deprecated
-        public void attach(TYPE data) {
-            delete();
-            this.data = data;
+        public void attach(Class<TYPE> clazz, byte[] data) {
+            attach(clazz, data, data == null ? 0 : data.length);
         }
 
-        public void attach(byte[] data) {
-            attach(data, data.length);
-        }
-
-        public void attach(byte[] data, int offset) {
-            delete();
-            this.raw = Arrays.copyOfRange(data, offset, data.length - offset);
+        public void attach(Class<TYPE> clazz, byte[] data, int offset) {
+            try {
+                if (this.data == null) alloc(clazz);
+                if (data != null) {
+                    System.arraycopy(data, offset, raw, 0, Math.min(raw.length, data.length - offset));
+                    Serdes.Util.deserialize(new ByteArrayInputStream(raw), this.data);
+                }
+            } catch (Exception e) {
+logger.log(Level.ERROR, e.getMessage(), e);
+            }
         }
 
         public boolean copy(TYPE srcData) {
@@ -154,7 +145,7 @@ public abstract class DiskBasicDirItem<T extends DirectoryT> {
         /// @param invert 反転するか
         /// @param start  コピー開始位置
         public boolean fill(int ch, int len, boolean invert, int start /* = 0 */) {
-            if (data == null) return false;
+            if (raw == null) return false;
             byte[] dst = raw;
             if (len > dst.length) len = dst.length;
             Arrays.fill(dst, start, len, (byte) ch);
@@ -174,24 +165,18 @@ public abstract class DiskBasicDirItem<T extends DirectoryT> {
             }
         }
 
-        /// データを返す
+        /// データを返す */
         public TYPE data() {
             return data;
         }
 
-        /// データが有効か
+        /// データが有効か */
         public boolean isValid() {
             return data != null;
         }
 
-        /// 自分でメモリを確保したか
-        public boolean isSelf() {
-            return self;
-        }
-
-        // TODO sizeof
         public int getDataSize() {
-            return raw.length;
+            return size;
         }
 
         public byte[] getRawData() {
@@ -199,34 +184,34 @@ public abstract class DiskBasicDirItem<T extends DirectoryT> {
         }
     }
 
-    /// < bit0:使用しているか
+    /** bit0:使用しているか */
     public static final int USED_ITEM = 0x0001;
-    /// < bit1:リストに表示するか
+    /** bit1:リストに表示するか */
     public static final int VISIBLE_LIST = 0x0002;
-    /// < bit2:ツリーに表示するか
+    /** bit2:ツリーに表示するか */
     public static final int VISIBLE_TREE = 0x0004;
 
     protected DiskBasic basic;
     protected DiskBasicType<T> type;
 
-    /// < 親ディレクトリ
+    /** 親ディレクトリ */
     protected DiskBasicDirItem<T> parent;
-    /// < 子ディレクトリ
+    /** 子ディレクトリ */
     protected List<DiskBasicDirItem<T>> children;
-    /// < 上記ディレクトリツリーが確定しているか
+    /** 上記ディレクトリツリーが確定しているか */
     protected boolean validDir;
 
-    /// < 通し番号
+    /** 通し番号 */
     protected int num;
-    /// < セクタ内の位置（バイト）
+    /** セクタ内の位置（バイト） */
     protected int position;
-    /// < フラグ bit0:使用しているか bit1:リストに表示するか bit2:ツリーに表示するか
+    /** フラグ bit0:使用しているか bit1:リストに表示するか bit2:ツリーに表示するか */
     protected int flags;
-    /// < 占有グループ
+    /** 占有グループ */
     protected DiskBasicGroups groups;
-    /// < ディレクトリのあるセクタ
+    /** ディレクトリのあるセクタ */
     protected DiskImageSector sector;
-    /// < ディレクトリエントリ内に持たない属性を保持する(機種依存)
+    /** ディレクトリエントリ内に持たない属性を保持する(機種依存) */
     public int externalAttr;
 
     public DiskBasicDirItem() {
@@ -270,7 +255,7 @@ public abstract class DiskBasicDirItem<T extends DirectoryT> {
     /// @param nSector セクタ
     /// @param nSecpos セクタ内の位置
     /// @param nData   セクタ内のディレクトリエントリ
-    public DiskBasicDirItem(DiskBasic basic, DiskImageSector nSector, int nSecpos, byte[] nData) {
+    public DiskBasicDirItem(DiskBasic basic, DiskImageSector nSector, int nSecpos, byte[] nData, int dataP) {
         this.basic = basic;
         this.type = basic.getType();
         parent = null;
@@ -296,7 +281,7 @@ public abstract class DiskBasicDirItem<T extends DirectoryT> {
      * @param nNext   次のセクタ
      * @param nUnuse  [out]  未使用か
      */
-    public DiskBasicDirItem(DiskBasic basic, int nNum, DiskBasicGroupItem nGitem, DiskImageSector nSector, int nSecpos, byte[] nData, SectorParam nNext, boolean[] nUnuse) {
+    public DiskBasicDirItem(DiskBasic basic, int nNum, DiskBasicGroupItem nGitem, DiskImageSector nSector, int nSecpos, byte[] nData, int dataP, SectorParam nNext, boolean[] nUnuse) {
         this.basic = basic;
         this.type = basic.getType();
         parent = null;
@@ -334,10 +319,10 @@ public abstract class DiskBasicDirItem<T extends DirectoryT> {
         this.flags = src.flags;
     }
 
-    public void setDataPtr(int nNum, DiskBasicGroupItem nGitem, DiskImageSector nSector, int nSecpos, byte[] nData, SectorParam nNext /* = null */) throws IOException {
+    public void setDataPtr(int nNum, DiskBasicGroupItem nGitem, DiskImageSector nSector, int nSecpos, byte[] nData, int dataP, SectorParam nNext /* = null */) throws IOException {
         num = nNum;
         position = nSecpos;
-        sector = nSector;
+        sector = nSector; // no duplicate
     }
 
     /// 子ディレクトリを作成
@@ -479,10 +464,10 @@ public abstract class DiskBasicDirItem<T extends DirectoryT> {
     }
 
     /**
-     * /// 拡張子を格納する位置を返す
-     * ///
-     * /// @param len [out] バッファサイズ
-     * /// @return 格納先バッファポインタ
+     * 拡張子を格納する位置を返す
+     *
+     * @param len [out] バッファサイズ
+     * @return 格納先バッファポインタ
      */
     protected byte[] getFileExtPos(int[] len) {
         len[0] = 0;
@@ -578,11 +563,11 @@ public abstract class DiskBasicDirItem<T extends DirectoryT> {
      * ファイル名を変換して内部ファイル名にする 検索用
      *
      * @param filename ファイル名(Unicode)
-     * @param name     [out]       内部ファイル名バッファ
-     * @param nlen     [in,out]    上記バッファサイズ / 文字列長さを返す
-     * @param ext      [out]       内部拡張子名バッファ
-     * @param elen     [in,out]    上記バッファサイズ / 文字列長さを返す
-     * @return true OK / false 変換できない文字がある
+     * @param name     [out] 内部ファイル名バッファ
+     * @param nlen     [in,out] 上記バッファサイズ / 文字列長さを返す
+     * @param ext      [out] 内部拡張子名バッファ
+     * @param elen     [in,out] 上記バッファサイズ / 文字列長さを返す
+     * @return true: OK, false: 変換できない文字がある
      */
     protected boolean toNativeFileName(String filename, byte[] name, int[] nlen, byte[] ext, int[] elen) {
         byte[] tmp = new byte[256];
@@ -719,7 +704,7 @@ public abstract class DiskBasicDirItem<T extends DirectoryT> {
      *
      * @param fileType ファイル属性
      * @param mask     ファイル属性ビットマスク
-     * @param filename [in,out]  ファイル名
+     * @param filename [in,out] ファイル名
      * @param external 拡張属性 valueと比較
      * @param dupli    同じ拡張子名の重複を許すか
      */
@@ -755,8 +740,8 @@ public abstract class DiskBasicDirItem<T extends DirectoryT> {
      * @param pos        位置(負のときは、外部定義からさがす)
      * @param list       名＆値リスト
      * @param defaultPos 一致しないとき設定するデフォルト名のある位置(-1のときは設定しない)
+     * @param attr       [out] 一致した名前
      * @return リストに一致したらtrue
-     * @param[out] attr        一致した名前
      */
     protected boolean getFileAttrName(int pos, Map<String, Object> list, String[] attr, int defaultPos) {
         boolean match = true;
@@ -868,17 +853,19 @@ public abstract class DiskBasicDirItem<T extends DirectoryT> {
      * <p>
      * インポートするファイルのファイル名に適用
      *
+     * <pre> For Example:
+     *  foobar.aaa.bas (is basic file) -> foobar.aaa (trimming last extension)
+     *  foobar.bas (is basic file) -> foobar (trimming last extension)
+     *  foobar.bbb.ccc (is unknown attr) -> foobar.bbb.ccc (no change filename)
+     * </pre>
+     *
      * @param filename  ファイル名
      * @param list      拡張子名＆値リスト
      * @param listFirst リストの最初の位置
      * @param listLast  リストの最後の位置
-     * @param outfile   [out]   編集後のファイル名
-     * @param attr      [out]   属性
-     * @param pos       [out]   リストの位置 (ユーザ指定属性の場合はマイナスになる)
-     *                  <pre> For Example:
-     *                                                                                                       foobar.aaa.bas (is basic file) -> foobar.aaa (trimming last extension)
-     *                                                                                                       foobar.bas (is basic file) -> foobar (trimming last extension)
-     *                                                                                                       foobar.bbb.ccc (is unknown attr) -> foobar.bbb.ccc (no change filename)
+     * @param outfile   [out] 編集後のファイル名
+     * @param attr      [out] 属性
+     * @param pos       [out] リストの位置 (ユーザ指定属性の場合はマイナスになる)
      */
     protected boolean isContainAttrByExtension(String filename, Map<String, Object> list, int listFirst, int listLast, String[] outfile, int[] attr, int[] pos) {
         boolean match = false;
@@ -919,7 +906,7 @@ public abstract class DiskBasicDirItem<T extends DirectoryT> {
      * @param endPos   リストの最終位置
      * @param fileType 属性値(optional)
      *                 属性値を設定した場合、属性値がリストに一致しなければそれを選択肢に追加する。
-     * @param types    [out]    選択肢リスト
+     * @param types    [out] 選択肢リスト
      */
     public static void createChoiceForAttrDialog(DiskBasic basic, Map<String, Object> list, int endPos, List<String> types, int fileType) {
         boolean matchValue = false;
@@ -969,7 +956,7 @@ public abstract class DiskBasicDirItem<T extends DirectoryT> {
         return selPos;
     }
 
-    /// リストの位置から属性を返す(プロパティダイアログ用)
+    /// リストの位置から属性を返す(プロパティダイアログ用) */
     public static int calcSpecialOriginalTypeFromPos(DiskBasic basic, int pos, int endPos) {
         int val = -1;
         if (pos >= endPos) {
@@ -983,7 +970,7 @@ public abstract class DiskBasicDirItem<T extends DirectoryT> {
         return val;
     }
 
-    /// リストの位置から属性を返す(プロパティダイアログ用)
+    /// リストの位置から属性を返す(プロパティダイアログ用) */
     public static int calcSpecialFileTypeFromPos(DiskBasic basic, int pos, int endPos) {
         int t = 0;
         if (pos >= endPos) {
@@ -997,7 +984,7 @@ public abstract class DiskBasicDirItem<T extends DirectoryT> {
         return t;
     }
 
-    /// ファイル名の通常コードの割合(0.0-1.0)
+    /// ファイル名の通常コードの割合(0.0-1.0) */
     public double normalCodesInFileName() {
         int count = 0;
         boolean invert = basic.diskBasicParam.isDataInverted();
@@ -1058,10 +1045,10 @@ public abstract class DiskBasicDirItem<T extends DirectoryT> {
     /**
      * ファイル名と拡張子を設定
      *
-     * @param name  [in,out]  ファイル名
+     * @param name  [in,out] ファイル名
      * @param nsize ファイル名バッファサイズ
      * @param nlen  ファイル名長さ
-     * @param ext   [in,out]  拡張子
+     * @param ext   [in,out] 拡張子
      * @param esize 拡張子バッファサイズ
      * @param elen  拡張子長さ
      *              データビットはこの関数で反転させる
@@ -1171,10 +1158,10 @@ public abstract class DiskBasicDirItem<T extends DirectoryT> {
     /**
      * ファイル名を得る
      *
+     * データビットは反転させたまま
      * @param filename [in,out] ファイル名
      * @param size     バッファサイズ
-     * @param length   [out]  長さ
-     *                 データビットは反転させたまま
+     * @param length   [out] 長さ
      */
     protected void getNativeName(byte[] filename, int size, int[] length) {
         byte[] n = null;
@@ -1191,10 +1178,10 @@ public abstract class DiskBasicDirItem<T extends DirectoryT> {
     /**
      * 拡張子を得る
      *
+     * データビットは反転させたまま
      * @param fileext [in,out]  拡張子
      * @param size    バッファサイズ
      * @param length  [out]   長さ
-     *                データビットは反転させたまま
      */
     protected void getNativeExt(byte[] fileext, int size, int[] length) {
         byte[] e = null;
@@ -1221,8 +1208,8 @@ public abstract class DiskBasicDirItem<T extends DirectoryT> {
         int[] el = new int[1];
         boolean invert = basic.diskBasicParam.isDataInverted();
         char trimm = (char) basic.diskBasicParam.getDirTrimmingCode(); // とり除くコード
-        char space = (char) basic.diskBasicParam.getDirSpaceCode();    // 空白コード
-        char term = (char) basic.diskBasicParam.getDirTerminateCode();    // 終端コード
+        char space = (char) basic.diskBasicParam.getDirSpaceCode(); // 空白コード
+        char term = (char) basic.diskBasicParam.getDirTerminateCode(); // 終端コード
         if (name != null && nlen[0] > 0) {
             Arrays.fill(name, 0, nlen[0], (byte) 0);
             getNativeName(name, nlen[0], nl);
@@ -1331,7 +1318,7 @@ public abstract class DiskBasicDirItem<T extends DirectoryT> {
     /**
      * 小文字を大文字にする
      *
-     * @param str  [in,out]  文字列
+     * @param str  [in,out] 文字列
      * @param size 長さ
      */
     public void toUpper(byte[] str, int size) {
@@ -1380,9 +1367,9 @@ public abstract class DiskBasicDirItem<T extends DirectoryT> {
      * @param src   ファイル名
      * @param ssize ファイル名サイズ
      * @param slen  ファイル名長さ
-     * @param dst   [out]    出力先バッファ
+     * @param dst   [out] 出力先バッファ
      * @param dsize 上記バッファサイズ
-     * @param dlen  [out]   上記長さ
+     * @param dlen  [out] 上記長さ
      */
     public static void memoryCopy(byte[] src, int ssize, int slen, byte[] dst, int dsize, int[] dlen) {
         if (dst == null || dsize == 0) {
@@ -1395,18 +1382,18 @@ public abstract class DiskBasicDirItem<T extends DirectoryT> {
     }
 
     /**
-     * /// 文字列をバッファにコピー spchr(通常".")で拡張子とを分ける
-     * ///
-     * /// @param src    ファイル名
-     * /// @param ssize  ファイル名サイズ
-     * /// @param slen   ファイル名長さ
-     * /// @param   dname [out]  出力先ファイル名バッファ
-     * /// @param dnsize 上記ファイル名バッファサイズ
-     * /// @param   dnlen [out]  上記ファイル名長さ
-     * /// @param   dext  [out]  出力先拡張子バッファ
-     * /// @param desize 上記拡張子バッファサイズ
-     * /// @param   delen [out]  上記拡張子長さ
-     * /// @param spchr  分割に使用する文字
+     * 文字列をバッファにコピー spchr(通常".")で拡張子とを分ける
+     *
+     * @param src    ファイル名
+     * @param ssize  ファイル名サイズ
+     * @param slen   ファイル名長さ
+     * @param dname  [out] 出力先ファイル名バッファ
+     * @param dnsize 上記ファイル名バッファサイズ
+     * @param dnlen  [out] 上記ファイル名長さ
+     * @param dext   [out] 出力先拡張子バッファ
+     * @param desize 上記拡張子バッファサイズ
+     * @param delen  [out] 上記拡張子長さ
+     * @param spchr  分割に使用する文字
      */
     public static void splitFileName(byte[] src, int ssize, int slen, byte[] dname, int dnsize, int[] dnlen, byte[] dext, int desize, int[] delen, byte spchr) {
         int pos = -1;
@@ -1443,7 +1430,7 @@ public abstract class DiskBasicDirItem<T extends DirectoryT> {
     /// 属性を設定
     ///
     /// @param formatType    フォーマット種類 DiskBasicFormatType
-    /// @param fileType      共通属性 enum #en_file_type_mask の組み合わせ
+    /// @param fileType      共通属性 file_type_mask の組み合わせ
     /// @param originalType0 本来の属性
     /// @param originalType1 本来の属性 つづき1
     /// @param originalType2 本来の属性 つづき2
@@ -1529,7 +1516,7 @@ public abstract class DiskBasicDirItem<T extends DirectoryT> {
      * @param groupItems [out] グループリスト
      */
     public void getAllGroups(DiskBasicGroups groupItems) throws IOException {
-        groupItems.empty();
+        groupItems.clear();
         getUnitGroups(0, groupItems);
     }
 
@@ -1589,7 +1576,7 @@ public abstract class DiskBasicDirItem<T extends DirectoryT> {
     }
 
     /// 追加のグループリストを返す(機種依存)
-    public void getExtraGroups(DiskBasicGroups grps) {
+    public void getExtraGroups(DiskBasicGroups[] grps) {
     }
 
     /// 次のグループ番号をセット(機種依存)
@@ -1631,7 +1618,7 @@ public abstract class DiskBasicDirItem<T extends DirectoryT> {
 
     /// グループリストの数を返す
     public int getGroupCount() {
-        return groups.count();
+        return groups.size();
     }
 
     /// グループリストを返す
@@ -1646,7 +1633,7 @@ public abstract class DiskBasicDirItem<T extends DirectoryT> {
 
     /// グループリストのアイテムを返す
     public DiskBasicGroupItem getGroup(int idx) {
-        return groups.itemPtr(idx);
+        return groups.get(idx);
     }
 
     public void clearChainSector(DiskBasicDirItem<T> pitem /* = null */) {
@@ -2139,17 +2126,13 @@ public abstract class DiskBasicDirItem<T extends DirectoryT> {
      * １つのエントリで複数のファイルを管理している場合は要オーバーライド
      *
      * @param fileunitNum ファイル番号
-     * @param istream     [in,out]     入力ストリーム
+     * @param istream     [in,out] 入力ストリーム
      * @param fileOffset  ストリーム内のオフセット
      * @return ファイルサイズ / ない場合 -1
      */
     public int getFileUnitSize(int fileunitNum, InputStream istream, int fileOffset) throws IOException {
         if (fileunitNum == 0) {
-            try {
-                return istream.available();
-            } catch (IOException e) {
-                return -1;
-            }
+            return istream.available();
         } else {
             return -1;
         }
@@ -2437,7 +2420,7 @@ public abstract class DiskBasicDirItem<T extends DirectoryT> {
 
     /// ファイルサイズとグループ数を計算する
     public void calcFileSize() throws IOException {
-        groups.empty();
+        groups.clear();
         calcFileUnitSize(0);
     }
 
@@ -2802,22 +2785,35 @@ public abstract class DiskBasicDirItem<T extends DirectoryT> {
         /// @param itemData アイテムデータ
         /// @param itemSize アイテムサイズ
         /// @param next     次のセクタ
-        public boolean set(DiskBasic basic, DiskImageSector sector, int position, Object itemData, int itemSize, SectorParam next) {
+        /// @return セクタまたぎがある場合true
+        public <T extends DirectoryT> boolean set(DiskBasic basic, DiskImageSector sector, int position, byte[] itemData, int itemSize, SectorParam next) throws IOException {
             if (sector == null) return false;
 
             int spos = position;
             int ssize = sector.getSectorSize();
-            byte[] sptr = (byte[]) itemData;
+            byte[] sptr = itemData;
             if (itemData != null) {
                 s[0].data = sptr;
                 s[0].size = itemSize;
                 s[0].pos = 0;
             }
+//logger.log(Level.DEBUG, "spos: " + spos + ", itemSize: " + itemSize + ", ssize: " + ssize);
+            //               +- spos             +- ssize
+            //               |<---- s[1].pos --->|<- s[1].size ->|
+            // --------------+-------------------+---------------+-------
+            //           curr sector             |           next sector
+            // --------------+-------------------+---------------+-------
+            //               |<----------- itemSize ------------>|
+            //               |<---- s[0].size -->|
+            //               +- s[0].data
+            //
             if (spos + itemSize >= ssize) {
+                // セクタまたぎ
                 s[1].pos = ssize - spos;
                 s[1].size = s[0].size - s[1].pos;
                 s[0].size = s[1].pos;
 
+                // 次のセクタ
                 if (next != null) {
                     DiskBasicType type = basic.getType();
                     int nsectorPos = type.getSectorPosFromNum(next.getTrackNumber(), next.getSideNumber(), next.getSectorNumber());
@@ -2828,7 +2824,8 @@ public abstract class DiskBasicDirItem<T extends DirectoryT> {
                         ssize = nsector.getSectorSize();
                         spos = basic.diskBasicParam.getDirStartPosOnSector();
                         spos += (nsectorPos % basic.diskBasicParam.getSectorsPerGroup()) == 0 ? basic.diskBasicParam.getDirStartPosOnGroup() : 0;
-                        s[1].data = Arrays.copyOfRange(sptr, spos - s[1].pos, sptr.length);
+                        s[1].data = Arrays.copyOfRange(sptr, 0, s[1].size);
+                        s[1].pos = 0;
                     }
                 }
                 return true;
@@ -2841,12 +2838,11 @@ public abstract class DiskBasicDirItem<T extends DirectoryT> {
          *
          * @param dstItem [out] アイテムデータ
          */
-        public void copyTo(Object dstItem) {
-            byte[] dst = (byte[]) dstItem;
+        public void copyTo(byte[] dstItem) {
             for (int i = 0; i < 2; i++) {
                 byte[] src = s[i].data;
-                if (dst != null && src != null) {
-                    System.arraycopy(src, s[i].pos, dst, s[i].pos, s[i].size);
+                if (dstItem != null && src != null) {
+                    System.arraycopy(src, s[i].pos, dstItem, s[i].pos, s[i].size);
                 }
             }
         }
@@ -2854,12 +2850,11 @@ public abstract class DiskBasicDirItem<T extends DirectoryT> {
         /// コピー
         ///
         /// @param srcItem アイテムデータ
-        public void copyFrom(Object srcItem) {
-            byte[] src = (byte[]) srcItem;
+        public void copyFrom(byte[] srcItem) {
             for (int i = 0; i < 2; i++) {
                 byte[] dst = s[i].data;
-                if (dst != null && src != null) {
-                    System.arraycopy(src, s[i].pos, dst, s[i].pos, s[i].size);
+                if (dst != null && srcItem != null) {
+                    System.arraycopy(srcItem, s[i].pos, dst, s[i].pos, s[i].size);
                 }
             }
         }

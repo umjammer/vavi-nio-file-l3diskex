@@ -9,16 +9,14 @@ import java.io.InputStream;
 import java.util.List;
 
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
-import l3diskex.basicfmt.BasicFat.DiskBasicFat;
-import l3diskex.basicfmt.BasicFmt.DiskBasic;
-import l3diskex.basicfmt.BasicFmt.DiskBasicIdentifiedData;
+import l3diskex.basicfmt.DiskBasic.DiskBasicIdentifiedData;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskImage.DiskImageTrack;
 
-import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_FREE;
-import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_SYSTEM;
-import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_USED;
-import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_USED_LAST;
+import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_FREE;
+import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_SYSTEM;
+import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_USED;
+import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_USED_LAST;
 
 
 /**
@@ -184,15 +182,15 @@ public class DiskBasicTypeFROST extends DiskBasicTypeFAT8 {
             int fsize = 0;
             int grps = 0;
             int gnum = getGroupNumber(pos);
-            int fsts = FAT_AVAIL_USED.getValue();
+            int fsts = FAT_AVAIL_USED.ordinal();
             if (gnum == basic.diskBasicParam.getGroupUnusedCode()) {
                 fsize = (basic.getSectorSize() / basic.diskBasicParam.getGroupsPerSector());
                 grps = 1;
-                fsts = FAT_AVAIL_FREE.getValue();
+                fsts = FAT_AVAIL_FREE.ordinal();
             } else if (gnum == basic.diskBasicParam.getGroupSystemCode()) {
-                fsts = FAT_AVAIL_SYSTEM.getValue();
+                fsts = FAT_AVAIL_SYSTEM.ordinal();
             } else if (gnum >= basic.diskBasicParam.getGroupFinalCode()) {
-                fsts = FAT_AVAIL_USED_LAST.getValue();
+                fsts = FAT_AVAIL_USED_LAST.ordinal();
             }
             // Assuming FatAvailability is a simple class/struct to hold the values
             fatAvailability.add(fsts, fsize, grps);
@@ -297,8 +295,8 @@ public class DiskBasicTypeFROST extends DiskBasicTypeFAT8 {
         if (rc >= 0) {
             if (flags == AllocateGroupFlags.ALLOCATE_GROUPS_APPEND) {
                 // 追加のときはチェインをつなぐ
-                if (group_items.count() > 0) {
-                    rc = chainGroups(item.getStartGroup(0), group_items.item(0).group);
+                if (group_items.size() > 0) {
+                    rc = chainGroups(item.getStartGroup(0), group_items.get(0).group);
                 }
             }
         } else {

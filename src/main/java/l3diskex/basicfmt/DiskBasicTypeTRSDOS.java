@@ -13,16 +13,14 @@ import l3diskex.basicfmt.BasicCommon.DirectoryT;
 import l3diskex.basicfmt.BasicCommon.DirectoryTrsd13;
 import l3diskex.basicfmt.BasicCommon.DirectoryTrsd23;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
-import l3diskex.basicfmt.BasicFat.DiskBasicAvailability;
-import l3diskex.basicfmt.BasicFat.DiskBasicFat;
-import l3diskex.basicfmt.BasicFmt.DiskBasic;
-import l3diskex.basicfmt.BasicFmt.DiskBasicIdentifiedData;
+import l3diskex.basicfmt.DiskBasic.DiskBasicIdentifiedData;
+import l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 
-import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_FREE;
-import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_SYSTEM;
-import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_USED;
 import static l3diskex.basicfmt.DiskBasicDirItemTRSDOS.FILETYPE_MASK_TRSDOS_SYSTEM;
+import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_FREE;
+import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_SYSTEM;
+import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_USED;
 
 
 public class DiskBasicTypeTRSDOS<T extends DirectoryT> extends DiskBasicType<T> {
@@ -282,14 +280,14 @@ public class DiskBasicTypeTRSDOS<T extends DirectoryT> extends DiskBasicType<T> 
 
         for (int grp = 0; grp <= max_group; grp = grp + 1) {
             if (mng_start <= grp && grp <= mng_end) {
-                fat_availability.add(FAT_AVAIL_SYSTEM.getValue(), 0, 0);
+                fat_availability.add(FAT_AVAIL_SYSTEM.ordinal(), 0, 0);
             } else if (tlt_table.isSet(grp)) {
-                fat_availability.add(FAT_AVAIL_USED.getValue(), 0, 0);
+                fat_availability.add(FAT_AVAIL_USED.ordinal(), 0, 0);
             } else {
                 if (gat_table.isSet(grp)) {
-                    fat_availability.add(FAT_AVAIL_USED.getValue(), 0, 0);
+                    fat_availability.add(FAT_AVAIL_USED.ordinal(), 0, 0);
                 } else {
-                    fat_availability.add(FAT_AVAIL_FREE.getValue(), group_size, 1);
+                    fat_availability.add(FAT_AVAIL_FREE.ordinal(), group_size, 1);
                 }
             }
         }
@@ -520,9 +518,9 @@ class DiskBasicTypeTRSD23 extends DiskBasicTypeTRSDOS<DirectoryTrsd23> {
             int pre_grp = 0;
             int sta_grp = 0;
             int cnt = 0;
-            int max_idx = group_items.count();
+            int max_idx = group_items.size();
             for (int idx = 0; idx < max_idx; idx++) {
-                int grp = group_items.item(idx).group;
+                int grp = group_items.get(idx).group;
                 if (idx == 0) {
                     sta_grp = grp;
                 } else if (cnt > 32 || pre_grp + 1 != grp) {
@@ -646,14 +644,14 @@ class DiskBasicTypeTRSD23 extends DiskBasicTypeTRSDOS<DirectoryTrsd23> {
 
         st_pos += 2;
         sector = basic.getSectorFromSectorPos(st_pos);
-        titem = (DiskBasicDirItemTRSDOS<?>) dir.newItem(sector, 0, sector.getSectorBuffer(0));
+        titem = (DiskBasicDirItemTRSDOS<?>) dir.newItem(sector, 0, sector.getSectorBuffer(0), 0);
         titem.setAsBootSysEntry();
         // Assume delete titem is not needed in Java due to garbage collection
         // delete titem;
 
         st_pos++;
         sector = basic.getSectorFromSectorPos(st_pos);
-        titem = (DiskBasicDirItemTRSDOS<?>) dir.newItem(sector, 0, sector.getSectorBuffer(0));
+        titem = (DiskBasicDirItemTRSDOS<?>) dir.newItem(sector, 0, sector.getSectorBuffer(0), 0);
         titem.setAsDirSysEntry();
         // delete titem;
 
@@ -675,13 +673,13 @@ class DiskBasicTypeTRSD13 extends DiskBasicTypeTRSDOS<DirectoryTrsd13> {
     }
 
     int getDataSize() {
-        DiskBasicDirItemTRSD13 tmp = new DiskBasicDirItemTRSD13(basic, null, 0, null);
+        DiskBasicDirItemTRSD13 tmp = new DiskBasicDirItemTRSD13(basic, null, 0, null, 0);
         return tmp.getDataSize();
     }
 
     @Override
     public void getFromHIPosition(int pos, int[] sector_num, int[] pos_in_sector) {
-        int n = basic.getSectorSize() / getDataSize(); // Assuming a getSize method
+        int n = basic.getSectorSize() / getDataSize();
         sector_num[0] = pos / n;
         pos_in_sector[0] = (pos % n);
     }
@@ -690,6 +688,7 @@ class DiskBasicTypeTRSD13 extends DiskBasicTypeTRSDOS<DirectoryTrsd13> {
     public boolean assignRootDirectory(int start_sector, int end_sector, DiskBasicGroups group_items, DiskBasicDirItem<DirectoryTrsd13> dir_item) throws IOException {
         boolean sts = super.assignRootDirectory(start_sector, end_sector, group_items, dir_item);
 
+        // ファイルサイズを再計算
         List<DiskBasicDirItem<DirectoryTrsd13>> citems = dir_item.getChildren();
         for (int i = 0; i < citems.size(); i++) {
             DiskBasicDirItemTRSDOS<?> citem = (DiskBasicDirItemTRSDOS<?>) citems.get(i);
@@ -743,9 +742,9 @@ class DiskBasicTypeTRSD13 extends DiskBasicTypeTRSDOS<DirectoryTrsd13> {
             int pre_grp = 0;
             int sta_grp = 0;
             int cnt = 0;
-            int max_idx = group_items.count();
+            int max_idx = group_items.size();
             for (int idx = 0; idx < max_idx; idx++) {
-                int grp = group_items.item(idx).group;
+                int grp = group_items.get(idx).group;
                 if (idx == 0) {
                     sta_grp = grp;
                 } else if (cnt > 32 || pre_grp + 1 != grp) {

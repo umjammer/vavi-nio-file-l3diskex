@@ -10,27 +10,24 @@ import java.util.List;
 import l3diskex.basicfmt.BasicCommon.DirectoryCpm;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
-import l3diskex.basicfmt.BasicFat.DiskBasicFat;
-import l3diskex.basicfmt.BasicFmt.DiskBasic;
-import l3diskex.basicfmt.BasicFmt.DiskBasicIdentifiedData;
+import l3diskex.basicfmt.DiskBasic.DiskBasicIdentifiedData;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskImage.DiskImageTrack;
 
-import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_FREE;
-import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_SYSTEM;
-import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_USED;
-import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_USED_LAST;
+import static l3diskex.basicfmt.DiskBasicDirItemCPM.SECTOR_UNIT_CPM;
+import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_FREE;
+import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_SYSTEM;
+import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_USED;
+import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_USED_LAST;
 
 
 public class DiskBasicTypeCPM extends DiskBasicType<DirectoryCpm> {
-
-    // Constants for WriteFile
-    protected static final int SECTOR_UNIT_CPM = 128; // CP/M uses 128-byte records
 
     protected DiskBasicSectorSkew sector_skew = new DiskBasicSectorSkew();
 
     public DiskBasicTypeCPM(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryCpm> dir) {
         super(basic, fat, dir);
+
         sector_skew.create(basic, basic.getSectorsPerTrackOnBasic());
     }
 
@@ -38,7 +35,7 @@ public class DiskBasicTypeCPM extends DiskBasicType<DirectoryCpm> {
      * ディスクから各パラメータを取得＆必要なパラメータを計算
      *
      * @param is_formatting フォーマット中か
-     * @return 1.0 正常, 0.0 - 1.0 警告あり, <0.0 エラーあり
+     * @return 1.0: 正常, 0.0 ~ 1.0: 警告あり, <0.0: エラーあり
      */
     @Override
     public double parseParamOnDisk(boolean is_formatting) {
@@ -165,15 +162,15 @@ public class DiskBasicTypeCPM extends DiskBasicType<DirectoryCpm> {
 
             // グループ番号のマップを調べる
             DiskBasicGroups groups = item.getGroups();
-            int count = groups.count();
+            int count = groups.size();
             for (int n = 0; n < count; n++) {
-                DiskBasicGroupItem group = groups.itemPtr(n);
+                DiskBasicGroupItem group = groups.get(n);
                 int gnum = group.group;
                 if (gnum <= basic.getFatEndGroup()) {
                     if (n + 1 == count) {
-                        fatAvailability.set(gnum, FAT_AVAIL_USED_LAST.getValue());
+                        fatAvailability.set(gnum, FAT_AVAIL_USED_LAST.ordinal());
                     } else {
-                        fatAvailability.set(gnum, FAT_AVAIL_USED.getValue());
+                        fatAvailability.set(gnum, FAT_AVAIL_USED.ordinal());
                     }
                 }
             }
@@ -185,8 +182,8 @@ public class DiskBasicTypeCPM extends DiskBasicType<DirectoryCpm> {
         for (int pos = 0; pos <= basic.getFatEndGroup(); pos++) {
             if (pos < dir_area) {
                 // ディレクトリエリアは使用済み
-                fatAvailability.set(pos, FAT_AVAIL_SYSTEM.getValue());
-            } else if (fatAvailability.get(pos) == FAT_AVAIL_FREE.getValue()) {
+                fatAvailability.set(pos, FAT_AVAIL_SYSTEM.ordinal());
+            } else if (fatAvailability.get(pos) == FAT_AVAIL_FREE.ordinal()) {
                 grps++;
             }
         }
@@ -202,7 +199,7 @@ public class DiskBasicTypeCPM extends DiskBasicType<DirectoryCpm> {
      */
     @Override
     public void setGroupNumber(int num, int val) {
-        fatAvailability.set(num, val != 0 ? FAT_AVAIL_USED.getValue() : FAT_AVAIL_FREE.getValue());
+        fatAvailability.set(num, val != 0 ? FAT_AVAIL_USED.ordinal() : FAT_AVAIL_FREE.ordinal());
     }
 
     /**
@@ -236,7 +233,7 @@ public class DiskBasicTypeCPM extends DiskBasicType<DirectoryCpm> {
     public int getEmptyGroupNumber() {
         int group_num = INVALID_GROUP_NUMBER;
         for (int pos = 0; pos <= basic.getFatEndGroup(); pos++) {
-            if (fatAvailability.get(pos) == FAT_AVAIL_FREE.getValue()) {
+            if (fatAvailability.get(pos) == FAT_AVAIL_FREE.ordinal()) {
                 group_num = pos;
                 break;
             }

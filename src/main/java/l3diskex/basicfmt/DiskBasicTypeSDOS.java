@@ -7,14 +7,12 @@ import java.util.List;
 import l3diskex.basicfmt.BasicCommon.DirectorySdos;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
-import l3diskex.basicfmt.BasicFat.DiskBasicFat;
-import l3diskex.basicfmt.BasicFmt.DiskBasic;
-import l3diskex.basicfmt.BasicFmt.DiskBasicIdentifiedData;
+import l3diskex.basicfmt.DiskBasic.DiskBasicIdentifiedData;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskImage.DiskImageTrack;
 
-import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_USED;
-import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_USED_LAST;
+import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_USED;
+import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_USED_LAST;
 
 
 /** */
@@ -143,9 +141,9 @@ public class DiskBasicTypeSDOS extends DiskBasicType<DirectorySdos> {
                 DiskBasicGroupItem gitem = item.getGroup(gidx);
                 gnum = gitem.group;
                 if (gidx == gcnt - 1) {
-                    fatAvailability.set(gnum, FAT_AVAIL_USED_LAST.getValue());
+                    fatAvailability.set(gnum, FAT_AVAIL_USED_LAST.ordinal());
                 } else {
-                    fatAvailability.set(gnum, FAT_AVAIL_USED.getValue());
+                    fatAvailability.set(gnum, FAT_AVAIL_USED.ordinal());
                 }
             }
 

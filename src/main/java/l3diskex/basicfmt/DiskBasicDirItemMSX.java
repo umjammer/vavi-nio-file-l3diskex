@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.util.ResourceBundle;
 
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
-import l3diskex.basicfmt.BasicFmt.DiskBasic;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
 
@@ -28,8 +27,8 @@ public class DiskBasicDirItemMSX extends DiskBasicDirItemMSDOS {
     public DiskBasicDirItemMSX(DiskBasic basic,
                                DiskImageSector sector,
                                int secPos,
-                               byte[] data) {
-        super(basic, sector, secPos, data);
+                               byte[] data, int dataP) {
+        super(basic, sector, secPos, data, dataP);
     }
 
     /** ctor with all parameters */
@@ -38,10 +37,10 @@ public class DiskBasicDirItemMSX extends DiskBasicDirItemMSDOS {
                                DiskBasicGroupItem gitem,
                                DiskImageSector sector,
                                int secPos,
-                               byte[] data,
+                               byte[] data, int dataP,
                                SectorParam next,
                                boolean[] unuseRef) throws IOException {   // boolean by reference
-        super(basic, num, gitem, sector, secPos, data, next, unuseRef);
+        super(basic, num, gitem, sector, secPos, data, dataP, next, unuseRef);
     }
 
     /** 属性の文字列を返す(ファイル一覧画面表示用) */

@@ -4,14 +4,12 @@
 
 package l3diskex;
 
-import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 import l3diskex.basicfmt.BasicCommon.FileTypeMask;
 
@@ -518,7 +516,7 @@ public class Parambase {
                         Utils.decodeEscape(cnode.getTextContent(), rstr);
                         chars[num] = rstr[0];
                     } else if (name.equals("Code")) {
-                        int c = Utils.toInt (cnode.getTextContent());
+                        int c = Utils.toInt(cnode.getTextContent());
                         if (encoding == 0) {
                             if (c < 0 || c >= 0x80) {
                                 errmsgs.append("\n");

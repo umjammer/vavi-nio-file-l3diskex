@@ -554,6 +554,11 @@ public class DiskD88 {
         }
 
         @Override
+        public void setSectorBuffer(byte[] data, int ofs, int len) {
+            System.arraycopy(data, 0, this.data, ofs, len);
+        }
+
+        @Override
         public short getSectorsPerTrack() {
             return m_header.getNumberOfSectors();
         }
@@ -951,14 +956,6 @@ public class DiskD88 {
     }
 
     static class DiskD88File extends DiskImageFile {
-
-        public DiskD88File() {
-            super();
-        }
-
-        public DiskD88File(DiskD88File src) {
-            super(src);
-        }
 
         public DiskD88File(DiskImage image) {
             super(image);

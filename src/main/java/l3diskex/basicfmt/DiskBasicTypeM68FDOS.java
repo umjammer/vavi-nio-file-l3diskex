@@ -13,12 +13,9 @@ import java.util.List;
 import l3diskex.Utils.TempData;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
-import l3diskex.basicfmt.BasicFat.DiskBasicAvailability;
-import l3diskex.basicfmt.BasicFat.DiskBasicBitMLMap;
-import l3diskex.basicfmt.BasicFat.DiskBasicFat;
-import l3diskex.basicfmt.BasicFat.FatAvailability;
-import l3diskex.basicfmt.BasicFmt.DiskBasic;
-import l3diskex.basicfmt.BasicFmt.DiskBasicIdentifiedData;
+import l3diskex.basicfmt.DiskBasic.DiskBasicIdentifiedData;
+import l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability;
+import l3diskex.basicfmt.DiskBasicFat.DiskBasicBitMLMap;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import vavi.util.ByteUtil;
 
@@ -186,7 +183,7 @@ public class DiskBasicTypeM68FDOS extends DiskBasicTypeMZBase {
      */
     @Override
     public boolean calcGroupsOnRootDirectory(int start_sector, int end_sector, DiskBasicGroups group_items) {
-        group_items.empty();
+        group_items.clear();
         int dir_size = 0;
         int[] trk_num = {0};
         int[] sid_num = {0};
@@ -269,13 +266,13 @@ public class DiskBasicTypeM68FDOS extends DiskBasicTypeMZBase {
         for (int gnum = 0; gnum <= basic.diskBasicParam.getFatEndGroup(); gnum++) {
             if (gnum < dataStartGroup) {
                 //			used++;
-                fsts = FatAvailability.FAT_AVAIL_SYSTEM.getValue();
+                fsts = DiskBasicAvailability.FatAvailability.FAT_AVAIL_SYSTEM.ordinal();
             } else if (!isUsedGroupNumber(gnum)) {
                 grps++;
-                fsts = FatAvailability.FAT_AVAIL_FREE.getValue();
+                fsts = DiskBasicAvailability.FatAvailability.FAT_AVAIL_FREE.ordinal();
             } else {
                 //			used++;
-                fsts = FatAvailability.FAT_AVAIL_USED.getValue();
+                fsts = DiskBasicAvailability.FatAvailability.FAT_AVAIL_USED.ordinal();
             }
             fat_availability.add(fsts, 0, 0);
         }
@@ -293,7 +290,7 @@ public class DiskBasicTypeM68FDOS extends DiskBasicTypeMZBase {
                     DiskBasicGroupItem gitem = item.getGroup(gcnt - 1);
                     int gnum = gitem.group;
                     if (gnum <= basic.diskBasicParam.getFatEndGroup()) {
-                        fat_availability.set(gnum, FatAvailability.FAT_AVAIL_USED_LAST.getValue());
+                        fat_availability.set(gnum, DiskBasicAvailability.FatAvailability.FAT_AVAIL_USED_LAST.ordinal());
                     }
                 }
             }

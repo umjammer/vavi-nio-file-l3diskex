@@ -41,7 +41,7 @@ public class UiDirItemFLEX extends UiDirItem {
 
         int[] ft1 = {file_type_1};
         int[] ft2 = {file_type_2};
-        dirItem.SetFileTypeForAttrDialog(show_flags, file_path, ft1, ft2);
+        dirItem.setFileTypeForAttrDialog(show_flags, file_path, ft1, ft2);
         file_type_1 = ft1[0];
         file_type_2 = ft2[0];
 

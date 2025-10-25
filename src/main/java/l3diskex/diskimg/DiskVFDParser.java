@@ -100,7 +100,7 @@ public class DiskVFDParser extends DiskImageParser {
     // Since Java classes don't need explicit destructors like C++, no need for a corresponding finalizer/method here unless specific resource cleanup is needed.
 
     /// セクタデータの作成
-    private int ParseSector(InputStream istream, int sector_nums, VfdSectorHeader sector_header, DiskImageTrack track) throws IOException {
+    private int parseSector(InputStream istream, int sector_nums, VfdSectorHeader sector_header, DiskImageTrack track) throws IOException {
         if ((sector_header.c & 0xFF) == 0xff || (sector_header.h & 0xFF) == 0xff || (sector_header.r & 0xFF) == 0xff) {
             // セクタなし
             return 0;
@@ -147,7 +147,7 @@ public class DiskVFDParser extends DiskImageParser {
     }
 
     /// トラックデータの作成
-    private int ParseTrack(InputStream istream, VfdTrackHeader track_header, int offset_pos, int offset, DiskImageDisk disk) throws IOException {
+    private int parseTrack(InputStream istream, VfdTrackHeader track_header, int offset_pos, int offset, DiskImageDisk disk) throws IOException {
         // メジャーな番号を調べる
         int num_of_sectors = 0;
         Map<Integer, Integer> track_number_map = new HashMap<>();
@@ -174,7 +174,7 @@ public class DiskVFDParser extends DiskImageParser {
 
         int d88_track_size = 0;
         for (int sec = 0; sec < 26 && result.getValid() >= 0; sec++) {
-            d88_track_size += ParseSector(istream
+            d88_track_size += parseSector(istream
                     , num_of_sectors
                     , track_header.sectors[sec], track);
         }
@@ -203,7 +203,7 @@ public class DiskVFDParser extends DiskImageParser {
     }
 
     /// ディスクの解析
-    private int ParseDisk(InputStream istream) throws IOException {
+    private int parseDisk(InputStream istream) throws IOException {
         DiskImageDisk disk = file.newImageDisk(0);
 
         VfdHeader header = new VfdHeader();
@@ -225,7 +225,7 @@ public class DiskVFDParser extends DiskImageParser {
         int d88_offset = disk.getOffsetStart(); // header size
         int d88_offset_pos = 0;
         for (int pos = 0; pos < 160; pos++) {
-            d88_offset += ParseTrack(istream, header.tracks[pos]
+            d88_offset += parseTrack(istream, header.tracks[pos]
                     , d88_offset_pos, d88_offset, disk);
             d88_offset_pos++;
             if (d88_offset_pos >= disk.getCreatableTracks()) {
@@ -301,7 +301,7 @@ public class DiskVFDParser extends DiskImageParser {
     @Override
     public int parse(InputStream istream, DiskParam disk_param) {
         try {
-            ParseDisk(istream);
+            parseDisk(istream);
         } catch (IOException e) {
             result.setError(DiskResult.ERRV_INVALID_DISK, 0); // Assuming IO error is invalid disk
             return -1;

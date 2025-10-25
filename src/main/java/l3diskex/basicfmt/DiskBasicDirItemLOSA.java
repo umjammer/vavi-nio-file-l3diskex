@@ -17,10 +17,10 @@ package l3diskex.basicfmt;
 
 import java.io.IOException;
 
+import l3diskex.basicfmt.BasicCommon.DirectoryLosa;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
-import l3diskex.basicfmt.BasicFmt.DiskBasic;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
 
@@ -30,13 +30,10 @@ import l3diskex.diskimg.DiskParam.SectorParam;
 // --
 public class DiskBasicDirItemLOSA extends DiskBasicDirItemMSDOS {
 
-    /* --- Constants ----------------------------------------------------- */
     public static final int FILE_TYPE_LOSA_BINARY = 0xA0;          // 0xa0
+
     public static final String TYPE_NAME_LOSA_BINARY = "LA binary";
 
-    /* ------------------------------------------------------------------ */
-    /* --- Constructors --------------------------------------------------- */
-    /* ------------------------------------------------------------------ */
     public DiskBasicDirItemLOSA(DiskBasic basic) {
         super(basic);
     }
@@ -44,8 +41,8 @@ public class DiskBasicDirItemLOSA extends DiskBasicDirItemMSDOS {
     public DiskBasicDirItemLOSA(DiskBasic basic,
                                 DiskImageSector sector,
                                 int secpos,
-                                byte[] data) {
-        super(basic, sector, secpos, data);
+                                byte[] data, int dataP) {
+        super(basic, sector, secpos, data, dataP);
     }
 
     public DiskBasicDirItemLOSA(DiskBasic basic,
@@ -53,15 +50,13 @@ public class DiskBasicDirItemLOSA extends DiskBasicDirItemMSDOS {
                                 DiskBasicGroupItem gitem,
                                 DiskImageSector sector,
                                 int secpos,
-                                byte[] data,
+                                byte[] data, int dataP,
                                 SectorParam next,
                                 boolean[] unuse) throws IOException {
-        super(basic, num, gitem, sector, secpos, data, next, unuse);
+        super(basic, num, gitem, sector, secpos, data, dataP, next, unuse);
     }
 
-    /* ------------------------------------------------------------------ */
-    /* --- File name / extension handling -------------------------------- */
-    /* ------------------------------------------------------------------ */
+    /** File name / extension handling */
     @Override
     protected byte[] getFileNamePos(int num, int[] size, int[] len) {
         switch (num) {
@@ -80,9 +75,7 @@ public class DiskBasicDirItemLOSA extends DiskBasicDirItemMSDOS {
         return m_data.data().losa.ext;
     }
 
-    /* ------------------------------------------------------------------ */
-    /* --- File type (attribute 2) --------------------------------------- */
-    /* ------------------------------------------------------------------ */
+    /** File type (attribute 2) */
     @Override
     public int getFileType2() {
         return m_data.data().losa.binaryType & 0xFF;
@@ -93,9 +86,7 @@ public class DiskBasicDirItemLOSA extends DiskBasicDirItemMSDOS {
         m_data.data().losa.binaryType = (byte) (val & 0xFF);
     }
 
-    /* ------------------------------------------------------------------ */
-    /* --- Generic attribute handling ------------------------------------ */
-    /* ------------------------------------------------------------------ */
+    /** Generic attribute handling */
     @Override
     public void setFileAttr(DiskBasicFileType file_type) {
         int ftype = file_type.getType();
@@ -140,9 +131,7 @@ public class DiskBasicDirItemLOSA extends DiskBasicDirItemMSDOS {
         return attr;
     }
 
-    /* ------------------------------------------------------------------ */
-    /* --- Address handling ---------------------------------------------- */
-    /* ------------------------------------------------------------------ */
+    /** Address handling */
     @Override
     public boolean hasAddress() {
         return true;
@@ -178,13 +167,11 @@ public class DiskBasicDirItemLOSA extends DiskBasicDirItemMSDOS {
 
     @Override
     public int getDataSize() {
-        // sizeof(directory_losa_t) – placeholder value
-        return 32;
+        return DirectoryLosa.SIZE;
     }
 
     @Override
     public void setInternalDataInAttrDialog(KeyValArray vals) {
-        vals.add("self", m_data.isSelf());
         vals.add("NAME", m_data.data().losa.name, m_data.data().losa.name.length);
         vals.add("EXT", m_data.data().losa.ext, m_data.data().losa.ext.length);
         vals.add("TYPE", m_data.data().losa.type);

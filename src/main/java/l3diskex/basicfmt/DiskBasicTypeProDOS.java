@@ -12,11 +12,9 @@ import l3diskex.basicfmt.BasicCommon.DirectoryProdos;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
-import l3diskex.basicfmt.BasicFat.DiskBasicBitMLMap;
-import l3diskex.basicfmt.BasicFat.DiskBasicFat;
-import l3diskex.basicfmt.BasicFmt.DiskBasic;
-import l3diskex.basicfmt.BasicFmt.DiskBasicIdentifiedData;
+import l3diskex.basicfmt.DiskBasic.DiskBasicIdentifiedData;
 import l3diskex.basicfmt.DiskBasicDirItemProDOS.ProDOSDirPtrT;
+import l3diskex.basicfmt.DiskBasicFat.DiskBasicBitMLMap;
 import l3diskex.basicfmt.DiskBasicParam.DiskBasicFormat;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import vavi.util.serdes.Serdes;
@@ -24,9 +22,6 @@ import vavi.util.serdes.Serdes;
 import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_PRODOS;
 import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_UNKNOWN;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_DIRECTORY_MASK;
-import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_FREE;
-import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_SYSTEM;
-import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_USED;
 import static l3diskex.basicfmt.DiskBasicDirItemProDOS.FILETYPE_MASK_PRODOS_ACCESS_ALL;
 import static l3diskex.basicfmt.DiskBasicDirItemProDOS.FILETYPE_MASK_PRODOS_CHANGE;
 import static l3diskex.basicfmt.DiskBasicDirItemProDOS.FILETYPE_MASK_PRODOS_SAPLING;
@@ -34,6 +29,9 @@ import static l3diskex.basicfmt.DiskBasicDirItemProDOS.FILETYPE_MASK_PRODOS_SUBD
 import static l3diskex.basicfmt.DiskBasicDirItemProDOS.FILETYPE_MASK_PRODOS_SUBVOL;
 import static l3diskex.basicfmt.DiskBasicDirItemProDOS.FILETYPE_MASK_PRODOS_TREE;
 import static l3diskex.basicfmt.DiskBasicDirItemProDOS.FILETYPE_MASK_PRODOS_VOLUME;
+import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_FREE;
+import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_SYSTEM;
+import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_USED;
 import static l3diskex.basicfmt.DiskBasicType.AllocateGroupFlags.ALLOCATE_GROUPS_APPEND;
 
 
@@ -241,7 +239,7 @@ public class DiskBasicTypeProDOS extends DiskBasicType<DirectoryProdos> {
         boolean sts = super.assignRootDirectory(start_sector, end_sector, group_items, dir_item);
 
         // ボリュームヘッダの内容をコピーする
-        DiskBasicGroupItem gitem = group_items.item(0);
+        DiskBasicGroupItem gitem = group_items.get(0);
         DiskImageSector sector = basic.getSector(gitem.track, gitem.side, gitem.sectorStart);
         DirectoryProdos vol = new DirectoryProdos();
         // Placeholder for directory_t *vol = (directory_t *)sector->GetSectorBuffer(4);
@@ -264,7 +262,7 @@ public class DiskBasicTypeProDOS extends DiskBasicType<DirectoryProdos> {
     public boolean calcGroupsOnRootDirectory(int start_sector, int end_sector, DiskBasicGroups group_items) {
         boolean valid = true;
 
-        group_items.empty();
+        group_items.clear();
 
         // ディレクトリのチェインをたどる
         int dir_size = 0;
@@ -347,7 +345,7 @@ public class DiskBasicTypeProDOS extends DiskBasicType<DirectoryProdos> {
      */
     @Override
     public int initializeSectorsAsDirectory(DiskBasicGroups group_items, int[] file_size, int[] size_remain, DiskBasicError errinfo) {
-        file_size[0] = group_items.count() * basic.getSectorSize();
+        file_size[0] = group_items.size() * basic.getSectorSize();
         size_remain[0] = 0;
 
         return 0;
@@ -375,13 +373,13 @@ public class DiskBasicTypeProDOS extends DiskBasicType<DirectoryProdos> {
         // BITMAP table
         for (int grp = 0; grp <= basic.getFatEndGroup(); grp++) {
             if (grp <= 2) {
-                fatAvailability.add(FAT_AVAIL_SYSTEM.getValue(), 0, 0);
+                fatAvailability.add(FAT_AVAIL_SYSTEM.ordinal(), 0, 0);
             } else if (grp == bitmap.GetMyGroupNumber()) {
-                fatAvailability.add(FAT_AVAIL_SYSTEM.getValue(), 0, 0);
+                fatAvailability.add(FAT_AVAIL_SYSTEM.ordinal(), 0, 0);
             } else if (bitmap.IsFree(grp)) {
-                fatAvailability.add(FAT_AVAIL_FREE.getValue(), basic.getSectorSize() * basic.getSectorsPerGroup(), 1);
+                fatAvailability.add(FAT_AVAIL_FREE.ordinal(), basic.getSectorSize() * basic.getSectorsPerGroup(), 1);
             } else {
-                fatAvailability.add(FAT_AVAIL_USED.getValue(), 0, 0);
+                fatAvailability.add(FAT_AVAIL_USED.ordinal(), 0, 0);
             }
         }
         // Volume directory
@@ -389,8 +387,8 @@ public class DiskBasicTypeProDOS extends DiskBasicType<DirectoryProdos> {
         if (root != null) {
             DiskBasicGroups root_groups = root.getGroups();
             if (root_groups != null) {
-                for (int i = 0; i < root_groups.count(); i++) {
-                    fatAvailability.set(i, FAT_AVAIL_SYSTEM.getValue());
+                for (int i = 0; i < root_groups.size(); i++) {
+                    fatAvailability.set(i, FAT_AVAIL_SYSTEM.ordinal());
                 }
             }
         }
@@ -504,7 +502,7 @@ public class DiskBasicTypeProDOS extends DiskBasicType<DirectoryProdos> {
      */
     @Override
     public int allocateUnitGroups(int fileunit_num, DiskBasicDirItem<DirectoryProdos> item, int data_size, AllocateGroupFlags flags, DiskBasicGroups group_items) throws IOException {
-        //	logger.log(Level.DEBUG, "DiskBasicTypeProDOS::AllocateGroups {");
+        //	logger.log(Level.TRACE, "DiskBasicTypeProDOS::AllocateGroups {");
 
         //	int file_size = 0;
         int groups = 0;
@@ -545,7 +543,7 @@ public class DiskBasicTypeProDOS extends DiskBasicType<DirectoryProdos> {
             }
             if (rc == 0 && flags == ALLOCATE_GROUPS_APPEND) {
                 // 追加のときはチェインをつなぐ
-                if (group_items.count() > 0) {
+                if (group_items.size() > 0) {
                     rc = chainDirectoryGroups(item, group_items);
                 }
             }
@@ -651,7 +649,7 @@ public class DiskBasicTypeProDOS extends DiskBasicType<DirectoryProdos> {
             rc = -2;
         }
 
-        //	logger.log(Level.DEBUG, "rc: %d }", rc);
+        //logger.log(Level.TRACE, "rc: %d }".formatted(rc));
         return rc;
     }
 
@@ -673,8 +671,8 @@ public class DiskBasicTypeProDOS extends DiskBasicType<DirectoryProdos> {
         int group_num = INVALID_GROUP_NUMBER;
         int prev_group_num = INVALID_GROUP_NUMBER;
         ProDOSDirPtrT prev = null;
-        for (int i = 0; i < group_items.count(); i++) {
-            DiskBasicGroupItem gitem = group_items.item(i);
+        for (int i = 0; i < group_items.size(); i++) {
+            DiskBasicGroupItem gitem = group_items.get(i);
             if (gitem.group != group_num) {
                 group_num = gitem.group;
                 DiskImageSector sector = basic.getSectorFromGroup(group_num);
@@ -891,7 +889,7 @@ public class DiskBasicTypeProDOS extends DiskBasicType<DirectoryProdos> {
      */
     @Override
     public void additionalProcessOnMadeDirectory(DiskBasicDirItem<DirectoryProdos> item, DiskBasicGroups group_items, DiskBasicDirItem<DirectoryProdos> parent_item) throws IOException {
-        if (group_items.count() <= 0) return;
+        if (group_items.size() <= 0) return;
 
         int block_size = basic.getSectorSize() * basic.getSectorsPerGroup();
 
@@ -905,13 +903,13 @@ public class DiskBasicTypeProDOS extends DiskBasicType<DirectoryProdos> {
 
         // サブボリュームヘッダのエントリを作成する
 
-        DiskBasicGroupItem gitem = group_items.item(0);
+        DiskBasicGroupItem gitem = group_items.get(0);
 
         DiskImageSector sector = basic.getSector(gitem.track, gitem.side, gitem.sectorStart);
 
         // Placeholder for byte *buf = sector->GetSectorBuffer(4);
         byte[] buf = sector.getSectorBuffer(4);
-        DiskBasicDirItem<DirectoryProdos> newitem = basic.createDirItem(sector, 0, buf);
+        DiskBasicDirItem<DirectoryProdos> newitem = basic.createDirItem(sector, 0, buf, 0);
         DiskBasicDirItemProDOS newditem = (DiskBasicDirItemProDOS) newitem;
 
         newitem.copyData(item.getData());
@@ -1189,7 +1187,7 @@ public class DiskBasicTypeProDOS extends DiskBasicType<DirectoryProdos> {
         DiskBasicFormat fmt = basic.getFormatType();
 
         // volume name
-        if (volume != null && fmt.HasVolumeName()) {
+        if (volume != null && fmt.hasVolumeName()) {
             byte[] volname = data.getVolumeName().getBytes();
             int len = volume.name.length;
             if (len > volname.length) len = volname.length;

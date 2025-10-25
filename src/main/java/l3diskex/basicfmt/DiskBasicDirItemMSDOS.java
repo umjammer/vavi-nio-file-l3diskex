@@ -17,11 +17,11 @@ import l3diskex.Utils;
 import l3diskex.basicfmt.BasicCommon.DirectoryMs;
 import l3diskex.basicfmt.BasicCommon.DirectoryMsDos;
 import l3diskex.basicfmt.BasicCommon.DirectoryMsLfn;
+import l3diskex.basicfmt.BasicCommon.DirectoryN88;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
-import l3diskex.basicfmt.BasicFmt.DiskBasic;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
 import vavi.io.SeekableDataInputStream;
@@ -86,34 +86,26 @@ public class DiskBasicDirItemMSDOS extends DiskBasicDirItem<DirectoryMs> {
     // Constructor for allocation only
     public DiskBasicDirItemMSDOS(DiskBasic basic) {
         super(basic);
-        // Assuming DiskBasicDirData<DirectoryMsT> is a class that manages the underlying data structure
-        // and has an Alloc() method analog.
-        m_data = new DiskBasicDirData<>();
+
         m_data.alloc(DirectoryMs.class);
     }
 
     // Constructor for attaching to existing data in a sector
-    public DiskBasicDirItemMSDOS(DiskBasic basic, DiskImageSector n_sector, int n_secpos, byte[] n_data) {
-        super(basic, n_sector, n_secpos, n_data);
-        m_data = new DiskBasicDirData<>();
-        m_data.attach(n_data); // Assumes Attach method handles mapping byte[] to DirectoryMsT
+    public DiskBasicDirItemMSDOS(DiskBasic basic, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP) {
+        super(basic, n_sector, n_secpos, n_data, dataP);
+
+        m_data.attach(DirectoryMs.class, n_data, dataP);
     }
 
     // Constructor for full initialization (used for reading directory entries)
-    public DiskBasicDirItemMSDOS(DiskBasic basic, int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, SectorParam n_next, boolean[] n_unuse) throws IOException {
-        super(basic, n_num, n_gitem, n_sector, n_secpos, n_data, n_next, n_unuse);
+    public DiskBasicDirItemMSDOS(DiskBasic basic, int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP, SectorParam n_next, boolean[] n_unuse) throws IOException {
+        super(basic, n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next, n_unuse);
 
         // MS-DOS
-        m_data = new DiskBasicDirData<>();
-        m_data.attach(n_data);
-
-        // Assume DirectoryMsT has a getter for the msdos structure
-        DirectoryMsDos msdos = m_data.data().msdos;
-
-        boolean unuse = n_unuse[0];
-        used(checkUsed(unuse));
+        m_data.attach(DirectoryMs.class, n_data);
+        used(checkUsed(n_unuse[0]));
         visible((getFileType1() & FILETYPE_MASK_MS_LFN) != FILETYPE_MASK_MS_LFN);
-        n_unuse[0] = (unuse || (msdos.name[0] == 0));
+        n_unuse[0] = (n_unuse[0] || (m_data.data().msdos.name[0] == 0));
 
         // グループ数を計算
         calcFileSize();
@@ -125,10 +117,10 @@ public class DiskBasicDirItemMSDOS extends DiskBasicDirItem<DirectoryMs> {
 
     /// アイテムへのポインタを設定
     @Override
-    public void setDataPtr(int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, SectorParam n_next) throws IOException {
-        super.setDataPtr(n_num, n_gitem, n_sector, n_secpos, n_data, n_next);
+    public void setDataPtr(int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP, SectorParam n_next) throws IOException {
+        super.setDataPtr(n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next);
 
-        m_data.attach(n_data);
+        m_data.attach(DirectoryMs.class, n_data);
     }
 
     /// ファイル名を格納する位置を返す
@@ -642,7 +634,6 @@ public class DiskBasicDirItemMSDOS extends DiskBasicDirItem<DirectoryMs> {
     /// ディレクトリアイテムのサイズ
     @Override
     public int getDataSize() {
-        // Assuming sizeof(directory_ms_t) is the size of the structure
         return m_data.getDataSize();
     }
 
@@ -661,7 +652,6 @@ public class DiskBasicDirItemMSDOS extends DiskBasicDirItem<DirectoryMs> {
     /// ディレクトリをクリア ファイル新規作成時
     @Override
     public void clearData() {
-        // Assuming DiskBasicDirData has a Fill method with a byte value, size, and inversion flag
         m_data.fill((byte) 0, getDataSize(), basic.isDataInverted(), 0);
     }
 
@@ -692,7 +682,7 @@ public class DiskBasicDirItemMSDOS extends DiskBasicDirItem<DirectoryMs> {
             ((SeekableDataInputStream) istream).position(istream.available());
 
             if (istream.read() != basic.diskBasicParam.getTextTerminateCode()) {
-             	file_size++;
+                file_size++;
             }
             ((SeekableDataInputStream) istream).position(curr_pos);
         }
@@ -708,7 +698,6 @@ public class DiskBasicDirItemMSDOS extends DiskBasicDirItem<DirectoryMs> {
     public void setInternalDataInAttrDialog(KeyValArray vals) {
         // Assume KeyValArray has Add methods for boolean, byte[], int
         DirectoryMsDos msdos = m_data.data().msdos;
-        vals.add("self", m_data.isSelf());
         vals.add("NAME", msdos.name, msdos.name.length);
         vals.add("EXT", msdos.ext, msdos.ext.length);
         vals.add("TYPE", msdos.type & 0xff);
@@ -725,8 +714,6 @@ public class DiskBasicDirItemMSDOS extends DiskBasicDirItem<DirectoryMs> {
     }
 }
 
-/// ///////////////////////////////////////////////////////////////////
-
 /// ディレクトリ１アイテム MS-DOS VFAT
 class DiskBasicDirItemVFAT extends DiskBasicDirItemMSDOS {
 
@@ -734,12 +721,12 @@ class DiskBasicDirItemVFAT extends DiskBasicDirItemMSDOS {
         super(basic);
     }
 
-    public DiskBasicDirItemVFAT(DiskBasic basic, DiskImageSector n_sector, int n_secpos, byte[] n_data) {
-        super(basic, n_sector, n_secpos, n_data);
+    public DiskBasicDirItemVFAT(DiskBasic basic, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP) {
+        super(basic, n_sector, n_secpos, n_data, dataP);
     }
 
-    public DiskBasicDirItemVFAT(DiskBasic basic, int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, SectorParam n_next, boolean[] n_unuse) throws IOException {
-        super(basic, n_num, n_gitem, n_sector, n_secpos, n_data, n_next, n_unuse);
+    public DiskBasicDirItemVFAT(DiskBasic basic, int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP, SectorParam n_next, boolean[] n_unuse) throws IOException {
+        super(basic, n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next, n_unuse);
     }
 
     /// ファイル名を格納する位置を返す
@@ -1148,7 +1135,6 @@ class DiskBasicDirItemVFAT extends DiskBasicDirItemMSDOS {
         if ((t1 & FILETYPE_MASK_MS_LFN) == FILETYPE_MASK_MS_LFN) {
             // int File Name entry
             DirectoryMsLfn mslfn = m_data.data().mslfn;
-            vals.add("self", m_data.isSelf());
             vals.add("ORDER", mslfn.order & 0xff);
             vals.add("NAME", mslfn.name, mslfn.name.length);
             vals.add("TYPE", mslfn.type & 0xff);

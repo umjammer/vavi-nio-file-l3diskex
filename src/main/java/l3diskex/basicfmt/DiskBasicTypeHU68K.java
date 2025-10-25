@@ -7,9 +7,7 @@ package l3diskex.basicfmt;
 import java.io.IOException;
 import java.time.LocalDateTime;
 
-import l3diskex.basicfmt.BasicFat.DiskBasicFat;
-import l3diskex.basicfmt.BasicFmt.DiskBasic;
-import l3diskex.basicfmt.BasicFmt.DiskBasicIdentifiedData;
+import l3diskex.basicfmt.DiskBasic.DiskBasicIdentifiedData;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 
 import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_UNKNOWN;
@@ -44,7 +42,7 @@ public class DiskBasicTypeHU68K extends DiskBasicTypeMSDOS {
 
         double validRatio = 1.0;
         if (!basic.diskBasicParam.getVariousBoolParam("IgnoreParameter")) {
-            validRatio = ParseMSDOSParamOnDisk(basic.getDisk(), isFormatting);
+            validRatio = parseMSDOSParamOnDisk(basic.getDisk(), isFormatting);
         }
 
         if (validRatio >= 0.0) {
@@ -86,10 +84,6 @@ public class DiskBasicTypeHU68K extends DiskBasicTypeMSDOS {
         return validRatio;
     }
 
-    /* ----------------------------------------------------------------- */
-    /*  Format                                                         */
-    /* ----------------------------------------------------------------- */
-
     /**
      * セクタデータを埋めた後の個別処理
      *
@@ -99,7 +93,7 @@ public class DiskBasicTypeHU68K extends DiskBasicTypeMSDOS {
     @Override
     public boolean additionalProcessOnFormatted(DiskBasicIdentifiedData data) throws IOException {
         /* フォーマット IPLの書き込み */
-        if (!CreateBiosParameterBlock("\u0060\u003c\u0090", "X68IPL30", null)) {
+        if (!createBiosParameterBlock("\u0060\u003c\u0090", "X68IPL30", null)) {
             return false;
         }
 
@@ -107,15 +101,12 @@ public class DiskBasicTypeHU68K extends DiskBasicTypeMSDOS {
         int dirStart = basic.diskBasicParam.getReservedSectors()
                 + basic.diskBasicParam.getNumberOfFats() * basic.diskBasicParam.getSectorsPerFat();
         DiskImageSector sec = basic.getSectorFromSectorPos(dirStart);
-        DiskBasicDirItem ditem = dir.newItem(sec, 0, sec.getSectorBuffer());
+        DiskBasicDirItem ditem = dir.newItem(sec, 0, sec.getSectorBuffer(), 0);
 
         ditem.setFileNameStr(data.getVolumeName());
         ditem.setFileAttr(FORMAT_TYPE_UNKNOWN, FILE_TYPE_VOLUME_MASK.getValue(), 0);
         LocalDateTime tm = LocalDateTime.now();
         ditem.setFileCreateDateTime(tm);
-
-        /* 参照解放（Javaでは不要） */
-        // delete ditem;   // Java では GC が担当
 
         return true;
     }

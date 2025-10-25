@@ -7,10 +7,8 @@ import java.util.Arrays;
 import l3diskex.Utils.TempData;
 import l3diskex.basicfmt.BasicCommon.DirectoryTfdos;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
-import l3diskex.basicfmt.BasicFat.DiskBasicFat;
-import l3diskex.basicfmt.BasicFat.DiskBasicFatBuffer;
-import l3diskex.basicfmt.BasicFmt.DiskBasic;
-import l3diskex.basicfmt.BasicFmt.DiskBasicIdentifiedData;
+import l3diskex.basicfmt.DiskBasic.DiskBasicIdentifiedData;
+import l3diskex.basicfmt.DiskBasicFat.DiskBasicFatBuffer;
 import l3diskex.basicfmt.DiskBasicParam.DiskBasicFormat;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 
@@ -608,7 +606,7 @@ public class DiskBasicTypeTFDOS extends DiskBasicTypeMZBase<DirectoryTfdos> {
         DiskBasicFormat fmt = basic.getFormatType();
 
         // volume label
-        if (fmt.HasVolumeName()) {
+        if (fmt.hasVolumeName()) {
             byte[] dst = new byte[12 + 1];
             Arrays.fill(dst, (byte) 0);
             byte[] src = data.getVolumeName().getBytes();
@@ -622,7 +620,7 @@ public class DiskBasicTypeTFDOS extends DiskBasicTypeMZBase<DirectoryTfdos> {
         }
 
         // volume number
-        if (fmt.HasVolumeNumber()) {
+        if (fmt.hasVolumeNumber()) {
             // volume_num at 0xc0
             fatBuffer[0xc0] = basic.invertUint8((byte) (data.getVolumeNumber() & 0xff));
         }

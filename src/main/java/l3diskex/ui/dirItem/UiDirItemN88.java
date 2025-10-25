@@ -14,7 +14,6 @@ import javax.swing.JCheckBox;
 
 import l3diskex.basicfmt.DiskBasicDirItem.DiskBasicDirItemAttr;
 import l3diskex.basicfmt.DiskBasicDirItemN88;
-import l3diskex.basicfmt.DiskBasicDirItemN88.N88BasicConstants;
 import l3diskex.basicfmt.DiskBasicError;
 import l3diskex.ui.IntNameBox;
 import l3diskex.ui.UiDirItem;
@@ -27,18 +26,15 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_MACHINE_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_RANDOM_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_READONLY_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_READWRITE_MASK;
-import static l3diskex.basicfmt.DiskBasicDirItemN88.DialogIDs.IDC_CHECK_ENCRYPT;
-import static l3diskex.basicfmt.DiskBasicDirItemN88.DialogIDs.IDC_CHECK_READONLY;
-import static l3diskex.basicfmt.DiskBasicDirItemN88.DialogIDs.IDC_CHECK_READWRITE;
-import static l3diskex.basicfmt.DiskBasicDirItemN88.DialogIDs.IDC_RADIO_TYPE1;
-import static l3diskex.basicfmt.DiskBasicDirItemN88.N88BasicConstants.G_TYPE_NAME_N88_1;
-import static l3diskex.basicfmt.DiskBasicDirItemN88.N88BasicConstants.G_TYPE_NAME_N88_2;
-import static l3diskex.basicfmt.DiskBasicDirItemN88.N88BasicConstants.TYPE_NAME_N88_ASCII;
-import static l3diskex.basicfmt.DiskBasicDirItemN88.N88BasicConstants.TYPE_NAME_N88_BINARY;
-import static l3diskex.basicfmt.DiskBasicDirItemN88.N88BasicConstants.TYPE_NAME_N88_ENCRYPTED;
-import static l3diskex.basicfmt.DiskBasicDirItemN88.N88BasicConstants.TYPE_NAME_N88_MACHINE;
-import static l3diskex.basicfmt.DiskBasicDirItemN88.N88BasicConstants.TYPE_NAME_N88_RANDOM;
-import static l3diskex.basicfmt.DiskBasicDirItemN88.N88BasicConstants.TYPE_NAME_N88_READ_ONLY;
+import static l3diskex.basicfmt.DiskBasicDirItemN88.G_TYPE_NAME_N88_1;
+import static l3diskex.basicfmt.DiskBasicDirItemN88.G_TYPE_NAME_N88_2;
+import static l3diskex.basicfmt.DiskBasicDirItemN88.TYPE_NAME_N88_ASCII;
+import static l3diskex.basicfmt.DiskBasicDirItemN88.TYPE_NAME_N88_BINARY;
+import static l3diskex.basicfmt.DiskBasicDirItemN88.TYPE_NAME_N88_ENCRYPTED;
+import static l3diskex.basicfmt.DiskBasicDirItemN88.TYPE_NAME_N88_MACHINE;
+import static l3diskex.basicfmt.DiskBasicDirItemN88.TYPE_NAME_N88_RANDOM;
+import static l3diskex.basicfmt.DiskBasicDirItemN88.TYPE_NAME_N88_READ_ONLY;
+import static l3diskex.basicfmt.DiskBasicDirItemN88.TYPE_NAME_N88_READ_WRITE;
 
 
 /**
@@ -48,6 +44,12 @@ import static l3diskex.basicfmt.DiskBasicDirItemN88.N88BasicConstants.TYPE_NAME_
  * @version 0.00 2025-10-19 nsano initial version <br>
  */
 public class UiDirItemN88 extends UiDirItem {
+
+    static final int IDC_RADIO_TYPE1 = 51;
+    static final int IDC_CHECK_READONLY = 52;
+    static final int IDC_CHECK_READWRITE = 53;
+    static final int IDC_CHECK_ENCRYPT = 54;
+    static final int IDC_RADIO_TYPE2 = 55;
 
     DiskBasicDirItemN88 dirItem;
 
@@ -97,12 +99,12 @@ public class UiDirItemN88 extends UiDirItem {
         WxStaticBoxSizer staType4 = new WxStaticBoxSizer(null, null);
 
         chkReadOnly = new JCheckBox(parent, IDC_CHECK_READONLY, G_TYPE_NAME_N88_2[TYPE_NAME_N88_READ_ONLY]);
-        chkReadOnly.setValue((fileType2 & FILE_TYPE_READONLY_MASK) != 0);
+        chkReadOnly.setValue((fileType2 & FILE_TYPE_READONLY_MASK.getValue()) != 0);
         // staType4->Add(chkReadOnly, flags);
         // Assuming staType4.add(chkReadOnly, flags)
 
-        chkReadWrite = new JCheckBox(parent, IDC_CHECK_READWRITE, G_TYPE_NAME_N88_2[N88BasicConstants.TYPE_NAME_N88_READ_WRITE]);
-        chkReadWrite.setValue((fileType2 & FILE_TYPE_READWRITE_MASK) != 0);
+        chkReadWrite = new JCheckBox(parent, IDC_CHECK_READWRITE, G_TYPE_NAME_N88_2[TYPE_NAME_N88_READ_WRITE]);
+        chkReadWrite.setValue((fileType2 & FILE_TYPE_READWRITE_MASK.getValue()) != 0);
         // staType4->Add(chkReadWrite, flags);
         // Assuming staType4.add(chkReadWrite, flags)
 
@@ -186,12 +188,12 @@ public class UiDirItemN88 extends UiDirItem {
 
         if (radType1 == null || chkReadOnly == null || chkReadWrite == null || chkEncrypt == null) return false;
 
-        int val = dirItem.calcFileTypeFromPos(radType1.getButtonCount());
+        int val = calcFileTypeFromPos(radType1.getButtonCount());
         val |= chkReadOnly.isSelected() ? FILE_TYPE_READONLY_MASK.getValue() : 0;
         val |= chkEncrypt.isSelected() ? FILE_TYPE_ENCRYPTED_MASK.getValue() : 0;
         val |= chkReadWrite.isSelected() ? FILE_TYPE_READWRITE_MASK.getValue() : 0;
 
-        attr.setFileAttr(FORMAT_TYPE_UNKNOWN.getValue(), val);
+        attr.setFileAttr(FORMAT_TYPE_UNKNOWN, val, 0);
 
         return true;
     }

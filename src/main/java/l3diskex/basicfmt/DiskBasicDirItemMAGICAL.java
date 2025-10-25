@@ -12,10 +12,10 @@ import java.util.ResourceBundle;
 
 import l3diskex.Utils;
 import l3diskex.basicfmt.BasicCommon.DirectoryMagical;
+import l3diskex.basicfmt.BasicCommon.DirectoryN88;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
-import l3diskex.basicfmt.BasicFmt.DiskBasic;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
 
@@ -200,21 +200,24 @@ public class DiskBasicDirItemMAGICAL extends DiskBasicDirItemXDOSBase<DirectoryM
     private final DiskBasicDirData<DirectoryMagical> m_data = new DiskBasicDirData<>();
     private final DirItemSectorBoundary m_sdata = new DirItemSectorBoundary();
 
-    public DiskBasicDirItemMAGICAL(DiskBasic basic) {
+    public DiskBasicDirItemMAGICAL(DiskBasic basic) throws IOException {
         super(basic);
+
         m_data.alloc(DirectoryMagical.class);
         allocateItem(null);
     }
 
-    public DiskBasicDirItemMAGICAL(DiskBasic basic, DiskImageSector n_sector, int n_secpos, byte[] n_data) {
-        super(basic, n_sector, n_secpos, n_data);
-        m_data.attach(n_data);
+    public DiskBasicDirItemMAGICAL(DiskBasic basic, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP) throws IOException {
+        super(basic, n_sector, n_secpos, n_data, dataP);
+
+        m_data.attach(DirectoryMagical.class, n_data, dataP);
         allocateItem(null);
     }
 
-    public DiskBasicDirItemMAGICAL(DiskBasic basic, int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, SectorParam n_next, boolean[] n_unuse) throws IOException {
-        super(basic, n_num, n_gitem, n_sector, n_secpos, n_data, n_next, n_unuse, new boolean[] {true});
-        m_data.attach(n_data);
+    public DiskBasicDirItemMAGICAL(DiskBasic basic, int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP, SectorParam n_next, boolean[] n_unuse) throws IOException {
+        super(basic, n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next, n_unuse, true);
+
+        m_data.attach(DirectoryMagical.class, n_data, dataP);
         allocateItem(n_next);
 
         used(checkUsed(n_unuse[0]));
@@ -228,33 +231,26 @@ public class DiskBasicDirItemMAGICAL extends DiskBasicDirItemXDOSBase<DirectoryM
         calcFileSize();
     }
 
-    // Helper for original C++ passing a boolean by reference
-    public DiskBasicDirItemMAGICAL(DiskBasic basic, int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, SectorParam n_next, boolean n_unuse) throws IOException {
-        this(basic, n_num, n_gitem, n_sector, n_secpos, n_data, n_next, new boolean[] {n_unuse});
-    }
-
     @Override
-    public void setDataPtr(int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, SectorParam n_next) throws IOException {
-        super.setDataPtr(n_num, n_gitem, n_sector, n_secpos, n_data, n_next);
-        m_data.attach(n_data);
+    public void setDataPtr(int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP, SectorParam n_next) throws IOException {
+        super.setDataPtr(n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next);
+
+        m_data.attach(DirectoryMagical.class, n_data);
         allocateItem(n_next);
     }
 
     @Override
-    protected boolean allocateItem(SectorParam next) {
+    protected boolean allocateItem(SectorParam next) throws IOException {
         m_sdata.clear();
-        boolean bound = m_sdata.set(basic, sector, position, m_data.data(), getDataSize(), next);
+        boolean bound = m_sdata.set(basic, sector, position, m_data.getRawData(), getDataSize(), next);
 
-        if (!m_data.isSelf() && bound) {
+        if (bound) {
             // セクタをまたぐ場合、dataは内部で確保する
-            m_data.alloc(DirectoryMagical.class);
             m_data.fill((byte) 0);
         }
 
         // コピー
-        if (m_data.isSelf()) {
-            m_sdata.copyTo(m_data.data());
-        }
+        m_sdata.copyTo(m_data.getRawData());
 
         return true;
     }
@@ -614,26 +610,20 @@ public class DiskBasicDirItemMAGICAL extends DiskBasicDirItemXDOSBase<DirectoryM
     @Override
     public boolean copyData(DirectoryMagical val) {
         boolean sts = m_data.copy(val);
-        if (m_data.isSelf()) {
-            m_sdata.copyFrom(m_data.data());
-        }
+        m_sdata.copyFrom(m_data.getRawData());
         return sts;
     }
 
     @Override
     public void clearData() {
         m_data.fill(basic.diskBasicParam.getDeleteCode());
-        if (m_data.isSelf()) {
-            m_sdata.copyFrom(m_data.data());
-        }
+        m_sdata.copyFrom(m_data.getRawData());
     }
 
     @Override
     public void initialData() {
         m_data.fill(basic.diskBasicParam.getFillCodeOnDir());
-        if (m_data.isSelf()) {
-            m_sdata.copyFrom(m_data.data());
-        }
+            m_sdata.copyFrom(m_data.getRawData());
     }
 
     @Override
@@ -695,9 +685,7 @@ public class DiskBasicDirItemMAGICAL extends DiskBasicDirItemXDOSBase<DirectoryM
 
     @Override
     public void setModify() {
-        if (m_data.isSelf()) {
-            m_sdata.copyFrom(m_data.data());
-        }
+        m_sdata.copyFrom(m_data.getRawData());
     }
 
     private int convFileType1Pos(int t1) {
@@ -717,7 +705,6 @@ public class DiskBasicDirItemMAGICAL extends DiskBasicDirItemXDOSBase<DirectoryM
 
     @Override
     public void setInternalDataInAttrDialog(KeyValArray vals) {
-        vals.add("self", m_data.isSelf());
         vals.add("TYPE", m_data.data().type);
         vals.add("NAME", m_data.data().name, m_data.data().name.length);
         vals.add("TYPE2", m_data.data().type2);

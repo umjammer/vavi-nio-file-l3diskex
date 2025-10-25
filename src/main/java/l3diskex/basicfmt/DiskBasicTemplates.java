@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.System.Logger;
 import java.lang.System.Logger.Level;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
@@ -16,14 +17,14 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.w3c.dom.Document;
 
 import l3diskex.Parambase.TemplatesBase;
-import l3diskex.basicfmt.BasicCategory.DiskBasicCategories;
-import l3diskex.basicfmt.BasicCategory.DiskBasicCategory;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFormatType;
 import l3diskex.basicfmt.DiskBasicParam.DiskBasicFormat;
 import l3diskex.basicfmt.DiskBasicParam.DiskBasicFormats;
 import l3diskex.basicfmt.DiskBasicParam.DiskBasicParams;
 import l3diskex.diskimg.DiskParam.DiskParamName;
 import org.xml.sax.SAXException;
+
+import static l3diskex.basicfmt.DiskBasicCategory.find;
 
 
 /**
@@ -37,9 +38,9 @@ public class DiskBasicTemplates extends TemplatesBase {
 
     private final DiskBasicFormats formats = new DiskBasicFormats();
     private final DiskBasicParams types = new DiskBasicParams();
-    private final DiskBasicCategories categories = new DiskBasicCategories();
+    private final List<DiskBasicCategory> categories = new ArrayList<>();
 
-    public DiskBasicTemplates() {
+    private DiskBasicTemplates() {
     }
 
     /**
@@ -49,6 +50,7 @@ public class DiskBasicTemplates extends TemplatesBase {
      * @param locale_name ローケル名
      * @param errmsgs     エラーメッセージ
      * @return true/false
+     * @see "basic_types.xml"
      */
     public boolean load(String data_path, String locale_name, StringBuilder errmsgs) {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -92,12 +94,12 @@ logger.log(Level.ERROR, e.getMessage(), e);
             return false;
         }
 
-        valid = categories.load(doc.getDocumentElement(), locale_name, errmsgs);
-        assert !categories.list.isEmpty();
+        valid = DiskBasicCategory.load(categories, doc.getDocumentElement(), locale_name, errmsgs);
+        assert !categories.isEmpty();
         if (!valid) {
 logger.log(Level.ERROR, "categories.load");
         }
-logger.log(Level.INFO, "categories: " + categories.list.size());
+logger.log(Level.INFO, "categories: " + categories.size());
 
         return valid;
     }
@@ -157,7 +159,7 @@ logger.log(Level.INFO, "categories: " + categories.list.size());
      * @return リストの数
      */
     public int findTypeNames(int n_category_index, List<String> n_type_names) {
-        return types.findNames(categories.getName(n_category_index), n_type_names);
+        return types.findNames(categories.get(n_category_index).getName(), n_type_names);
     }
 
     /**
@@ -205,7 +207,7 @@ logger.log(Level.INFO, "categories: " + categories.list.size());
      * @return カテゴリ
      */
     public DiskBasicCategory findCategory(String n_category) {
-        return categories.find(n_category);
+        return find(categories, n_category);
     }
 
     /**
@@ -215,6 +217,6 @@ logger.log(Level.INFO, "categories: " + categories.list.size());
      * @return カテゴリ名
      */
     public String getCategoryName(int idx) {
-        return categories.getName(idx);
+        return categories.get(idx).getName();
     }
 }

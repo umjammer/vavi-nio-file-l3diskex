@@ -4,7 +4,6 @@
 
 package l3diskex.basicfmt;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ResourceBundle;
@@ -17,11 +16,9 @@ import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
-import l3diskex.basicfmt.BasicFmt.DiskBasic;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
 import vavi.util.ByteUtil;
-import vavi.util.serdes.Serdes;
 
 import static l3diskex.Parambase.MyAttributes.findUpperCase;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_ARCHIVE_MASK;
@@ -85,13 +82,6 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> implemen
 
     public static final int SECTOR_UNIT_CPM = 128;
 
-    // UI component IDs (assuming these are constant integers for FindWindow)
-    public static final int IDC_SPIN_USERID = 51;
-    public static final int IDC_CHECK_READONLY = 52;
-    public static final int IDC_CHECK_SYSTEM = 53;
-    public static final int IDC_CHECK_ARCHIVE = 54;
-    public static final int IDC_RADIO_BINASC = 55;
-
     /** ディレクトリデータ */
     protected DiskBasicDirData<DirectoryCpm> m_data = new DiskBasicDirData<>();
 
@@ -105,7 +95,7 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> implemen
 
     public DiskBasicDirItemCPM(DiskBasic basic) {
         super(basic);
-        // Assuming DiskBasicDirData is a generic wrapper for directory data
+
         m_data.alloc(DirectoryCpm.class);
         // グループ番号の幅
         group_width = basic.diskBasicParam.getGroupWidth();
@@ -115,11 +105,10 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> implemen
         next_item = null;
     }
 
-    public DiskBasicDirItemCPM(DiskBasic basic, DiskImageSector n_sector, int n_secpos, byte[] n_data) throws IOException {
-        super(basic, n_sector, n_secpos, n_data);
-        DirectoryCpm b = new DirectoryCpm();
-        Serdes.Util.deserialize(new ByteArrayInputStream(n_data), b);
-        m_data.attach(b);
+    public DiskBasicDirItemCPM(DiskBasic basic, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP) throws IOException {
+        super(basic, n_sector, n_secpos, n_data, dataP);
+
+        m_data.attach(DirectoryCpm.class, n_data, dataP);
         // グループ番号の幅
         group_width = basic.diskBasicParam.getGroupWidth();
         group_entries = basic.diskBasicParam.getGroupsPerDirEntry() >= 8 ? basic.diskBasicParam.getGroupsPerDirEntry() : (16 / group_width);
@@ -128,11 +117,10 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> implemen
         next_item = null;
     }
 
-    public DiskBasicDirItemCPM(DiskBasic basic, int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, SectorParam n_next, boolean[] n_unuse) throws IOException {
-        super(basic, n_num, n_gitem, n_sector, n_secpos, n_data, n_next, n_unuse);
-        DirectoryCpm b = new DirectoryCpm();
-        Serdes.Util.deserialize(new ByteArrayInputStream(n_data), b);
-        m_data.attach(b);
+    public DiskBasicDirItemCPM(DiskBasic basic, int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP, SectorParam n_next, boolean[] n_unuse) throws IOException {
+        super(basic, n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next, n_unuse);
+
+        m_data.attach(DirectoryCpm.class, n_data, dataP);
         // グループ番号の幅
         group_width = basic.diskBasicParam.getGroupWidth();
         group_entries = basic.diskBasicParam.getGroupsPerDirEntry() >= 8 ? basic.diskBasicParam.getGroupsPerDirEntry() : (16 / group_width);
@@ -140,7 +128,6 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> implemen
 
         next_item = null;
 
-        n_unuse[0] = false; // CheckUsed will fill this based on GetFileType1()
         used(checkUsed(n_unuse[0]));
     }
 
@@ -152,14 +139,14 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> implemen
      * @param n_sector セクタ
      * @param n_secpos セクタ内のディレクトリエントリの位置
      * @param n_data   ディレクトリアイテム
+     * @param dataP
      * @param n_next   次のセクタ
      */
     @Override
-    public void setDataPtr(int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, SectorParam n_next) throws IOException {
-        super.setDataPtr(n_num, n_gitem, n_sector, n_secpos, n_data, n_next);
-        DirectoryCpm b = new DirectoryCpm();
-        Serdes.Util.deserialize(new ByteArrayInputStream(n_data), b);
-        m_data.attach(b);
+    public void setDataPtr(int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP, SectorParam n_next) throws IOException {
+        super.setDataPtr(n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next);
+
+        m_data.attach(DirectoryCpm.class, n_data, dataP);
     }
 
     /**
@@ -509,7 +496,7 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> implemen
      */
     @Override
     public int recalcFileSize(DiskBasicGroups group_items, int occupied_size) throws IOException {
-        if (group_items.count() == 0) return occupied_size;
+        if (group_items.size() == 0) return occupied_size;
 
         DiskBasicGroupItem litem = group_items.last();
         DiskImageSector sector = basic.getSector(litem.track, litem.side, litem.sectorEnd);
@@ -817,7 +804,6 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> implemen
      */
     @Override
     public void setInternalDataInAttrDialog(KeyValArray vals) {
-        vals.add("self", m_data.isSelf());
         vals.add("TYPE", m_data.data().type & 0xff);
         vals.add("NAME", m_data.data().name, m_data.data().name.length);
         vals.add("EXT", m_data.data().ext, m_data.data().ext.length);

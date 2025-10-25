@@ -16,7 +16,8 @@ import javax.swing.JSpinner;
 
 import l3diskex.basicfmt.DiskBasicDirItem.DiskBasicDirItemAttr;
 import l3diskex.basicfmt.DiskBasicDirItemCPM;
-import l3diskex.basicfmt.DiskBasicDirItemCPM.BasicDirItemCPM;
+import l3diskex.basicfmt.DiskBasicDirItemCPM.EnTypeNameCPM;
+import l3diskex.basicfmt.DiskBasicDirItemCPM.EnTypeNameCPM2;
 import l3diskex.basicfmt.DiskBasicError;
 import l3diskex.ui.IntNameBox;
 import l3diskex.ui.UiDirItem;
@@ -25,7 +26,8 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_ARCHIVE_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_BINARY_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_READONLY_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_SYSTEM_MASK;
-import static l3diskex.basicfmt.DiskBasicDirItemCPM.BasicDirItemCPM.IDC_CHECK_READONLY;
+import static l3diskex.basicfmt.DiskBasicDirItemCPM.gTypeNameCPM;
+import static l3diskex.basicfmt.DiskBasicDirItemCPM.gTypeNameCPM_2;
 
 
 /**
@@ -37,6 +39,13 @@ import static l3diskex.basicfmt.DiskBasicDirItemCPM.BasicDirItemCPM.IDC_CHECK_RE
 public class UiDirItemCPM extends UiDirItem {
 
     static final ResourceBundle rb = ResourceBundle.getBundle("messages");
+
+    // UI component IDs (assuming these are constant integers for FindWindow)
+    public static final int IDC_SPIN_USERID = 51;
+    public static final int IDC_CHECK_READONLY = 52;
+    public static final int IDC_CHECK_SYSTEM = 53;
+    public static final int IDC_CHECK_ARCHIVE = 54;
+    public static final int IDC_RADIO_BINASC = 55;
 
     DiskBasicDirItemCPM dirItem;
 
@@ -90,28 +99,28 @@ public class UiDirItemCPM extends UiDirItem {
         SetFileTypeForAttrDialog(show_flags, file_path, file_type_1, file_type_2);
 
         List<String> choices = new ArrayList<>();
-        for (int i = 0; BasicDirItemCPM.gTypeNameCPM_2[i] != null; i++) {
-            choices.add(rb.getString(BasicDirItemCPM.gTypeNameCPM_2[i]));
+        for (int i = 0; gTypeNameCPM_2[i] != null; i++) {
+            choices.add(rb.getString(gTypeNameCPM_2[i]));
         }
-        radBinAsc = new ButtonGroup(parent, BasicDirItemCPM.IDC_RADIO_BINASC, "Select File Type", null, null, choices, 0, 0); // wxRA_SPECIFY_COLS
-        radBinAsc.setSelected((file_type_2[0] & FILE_TYPE_BINARY_MASK.getValue()) != 0 ? BasicDirItemCPM.EnTypeNameCPM2.TYPE_NAME_CPM_BINARY.getValue() : BasicDirItemCPM.EnTypeNameCPM2.TYPE_NAME_CPM_ASCII.getValue());
+        radBinAsc = new ButtonGroup(parent, IDC_RADIO_BINASC, "Select File Type", null, null, choices, 0, 0); // wxRA_SPECIFY_COLS
+        radBinAsc.setSelected((file_type_2[0] & FILE_TYPE_BINARY_MASK.getValue()) != 0 ? EnTypeNameCPM2.TYPE_NAME_CPM_BINARY.getValue() : EnTypeNameCPM2.TYPE_NAME_CPM_ASCII.getValue());
         sizer.Add(radBinAsc, flags);
 
         BoxLayout staType4 = new BoxLayout(new StaticBox(parent, wxID_ANY, "File Attributes"), 1); // wxVERTICAL
         BoxLayout hbox = new BoxLayout(0); // wxHORIZONTAL
         hbox.Add(new StaticText(parent, wxID_ANY, "User ID"), new DimensionrFlags().Align(0x0200 /*wxALIGN_CENTER_VERTICAL*/));
-        spnUserId = new wxSpinCtrl(parent, BasicDirItemCPM.IDC_SPIN_USERID, "", null, null, 0x1000 /*wxSP_ARROW_KEYS*/ | 0x0001 /*wxALIGN_LEFT*/, 0, 15, file_type_1[0]);
+        spnUserId = new wxSpinCtrl(parent, IDC_SPIN_USERID, "", null, null, 0x1000 /*wxSP_ARROW_KEYS*/ | 0x0001 /*wxALIGN_LEFT*/, 0, 15, file_type_1[0]);
         hbox.Add(spnUserId, flags);
         staType4.Add(hbox);
 
         hbox = new BoxLayout(0); // wxHORIZONTAL
-        chkReadOnly = new JCheckBox(parent, IDC_CHECK_READONLY, rb.getString(BasicDirItemCPM.gTypeNameCPM[BasicDirItemCPM.EnTypeNameCPM.TYPE_NAME_CPM_READ_ONLY.getValue()]));
+        chkReadOnly = new JCheckBox(parent, IDC_CHECK_READONLY, rb.getString(gTypeNameCPM[EnTypeNameCPM.TYPE_NAME_CPM_READ_ONLY.getValue()]));
         chkReadOnly.SetValue((file_type_2[0] & FILE_TYPE_READONLY_MASK.getValue()) != 0);
         hbox.Add(chkReadOnly, flags);
-        chkSystem = new JCheckBox(parent, BasicDirItemCPM.IDC_CHECK_SYSTEM, rb.getString(BasicDirItemCPM.gTypeNameCPM[BasicDirItemCPM.EnTypeNameCPM.TYPE_NAME_CPM_SYSTEM.getValue()]));
+        chkSystem = new JCheckBox(parent, IDC_CHECK_SYSTEM, rb.getString(gTypeNameCPM[EnTypeNameCPM.TYPE_NAME_CPM_SYSTEM.getValue()]));
         chkSystem.SetValue((file_type_2[0] & FILE_TYPE_SYSTEM_MASK.getValue()) != 0);
         hbox.Add(chkSystem, flags);
-        chkArchive = new JCheckBox(parent, BasicDirItemCPM.IDC_CHECK_ARCHIVE, rb.getString(BasicDirItemCPM.gTypeNameCPM[BasicDirItemCPM.EnTypeNameCPM.TYPE_NAME_CPM_ARCHIVE.getValue()]));
+        chkArchive = new JCheckBox(parent, IDC_CHECK_ARCHIVE, rb.getString(gTypeNameCPM[EnTypeNameCPM.TYPE_NAME_CPM_ARCHIVE.getValue()]));
         chkArchive.SetValue((file_type_2[0] & FILE_TYPE_ARCHIVE_MASK.getValue()) != 0);
         hbox.Add(chkArchive, flags);
 
@@ -131,18 +140,18 @@ public class UiDirItemCPM extends UiDirItem {
      */
     @Override
     public boolean setAttrInAttrDialog(IntNameBox parent, DiskBasicDirItemAttr attr, DiskBasicError errinfo) {
-        JSpinner spnUserId = (JSpinner) parent.getComponent(BasicDirItemCPM.IDC_SPIN_USERID);
-        ButtonGroup radBinAsc = (ButtonGroup) parent.getComponent(BasicDirItemCPM.IDC_RADIO_BINASC);
+        JSpinner spnUserId = (JSpinner) parent.getComponent(IDC_SPIN_USERID);
+        ButtonGroup radBinAsc = (ButtonGroup) parent.getComponent(IDC_RADIO_BINASC);
         JCheckBox chkReadOnly = (JCheckBox) parent.getComponent(IDC_CHECK_READONLY);
-        JCheckBox chkSystem = (JCheckBox) parent.getComponent(BasicDirItemCPM.IDC_CHECK_SYSTEM);
-        JCheckBox chkArchive = (JCheckBox) parent.getComponent(BasicDirItemCPM.IDC_CHECK_ARCHIVE);
+        JCheckBox chkSystem = (JCheckBox) parent.getComponent(IDC_CHECK_SYSTEM);
+        JCheckBox chkArchive = (JCheckBox) parent.getComponent(IDC_CHECK_ARCHIVE);
 
         int user_id = (int) spnUserId.getValue();
         // val = (val << FILETYPE_CPM_USERID_POS) & FILETYPE_CPM_USERID_MASK; // User ID is SetFileType1()
         int val = chkReadOnly.isSelected() ? FILE_TYPE_READONLY_MASK.getValue() : 0;
         val |= chkSystem.isSelected() ? FILE_TYPE_SYSTEM_MASK.getValue() : 0;
         val |= chkArchive.isSelected() ? FILE_TYPE_ARCHIVE_MASK.getValue() : 0;
-        val |= radBinAsc.isSelected() == BasicDirItemCPM.EnTypeNameCPM2.TYPE_NAME_CPM_BINARY.getValue() ? FILE_TYPE_BINARY_MASK : 0;
+        val |= radBinAsc.isSelected() == EnTypeNameCPM2.TYPE_NAME_CPM_BINARY.getValue() ? FILE_TYPE_BINARY_MASK : 0;
 
         attr.setFileAttr(dirItem.getBasic().getFormatTypeNumber(), val, user_id);
 

@@ -4,10 +4,10 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import l3diskex.basicfmt.BasicCommon.DirectoryFp;
+import l3diskex.basicfmt.BasicCommon.DirectoryN88;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
-import l3diskex.basicfmt.BasicFmt.DiskBasic;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
 
@@ -35,7 +35,6 @@ public class DiskBasicDirItemFP extends DiskBasicDirItemFAT8<DirectoryFp> {
     public static final String[] G_TYPE_NAME_FP_2 = {
             "Write Protected",
             "Read After Write",
-            null
     };
     public static final int TYPE_NAME_FP_READ_ONLY = 0;
     public static final int TYPE_NAME_FP_READ_WRITE = 1;
@@ -44,50 +43,47 @@ public class DiskBasicDirItemFP extends DiskBasicDirItemFAT8<DirectoryFp> {
     public static final int DATATYPE_MASK_FP_READ_ONLY = 0xf0;
     public static final int DATATYPE_MASK_FP_READ_WRITE = 0x0f;
 
-    private final DiskBasicDirData<DirectoryFp> m_data;
-
-    // Constructors
-    private DiskBasicDirItemFP() {
-        super(null);
-        m_data = new DiskBasicDirData<>();
-    }
-
-    private DiskBasicDirItemFP(DiskBasicDirItemFP src) {
-        super(src.basic);
-        m_data = new DiskBasicDirData<>();
-        m_data.copy(src.m_data.data());
-    }
+    private final DiskBasicDirData<DirectoryFp> m_data = new DiskBasicDirData<>();
 
     public DiskBasicDirItemFP(DiskBasic basic) {
         super(basic);
-        m_data = new DiskBasicDirData<>();
-        m_data.fill(basic.diskBasicParam.getFillCodeOnDir());
+
+        m_data.alloc(DirectoryFp.class);
     }
 
-    public DiskBasicDirItemFP(DiskBasic basic, DiskImageSector n_sector, int n_secpos, byte[] n_data) {
-        super(basic, n_sector, n_secpos, n_data);
-        m_data = new DiskBasicDirData<>();
-        m_data.attach(n_data);
+    public DiskBasicDirItemFP(DiskBasic basic, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP) {
+        super(basic, n_sector, n_secpos, n_data, dataP);
+
+        m_data.attach(DirectoryFp.class, n_data, dataP);
     }
 
-    public DiskBasicDirItemFP(DiskBasic basic, int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, SectorParam n_next, boolean[] n_unuse) throws IOException {
-        super(basic, n_num, n_gitem, n_sector, n_secpos, n_data, n_next, n_unuse);
-        m_data = new DiskBasicDirData<>();
-        m_data.attach(n_data);
+    public DiskBasicDirItemFP(DiskBasic basic, int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP, SectorParam n_next, boolean[] n_unuse) throws IOException {
+        super(basic, n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next, n_unuse);
 
-        boolean unuse = n_unuse[0];
-        used(checkUsed(unuse));
-        unuse = (unuse || m_data.data().name[0] == (byte) 0xff);
-        n_unuse[0] = unuse;
+        m_data.attach(DirectoryFp.class, n_data, dataP);
 
+        used(checkUsed(n_unuse[0]));
+        n_unuse[0] = (n_unuse[0] || m_data.data().name[0] == (byte) 0xff);
+
+        // ファイルサイズとグループ数を計算
         calcFileSize();
     }
 
-    // --- Private/Protected Virtual/Overridden Methods ---
+    /**
+     * アイテムへのポインタを設定
+     *
+     * @param n_num    通し番号
+     * @param n_gitem  トラック番号などのデータ
+     * @param n_sector セクタ
+     * @param n_secpos セクタ内のディレクトリエントリの位置
+     * @param n_data   ディレクトリアイテム
+     * @param n_next   [out] 次のセクタ
+     */
     @Override
-    public void setDataPtr(int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, SectorParam n_next) throws IOException {
-        super.setDataPtr(n_num, n_gitem, n_sector, n_secpos, n_data, n_next);
-        m_data.attach(n_data);
+    public void setDataPtr(int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP, SectorParam n_next) throws IOException {
+        super.setDataPtr(n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next);
+
+        m_data.attach(DirectoryFp.class, n_data, dataP);
     }
 
     @Override
@@ -419,7 +415,6 @@ public class DiskBasicDirItemFP extends DiskBasicDirItemFAT8<DirectoryFp> {
 
     @Override
     public void setInternalDataInAttrDialog(KeyValArray vals) {
-        vals.add("self", m_data.isSelf());
         vals.add("TYPE", m_data.data().type);
         vals.add("NAME", m_data.data().name, m_data.data().name.length);
         vals.add("EXT", m_data.data().ext, m_data.data().ext.length);

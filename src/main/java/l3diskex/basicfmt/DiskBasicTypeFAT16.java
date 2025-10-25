@@ -1,9 +1,5 @@
 package l3diskex.basicfmt;
 
-import l3diskex.basicfmt.BasicFat.DiskBasicFat;
-import l3diskex.basicfmt.BasicFmt.DiskBasic;
-
-
 /**
  * @file DiskBasicTypeFAT16.java
  * <p>

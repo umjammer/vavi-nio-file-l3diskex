@@ -287,22 +287,4 @@ public class FontMiniBox extends JDialog {
     public int getFontSize() {
         return mSelectedSize;
     }
-
-    /* ---------------------------------------------------------------- */
-    /*  Main method – simple test harness
-     * ---------------------------------------------------------------- */
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            Frame dummy = new Frame(); // dummy parent
-            Font defaultFont = new Font("Arial", Font.PLAIN, 12);
-            FontMiniBox dlg = new FontMiniBox(dummy, 0, defaultFont);
-            int rc = dlg.ShowModal();
-            if (rc == 0) {
-                System.out.println("Selected font: " + dlg.getFontName());
-                System.out.println("Selected size: " + dlg.getFontSize());
-            } else {
-                System.out.println("Dialog cancelled");
-            }
-        });
-    }
 }

@@ -16,16 +16,15 @@ import l3diskex.basicfmt.BasicCommon.DirectoryFlex;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.BasicCommon.FlexPtr;
-import l3diskex.basicfmt.BasicFat.DiskBasicFat;
-import l3diskex.basicfmt.BasicFmt.DiskBasic;
-import l3diskex.basicfmt.BasicFmt.DiskBasicIdentifiedData;
+import l3diskex.basicfmt.DiskBasic.DiskBasicIdentifiedData;
 import l3diskex.basicfmt.DiskBasicParam.DiskBasicFormat;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskImage.DiskImageTrack;
+import vavi.util.serdes.Element;
 import vavi.util.serdes.Serdes;
 
-import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_FREE;
-import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_USED_LAST;
+import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_FREE;
+import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_USED_LAST;
 import static l3diskex.basicfmt.DiskBasicType.AllocateGroupFlags.ALLOCATE_GROUPS_NEW;
 
 
@@ -174,8 +173,8 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
      *
      * @param is_formatting フォーマット中か
      * @return 1.0       正常
-     *  0.0 - 1.0 警告あり
-     *   <0.0      エラーあり
+     * 0.0 - 1.0 警告あり
+     * <0.0      エラーあり
      */
     @Override
     public double checkFat(boolean is_formatting) throws IOException {
@@ -246,8 +245,8 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
      *
      * @param is_formatting フォーマット中か
      * @return 1.0       正常
-     *  0.0 - 1.0 警告あり
-     *  <0.0      エラーあり
+     * 0.0 - 1.0 警告あり
+     * <0.0      エラーあり
      */
     @Override
     public double parseParamOnDisk(boolean is_formatting) throws IOException {
@@ -264,11 +263,11 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
             flex_sir = flex;
         }
 
-        logger.log(Level.INFO, "FLEX: sir.max_track: %d", flex_sir.max_track & 0xff);
+        logger.log(Level.TRACE, "FLEX: sir.max_track: %d".formatted(flex_sir.max_track & 0xff));
         if (flex_sir.max_track > 0) {
             basic.diskBasicParam.setTracksPerSideOnBasic((flex_sir.max_track & 0xff) + 1);
         }
-        logger.log(Level.INFO, "FLEX: sir.max_sector: %d", flex_sir.max_sector & 0xff);
+        logger.log(Level.TRACE, "FLEX: sir.max_sector: %d".formatted( flex_sir.max_sector & 0xff));
         if (flex_sir.max_sector > 0) {
             basic.diskBasicParam.setSectorsPerTrackOnBasic((flex_sir.max_sector & 0xff) / basic.getSidesPerDiskOnBasic() / basic.diskBasicParam.getGroupsPerSector());
         }
@@ -281,7 +280,7 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
     public boolean calcGroupsOnRootDirectory(int start_sector, int end_sector, DiskBasicGroups group_items) throws IOException {
         boolean valid = true;
 
-        group_items.empty();
+        group_items.clear();
 
         // ディレクトリのチェインをたどる
         int dir_size = 0;
@@ -367,7 +366,7 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
         int fsize = 0;
         int grps = 0;
 
-        // logger.log(Level.DEBUG, "DiskBasicTypeFLEX::CalcDiskFreeSize");
+        //logger.log(Level.TRACE, "DiskBasicTypeFLEX::CalcDiskFreeSize");
 
         fatAvailability.empty();
 
@@ -397,19 +396,19 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
                 break;
             }
             if (sector_pos < fatAvailability.count()) {
-                if (fatAvailability.get(sector_pos) == FAT_AVAIL_FREE.getValue()) {
+                if (fatAvailability.get(sector_pos) == FAT_AVAIL_FREE.ordinal()) {
                     // 既に空きエリアにしているのに同じセクタにきている
                     // 無限ループしている？
                     break;
                 }
-                fatAvailability.set(sector_pos, FAT_AVAIL_FREE.getValue());
+                fatAvailability.set(sector_pos, FAT_AVAIL_FREE.ordinal());
             }
 
             // セクタ先頭4バイトは除く
             fsize += (logSecSiz(sector.getSectorSize()) - 4);
             grps++;
 
-            //logger.log(Level.DEBUG, "trk:%d sec:%d size:%d", track_num, sector_num, fsize);
+            //logger.log(Level.TRACE, "trk:%d sec:%d size:%d".formatted(track_num, sector_num, fsize));
 
             FlexPtr p = new FlexPtr();
             byte[] b = sector.getSectorBuffer(secBufOfs(div_num + 1));
@@ -431,7 +430,7 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
                 if (gcnt > 0) {
                     int gnum = item.getGroup(gcnt - 1).group;
                     if (gnum <= basic.diskBasicParam.getFatEndGroup()) {
-                        fatAvailability.set(gnum, FAT_AVAIL_USED_LAST.getValue());
+                        fatAvailability.set(gnum, FAT_AVAIL_USED_LAST.ordinal());
                     }
                 }
             }
@@ -444,7 +443,7 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
     /** データサイズ分のグループを確保する */
     @Override
     public int allocateUnitGroups(int fileunit_num, DiskBasicDirItem<DirectoryFlex> item, int data_size, AllocateGroupFlags flags, DiskBasicGroups group_items) throws IOException {
-        //logger.log(Level.DEBUG, "DiskBasicTypeFLEX::AllocateGroups {");
+        //logger.log(Level.TRACE, "DiskBasicTypeFLEX::AllocateGroups {");
 
         //int file_size = data_size;
         int groups = 0;
@@ -499,7 +498,7 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
                 first_group = false;
             }
 
-            //logger.log(Level.DEBUG, "  group_num:0x%03x", group_num);
+            //logger.log(Level.TRACE, "  group_num:0x%03x".formatted(group_num));
 
             basic.getNumsFromGroup(group_num, 0, logSecSiz(basic.getSectorSize()), sizeremain, group_items);
 
@@ -526,8 +525,8 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
                 int prev_grp = 0xfff_ffff;
                 int idx_count = 0;
                 int idx_start = 0;
-                for (int i = 0; i < group_items.count(); i++) {
-                    DiskBasicGroupItem gitm = group_items.itemPtr(i);
+                for (int i = 0; i < group_items.size(); i++) {
+                    DiskBasicGroupItem gitm = group_items.get(i);
                     if (prev_grp == gitm.group) {
                         // 同じならスキップ
                         continue;
@@ -564,7 +563,7 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
                     if (buf == null) break;
 
                     for (int pos = 4; pos < logSecSiz(isector.getSectorSize()); pos += StFlexFsm.getSize()) {
-                        DiskBasicGroupItem ritem = random_groups.itemPtr(idx);
+                        DiskBasicGroupItem ritem = random_groups.get(idx);
                         int trk_num_fsm = 0;
                         int sec_num_fsm = 0;
                         int[] trk_num_fsm_holder = new int[] {trk_num_fsm};
@@ -582,7 +581,7 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
                         StFlexFsm.writeToBuffer(fsm, buf, pos);
 
                         idx++;
-                        if (idx >= random_groups.count()) {
+                        if (idx >= random_groups.size()) {
                             finished = true;
                             break;
                         }
@@ -624,7 +623,7 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
             }
         }
 
-        //logger.log(Level.DEBUG, "rc: %d }", rc);
+        //logger.log(Level.TRACE, "rc: %d }".formatted(rc));
         return rc;
     }
 
@@ -867,7 +866,9 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
 
         // volume name and number
         setIdentifiedData(data);
-        FlexSirT.writeToBuffer(flex_sir, sector.getSectorBuffer(), secBufOfs(2 + 1));
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        Serdes.Util.serialize(flex_sir, baos);
+        sector.setSectorBuffer(baos.toByteArray(), secBufOfs(2 + 1), baos.size());
 
         // DIRエリア
 
@@ -1063,9 +1064,9 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
 
         // 空き領域をソートしてチェインを作り直す
         group_items.sortItems();
-        int group_items_count = group_items.count();
+        int group_items_count = group_items.size();
         for (int idx = 0; idx < group_items_count; idx++) {
-            DiskBasicGroupItem gitem = group_items.itemPtr(idx);
+            DiskBasicGroupItem gitem = group_items.get(idx);
             int div_num = 0;
             int[] div_num_holder = new int[] {div_num};
             sector = basic.getSectorFromSectorPos(getSectorPosFromNumS(gitem.track, gitem.sectorStart), div_num_holder);
@@ -1082,7 +1083,7 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
                 flex_sir.free_start_sector = (byte) gitem.sectorStart;
             }
             if ((idx + 1) != group_items_count) {
-                DiskBasicGroupItem next_gitem = group_items.itemPtr(idx + 1);
+                DiskBasicGroupItem next_gitem = group_items.get(idx + 1);
                 p.nextTrack = (byte) next_gitem.track;
                 p.nextSector = (byte) next_gitem.sectorStart;
                 // p.seq_num = wxUINT16_SWAP_ON_LE(idx + 1);
@@ -1128,83 +1129,47 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
         DiskBasicFormat fmt = basic.getFormatType();
 
         // volume label
-        if (fmt.HasVolumeName()) {
+        if (fmt.hasVolumeName()) {
             byte[] vol = data.getVolumeName().getBytes();
             System.arraycopy(vol, vol.length, flex_sir.volume_label, 0, flex_sir.volume_label.length);
         }
         // volume number
-        if (fmt.HasVolumeNumber()) {
+        if (fmt.hasVolumeNumber()) {
             flex_sir.volume_number = (short) data.getVolumeNumber();
         }
     }
 
-    // Helper class for data serialization/deserialization for FlexSirT
+    @Serdes
     public static class FlexSirT {
 
+        @Element(sequence = 1)
         public byte[] reserved0 = new byte[16];
+        @Element(sequence = 2)
         public byte[] volume_label = new byte[8];
+        @Element(sequence = 3)
         public byte[] reserved1 = new byte[3];
+        @Element(sequence = 4)
         public short volume_number;
+        @Element(sequence = 5)
         public byte free_start_track;
+        @Element(sequence = 6)
         public byte free_start_sector;
+        @Element(sequence = 7)
         public byte free_last_track;
+        @Element(sequence = 8)
         public byte free_last_sector;
+        @Element(sequence = 9)
         public short free_sector_nums;
+        @Element(sequence = 10)
         public byte cmonth;
+        @Element(sequence = 11)
         public byte cday;
+        @Element(sequence = 12)
         public byte cyear;
+        @Element(sequence = 13)
         public byte max_track;
+        @Element(sequence = 14)
         public byte max_sector;
-
-        public static FlexSirT readFromBuffer(byte[] buffer, int offset) {
-            FlexSirT obj = new FlexSirT();
-            int currentOffset = offset;
-            System.arraycopy(buffer, currentOffset, obj.reserved0, 0, obj.reserved0.length);
-            currentOffset += obj.reserved0.length;
-            System.arraycopy(buffer, currentOffset, obj.volume_label, 0, obj.volume_label.length);
-            currentOffset += obj.volume_label.length;
-            System.arraycopy(buffer, currentOffset, obj.reserved1, 0, obj.reserved1.length);
-            currentOffset += obj.reserved1.length;
-            obj.volume_number = (short) (buffer[currentOffset] & 0xFF | (buffer[currentOffset + 1] & 0xFF) << 8); // Little Endian short
-            currentOffset += 2;
-            obj.free_start_track = buffer[currentOffset++];
-            obj.free_start_sector = buffer[currentOffset++];
-            obj.free_last_track = buffer[currentOffset++];
-            obj.free_last_sector = buffer[currentOffset++];
-            obj.free_sector_nums = (short) (buffer[currentOffset] & 0xFF | (buffer[currentOffset + 1] & 0xFF) << 8); // Little Endian short
-            currentOffset += 2;
-            obj.cmonth = buffer[currentOffset++];
-            obj.cday = buffer[currentOffset++];
-            obj.cyear = buffer[currentOffset++];
-            obj.max_track = buffer[currentOffset++];
-            obj.max_sector = buffer[currentOffset++];
-            return obj;
-        }
-
-        public static void writeToBuffer(FlexSirT obj, byte[] buffer, int offset) {
-            int currentOffset = offset;
-            System.arraycopy(obj.reserved0, 0, buffer, currentOffset, obj.reserved0.length);
-            currentOffset += obj.reserved0.length;
-            System.arraycopy(obj.volume_label, 0, buffer, currentOffset, obj.volume_label.length);
-            currentOffset += obj.volume_label.length;
-            System.arraycopy(obj.reserved1, 0, buffer, currentOffset, obj.reserved1.length);
-            currentOffset += obj.reserved1.length;
-            buffer[currentOffset] = (byte) (obj.volume_number & 0xFF);
-            buffer[currentOffset + 1] = (byte) ((obj.volume_number >> 8) & 0xFF);
-            currentOffset += 2;
-            buffer[currentOffset++] = obj.free_start_track;
-            buffer[currentOffset++] = obj.free_start_sector;
-            buffer[currentOffset++] = obj.free_last_track;
-            buffer[currentOffset++] = obj.free_last_sector;
-            buffer[currentOffset] = (byte) (obj.free_sector_nums & 0xFF);
-            buffer[currentOffset + 1] = (byte) ((obj.free_sector_nums >> 8) & 0xFF);
-            currentOffset += 2;
-            buffer[currentOffset++] = obj.cmonth;
-            buffer[currentOffset++] = obj.cday;
-            buffer[currentOffset++] = obj.cyear;
-            buffer[currentOffset++] = obj.max_track;
-            buffer[currentOffset++] = obj.max_sector;
-        }
     }
 
     // Helper class for data serialization/deserialization for StFlexFsm

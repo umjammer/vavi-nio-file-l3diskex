@@ -6,15 +6,13 @@ package l3diskex.basicfmt;
 
 import java.util.Arrays;
 
-import l3diskex.basicfmt.BasicFat.DiskBasicFat;
-import l3diskex.basicfmt.BasicFmt.DiskBasic;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskImage.DiskImageTrack;
 
-import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_FREE;
-import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_SYSTEM;
-import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_USED;
-import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_USED_LAST;
+import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_FREE;
+import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_SYSTEM;
+import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_USED;
+import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_USED_LAST;
 
 
 /**
@@ -46,7 +44,7 @@ public class DiskBasicTypeFATBase extends DiskBasicType {
         for (int i = 0; i < 2; i++) {
             for (int g = group_start; g <= group_end; g++) {
                 int gnum = getGroupNumber(g);
-                //logger.log(Level.DEBUG, "DiskBasicTypeFATBase::GetNextEmptyGroupNumber: g:%d gnum:%d", g, gnum);
+                //logger.log(Level.TRACE, "DiskBasicTypeFATBase::GetNextEmptyGroupNumber: g: %d gnum: %d".formatted(g, gnum));
                 if (gnum == basic.diskBasicParam.getGroupUnusedCode()) {
                     new_num = g;
                     found = true;
@@ -121,7 +119,7 @@ public class DiskBasicTypeFATBase extends DiskBasicType {
 
         // システム領域
         for (int pos = 0; pos < start_group; pos++) {
-            fatAvailability.add(FAT_AVAIL_SYSTEM.getValue(), 0, 0);
+            fatAvailability.add(FAT_AVAIL_SYSTEM.ordinal(), 0, 0);
         }
 
         // クラスタは2から始まる(MS-DOS)
@@ -129,16 +127,16 @@ public class DiskBasicTypeFATBase extends DiskBasicType {
             int fsize = 0;
             int grps = 0;
             int gnum = getGroupNumber(pos);
-            int fsts = FAT_AVAIL_USED.getValue();
+            int fsts = FAT_AVAIL_USED.ordinal();
             if (gnum == basic.diskBasicParam.getGroupUnusedCode()) {
                 fsize = basic.getSectorSize() * basic.getSectorsPerGroup();
                 grps = 1;
-                fsts = FAT_AVAIL_FREE.getValue();
+                fsts = FAT_AVAIL_FREE.ordinal();
             } else if (gnum >= used_group) {          // 0xff8 0xfff8 0xfffffff8
-                fsts = FAT_AVAIL_USED_LAST.getValue();
+                fsts = FAT_AVAIL_USED_LAST.ordinal();
             }
             fatAvailability.add(fsts, fsize, grps);
-            //logger.log(Level.DEBUG, "DiskBasicTypeFATBase::CalcDiskFreeSizeBase: pos:%d gnum:%d size:%d grps:%d", pos, gnum, fsize, grps);
+            //logger.log(Level.TRACE, "DiskBasicTypeFATBase::CalcDiskFreeSizeBase: pos:%d gnum:%d size: %d grps: %d".formatted(pos, gnum, fsize, grps));
         }
     }
 

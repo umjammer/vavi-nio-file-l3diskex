@@ -530,21 +530,4 @@ public class ConfigBox extends JDialog {
         txtTempFolder.setEditable(enabled);
         btnTempFolder.setEnabled(enabled);
     }
-
-    /**
-     * Main method – demo of the dialog
-     */
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            Config cfg = new Config();
-            ConfigBox dlg = new ConfigBox(null, 0, cfg);
-            int rc = dlg.ShowModal();
-            if (rc == OK) {
-                dlg.CommitData();
-                System.out.println("Settings committed – see console output.");
-            } else {
-                System.out.println("Dialog cancelled.");
-            }
-        });
-    }
 }

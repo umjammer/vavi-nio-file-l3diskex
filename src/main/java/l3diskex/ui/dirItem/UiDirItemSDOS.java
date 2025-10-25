@@ -23,6 +23,7 @@ import static l3diskex.basicfmt.DiskBasicDirItemSDOS.IDC_COMBO_TYPE1;
 import static l3diskex.basicfmt.DiskBasicDirItemSDOS.TYPE_NAME_SDOS_DAT;
 import static l3diskex.basicfmt.DiskBasicDirItemSDOS.TYPE_NAME_SDOS_OBJ;
 import static l3diskex.basicfmt.DiskBasicDirItemSDOS.gTypeNameSDOS_1;
+import static l3diskex.ui.IntNameBox.INTNAME_NEW_FILE;
 
 
 /**
@@ -35,6 +36,8 @@ public class UiDirItemSDOS extends UiDirItem {
 
     private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
 
+    public static final int IDC_COMBO_TYPE1 = 51;
+
     DiskBasicDirItemSDOS dirItem;
 
     /**
@@ -46,9 +49,6 @@ public class UiDirItemSDOS extends UiDirItem {
      * @param file_type_2 CreateControlsForAttrDialog()に渡す
      */
     private void SetFileTypeForAttrDialog(int show_flags, String name, int[] file_type_1, int[] file_type_2) {
-        // Placeholder for INTNAME_NEW_FILE
-        final int INTNAME_NEW_FILE = 0x01; // Assuming a constant value
-
         if ((show_flags & INTNAME_NEW_FILE) != 0) {
             // 外部からインポート時
             file_type_1[0] = dirItem.convOriginalTypeFromFileName(name);
@@ -66,8 +66,8 @@ public class UiDirItemSDOS extends UiDirItem {
      */
     @Override
     public void createControlsForAttrDialog(IntNameBox parent, int show_flags, String file_path, BoxLayout sizer, Object flags) {
-        int file_type_1 = dirItem.GetFileType1Pos();
-        int file_type_2 = dirItem.GetFileType2Pos();
+        int file_type_1 = dirItem.getFileType1Pos();
+        int file_type_2 = dirItem.getFileType2Pos();
         // wxChoice *comType1; // Java equivalent: JComboBox or AWT Choice
 
         int[] type1_arr = {file_type_1};
@@ -145,7 +145,6 @@ public class UiDirItemSDOS extends UiDirItem {
      * @param errinfo エラー情報
      * @return true
      */
-    @Override
     public boolean processAttr(DiskBasicDirItemAttr attr, DiskBasicError errinfo) {
         int t1 = attr.getFileOriginAttr(0);
 

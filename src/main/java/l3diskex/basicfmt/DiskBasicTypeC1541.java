@@ -1,5 +1,6 @@
 package l3diskex.basicfmt;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
@@ -9,15 +10,13 @@ import java.util.Arrays;
 import l3diskex.basicfmt.BasicCommon.C1541Ptr;
 import l3diskex.basicfmt.BasicCommon.DirectoryC1541;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
-import l3diskex.basicfmt.BasicFat.DiskBasicFat;
-import l3diskex.basicfmt.BasicFmt.DiskBasic;
-import l3diskex.basicfmt.BasicFmt.DiskBasicIdentifiedData;
+import l3diskex.basicfmt.DiskBasic.DiskBasicIdentifiedData;
 import l3diskex.basicfmt.DiskBasicParam.DiskBasicFormat;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 
-import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_FREE;
-import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_SYSTEM;
-import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_USED;
+import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_FREE;
+import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_SYSTEM;
+import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_USED;
 import static l3diskex.basicfmt.DiskBasicType.AllocateGroupFlags.ALLOCATE_GROUPS_APPEND;
 
 
@@ -404,7 +403,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
     public boolean calcGroupsOnRootDirectory(int start_sector, int end_sector, DiskBasicGroups group_items) {
         boolean valid = true;
 
-        group_items.empty();
+        group_items.clear();
 
         // ディレクトリのチェインをたどる
         int dir_size = 0;
@@ -470,7 +469,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
     @Override
     public int initializeSectorsAsDirectory(DiskBasicGroups group_items, int[] file_size, int[] size_remain, DiskBasicError errinfo) {
         for (int i = 0; i < group_items.getSize(); i++) {
-            DiskImageSector sector = basic.getSectorFromSectorPos(group_items.item(i).group);
+            DiskImageSector sector = basic.getSectorFromSectorPos(group_items.get(i).group);
             // C++: sector->Fill(0, sector->GetSectorSize() - 2, 2);
             // Fill with 0 starting at offset 2 for size-2 bytes
             if (sector != null) {
@@ -478,7 +477,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
             }
         }
 
-        file_size[0] += group_items.count() * (basic.getSectorSize() - 2);
+        file_size[0] += group_items.size() * (basic.getSectorSize() - 2);
 
         size_remain[0] = 0;
         return 0;
@@ -509,18 +508,18 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
             int sec_anum = sec_num[0] - basic.getSectorNumberBase();
 
             if (c1541_bam.isFree(trk_anum, sec_anum)) {
-                fatAvailability.add(FAT_AVAIL_FREE.getValue(), basic.getSectorSize(), 1);
+                fatAvailability.add(FAT_AVAIL_FREE.ordinal(), basic.getSectorSize(), 1);
             } else {
-                fatAvailability.add(FAT_AVAIL_USED.getValue(), 0, 0);
+                fatAvailability.add(FAT_AVAIL_USED.ordinal(), 0, 0);
             }
         }
-        fatAvailability.set(c1541_bam.getMyGroupNumber(), FAT_AVAIL_SYSTEM.getValue());
+        fatAvailability.set(c1541_bam.getMyGroupNumber(), FAT_AVAIL_SYSTEM.ordinal());
         DiskBasicDirItem root = dir.getRootItem();
         if (root != null) {
             DiskBasicGroups root_groups = root.getGroups();
             if (root_groups != null) {
-                for (int i = 0; i < root_groups.count(); i++) {
-                    fatAvailability.set(root_groups.item(i).group, FAT_AVAIL_SYSTEM.getValue());
+                for (int i = 0; i < root_groups.size(); i++) {
+                    fatAvailability.set(root_groups.get(i).group, FAT_AVAIL_SYSTEM.ordinal());
                 }
             }
         }
@@ -1129,7 +1128,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
         int bytes_per_group = basic.getSectorSize() - 2;
         DiskBasicGroups data_groups = item.getGroups();
 
-        int blocks = data_groups.count();
+        int blocks = data_groups.size();
         int ss_max = blocks / 120;
         if (ss_max >= 6) {
             return;
@@ -1198,7 +1197,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
 
             // データへのポインタを設定
             for (int i = 0; i < 120 && data_pos < blocks; i++) {
-                getNumFromSectorPosS(data_groups.item(data_pos).group, track_num, sec_num);
+                getNumFromSectorPosS(data_groups.get(data_pos).group, track_num, sec_num);
                 tNum = track_num[0] + C1541_START_TRACK_OFFSET;
                 sNum = sec_num[0] + C1541_START_SECTOR_OFFSET;
 
@@ -1236,17 +1235,12 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
      * ファイル削除後の処理
      */
     @Override
-    public boolean additionalProcessOnDeletedFile(DiskBasicDirItem<DirectoryC1541> item) {
+    public boolean additionalProcessOnDeletedFile(DiskBasicDirItem<DirectoryC1541> item) throws IOException {
         // サイドセクタを未使用にする
-        DiskBasicGroups grps = new DiskBasicGroups();
+        DiskBasicGroups[] grps = new DiskBasicGroups[1];
         item.getExtraGroups(grps);
 
-        // Assuming DeleteGroups is a method on DiskBasicType
-        // which iterates and calls DeleteGroupNumber
-        // Since it's not in the base class:
-        for (int i = 0; i < grps.count(); i++) {
-            deleteGroupNumber(grps.item(i).group);
-        }
+        deleteGroups(grps[0]);
 
         return true;
     }
@@ -1287,7 +1281,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
         DiskBasicFormat fmt = basic.getFormatType();
 
         // volume name
-        if (fmt.HasVolumeName()) {
+        if (fmt.hasVolumeName()) {
             byte[] name = new byte[c1541_bam.getDiskNameSize() + 1];
             Arrays.fill(name, (byte) 0);
             System.arraycopy(data.getVolumeName().getBytes(basic.getCharCodes().charset()), 0, name, 0, Math.min(data.getVolumeName().length(), c1541_bam.getDiskNameSize()));
@@ -1299,7 +1293,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
         }
 
         // volume id
-        if (fmt.HasVolumeNumber()) {
+        if (fmt.hasVolumeNumber()) {
             c1541_bam.setDiskID(data.getVolumeNumber());
         }
     }

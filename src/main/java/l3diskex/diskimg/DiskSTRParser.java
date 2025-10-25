@@ -557,7 +557,7 @@ public class DiskSTRParser extends DiskImageParser {
             expand2Element(istream);
             if (first) {
                 // 1次圧縮しているか
-                int ch = mEstream.PeekByte();
+                int ch = mEstream.peekByte();
                 if (ch == 0x08 || ch == 0x0c) {
                     mCompressType |= 1;
                 }
@@ -720,7 +720,7 @@ public class DiskSTRParser extends DiskImageParser {
 
         do {
             // 先頭文字チェック
-            int ch = mEstream.PeekByte();
+            int ch = mEstream.peekByte();
             if (ch == -1) {
                 break;
             }

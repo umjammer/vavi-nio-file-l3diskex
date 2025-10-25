@@ -8,6 +8,8 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -22,17 +24,19 @@ import javax.swing.SwingUtilities;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 
-import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_FREE;
-import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_LEAK;
-import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_MISSING;
-import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_NULLEND;
-import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_SYSTEM;
-import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_USED;
-import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_USED_FIRST;
-import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_USED_LAST;
+import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_FREE;
+import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_LEAK;
+import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_MISSING;
+import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_NULLEND;
+import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_SYSTEM;
+import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_USED;
+import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_USED_FIRST;
+import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_USED_LAST;
 
 
 public class UiDiskFatArea {
+
+    private static final Logger logger = System.getLogger(UiDiskFatArea.class.getName());
 
     /* ------------------------------------------------------------------ */
     /*  CONSTANTS (portions of the original C++ definitions)              */
@@ -49,7 +53,7 @@ public class UiDiskFatArea {
     static class UiDiskFrame {
 
         void FatAreaWindowClosed() {
-            System.out.println("FAT area window closed");
+            logger.log(Level.ERROR, "FAT area window closed");
         }
     }
 
@@ -153,8 +157,8 @@ public class UiDiskFatArea {
         private final int ll = 4;                     // see original code
 
         /* Colors (pens and brushes) ----------------------------------- */
-        private final Color[] pens = new Color[FAT_AVAIL_NULLEND.getValue()];
-        private final Color[] brushes = new Color[FAT_AVAIL_NULLEND.getValue()];
+        private final Color[] pens = new Color[FAT_AVAIL_NULLEND.ordinal()];
+        private final Color[] brushes = new Color[FAT_AVAIL_NULLEND.ordinal()];
         private final Color brushSelect = Color.RED;
         private final Color brushExtra = new Color(0xff, 0x00, 0xff);
 
@@ -172,21 +176,21 @@ public class UiDiskFatArea {
 
             /* ---- Pens ------------------------------------------------ */
             pens[FAT_AVAIL_FREE.ordinal()] = Color.BLACK;
-            pens[FAT_AVAIL_SYSTEM.getValue()] = Color.BLACK;
-            pens[FAT_AVAIL_USED.getValue()] = Color.BLACK;
-            pens[FAT_AVAIL_USED_FIRST.getValue()] = Color.BLACK;
-            pens[FAT_AVAIL_USED_LAST.getValue()] = Color.BLACK;
-            pens[FAT_AVAIL_MISSING.getValue()] = Color.GRAY;
-            pens[FAT_AVAIL_LEAK.getValue()] = Color.LIGHT_GRAY;
+            pens[FAT_AVAIL_SYSTEM.ordinal()] = Color.BLACK;
+            pens[FAT_AVAIL_USED.ordinal()] = Color.BLACK;
+            pens[FAT_AVAIL_USED_FIRST.ordinal()] = Color.BLACK;
+            pens[FAT_AVAIL_USED_LAST.ordinal()] = Color.BLACK;
+            pens[FAT_AVAIL_MISSING.ordinal()] = Color.GRAY;
+            pens[FAT_AVAIL_LEAK.ordinal()] = Color.LIGHT_GRAY;
 
             /* ---- Brushes -------------------------------------------- */
-            brushes[FAT_AVAIL_FREE.getValue()] = Color.WHITE;
-            brushes[FAT_AVAIL_SYSTEM.getValue()] = Color.GRAY;
-            brushes[FAT_AVAIL_USED.getValue()] = Color.CYAN;
-            brushes[FAT_AVAIL_USED_FIRST.getValue()] = new Color(0x00, 0xff, 0x80);
-            brushes[FAT_AVAIL_USED_LAST.getValue()] = new Color(0x00, 0x80, 0xff);
-            brushes[FAT_AVAIL_MISSING.getValue()] = Color.LIGHT_GRAY;
-            brushes[FAT_AVAIL_LEAK.getValue()] = new Color(0xc0, 0xff, 0xff);
+            brushes[FAT_AVAIL_FREE.ordinal()] = Color.WHITE;
+            brushes[FAT_AVAIL_SYSTEM.ordinal()] = Color.GRAY;
+            brushes[FAT_AVAIL_USED.ordinal()] = Color.CYAN;
+            brushes[FAT_AVAIL_USED_FIRST.ordinal()] = new Color(0x00, 0xff, 0x80);
+            brushes[FAT_AVAIL_USED_LAST.ordinal()] = new Color(0x00, 0x80, 0xff);
+            brushes[FAT_AVAIL_MISSING.ordinal()] = Color.LIGHT_GRAY;
+            brushes[FAT_AVAIL_LEAK.ordinal()] = new Color(0xc0, 0xff, 0xff);
         }
 
         /* ---------------------------------------------------------------- */
@@ -255,7 +259,7 @@ public class UiDiskFatArea {
                     fillColor = brushSelect;
                 } else if ((sts & EXTRA_FLAG) != 0) {
                     fillColor = brushExtra;
-                } else if (sts < FAT_AVAIL_NULLEND.getValue()) {
+                } else if (sts < FAT_AVAIL_NULLEND.ordinal()) {
                     fillColor = brushes[sts];
                 } else {
                     fillColor = Color.WHITE;
@@ -367,7 +371,7 @@ public class UiDiskFatArea {
             List<Integer> sampleData = new ArrayList<>();
             Random rnd = new Random();
             for (int i = 0; i < 64; i++) {
-                int val = rnd.nextInt(FAT_AVAIL_NULLEND.getValue());
+                int val = rnd.nextInt(FAT_AVAIL_NULLEND.ordinal());
                 // occasionally add flags
                 if (rnd.nextBoolean()) val |= SELECT_FLAG;
                 if (rnd.nextBoolean()) val |= EXTRA_FLAG;

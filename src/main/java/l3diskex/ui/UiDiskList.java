@@ -40,11 +40,11 @@ import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
 import l3diskex.Utils;
-import l3diskex.basicfmt.BasicFmt.DiskBasic;
-import l3diskex.basicfmt.BasicFmt.DiskBasicIdentifiedData;
-import l3diskex.basicfmt.BasicFmt.DiskBasics;
+import l3diskex.basicfmt.DiskBasic;
+import l3diskex.basicfmt.DiskBasic.DiskBasicIdentifiedData;
 import l3diskex.basicfmt.DiskBasicDirItem;
 import l3diskex.basicfmt.DiskBasicParam;
+import l3diskex.basicfmt.DiskBasics;
 import l3diskex.diskimg.DiskImage;
 import l3diskex.diskimg.DiskImage.DiskImageDisk;
 import l3diskex.diskimg.DiskImageCreator;

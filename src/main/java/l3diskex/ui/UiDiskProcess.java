@@ -17,7 +17,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JWindow;
 
 import l3diskex.Utils;
-import l3diskex.basicfmt.BasicFmt.DiskBasic;
+import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasicDirItem;
 import l3diskex.basicfmt.DiskBasicDirItem.DiskBasicDirItemAttr;
 import l3diskex.basicfmt.DiskBasicDirItem.DiskBasicDirItems;

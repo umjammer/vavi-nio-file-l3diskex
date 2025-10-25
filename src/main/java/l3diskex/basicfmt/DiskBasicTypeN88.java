@@ -10,9 +10,7 @@ import java.io.OutputStream;
 import java.util.List;
 
 import l3diskex.basicfmt.BasicCommon.DirectoryN88;
-import l3diskex.basicfmt.BasicFat.DiskBasicFat;
-import l3diskex.basicfmt.BasicFmt.DiskBasic;
-import l3diskex.basicfmt.BasicFmt.DiskBasicIdentifiedData;
+import l3diskex.basicfmt.DiskBasic.DiskBasicIdentifiedData;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskImage.DiskImageTrack;
 
@@ -122,7 +120,7 @@ public class DiskBasicTypeN88 extends DiskBasicTypeFAT8<DirectoryN88> {
         return true;
     }
 
-    public int CalcDataSizeOnLastSector(DiskBasicDirItem<DirectoryN88> item,
+    public int calcDataSizeOnLastSector(DiskBasicDirItem<DirectoryN88> item,
                                         InputStream istream,
                                         OutputStream ostream,
                                         byte[] sector_buffer,

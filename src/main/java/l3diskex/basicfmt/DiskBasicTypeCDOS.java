@@ -8,10 +8,8 @@ import java.time.LocalDate;
 import l3diskex.Utils;
 import l3diskex.basicfmt.BasicCommon.DirectoryCdos;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
-import l3diskex.basicfmt.BasicFat.DiskBasicFat;
-import l3diskex.basicfmt.BasicFat.DiskBasicFatBuffer;
-import l3diskex.basicfmt.BasicFmt.DiskBasic;
-import l3diskex.basicfmt.BasicFmt.DiskBasicIdentifiedData;
+import l3diskex.basicfmt.DiskBasic.DiskBasicIdentifiedData;
+import l3diskex.basicfmt.DiskBasicFat.DiskBasicFatBuffer;
 import l3diskex.basicfmt.DiskBasicParam.DiskBasicFormat;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import vavi.util.ByteUtil;
@@ -575,17 +573,17 @@ public class DiskBasicTypeCDOS extends DiskBasicTypeMZBase<DirectoryCdos> {
         DiskBasicFormat fmt = basic.getFormatType();
 
         // volume number
-        if (fmt.HasVolumeNumber()) {
+        if (fmt.hasVolumeNumber()) {
             f.volume_num = basic.invertAndOrderUint16((short) data.getVolumeNumber());
         }
         // volume label
-        if (fmt.HasVolumeName()) {
+        if (fmt.hasVolumeName()) {
             byte[] vol_name = data.getVolumeName().getBytes();
             mem_copy(vol_name, vol_name.length, (byte) 0, f.volume_name, f.volume_name.length);
             basic.invertMem(f.volume_name, f.volume_name.length);
         }
         // volume date
-        if (fmt.HasVolumeDate()) {
+        if (fmt.hasVolumeDate()) {
             LocalDate tm = Utils.convDateStrToTm(data.getVolumeDate());
             if (tm != null) {
                 byte[] yy = new byte[1], mm = new byte[1], dd = new byte[1];

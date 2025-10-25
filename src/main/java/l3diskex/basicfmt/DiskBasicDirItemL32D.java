@@ -11,7 +11,6 @@ import l3diskex.basicfmt.BasicCommon.DirectoryL32d;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
-import l3diskex.basicfmt.BasicFmt.DiskBasic;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
 
@@ -26,59 +25,48 @@ import static l3diskex.Parambase.MyAttributes.findUpperCase;
  */
 public class DiskBasicDirItemL32D extends DiskBasicDirItemFAT8<DirectoryL32d> {
 
-    /*-------*/
-    /*  Private data members                                                   */
-    /*-------*/
-
     /** Directory data */
     private final DiskBasicDirData<DirectoryL32d> m_data = new DiskBasicDirData<>();
-
-    /*-------*/
-    /*  Constructors                                                            */
-    /*-------*/
 
     /** Constructor with basic pointer */
     public DiskBasicDirItemL32D(DiskBasic basic) {
         super(basic);
+
         m_data.alloc(DirectoryL32d.class);
     }
 
     /** Constructor with sector data */
     public DiskBasicDirItemL32D(DiskBasic basic, DiskImageSector sector,
-                                int secPos, byte[] data) {
-        super(basic, sector, secPos, data);
-        m_data.attach(data);
+                                int secPos, byte[] data, int dataP) {
+        super(basic, sector, secPos, data, dataP);
+
+        m_data.attach(DirectoryL32d.class, data, dataP);
     }
 
     /** Constructor used by import */
     public DiskBasicDirItemL32D(DiskBasic basic, int num,
                                 DiskBasicGroupItem gItem, DiskImageSector sector,
-                                int secPos, byte[] data, SectorParam next,
+                                int secPos, byte[] data, int dataP, SectorParam next,
                                 boolean[] unuse) throws IOException {
-        super(basic, num, gItem, sector, secPos, data, next, unuse);
+        super(basic, num, gItem, sector, secPos, data, dataP, next, unuse);
+
         // L3 2D
-        m_data.attach(data);
+        m_data.attach(DirectoryL32d.class, data, dataP);
+
         used(checkUsed(unuse[0]));
 
         // Calculate file size and group count
         calcFileSize();
     }
 
-    /*-------*/
-    /*  Override: Set data pointer                                            */
-    /*-------*/
-
     @Override
     public void setDataPtr(int num, DiskBasicGroupItem gItem,
                            DiskImageSector sector, int secPos,
-                           byte[] data, SectorParam next) throws IOException {
-        super.setDataPtr(num, gItem, sector, secPos, data, next);
-        m_data.attach(data);
-    }
+                           byte[] data, int dataP, SectorParam next) throws IOException {
+        super.setDataPtr(num, gItem, sector, secPos, data, dataP, next);
 
-    /*-------*/
-    /*  Override: Check directory item                                         */
-    /*-------*/
+        m_data.attach(DirectoryL32d.class, data, dataP);
+    }
 
     @Override
     public boolean check(boolean[] last) {
@@ -99,19 +87,13 @@ public class DiskBasicDirItemL32D extends DiskBasicDirItemFAT8<DirectoryL32d> {
         return valid;
     }
 
-    /*-------*/
-    /*  Override: Check used flag                                              */
-    /*-------*/
-
+    /** Override: Check used flag */
     @Override
     public boolean checkUsed(boolean unuse) {
         return (m_data.data().name[0] != 0 && m_data.data().name[0] != (byte) 0xff);
     }
 
-    /*-------*/
-    /*  Override: Delete item                                                   */
-    /*-------*/
-
+    /** Override: Delete item */
     @Override
     public boolean delete() {
         // Delete by writing delete code to first byte
@@ -120,10 +102,7 @@ public class DiskBasicDirItemL32D extends DiskBasicDirItemFAT8<DirectoryL32d> {
         return true;
     }
 
-    /*-------*/
-    /*  Position of file name                                                  */
-    /*-------*/
-
+    /** Position of file name */
     @Override
     protected byte[] getFileNamePos(int num, int[] size, int[] len) {
         // L3 2D
@@ -136,74 +115,50 @@ public class DiskBasicDirItemL32D extends DiskBasicDirItemFAT8<DirectoryL32d> {
         }
     }
 
-    /*-------*/
-    /*  Position of file extension                                             */
-    /*-------*/
-
+    /** Position of file extension */
     @Override
     protected byte[] getFileExtPos(int[] len) {
         len[0] = m_data.data().ext.length;
         return m_data.data().ext;
     }
 
-    /*-------*/
-    /*  File type 1 getter                                                     */
-    /*-------*/
-
+    /** File type 1 getter */
     @Override
     protected int getFileType1() {
         return m_data.data().type & 0xff;
     }
 
-    /*-------*/
-    /*  File type 2 getter                                                     */
-    /*-------*/
-
+    /** File type 2 getter */
     @Override
     public int getFileType2() {
         return m_data.data().type2 & 0xff;
     }
 
-    /*-------*/
-    /*  File type 1 setter                                                     */
-    /*-------*/
-
+    /** File type 1 setter */
     @Override
     protected void setFileType1(int val) {
         m_data.data().type = (byte) (val & 0xff);
     }
 
-    /*-------*/
-    /*  File type 2 setter                                                     */
-    /*-------*/
-
+    /** File type 2 setter */
     @Override
     protected void setFileType2(int val) {
         m_data.data().type2 = (byte) (val & 0xff);
     }
 
-    /*-------*/
-    /*  Set data size of last sector                                           */
-    /*-------*/
-
+    /** Set data size of last sector */
     private void setDataSizeOnLastSecotr(int val) {
         // L3/S1 2D/2HD
-        m_data.data().endBytes = (short) swap16(val);
+        m_data.data().endBytes = (short) val;
     }
 
-    /*-------*/
-    /*  Get data size of last sector                                           */
-    /*-------*/
-
+    /** Get data size of last sector */
     private int getDataSizeOnLastSector() {
         // L3/S1 2D/2HD
-        return swap16(m_data.data().endBytes & 0xffff);
+        return m_data.data().endBytes & 0xffff;
     }
 
-    /*-------*/
-    /*  Add file extension                                                     */
-    /*-------*/
-
+    /** Add file extension */
     @Override
     protected String addExtension(int fileType1, String name) {
         // L3/S1 BASIC
@@ -241,7 +196,6 @@ public class DiskBasicDirItemL32D extends DiskBasicDirItemFAT8<DirectoryL32d> {
      */
     @Override
     public void setInternalDataInAttrDialog(KeyValArray vals) {
-        vals.add("self", m_data.isSelf());
         vals.add("NAME", m_data.data().name, m_data.data().name.length);
         vals.add("EXT", m_data.data().ext, m_data.data().ext.length);
         vals.add("TYPE", m_data.data().type);
@@ -251,46 +205,31 @@ public class DiskBasicDirItemL32D extends DiskBasicDirItemFAT8<DirectoryL32d> {
         vals.add("RESERVED", m_data.data().reserved, m_data.data().reserved.length);
     }
 
-    /*-------*/
-    /*  Data size                                                              */
-    /*-------*/
-
+    /** Data size */
     @Override
     public int getDataSize() {
         return m_data.getDataSize();
     }
 
-    /*-------*/
-    /*  Return data pointer                                                    */
-    /*-------*/
-
+    /** Return data pointer */
     @Override
     public DirectoryL32d getData() {
         return m_data.data();
     }
 
-    /*-------*/
-    /*  Copy data                                                              */
-    /*-------*/
-
+    /** Copy data */
     @Override
     public boolean copyData(DirectoryL32d val) {
         return m_data.copy(val);
     }
 
-    /*-------*/
-    /*  Clear data                                                             */
-    /*-------*/
-
+    /** Clear data */
     @Override
     public void clearData() {
         m_data.fill(0);
     }
 
-    /*-------*/
-    /*  Set file size                                                          */
-    /*-------*/
-
+    /** Set file size */
     @Override
     public void setFileSize(int val) {
         super.setFileSize(val);
@@ -298,30 +237,21 @@ public class DiskBasicDirItemL32D extends DiskBasicDirItemFAT8<DirectoryL32d> {
         setDataSizeOnLastSecotr(val % basic.getSectorSize());
     }
 
-    /*-------*/
-    /*  Set start group number                                                 */
-    /*-------*/
-
+    /** Set start group number */
     @Override
     public void setStartGroup(int fileunitNum, int val, int size) {
         // L3/S1 2D/2HD
         m_data.data().startGroup = (byte) (val & 0xff);
     }
 
-    /*-------*/
-    /*  Get start group number                                                 */
-    /*-------*/
-
+    /** Get start group number */
     @Override
     public int getStartGroup(int fileunitNum) {
         // L3/S1 2D/2HD
         return m_data.data().startGroup & 0xff;
     }
 
-    /*-------*/
-    /*  Recalculate file size from groups                                       */
-    /*-------*/
-
+    /** Recalculate file size from groups */
     @Override
     public int recalcFileSize(DiskBasicGroups groupItems, int occupiedSize) {
         if (isUsed() && occupiedSize >= 0) {
@@ -329,25 +259,4 @@ public class DiskBasicDirItemL32D extends DiskBasicDirItemFAT8<DirectoryL32d> {
         }
         return occupiedSize;
     }
-
-    /*-------*/
-    /*  Utility: swap 16‑bit value (Little‑Endian)                              */
-    /*-------*/
-
-    /** Swap 16‑bit value – replaces wxUINT16_SWAP_ON_LE() macro */
-    private static int swap16(int v) {
-        v = v & 0xffff;
-        return ((v & 0xFF) << 8) | ((v >> 8) & 0xFF);
-    }
-
-    /*-------*/
-    /*  Constants                                                            */
-    /*-------*/
-
-    /* File type constants – defined in super or elsewhere */
-    private static final int TYPE_NAME_2_RANDOM = 0x05;   // placeholder
-    private static final int TYPE_NAME_2_ASCII = 0x01;   // placeholder
-    private static final int TYPE_NAME_1_BASIC = 0x00;   // placeholder
-    private static final int TYPE_NAME_1_MACHINE = 0x04;   // placeholder
-    private static final int ATTR_DIALOG_IDC_RADIO_TYPE2 = 0x10; // placeholder
 }

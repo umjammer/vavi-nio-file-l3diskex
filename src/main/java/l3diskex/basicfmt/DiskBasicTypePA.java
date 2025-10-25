@@ -6,8 +6,6 @@ package l3diskex.basicfmt;
 
 
 import l3diskex.basicfmt.BasicCommon.DirectoryN88;
-import l3diskex.basicfmt.BasicFat.DiskBasicFat;
-import l3diskex.basicfmt.BasicFmt.DiskBasic;
 
 
 public class DiskBasicTypePA extends DiskBasicTypeN88 {

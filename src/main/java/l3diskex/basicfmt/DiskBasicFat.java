@@ -5,41 +5,35 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import l3diskex.basicfmt.BasicFmt.DiskBasic;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskImage.DiskImageTrack;
 
+import static l3diskex.basicfmt.DiskBasicType.INVALID_GROUP_NUMBER;
 
-public class BasicFat {
 
-    /**
-     * 使用状況テーブル enum
-     */
-    public enum FatAvailability {
-        FAT_AVAIL_FREE(0),
-        FAT_AVAIL_SYSTEM(1),
-        FAT_AVAIL_USED(2),
-        FAT_AVAIL_USED_FIRST(3),
-        FAT_AVAIL_USED_LAST(4),
-        FAT_AVAIL_MISSING(5),
-        FAT_AVAIL_LEAK(6),
-        FAT_AVAIL_NULLEND(7);
-
-        private final int value;
-
-        FatAvailability(int value) {
-            this.value = value;
-        }
-
-        public int getValue() {
-            return value;
-        }
-    }
+/**
+ * FATアクセス
+ */
+public class DiskBasicFat {
 
     /**
      * 使用状況テーブル
      */
     public static class DiskBasicAvailability {
+
+        /**
+         * 使用状況テーブル enum
+         */
+        public enum FatAvailability {
+            FAT_AVAIL_FREE,
+            FAT_AVAIL_SYSTEM,
+            FAT_AVAIL_USED,
+            FAT_AVAIL_USED_FIRST,
+            FAT_AVAIL_USED_LAST,
+            FAT_AVAIL_MISSING,
+            FAT_AVAIL_LEAK,
+            FAT_AVAIL_NULLEND;
+        }
 
         List<Integer> contents = new ArrayList<>();
 
@@ -158,7 +152,7 @@ public class BasicFat {
     /**
      * ビット ON/OFF バッファ １つ
      *
-     * @see  DiskBasicBitMLMap
+     * @see DiskBasicBitMLMap
      */
     static class BitMLBuffer {
 
@@ -337,21 +331,8 @@ public class BasicFat {
 
         public DiskBasicFatBuffer(byte[] newbuf, int newsize) {
             size = newsize;
-            // In C++, the buffer points to a location *within* a larger block.
-            // In Java, we'll use a reference to the byte array and manage the offset
-            // in a separate class (DiskBasicFatBuffers) or assume this buffer is the
-            // relevant *slice* of the data. For now, we'll store the reference.
-            // The original C++ code uses buffer pointers with offsets.
-            // Since Java doesn't have direct pointer arithmetic, we'll assume 'buffer'
-            // is the start of the relevant data block of 'size' length.
             this.buffer = newbuf;
         }
-
-        // In Java, we can't directly store the pointer *into* a larger array slice
-        // without making a copy or managing the offset explicitly. The C++ code's
-        // usage suggests 'buffer' is a pointer to the start of the usable FAT data.
-        // Given the constraints, we'll keep the design as close as possible,
-        // assuming 'buffer' holds the data *slice*.
 
         /**
          * バッファポインタを返す
@@ -399,7 +380,7 @@ public class BasicFat {
          */
         public int get(int pos) {
             // Use 0xFF to treat byte as unsigned when converting to int
-            return (buffer != null && pos < size) ? (buffer[pos] & 0xFF) : DiskBasicType.INVALID_GROUP_NUMBER;
+            return (buffer != null && pos < size) ? (buffer[pos] & 0xFF) : INVALID_GROUP_NUMBER;
         }
 
         /**
@@ -457,7 +438,7 @@ public class BasicFat {
          * @return 値
          */
         public int get16LE(int pos) {
-            if (buffer == null || pos + 1 >= size) return DiskBasicType.INVALID_GROUP_NUMBER;
+            if (buffer == null || pos + 1 >= size) return INVALID_GROUP_NUMBER;
             int b0 = buffer[pos] & 0xFF;
             int b1 = buffer[pos + 1] & 0xFF;
             return (b1 << 8) | b0;
@@ -483,7 +464,7 @@ public class BasicFat {
          * @return 値
          */
         public int get16BE(int pos) {
-            if (buffer == null || pos + 1 >= size) return DiskBasicType.INVALID_GROUP_NUMBER;
+            if (buffer == null || pos + 1 >= size) return INVALID_GROUP_NUMBER;
             int b0 = buffer[pos] & 0xFF;
             int b1 = buffer[pos + 1] & 0xFF;
             return (b0 << 8) | b1;
@@ -515,7 +496,7 @@ public class BasicFat {
          * @return 値
          */
         public int getData8(int pos) {
-            int val = DiskBasicType.INVALID_GROUP_NUMBER;
+            int val = INVALID_GROUP_NUMBER;
             for (int i = 0; i < size(); i++) {
                 DiskBasicFatBuffer buf = get(i);
                 if (pos < buf.getSize()) {
@@ -591,7 +572,7 @@ public class BasicFat {
          * @return 値
          */
         public int getData12LE(int pos) {
-            int val = DiskBasicType.INVALID_GROUP_NUMBER;
+            int val = INVALID_GROUP_NUMBER;
             boolean odd = ((pos & 1) != 0);
             pos = pos * 3 / 2;
             int cnt = 0;
@@ -620,7 +601,7 @@ public class BasicFat {
                     break;
                 }
             }
-            if (cnt != 2) val = DiskBasicType.INVALID_GROUP_NUMBER;
+            if (cnt != 2) val = INVALID_GROUP_NUMBER;
             return val & 0xFFF; // Return 12 bits only
         }
 
@@ -662,7 +643,7 @@ public class BasicFat {
          * @return 値
          */
         public int getData16LE(int pos) {
-            int val = DiskBasicType.INVALID_GROUP_NUMBER;
+            int val = INVALID_GROUP_NUMBER;
             pos *= 2;
             for (int i = 0; i < size(); i++) {
                 DiskBasicFatBuffer buf = get(i);
@@ -700,7 +681,7 @@ public class BasicFat {
          * @return 値
          */
         public int getData16BE(int pos) {
-            int val = DiskBasicType.INVALID_GROUP_NUMBER;
+            int val = INVALID_GROUP_NUMBER;
             pos *= 2;
             for (int i = 0; i < size(); i++) {
                 DiskBasicFatBuffer buf = get(i);
@@ -804,7 +785,7 @@ public class BasicFat {
          * @return 値
          */
         public int getData8(int idx, int pos) {
-            int val = DiskBasicType.INVALID_GROUP_NUMBER;
+            int val = INVALID_GROUP_NUMBER;
             if (idx >= size()) return val;
 
             DiskBasicFatBuffers bufs = get(idx);
@@ -892,7 +873,7 @@ public class BasicFat {
          * @return 値
          */
         public int getData12LE(int idx, int pos) {
-            int val = DiskBasicType.INVALID_GROUP_NUMBER;
+            int val = INVALID_GROUP_NUMBER;
             if (idx >= size()) return val;
 
             DiskBasicFatBuffers bufs = get(idx);
@@ -934,7 +915,7 @@ public class BasicFat {
          * @return 値
          */
         public int getData16LE(int idx, int pos) {
-            int val = DiskBasicType.INVALID_GROUP_NUMBER;
+            int val = INVALID_GROUP_NUMBER;
             if (idx >= size()) return val;
 
             DiskBasicFatBuffers bufs = get(idx);
@@ -976,7 +957,7 @@ public class BasicFat {
          * @return 値
          */
         public int getData16BE(int idx, int pos) {
-            int val = DiskBasicType.INVALID_GROUP_NUMBER;
+            int val = INVALID_GROUP_NUMBER;
             if (idx >= size()) return val;
 
             DiskBasicFatBuffers bufs = get(idx);
@@ -1011,286 +992,257 @@ public class BasicFat {
         }
     }
 
+    private DiskBasic basic;
+    private DiskBasicType type;
+    /** FATの数 */
+    private int count;
+    /** 使用しているFATの数 */
+    private int vCount;
+    /** FATサイズ(セクタ数) */
+    private int size;
+    /** 開始セクタ番号 */
+    private int start;
+    /** 開始位置 */
+    private int startPos;
+
+    private final DiskBasicFatArea bufs = new DiskBasicFatArea();
+
+    private DiskBasicFat() {
+        // Private constructor prevents use of default constructor
+    }
+
+    public DiskBasicFat(DiskBasic basic) {
+        this.basic = basic;
+        type = null;
+        clear();
+    }
+
     /**
-     * FATアクセス
+     * FATエリアをアサイン
+     *
+     * @param is_formatting フォーマット中か
+     * @return 1.0  正常
+     * <1.0 警告あり
+     * <0.0 エラーあり
      */
-    public static class DiskBasicFat {
+    public double assign(boolean is_formatting) throws IOException {
+        double validRatio = 1.0;
 
-        private DiskBasic basic;
-        private DiskBasicType type;
-        /** FATの数 */
-        private int count;
-        /** 使用しているFATの数 */
-        private int vCount;
-        /** FATサイズ(セクタ数) */
-        private int size;
-        /** 開始セクタ番号 */
-        private int start;
-        /** 開始位置 */
-        private int startPos;
+        int sectorNum = basic.diskBasicParam.getFatStartSector();
+        int sideNum = basic.diskBasicParam.getReversedSideNumber(basic.diskBasicParam.getFatSideNumber());
 
-        private final DiskBasicFatArea bufs = new DiskBasicFatArea();
+        bufs.empty();
 
-        private DiskBasicFat() {
-            // Private constructor prevents use of default constructor
-        }
+        type = basic.getType();
 
-        public DiskBasicFat(DiskBasic basic) {
-            this.basic = basic;
-            type = null;
-            clear();
-        }
+        if (sectorNum >= 0) {
+            DiskImageTrack managed_track;
+            int[] sideNums = new int[] {sideNum};
+            int[] sectorNums = new int[] {sectorNum};
 
-        /**
-         * FATエリアをアサイン
-         *
-         * @param is_formatting フォーマット中か
-         * @return 1.0  正常
-         * <1.0 警告あり
-         * <0.0 エラーあり
-         */
-        public double assign(boolean is_formatting) throws IOException {
-            double validRatio = 1.0;
+            if (sideNum >= 0) {
+                // トラック、サイド番号から計算
+                managed_track = basic.getTrack(basic.diskBasicParam.getManagedTrackNumber(), sideNum);
+            } else {
+                // セクタ番号の通し番号で計算
+                managed_track = basic.getManagedTrack(basic.diskBasicParam.getReservedSectors(), sideNums, sectorNums);
+            }
+            if (managed_track == null) {
+                return -1.0;
+            }
 
-            int sectorNum = basic.diskBasicParam.getFatStartSector();
-            int sideNum = basic.diskBasicParam.getReversedSideNumber(basic.diskBasicParam.getFatSideNumber());
+            sideNum = sideNums[0];
+            sectorNum = sectorNums[0];
 
-            bufs.empty();
+            // セクタ位置を得る
+            start = type.getSectorPosFromNum(basic.getManagedTrackNumber(), sideNum, sectorNum, 0, 1);
 
-            type = basic.getType();
+            count = basic.diskBasicParam.getNumberOfFats();
+            size = basic.diskBasicParam.getSectorsPerFat();
+            startPos = basic.diskBasicParam.getFatStartPos();
+            vCount = basic.diskBasicParam.getValidNumberOfFats();
+            if (vCount < 0) {
+                vCount = count;
+            }
 
-            if (sectorNum >= 0) {
-                DiskImageTrack managed_track;
-                int[] sideNums = new int[] {sideNum};
-                int[] sectorNums = new int[] {sectorNum};
+            type.calcManagedStartGroup();
 
-                if (sideNum >= 0) {
-                    // トラック、サイド番号から計算
-                    managed_track = basic.getTrack(basic.diskBasicParam.getManagedTrackNumber(), sideNum);
-                } else {
-                    // セクタ番号の通し番号で計算
-                    managed_track = basic.getManagedTrack(basic.diskBasicParam.getReservedSectors(), sideNums, sectorNums);
-                }
-                if (managed_track == null) {
-                    return -1.0;
-                }
+            // set buffer pointer for useful accessing
+            int startSector = start;
+            int endSector = start + size - 1;
+            for (int fatNum = 0; fatNum < count && validRatio >= 0.0; fatNum++) {
+                DiskBasicFatBuffers fatbufs = new DiskBasicFatBuffers();
+                for (int secNum = startSector; secNum <= endSector; secNum++) {
+                    int[] divNumArr = new int[] {0};
+                    int[] divNumsArr = new int[] {1};
+                    DiskImageSector sector = basic.getSectorFromSectorPos(secNum, divNumArr, divNumsArr);
+                    int divNum = divNumArr[0];
+                    int divNums = divNumsArr[0];
 
-                sideNum = sideNums[0];
-                sectorNum = sectorNums[0];
-
-                // セクタ位置を得る
-                start = type.getSectorPosFromNum(basic.getManagedTrackNumber(), sideNum, sectorNum, 0, 1);
-
-                count = basic.diskBasicParam.getNumberOfFats();
-                size = basic.diskBasicParam.getSectorsPerFat();
-                startPos = basic.diskBasicParam.getFatStartPos();
-                vCount = basic.diskBasicParam.getValidNumberOfFats();
-                if (vCount < 0) {
-                    vCount = count;
-                }
-
-                type.calcManagedStartGroup();
-
-                // set buffer pointer for useful accessing
-                int startSector = start;
-                int endSector = start + size - 1;
-                for (int fatNum = 0; fatNum < count && validRatio >= 0.0; fatNum++) {
-                    DiskBasicFatBuffers fatbufs = new DiskBasicFatBuffers();
-                    for (int secNum = startSector; secNum <= endSector; secNum++) {
-                        int[] divNumArr = new int[] {0};
-                        int[] divNumsArr = new int[] {1};
-                        DiskImageSector sector = basic.getSectorFromSectorPos(secNum, divNumArr, divNumsArr);
-                        int divNum = divNumArr[0];
-                        int divNums = divNumsArr[0];
-
-                        if (sector == null) {
-                            validRatio = -1.0;
-                            break;
-                        }
-
-                        int ssize = sector.getSectorSize();
-                        ssize /= divNums;
-                        byte[] buf = sector.getSectorBuffer();
-
-                        // The C++ original uses pointer arithmetic (buf += offset) to get the data start.
-                        // In Java, we'll need to calculate the index offset and the actual size for the slice.
-                        int offset = (ssize * divNum);
-                        int buf_size = ssize;
-
-                        if (secNum == startSector) {
-                            // 最初のセクタだけ開始位置がずれる
-                            offset += startPos;
-                            buf_size -= startPos;
-                        }
-
-                        // Creating the slice/reference: assuming buf holds all data and we take a slice from offset of size buf_size.
-                        // Since DiskBasicFatBuffer's buffer is a byte array, we'll pass the reference and manage offset/size.
-                        // BUT, DiskBasicFatBuffer methods only use 'pos < size' without explicit offset.
-                        // This implies the buffer passed to DiskBasicFatBuffer must be the *start* of the data chunk.
-                        // Since Java doesn't do pointer arithmetic, we'll pass the original array and use offset/size logic
-                        // here or create a temporary array (costly).
-                        // Given the constraint of not changing method signatures if possible, we pass the original buffer
-                        // to DiskBasicFatBuffer and rely on its access methods, which is problematic since the C++ logic
-                        // is not offset-aware in Get/Set.
-                        // Sticking to the C++ logic of passing a pointer (reference to start of segment) and segment size:
-
-                        // We can't pass a "pointer" to an offset in Java. We must ensure the `buf` inside `DiskBasicFatBuffer`
-                        // corresponds to the memory region. The best Java approximation is to copy the slice or
-                        // use a custom class that tracks the base buffer and an offset.
-                        // Since the logic relies on DiskBasicFatBuffer::Get/Set/etc. which *don't* take an offset,
-                        // we must assume the C++ `buf` pointer after the offset calculation points to the *start* of the
-                        // relevant data for the `DiskBasicFatBuffer` object.
-                        // The simplest direct conversion is to treat the `buf` pointer as the base array, and the offset
-                        // calculation as an instruction to skip data, effectively reducing the buffer size.
-
-                        // Since buf is the entire sector buffer, and we can't change its reference to point to a memory address,
-                        // we must create a slice array.
-
-                        if (buf_size <= 0) continue; // Skip if no data left
-
-                        byte[] sliced_buf = Arrays.copyOfRange(buf, offset, offset + buf_size);
-
-                        DiskBasicFatBuffer fatbuf = new DiskBasicFatBuffer(sliced_buf, buf_size);
-                        fatbufs.add(fatbuf);
+                    if (sector == null) {
+                        validRatio = -1.0;
+                        break;
                     }
-                    bufs.Add(fatbufs);
 
-                    startSector += size;
-                    endSector += size;
+                    int ssize = sector.getSectorSize();
+                    ssize /= divNums;
+                    byte[] buf = sector.getSectorBuffer();
+
+                    // The C++ original uses pointer arithmetic (buf += offset) to get the data start.
+                    // In Java, we'll need to calculate the index offset and the actual size for the slice.
+                    int offset = (ssize * divNum);
+                    int buf_size = ssize;
+
+                    if (secNum == startSector) {
+                        // 最初のセクタだけ開始位置がずれる
+                        offset += startPos;
+                        buf_size -= startPos;
+                    }
+
+                    if (buf_size <= 0) continue; // Skip if no data left
+
+                    byte[] sliced_buf = Arrays.copyOfRange(buf, offset, offset + buf_size);
+
+                    DiskBasicFatBuffer fatbuf = new DiskBasicFatBuffer(sliced_buf, buf_size);
+                    fatbufs.add(fatbuf);
                 }
+                bufs.Add(fatbufs);
 
-                bufs.setValidCount(vCount);
+                startSector += size;
+                endSector += size;
             }
 
-            if (validRatio >= 0.0) {
-                validRatio = type.checkFat(is_formatting);
+            bufs.setValidCount(vCount);
+        }
+
+        if (validRatio >= 0.0) {
+            validRatio = type.checkFat(is_formatting);
+        }
+
+        return validRatio;
+    }
+
+    /**
+     * FATエリアのアサインを解除
+     */
+    public void clear() {
+        count = 0;
+        vCount = 0;
+        size = 0;
+        start = 0;
+        startPos = 0;
+
+        bufs.clear();
+    }
+
+    /**
+     * FATエリアのアサインを解除
+     */
+    public void empty() {
+        clear();
+    }
+
+    /**
+     * @param pos 位置
+     *            FAT領域の最初のセクタの指定位置のデータを取得
+     */
+    public int get(int pos) {
+        int code = 0;
+        DiskImageSector sector = basic.getSectorFromSectorPos(start);
+        if (sector != null) {
+            byte[] buf = sector.getSectorBuffer();
+            int size = sector.getSectorBufferSize();
+            if (buf != null && pos < size) {
+                code = buf[pos] & 0xFF;
             }
-
-            return validRatio;
         }
+        return code;
+    }
 
-        /**
-         * FATエリアのアサインを解除
-         */
-        public void clear() {
-            count = 0;
-            vCount = 0;
-            size = 0;
-            start = 0;
-            startPos = 0;
-
-            bufs.clear();
-        }
-
-        /**
-         * FATエリアのアサインを解除
-         */
-        public void empty() {
-            clear();
-        }
-
-        /**
-         * @param pos 位置
-         *            FAT領域の最初のセクタの指定位置のデータを取得
-         */
-        public int get(int pos) {
-            int code = 0;
-            DiskImageSector sector = basic.getSectorFromSectorPos(start);
+    /**
+     * @param pos  位置
+     * @param code コード
+     *             FAT領域の最初のセクタにデータを書く
+     */
+    public void set(int pos, byte code) {
+        int start_sector = start;
+        for (int fat_num = 0; fat_num < vCount; fat_num++) {
+            DiskImageSector sector = basic.getSectorFromSectorPos(start_sector);
             if (sector != null) {
                 byte[] buf = sector.getSectorBuffer();
                 int size = sector.getSectorBufferSize();
                 if (buf != null && pos < size) {
-                    code = buf[pos] & 0xFF;
+                    buf[pos] = code;
                 }
             }
-            return code;
+            start_sector += size;
         }
+    }
 
-        /**
-         * @param pos  位置
-         * @param code コード
-         *             FAT領域の最初のセクタにデータを書く
-         */
-        public void set(int pos, byte code) {
-            int start_sector = start;
-            for (int fat_num = 0; fat_num < vCount; fat_num++) {
-                DiskImageSector sector = basic.getSectorFromSectorPos(start_sector);
+    /**
+     * @param buf バッファ
+     * @param len サイズ
+     *            FAT領域の最初のセクタにデータを書く
+     */
+    public void copy(byte[] buf, int len) {
+        int start_sector = start;
+        for (int fat_num = 0; fat_num < vCount; fat_num++) {
+            DiskImageSector sector = basic.getSectorFromSectorPos(start_sector);
+            if (sector != null) {
+                // Assuming DiskImageSector::Copy handles slicing/size checks internally
+                sector.copy(buf, len);
+            }
+            start_sector += size;
+        }
+    }
+
+    /**
+     * @param code コード
+     *             FAT領域を指定コードで埋める
+     */
+    public void fill(byte code) {
+        int start_sector = start;
+        int end_sector = start + size - 1;
+        for (int fat_num = 0; fat_num < count; fat_num++) {
+            for (int sec_num = start_sector; sec_num <= end_sector; sec_num++) {
+                DiskImageSector sector = basic.getSectorFromSectorPos(sec_num);
                 if (sector != null) {
-                    byte[] buf = sector.getSectorBuffer();
-                    int size = sector.getSectorBufferSize();
-                    if (buf != null && pos < size) {
-                        buf[pos] = code;
-                    }
+                    sector.fill(code);
                 }
-                start_sector += size;
             }
+            start_sector += size;
+            end_sector += size;
         }
+    }
 
-        /**
-         * @param buf バッファ
-         * @param len サイズ
-         *            FAT領域の最初のセクタにデータを書く
-         */
-        public void copy(byte[] buf, int len) {
-            int start_sector = start;
-            for (int fat_num = 0; fat_num < vCount; fat_num++) {
-                DiskImageSector sector = basic.getSectorFromSectorPos(start_sector);
-                if (sector != null) {
-                    // Assuming DiskImageSector::Copy handles slicing/size checks internally
-                    sector.copy(buf, len);
-                }
-                start_sector += size;
-            }
-        }
+    /**
+     * FAT領域を返す
+     */
+    public DiskBasicFatArea getDiskBasicFatArea() {
+        return bufs;
+    }
 
-        /**
-         * @param code コード
-         *             FAT領域を指定コードで埋める
-         */
-        public void fill(byte code) {
-            int start_sector = start;
-            int end_sector = start + size - 1;
-            for (int fat_num = 0; fat_num < count; fat_num++) {
-                for (int sec_num = start_sector; sec_num <= end_sector; sec_num++) {
-                    DiskImageSector sector = basic.getSectorFromSectorPos(sec_num);
-                    if (sector != null) {
-                        sector.fill(code);
-                    }
-                }
-                start_sector += size;
-                end_sector += size;
-            }
+    /**
+     * @param idx ミラーリングしているときのインデックス
+     *            FATバッファを返す
+     */
+    public DiskBasicFatBuffers getDiskBasicFatBuffers(int idx) {
+        if (idx >= bufs.size()) {
+            return null;
         }
+        return bufs.get(idx);
+    }
 
-        /**
-         * FAT領域を返す
-         */
-        public DiskBasicFatArea getDiskBasicFatArea() {
-            return bufs;
+    /**
+     * @param idx    ミラーリングしているときのインデックス
+     * @param subidx バッファ位置
+     *               FATバッファ（セクタ）を返す
+     */
+    public DiskBasicFatBuffer getDiskBasicFatBuffer(int idx, int subidx) {
+        DiskBasicFatBuffers fatbufs = getDiskBasicFatBuffers(idx);
+        if (fatbufs == null || subidx >= fatbufs.size()) {
+            return null;
         }
-
-        /**
-         * @param idx ミラーリングしているときのインデックス
-         *            FATバッファを返す
-         */
-        public DiskBasicFatBuffers getDiskBasicFatBuffers(int idx) {
-            if (idx >= bufs.size()) {
-                return null;
-            }
-            return bufs.get(idx);
-        }
-
-        /**
-         * @param idx    ミラーリングしているときのインデックス
-         * @param subidx バッファ位置
-         *               FATバッファ（セクタ）を返す
-         */
-        public DiskBasicFatBuffer getDiskBasicFatBuffer(int idx, int subidx) {
-            DiskBasicFatBuffers fatbufs = getDiskBasicFatBuffers(idx);
-            if (fatbufs == null || subidx >= fatbufs.size()) {
-                return null;
-            }
-            return fatbufs.get(subidx);
-        }
+        return fatbufs.get(subidx);
     }
 }

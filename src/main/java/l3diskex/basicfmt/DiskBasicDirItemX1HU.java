@@ -17,7 +17,6 @@ import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
-import l3diskex.basicfmt.BasicFmt.DiskBasic;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
 
@@ -76,9 +75,6 @@ public class DiskBasicDirItemX1HU extends DiskBasicDirItem<DirectoryX1Hu> {
     public static final int DATATYPE_X1HU_PASSWORD_NONE = 0x20;
     public static final int DATATYPE_X1HU_PASSWORD_MASK = 0xff;
 
-    // enDateTime (Assumed enum)
-    public static final int DATETIME_ALL = 0;
-
     // NameValueT arrays (from .cpp)
     public static final Map<String, Object> gTypeNameX1HU_1 = new HashMap<>() {{
         put("Bin", FILETYPE_X1HU_BINARY);
@@ -96,24 +92,26 @@ public class DiskBasicDirItemX1HU extends DiskBasicDirItem<DirectoryX1Hu> {
     }};
 
     private final DiskBasicDirData<DirectoryX1Hu> m_data = new DiskBasicDirData<>();
-    private int m_external_attr; // Used for external type (EXTERNAL_X1_*)
 
     public DiskBasicDirItemX1HU(DiskBasic basic) {
         super(basic);
+
         m_data.alloc(DirectoryX1Hu.class);
-        m_external_attr = basic.diskBasicParam.getVariousIntegerParam("DefaultAsciiType");
+        externalAttr = basic.diskBasicParam.getVariousIntegerParam("DefaultAsciiType");
     }
 
-    public DiskBasicDirItemX1HU(DiskBasic basic, DiskImageSector n_sector, int n_secpos, byte[] n_data) {
-        super(basic, n_sector, n_secpos, n_data);
-        m_data.attach(n_data);
-        m_external_attr = basic.diskBasicParam.getVariousIntegerParam("DefaultAsciiType");
+    public DiskBasicDirItemX1HU(DiskBasic basic, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP) {
+        super(basic, n_sector, n_secpos, n_data, dataP);
+
+        m_data.attach(DirectoryX1Hu.class, n_data, dataP);
+        externalAttr = basic.diskBasicParam.getVariousIntegerParam("DefaultAsciiType");
     }
 
-    public DiskBasicDirItemX1HU(DiskBasic basic, int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, SectorParam n_next, boolean[] n_unuse) throws IOException {
-        super(basic, n_num, n_gitem, n_sector, n_secpos, n_data, n_next, n_unuse);
-        m_data.attach(n_data);
-        m_external_attr = basic.diskBasicParam.getVariousIntegerParam("DefaultAsciiType");
+    public DiskBasicDirItemX1HU(DiskBasic basic, int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP, SectorParam n_next, boolean[] n_unuse) throws IOException {
+        super(basic, n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next, n_unuse);
+
+        m_data.attach(DirectoryX1Hu.class, n_data);
+        externalAttr = basic.diskBasicParam.getVariousIntegerParam("DefaultAsciiType");
 
         used(checkUsed(n_unuse[0]));
 
@@ -121,11 +119,21 @@ public class DiskBasicDirItemX1HU extends DiskBasicDirItem<DirectoryX1Hu> {
         calcFileSize();
     }
 
-    // Item pointer setting
+    /**
+     * Item pointer setting
+     *
+     * @param n_num    通し番号
+     * @param n_gitem  トラック番号などのデータ
+     * @param n_sector セクタ
+     * @param n_secpos セクタ内のディレクトリエントリの位置
+     * @param n_data   ディレクトリアイテム
+     * @param n_next   [out] 次のセクタ
+     */
     @Override
-    public void setDataPtr(int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, SectorParam n_next) throws IOException {
-        super.setDataPtr(n_num, n_gitem, n_sector, n_secpos, n_data, n_next);
-        m_data.attach(n_data);
+    public void setDataPtr(int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP, SectorParam n_next) throws IOException {
+        super.setDataPtr(n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next);
+
+        m_data.attach(DirectoryX1Hu.class, n_data, dataP);
     }
 
     // File name position
@@ -178,7 +186,12 @@ public class DiskBasicDirItemX1HU extends DiskBasicDirItem<DirectoryX1Hu> {
         return (type1 != 0 && type1 != 0xff);
     }
 
-    // Directory item check
+    /**
+     * Directory item check
+     *
+     * @param last [in,out] チェックを終了するか
+     * @return チェックOK
+     */
     @Override
     public boolean check(boolean[] last) {
         if (!m_data.isValid()) return false;
@@ -195,7 +208,7 @@ public class DiskBasicDirItemX1HU extends DiskBasicDirItem<DirectoryX1Hu> {
     // Delete item
     @Override
     public boolean delete() {
-        // 削除はエントリの先頭にコードを入れるだけ (Deletion only puts a code at the beginning of the entry)
+        // Deletion only puts a code at the beginning of the entry
         m_data.fill(basic.invertUint8(basic.diskBasicParam.getDeleteCode()), 1);
         used(false);
         return true;
@@ -225,7 +238,7 @@ public class DiskBasicDirItemX1HU extends DiskBasicDirItem<DirectoryX1Hu> {
                 passwd = file_type.getOrigin();
             }
         }
-        m_external_attr = (t1 >> 16);
+        externalAttr = (t1 >> 16);
         t1 &= 0xff;
 
         setFileType1(t1);
@@ -276,13 +289,13 @@ public class DiskBasicDirItemX1HU extends DiskBasicDirItem<DirectoryX1Hu> {
         if (passwd != DATATYPE_X1HU_PASSWORD_NONE) {
             val |= FILE_TYPE_ENCRYPTED_MASK.getValue();
         }
-        return new DiskBasicFileType(basic.getFormatTypeNumber(), val, (m_external_attr << 16) | (passwd << 8) | t1);
+        return new DiskBasicFileType(basic.getFormatTypeNumber(), val, (externalAttr << 16) | (passwd << 8) | t1);
     }
 
     // Get attribute string for display
     @Override
     public String getFileAttrStr() {
-        int t = (getFileType1() | (m_external_attr << 16));
+        int t = (getFileType1() | (externalAttr << 16));
         String attr = rb.getString(Utils.keyAt(gTypeNameX1HU_1, getFileType1Pos(t)));
 
         for (int i = 0; i <= TYPE_NAME_X1HU_READ_ONLY; i++) {
@@ -302,8 +315,8 @@ public class DiskBasicDirItemX1HU extends DiskBasicDirItem<DirectoryX1Hu> {
         groups.setSize(val);
 
         if ((getFileType1() & FILETYPE_X1HU_ASCII) != 0) {
-            // Ascファイルの場合 (Asc file case)
-            // ディレクトリ内のファイルサイズは0 (File size in directory is 0)
+            // Asc file case
+            // File size in directory is 0
             m_data.data().fileSize = 0;
         } else {
             m_data.data().fileSize = basic.invertAndOrderUint16((short) val);
@@ -314,7 +327,7 @@ public class DiskBasicDirItemX1HU extends DiskBasicDirItem<DirectoryX1Hu> {
     @Override
     public int getFileSize() {
         if ((getFileType1() & FILETYPE_X1HU_ASCII) != 0) {
-            // Ascファイルの場合 (Asc file case)
+            // Asc file case
             return groups.getSize();
         } else {
             return basic.invertAndOrderUint16(m_data.data().fileSize);
@@ -343,24 +356,24 @@ public class DiskBasicDirItemX1HU extends DiskBasicDirItem<DirectoryX1Hu> {
         while (working) {
             int next_group = type.getGroupNumber(group_num);
             if (next_group == group_num) {
-                // 同じポジションならエラー (Error if same position)
+                // Error if same position
                 rc = false;
             } else if (next_group >= basic.diskBasicParam.getGroupFinalCode() && next_group <= basic.diskBasicParam.getGroupSystemCode()) {
-                // 最終グループ(0x80 - 0xff) (Final group)
+                // Final group (0x80 - 0xff)
                 basic.getNumsFromGroup(group_num, next_group, basic.getSectorSize(), 0, group_items);
                 calc_file_size += (basic.getSectorSize() * (next_group - basic.diskBasicParam.getGroupFinalCode() + 1));
                 calc_groups++;
                 calc_file_size = recalcFileSize(group_items, calc_file_size);
                 working = false;
             } else if (next_group <= basic.getFatEndGroup()) {
-                // 次グループ (Next group)
+                // Next group
                 basic.getNumsFromGroup(group_num, next_group, basic.getSectorSize(), 0, group_items);
                 calc_file_size += (basic.getSectorSize() * basic.getSectorsPerGroup());
                 calc_groups++;
                 group_num = next_group;
                 limit--;
             } else {
-                // グループ番号がおかしい (Group number is strange)
+                // Group number is strange
                 rc = false;
             }
             working = working && rc && (limit >= 0);
@@ -379,7 +392,7 @@ public class DiskBasicDirItemX1HU extends DiskBasicDirItem<DirectoryX1Hu> {
     // Recalculate file size based on last sector
     @Override
     public int recalcFileSize(DiskBasicGroups group_items, int occupied_size) throws IOException {
-        if (group_items.count() == 0) return occupied_size;
+        if (group_items.size() == 0) return occupied_size;
 
         DiskBasicGroupItem litem = group_items.last();
         DiskImageSector sector = basic.getSector(litem.track, litem.side, litem.sectorEnd);
@@ -572,13 +585,13 @@ public class DiskBasicDirItemX1HU extends DiskBasicDirItem<DirectoryX1Hu> {
     @Override
     public boolean needCheckEofCode() {
         // EOF code is needed for Asc format
-        return ((getFileType1() & FILETYPE_X1HU_ASCII) != 0 && (m_external_attr != EXTERNAL_X1_RANDOM));
+        return ((getFileType1() & FILETYPE_X1HU_ASCII) != 0 && (externalAttr != EXTERNAL_X1_RANDOM));
     }
 
     // Get EOF code
     @Override
     public byte getEofCode() {
-        return m_external_attr != EXTERNAL_X1_SWORD ? basic.diskBasicParam.getTextTerminateCode() : 0;
+        return externalAttr != EXTERNAL_X1_SWORD ? basic.diskBasicParam.getTextTerminateCode() : 0;
     }
 
     // Recalculate file size on save
@@ -599,7 +612,7 @@ public class DiskBasicDirItemX1HU extends DiskBasicDirItem<DirectoryX1Hu> {
         MyAttribute sa = findUpperCase(basic.diskBasicParam.getAttributesByExtension(), Utils.getExt(filename));
         if (sa != null) {
             t1 = convToNativeType(sa.getType(), t1);
-            t1 |= (m_external_attr << 16);
+            t1 |= (externalAttr << 16);
         } else {
             t1 = FILETYPE_X1HU_ASCII;
         }
@@ -641,7 +654,6 @@ public class DiskBasicDirItemX1HU extends DiskBasicDirItem<DirectoryX1Hu> {
     // Set internal data for property dialog
     @Override
     public void setInternalDataInAttrDialog(KeyValArray vals) {
-        vals.add("self", m_data.isSelf());
         vals.add("inverted", basic.isDataInverted());
 
         vals.add("TYPE", m_data.data().type, basic.isDataInverted());

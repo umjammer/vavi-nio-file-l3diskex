@@ -21,7 +21,6 @@ import l3diskex.basicfmt.BasicCommon.DiskBasicFileName;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
-import l3diskex.basicfmt.BasicFmt.DiskBasic;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
 
@@ -36,114 +35,90 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_RANDOM_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_READONLY_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_TEMPORARY_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_VOLUME_MASK;
-import static l3diskex.basicfmt.DiskBasicType.INVALID_GROUP_NUMBER;
-import static l3diskex.basicfmt.DiskBasicDirItemMZ.MZConstants.DATATYPE_MZ_READ_ONLY;
-import static l3diskex.basicfmt.DiskBasicDirItemMZ.MZConstants.DATATYPE_MZ_SEAMLESS;
-import static l3diskex.basicfmt.DiskBasicDirItemMZ.MZConstants.DATATYPE_MZ_SEAMLESS_POS;
-import static l3diskex.basicfmt.DiskBasicDirItemMZ.MZConstants.FILETYPE_MZ_BRD;
-import static l3diskex.basicfmt.DiskBasicDirItemMZ.MZConstants.FILETYPE_MZ_BSD;
-import static l3diskex.basicfmt.DiskBasicDirItemMZ.MZConstants.FILETYPE_MZ_BTX;
-import static l3diskex.basicfmt.DiskBasicDirItemMZ.MZConstants.FILETYPE_MZ_DIR;
-import static l3diskex.basicfmt.DiskBasicDirItemMZ.MZConstants.FILETYPE_MZ_OBJ;
-import static l3diskex.basicfmt.DiskBasicDirItemMZ.MZConstants.FILETYPE_MZ_VOL;
-import static l3diskex.basicfmt.DiskBasicDirItemMZ.MZConstants.FILETYPE_MZ_VOLSWAP;
-import static l3diskex.basicfmt.DiskBasicDirItemMZ.MZConstants.TYPE_NAME_MZ2_READ_ONLY;
-import static l3diskex.basicfmt.DiskBasicDirItemMZ.MZConstants.TYPE_NAME_MZ_BRD;
-import static l3diskex.basicfmt.DiskBasicDirItemMZ.MZConstants.TYPE_NAME_MZ_BSD;
-import static l3diskex.basicfmt.DiskBasicDirItemMZ.MZConstants.TYPE_NAME_MZ_BTX;
-import static l3diskex.basicfmt.DiskBasicDirItemMZ.MZConstants.TYPE_NAME_MZ_DIR;
-import static l3diskex.basicfmt.DiskBasicDirItemMZ.MZConstants.TYPE_NAME_MZ_OBJ;
-import static l3diskex.basicfmt.DiskBasicDirItemMZ.MZConstants.TYPE_NAME_MZ_UNKNOWN;
-import static l3diskex.basicfmt.DiskBasicDirItemMZ.MZConstants.TYPE_NAME_MZ_VOL;
-import static l3diskex.basicfmt.DiskBasicDirItemMZ.MZConstants.TYPE_NAME_MZ_VOLSWAP;
 import static l3diskex.basicfmt.DiskBasicError.ERR_FILENAME_EMPTY;
 import static l3diskex.basicfmt.DiskBasicError.gDiskBasicErrorMsgs;
+import static l3diskex.basicfmt.DiskBasicType.INVALID_GROUP_NUMBER;
 
 
 public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
 
     static final ResourceBundle rb = ResourceBundle.getBundle("messages");
 
-    // MZ specific constants
-    interface MZConstants {
+    static final int FILETYPE_MZ_OBJ = 1;
+    static final int FILETYPE_MZ_BTX = 2;
+    static final int FILETYPE_MZ_BSD = 3;
+    static final int FILETYPE_MZ_BRD = 4;
+    static final int FILETYPE_MZ_DIR = 0xf;
+    static final int FILETYPE_MZ_VOL = 0x80;
+    static final int FILETYPE_MZ_VOLSWAP = 0x81;
 
-        int FILETYPE_MZ_OBJ = 1;
-        int FILETYPE_MZ_BTX = 2;
-        int FILETYPE_MZ_BSD = 3;
-        int FILETYPE_MZ_BRD = 4;
-        int FILETYPE_MZ_DIR = 0xf;
-        int FILETYPE_MZ_VOL = 0x80;
-        int FILETYPE_MZ_VOLSWAP = 0x81;
+    static final int DATATYPE_MZ_READ_ONLY = 0x01;
+    static final int DATATYPE_MZ_SEAMLESS = 0x80;
 
-        int DATATYPE_MZ_READ_ONLY = 0x01;
-        int DATATYPE_MZ_SEAMLESS = 0x80;
+    static final int DATATYPE_MZ_SEAMLESS_POS = 20;
 
-        int DATATYPE_MZ_SEAMLESS_POS = 20;
+    static final int TYPE_NAME_MZ_UNKNOWN = 0;
+    static final int TYPE_NAME_MZ_OBJ = 1;
+    static final int TYPE_NAME_MZ_BTX = 2;
+    static final int TYPE_NAME_MZ_BSD = 3;
+    static final int TYPE_NAME_MZ_BRD = 4;
+    static final int TYPE_NAME_MZ_DIR = 5;
+    static final int TYPE_NAME_MZ_VOL = 6;
+    static final int TYPE_NAME_MZ_VOLSWAP = 7;
 
-        int TYPE_NAME_MZ_UNKNOWN = 0;
-        int TYPE_NAME_MZ_OBJ = 1;
-        int TYPE_NAME_MZ_BTX = 2;
-        int TYPE_NAME_MZ_BSD = 3;
-        int TYPE_NAME_MZ_BRD = 4;
-        int TYPE_NAME_MZ_DIR = 5;
-        int TYPE_NAME_MZ_VOL = 6;
-        int TYPE_NAME_MZ_VOLSWAP = 7;
-        int TYPE_NAME_MZ_END = 8;
+    static final int TYPE_NAME_MZ2_READ_ONLY = 0;
+    static final int TYPE_NAME_MZ2_SEAMLESS = 1;
 
-        int TYPE_NAME_MZ2_READ_ONLY = 0;
-        int TYPE_NAME_MZ2_SEAMLESS = 1;
+    public static final Map<String, Object> gTypeNameMZ = new HashMap<>() {{
+        put("???", TYPE_NAME_MZ_UNKNOWN);
+        put("OBJ", FILETYPE_MZ_OBJ);
+        put("BTX", FILETYPE_MZ_BTX);
+        put("BSD", FILETYPE_MZ_BSD);
+        put("BRD", FILETYPE_MZ_BRD);
+        put("DIR", FILETYPE_MZ_DIR);
+        put(/*rb.getString(*/"<VOL>"/*)*/, FILETYPE_MZ_VOL);
+        put(/*rb.getString(*/"<VOL> SWAP"/*)*/, FILETYPE_MZ_VOLSWAP);
+    }};
 
-        enum DateTimeFlags {DATETIME_ALL}
-    }
-
-    public static class Globals implements MZConstants {
-
-        public static final Map<String, Object> gTypeNameMZ = new HashMap<>() {{
-            put("???", TYPE_NAME_MZ_UNKNOWN);
-            put("OBJ", FILETYPE_MZ_OBJ);
-            put("BTX", FILETYPE_MZ_BTX);
-            put("BSD", FILETYPE_MZ_BSD);
-            put("BRD", FILETYPE_MZ_BRD);
-            put("DIR", FILETYPE_MZ_DIR);
-            put(rb.getString("<VOL>"), FILETYPE_MZ_VOL);
-            put(rb.getString("<VOL> SWAP"), FILETYPE_MZ_VOLSWAP);
-        }};
-
-        public static final String[] gTypeNameMZ2 = {
-                rb.getString("Write Protected"),
-                rb.getString("Seamless"),
-                null
-        };
-    }
+    public static final String[] gTypeNameMZ2 = {
+            /*rb.getString(*/"Write Protected"/*)*/,
+            /*rb.getString(*/"Seamless"/*)*/,
+    };
 
     private final DiskBasicDirData<DirectoryMz> m_data = new DiskBasicDirData<>();
 
     public DiskBasicDirItemMZ(DiskBasic basic) {
         super(basic);
+
         m_data.alloc(DirectoryMz.class);
     }
 
-    public DiskBasicDirItemMZ(DiskBasic basic, DiskImageSector n_sector, int n_secpos, byte[] n_data) {
-        super(basic, n_sector, n_secpos, n_data);
-        m_data.attach(n_data);
+    public DiskBasicDirItemMZ(DiskBasic basic, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP) {
+        super(basic, n_sector, n_secpos, n_data, dataP);
+
+        m_data.attach(DirectoryMz.class, n_data, dataP);
     }
 
-    public DiskBasicDirItemMZ(DiskBasic basic, int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, SectorParam n_next, boolean[] n_unuse) throws IOException {
-        super(basic, n_num, n_gitem, n_sector, n_secpos, n_data, n_next, n_unuse);
-        m_data.attach(n_data);
+    public DiskBasicDirItemMZ(DiskBasic basic, int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP, SectorParam n_next, boolean[] n_unuse) throws IOException {
+        super(basic, n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next, n_unuse);
+
+        // MZ
+        m_data.attach(DirectoryMz.class, n_data);
 
         used(checkUsed(n_unuse[0]));
 
         calcFileSize();
 
+        // カレント or 親ディレクトリはツリーに表示しない
         String name = getFileNamePlainStr();
         visibleOnTree(!(isDirectory() && (name.equals(".") || name.equals(".."))));
     }
 
     @Override
-    public void setDataPtr(int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, SectorParam n_next) throws IOException {
-        super.setDataPtr(n_num, n_gitem, n_sector, n_secpos, n_data, n_next);
-        m_data.attach(n_data);
+    public void setDataPtr(int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP, SectorParam n_next) throws IOException {
+        super.setDataPtr(n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next);
+
+        m_data.attach(DirectoryMz.class, n_data, dataP);
     }
 
     @Override
@@ -283,12 +258,12 @@ public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
     @Override
     public String getFileAttrStr() {
         String[] attr = new String[1];
-        getFileAttrName(convFileType1Pos(getFileType1()), Globals.gTypeNameMZ, attr, TYPE_NAME_MZ_UNKNOWN);
+        getFileAttrName(convFileType1Pos(getFileType1()), gTypeNameMZ, attr, TYPE_NAME_MZ_UNKNOWN);
 
         int t2 = getFileType2();
         if ((t2 & DATATYPE_MZ_READ_ONLY) != 0) {
             attr[0] += ", ";
-            attr[0] += rb.getString(Globals.gTypeNameMZ2[TYPE_NAME_MZ2_READ_ONLY]);
+            attr[0] += rb.getString(gTypeNameMZ2[TYPE_NAME_MZ2_READ_ONLY]);
         }
 
         return attr[0];
@@ -576,7 +551,7 @@ public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
 
         if (!isDirectory()) {
             String[] ext = new String[1];
-            if (getFileAttrName(convFileType1Pos(getFileType1()), Globals.gTypeNameMZ, ext, TYPE_NAME_MZ_UNKNOWN)) {
+            if (getFileAttrName(convFileType1Pos(getFileType1()), gTypeNameMZ, ext, TYPE_NAME_MZ_UNKNOWN)) {
                 filename[0] += ".";
                 if (Utils.isUpperString(filename[0])) {
                     filename[0] += ext[0].toUpperCase();
@@ -591,7 +566,7 @@ public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
     @Override
     public boolean preImportDataFile(String[] filename) {
         if (gConfig.isDecideAttrImport()) {
-            isContainAttrByExtension(filename[0], Globals.gTypeNameMZ, TYPE_NAME_MZ_OBJ, TYPE_NAME_MZ_DIR, filename, null, null);
+            isContainAttrByExtension(filename[0], gTypeNameMZ, TYPE_NAME_MZ_OBJ, TYPE_NAME_MZ_DIR, filename, null, null);
         }
         filename[0] = remakeFileNameAndExtStr(filename[0]);
         return true;
@@ -600,7 +575,7 @@ public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
     @Override
     public int convOriginalTypeFromFileName(String filename) {
         int[] t1 = new int[1];
-        if (!isContainAttrByExtension(filename, Globals.gTypeNameMZ, TYPE_NAME_MZ_OBJ, TYPE_NAME_MZ_DIR, null, t1, null)) {
+        if (!isContainAttrByExtension(filename, gTypeNameMZ, TYPE_NAME_MZ_OBJ, TYPE_NAME_MZ_DIR, null, t1, null)) {
             t1[0] = FILETYPE_MZ_BSD;
         }
         return t1[0];
@@ -662,7 +637,6 @@ public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
 
     @Override
     public void setInternalDataInAttrDialog(KeyValArray vals) {
-        vals.add("self", m_data.isSelf());
         vals.add("inverted", basic.isDataInverted());
 
         vals.add("TYPE", (byte) (m_data.data().type & 0xFF), basic.isDataInverted());

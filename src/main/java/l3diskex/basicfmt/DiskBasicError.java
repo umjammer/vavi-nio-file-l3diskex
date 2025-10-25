@@ -172,7 +172,7 @@ public class DiskBasicError extends ResultInfo {
 
         // add to the collection only if it is not already present
         if (!msgs.contains(msg)) {
-logger.log(Level.TRACE, msg, new Exception("dummy"));
+logger.log(Level.TRACE, msg, new Exception("MESSAGE: " + msg));
             msgs.add(msg);
         }
     }

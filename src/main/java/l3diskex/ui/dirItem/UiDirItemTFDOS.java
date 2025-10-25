@@ -44,6 +44,8 @@ public class UiDirItemTFDOS extends UiDirItem {
 
     DiskBasicDirItemTFDOS dirItem;
 
+    public int m_show_flags;
+
     @Override
     public void createControlsForAttrDialog(IntNameBox parent, int show_flags, String file_path, BoxLayout sizer, Object flags) {
         int t1 = dirItem.getFileType1();
@@ -54,7 +56,7 @@ public class UiDirItemTFDOS extends UiDirItem {
         int file_type_1 = dirItem.convFileType1Pos(t1);
         int file_type_2 = dirItem.convFileType2Pos(t1);
 
-        dirItem.m_show_flags = show_flags;
+        m_show_flags = show_flags;
 
         StaticBoxSizer staType1 = new StaticBoxSizer(new StaticBox(parent, "File Type"), VERTICAL);
 

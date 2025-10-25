@@ -24,7 +24,6 @@ import javax.swing.table.TableRowSorter;
 
 import l3diskex.Config;
 import l3diskex.ui.UICListCtrl.MyCListValue;
-import vavi.net.www.content.application.ini;
 
 
 // MyCListCtrl.java

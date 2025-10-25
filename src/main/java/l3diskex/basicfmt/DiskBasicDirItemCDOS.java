@@ -14,10 +14,10 @@ import java.util.ResourceBundle;
 
 import l3diskex.Utils;
 import l3diskex.basicfmt.BasicCommon.DirectoryCdos;
+import l3diskex.basicfmt.BasicCommon.DirectoryN88;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
-import l3diskex.basicfmt.BasicFmt.DiskBasic;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
 
@@ -32,16 +32,9 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_READONLY_MASK
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_SYSTEM_MASK;
 
 
-/* -------------------------------------------------------------
- *  CLASS DECLARATION
- * ------------------------------------------------------------- */
 public class DiskBasicDirItemCDOS extends DiskBasicDirItemMZBase<DirectoryCdos> {
 
     private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
-
-    /* -------------------------------------------------------------
-     *  ENUMS & CONSTANTS
-     * ------------------------------------------------------------- */
 
     /* type name enum (converted to integer constants) */
     public static final int TYPE_NAME_CDOS_UNKNOWN = 0;
@@ -76,15 +69,8 @@ public class DiskBasicDirItemCDOS extends DiskBasicDirItemMZBase<DirectoryCdos> 
     /* data type mask constants */
     public static final int DATATYPE_CDOS_READ_ONLY = 0x01;
 
-    /* -------------------------------------------------------------
-     *  MEMBER VARIABLES
-     * ------------------------------------------------------------- */
     /* directory data */
-    private DiskBasicDirData<DirectoryCdos> m_data;
-
-    /* -------------------------------------------------------------
-     *  PRIVATE METHODS (overrides)
-     * ------------------------------------------------------------- */
+    private DiskBasicDirData<DirectoryCdos> m_data = new DiskBasicDirData<>();
 
     /** ファイル名を格納する位置を返す */
     @Override
@@ -140,10 +126,6 @@ public class DiskBasicDirItemCDOS extends DiskBasicDirItemMZBase<DirectoryCdos> 
     public boolean checkUsed(boolean unuse) {
         return true;
     }
-
-    /* -------------------------------------------------------------
-     *  PRIVATE METHODS (utility)
-     * ------------------------------------------------------------- */
 
     /** 属性を変換 */
     private int convToNativeType(int file_type) {
@@ -240,44 +222,57 @@ public class DiskBasicDirItemCDOS extends DiskBasicDirItemMZBase<DirectoryCdos> 
         return basic.invertUint16(m_data.data().fileSize);
     }
 
-    /* -------------------------------------------------------------
-     *  PUBLIC CONSTRUCTORS
-     * ------------------------------------------------------------- */
     public DiskBasicDirItemCDOS(DiskBasic basic) {
         super(basic);
+
         m_data.alloc(DirectoryCdos.class);
     }
 
-    public DiskBasicDirItemCDOS(DiskBasic basic, DiskImageSector sector, int secpos, byte[] data) throws IOException {
-        super(basic);
-        m_data.alloc(DirectoryCdos.class);           // may be needed
-        setDataPtr(0, null, sector, secpos, data, null);
+    public DiskBasicDirItemCDOS(DiskBasic basic, DiskImageSector sector, int secpos, byte[] data, int dataP) throws IOException {
+        super(basic, sector, secpos, data, dataP);
+
+        m_data.attach(DirectoryCdos.class, data, dataP);
     }
 
     public DiskBasicDirItemCDOS(DiskBasic basic, int n_num, DiskBasicGroupItem gitem, DiskImageSector sector,
-                                int secpos, byte[] data, SectorParam next, boolean[] n_unuse) throws IOException {
-        super(basic);
-        m_data.alloc(DirectoryCdos.class);
-        setDataPtr(n_num, gitem, sector, secpos, data, next);
-        // n_unuse may be updated elsewhere
+                                int secpos, byte[] data, int dataP, SectorParam next, boolean[] n_unuse) throws IOException {
+        super(basic, n_num, gitem, sector, secpos, data, dataP, next, n_unuse);
+
+        m_data.attach(DirectoryCdos.class, data, dataP);
+
+        used(checkUsed(n_unuse[0]));
+        if (getFileType1() == 0xfe) {
+            // IPL部分は表示しない
+            visible(false);
+        }
+
+        calcFileSize();
     }
 
-    /* -------------------------------------------------------------
-     *  PUBLIC METHODS (overrides)
-     * ------------------------------------------------------------- */
-
+    /**
+     * アイテムへのポインタを設定
+     *
+     * @param n_num    通し番号
+     * @param gitem    トラック番号などのデータ
+     * @param sector   セクタ
+     * @param n_secpos セクタ内のディレクトリエントリの位置
+     * @param n_data   ディレクトリアイテム
+     * @param n_next   [out] 次のセクタ
+     */
     @Override
     public void setDataPtr(int n_num, DiskBasicGroupItem gitem, DiskImageSector sector,
-                           int n_secpos, byte[] n_data, SectorParam n_next) throws IOException {
-        super.setDataPtr(n_num, gitem, sector, n_secpos, n_data, n_next);
+                           int n_secpos, byte[] n_data, int dataP, SectorParam n_next) throws IOException {
+        super.setDataPtr(n_num, gitem, sector, n_secpos, n_data, dataP, n_next);
+
+        m_data.attach(DirectoryCdos.class, n_data, dataP);
     }
 
-    /* overload without n_next (default null) */
-    public void setDataPtr(int n_num, DiskBasicGroupItem gitem, DiskImageSector sector,
-                           int n_secpos, byte[] n_data) throws IOException {
-        setDataPtr(n_num, gitem, sector, n_secpos, n_data, null);
-    }
-
+    /**
+     * ディレクトリアイテムのチェック
+     *
+     * @param last [in,out] チェックを終了するか
+     * @return チェックOK
+     */
     @Override
     public boolean check(boolean[] last) {
         if (!m_data.isValid()) return false;
@@ -290,6 +285,8 @@ public class DiskBasicDirItemCDOS extends DiskBasicDirItemMZBase<DirectoryCdos> 
         return valid;
     }
 
+    /// 削除
+    /// @return true:OK
     @Override
     public boolean delete() {
         // 削除はエントリの先頭にコードを入れるだけ
@@ -412,7 +409,7 @@ public class DiskBasicDirItemCDOS extends DiskBasicDirItemMZBase<DirectoryCdos> 
     public String getFileCreateDateStr() {
         LocalDateTime tm = LocalDateTime.now();
         getFileCreateDate(tm);
-        return tm.toString();        // placeholder
+        return Utils.formatYMDStr(tm);
     }
 
     @Override
@@ -508,7 +505,6 @@ public class DiskBasicDirItemCDOS extends DiskBasicDirItemMZBase<DirectoryCdos> 
 
     @Override
     public void setInternalDataInAttrDialog(KeyValArray vals) {
-        vals.add("self", m_data.isSelf());
         vals.add("inverted", basic.isDataInverted());
         vals.add("TYPE", m_data.data().type, basic.isDataInverted());
         vals.add("NAME", m_data.data().name, m_data.data().name.length, basic.isDataInverted());
@@ -521,9 +517,4 @@ public class DiskBasicDirItemCDOS extends DiskBasicDirItemMZBase<DirectoryCdos> 
         vals.add("MONTH", m_data.data().mm, basic.isDataInverted());
         vals.add("DAY", m_data.data().dd, basic.isDataInverted());
     }
-
-    /* -------------------------------------------------------------
-     *  PRIVATE STATIC FIELDS (used in the original code)
-     * ------------------------------------------------------------- */
-    private static final int IDC_COMBO_TYPE1 = 1001;
 }

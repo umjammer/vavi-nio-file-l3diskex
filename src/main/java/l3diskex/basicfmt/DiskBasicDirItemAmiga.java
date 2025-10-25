@@ -6,6 +6,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,9 +20,6 @@ import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupUserData;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
-import l3diskex.basicfmt.BasicFmt.DiskBasic;
-import l3diskex.basicfmt.DiskBasicDirItemAmiga.AmigaDosTypes.AmigaChain;
-import l3diskex.basicfmt.DiskBasicDirItemAmiga.AmigaDosTypes.AmigaHashChain;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
 import vavi.util.ByteUtil;
@@ -73,108 +71,95 @@ public class DiskBasicDirItemAmiga extends DiskBasicDirItem<DirectoryAmiga> {
 
     public static final int FILETYPE_MASK_AMIGA_ROOT = 1;
 
-    // --- Converted Structures/Constants/Classes ---
-    public static class AmigaDosTypes {
+    public static final Map<String, Object> G_TYPE_NAME_AMIGA1 = new LinkedHashMap<>() {{
+        put("File", FILETYPE_MASK_AMIGA_FILE);
+        put("Dir", FILETYPE_MASK_AMIGA_USERDIR);
+        put("L.F.", FILETYPE_MASK_AMIGA_LINKFILE);
+        put("L.D.", FILETYPE_MASK_AMIGA_LINKDIR);
+        put("S.L.", FILETYPE_MASK_AMIGA_SOFTLINK);
+    }};
 
-        public static class ValueValue {
+    public static final Map<Integer, Integer> G_TYPE_CONV_AMIGA1 = new HashMap<>() {{
+            put(FILE_TYPE_DIRECTORY_MASK.getValue(), FILETYPE_MASK_AMIGA_ROOT);
+            put(FILE_TYPE_DATA_MASK.getValue(), FILETYPE_MASK_AMIGA_FILE);
+            put(FILE_TYPE_DIRECTORY_MASK.getValue(), FILETYPE_MASK_AMIGA_USERDIR);
+            put(FILE_TYPE_HARDLINK_MASK.getValue() | FILE_TYPE_DATA_MASK.getValue(), FILETYPE_MASK_AMIGA_LINKFILE);
+            put(FILE_TYPE_HARDLINK_MASK.getValue() | FILE_TYPE_DIRECTORY_MASK.getValue(), FILETYPE_MASK_AMIGA_LINKDIR);
+            put(FILE_TYPE_SOFTLINK_MASK.getValue(), FILETYPE_MASK_AMIGA_SOFTLINK);
+    }};
 
-            public int ori_value;
-            public int com_value;
+    public static final String G_TYPE_NAME_AMIGA2 = "dewrapsh";
 
-            public ValueValue(int ori_value, int com_value) {
-                this.ori_value = ori_value;
-                this.com_value = com_value;
-            }
+    public static final int[] G_TYPE_CONV_AMIGA2 = {
+            FILETYPE_MASK_AMIGA_U_NDEL, FILETYPE_MASK_AMIGA_U_NEXEC,
+            FILETYPE_MASK_AMIGA_U_NWRITE, FILETYPE_MASK_AMIGA_U_NREAD,
+            FILETYPE_MASK_AMIGA_ARCHIVE, FILETYPE_MASK_AMIGA_PURE,
+            FILETYPE_MASK_AMIGA_SCRIPT, FILETYPE_MASK_AMIGA_HOLD,
+            FILETYPE_MASK_AMIGA_G_NDEL, FILETYPE_MASK_AMIGA_G_NEXEC,
+            FILETYPE_MASK_AMIGA_G_NWRITE, FILETYPE_MASK_AMIGA_G_NREAD,
+            FILETYPE_MASK_AMIGA_O_NDEL, FILETYPE_MASK_AMIGA_O_NEXEC,
+            FILETYPE_MASK_AMIGA_O_NWRITE, FILETYPE_MASK_AMIGA_O_NREAD,
+            FILETYPE_MASK_AMIGA_SETUID, -1
+    };
+
+    // amiga_hash_chain_t
+    public static class AmigaHashChain {
+
+        public int hash_chain;
+        public int parent;
+        public int extension;
+        public int sec_type;
+    }
+
+    // amiga_file_data_pre_t (Union placeholder)
+    public static class AmigaFileDataPre {
+
+        public static class Ofs {
+
+            public int type;
+            public int header_key;
+            public int seq_num;
+            public int data_size;
+            public int next_data;
+            public int check_sum;
+            public byte[] data = new byte[1];
         }
 
-        public static final Map<String, Object> G_TYPE_NAME_AMIGA1 = new LinkedHashMap<>() {{
-            put("File", FILETYPE_MASK_AMIGA_FILE);
-            put("Dir", FILETYPE_MASK_AMIGA_USERDIR);
-            put("L.F.", FILETYPE_MASK_AMIGA_LINKFILE);
-            put("L.D.", FILETYPE_MASK_AMIGA_LINKDIR);
-            put("S.L.", FILETYPE_MASK_AMIGA_SOFTLINK);
-        }};
-        public static final ValueValue[] G_TYPE_CONV_AMIGA1 = {
-                new ValueValue(FILE_TYPE_DIRECTORY_MASK.getValue(), FILETYPE_MASK_AMIGA_ROOT),
-                new ValueValue(FILE_TYPE_DATA_MASK.getValue(), FILETYPE_MASK_AMIGA_FILE),
-                new ValueValue(FILE_TYPE_DIRECTORY_MASK.getValue(), FILETYPE_MASK_AMIGA_USERDIR),
-                new ValueValue(FILE_TYPE_HARDLINK_MASK.getValue() | FILE_TYPE_DATA_MASK.getValue(), FILETYPE_MASK_AMIGA_LINKFILE),
-                new ValueValue(FILE_TYPE_HARDLINK_MASK.getValue() | FILE_TYPE_DIRECTORY_MASK.getValue(), FILETYPE_MASK_AMIGA_LINKDIR),
-                new ValueValue(FILE_TYPE_SOFTLINK_MASK.getValue(), FILETYPE_MASK_AMIGA_SOFTLINK),
-                new ValueValue(-1, -1)
-        };
-        public static final String G_TYPE_NAME_AMIGA2 = "dewrapsh";
-        public static final int[] G_TYPE_CONV_AMIGA2 = {
-                FILETYPE_MASK_AMIGA_U_NDEL, FILETYPE_MASK_AMIGA_U_NEXEC,
-                FILETYPE_MASK_AMIGA_U_NWRITE, FILETYPE_MASK_AMIGA_U_NREAD,
-                FILETYPE_MASK_AMIGA_ARCHIVE, FILETYPE_MASK_AMIGA_PURE,
-                FILETYPE_MASK_AMIGA_SCRIPT, FILETYPE_MASK_AMIGA_HOLD,
-                FILETYPE_MASK_AMIGA_G_NDEL, FILETYPE_MASK_AMIGA_G_NEXEC,
-                FILETYPE_MASK_AMIGA_G_NWRITE, FILETYPE_MASK_AMIGA_G_NREAD,
-                FILETYPE_MASK_AMIGA_O_NDEL, FILETYPE_MASK_AMIGA_O_NEXEC,
-                FILETYPE_MASK_AMIGA_O_NWRITE, FILETYPE_MASK_AMIGA_O_NREAD,
-                FILETYPE_MASK_AMIGA_SETUID, -1
-        };
+        public Ofs o = new Ofs();
+    }
 
-        // amiga_hash_chain_t
-        public static class AmigaHashChain {
+    /// Amiga ユーザデータに渡すチェイン情報
+    public static class AmigaChain extends DiskBasicGroupUserData {
 
-            public int hash_chain;
-            public int parent;
-            public int extension;
-            public int sec_type;
+        public int m_idx;
+        // TODO int *
+        public int p_prev_chain; // Pointer placeholder
+        // TODO int *
+        public int p_next_chain; // Pointer placeholder
+
+        public AmigaChain() {
+            super();
+            m_idx = 0;
+            p_prev_chain = -1;
+            p_next_chain = -1;
         }
 
-        // amiga_file_data_pre_t (Union placeholder)
-        public static class AmigaFileDataPre {
-
-            public static class Ofs {
-
-                public int type;
-                public int header_key;
-                public int seq_num;
-                public int data_size;
-                public int next_data;
-                public int check_sum;
-                public byte[] data = new byte[1];
-            }
-
-            public Ofs o = new Ofs();
+        public AmigaChain(int idx, int prev_chain, int next_chain) {
+            m_idx = idx;
+            p_prev_chain = prev_chain;
+            p_next_chain = next_chain;
         }
 
-        /// Amiga ユーザデータに渡すチェイン情報
-        public static class AmigaChain extends DiskBasicGroupUserData {
+        public DiskBasicGroupUserData Clone() {
+            return new AmigaChain(this.m_idx, this.p_prev_chain, this.p_next_chain);
+        }
 
-            public int m_idx;
-            // TODO int *
-            public int p_prev_chain; // Pointer placeholder
-            // TODO int *
-            public int p_next_chain; // Pointer placeholder
-
-            public AmigaChain() {
-                super();
-                m_idx = 0;
-                p_prev_chain = -1;
-                p_next_chain = -1;
-            }
-
-            public AmigaChain(int idx, int prev_chain, int next_chain) {
-                m_idx = idx;
-                p_prev_chain = prev_chain;
-                p_next_chain = next_chain;
-            }
-
-            public DiskBasicGroupUserData Clone() {
-                return new AmigaChain(this.m_idx, this.p_prev_chain, this.p_next_chain);
-            }
-
-            public AmigaChain operator_assign(DiskBasicGroupUserData src) { // operator=
-                AmigaChain src_amiga = (AmigaChain) src;
-                m_idx = src_amiga.m_idx;
-                p_prev_chain = src_amiga.p_prev_chain;
-                p_next_chain = src_amiga.p_next_chain;
-                return this;
-            }
+        public AmigaChain operator_assign(DiskBasicGroupUserData src) { // operator=
+            AmigaChain src_amiga = (AmigaChain) src;
+            m_idx = src_amiga.m_idx;
+            p_prev_chain = src_amiga.p_prev_chain;
+            p_next_chain = src_amiga.p_next_chain;
+            return this;
         }
     }
 
@@ -182,47 +167,52 @@ public class DiskBasicDirItemAmiga extends DiskBasicDirItem<DirectoryAmiga> {
     private final List<Integer> m_extension_list = new ArrayList<>(); // int[]
     private AmigaBlockPre m_temp_pre;
     private AmigaBlockPost m_temp_post;
-    private AmigaDosTypes.AmigaChain m_chain = new AmigaDosTypes.AmigaChain();
+    private AmigaChain m_chain = new AmigaChain();
 
     // Public Constructors
-    public DiskBasicDirItemAmiga(DiskBasic basic) {
+    public DiskBasicDirItemAmiga(DiskBasic basic) throws IOException {
         super(basic);
-        this.basic = basic;
+
         m_temp_pre = null;
         m_temp_post = null;
-        allocData(null, null);
+
+        allocData(null, null, 0);
         allocTemp();
     }
 
-    public DiskBasicDirItemAmiga(DiskBasic basic, DiskImageSector n_sector, int n_secpos, byte[] n_data) {
-        super(basic, n_sector, n_secpos, n_data);
-        this.basic = basic;
+    public DiskBasicDirItemAmiga(DiskBasic basic, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP) throws IOException {
+        super(basic, n_sector, n_secpos, n_data, dataP);
+
         m_temp_pre = null;
         m_temp_post = null;
-        allocData(n_sector, n_data);
+
+        allocData(n_sector, n_data, dataP);
     }
 
-    public DiskBasicDirItemAmiga(DiskBasic basic, int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, SectorParam n_next, boolean[] n_unuse) throws IOException {
-        super(basic, n_num, n_gitem, n_sector, n_secpos, n_data, n_next, n_unuse);
-        this.basic = basic;
+    public DiskBasicDirItemAmiga(DiskBasic basic, int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP, SectorParam n_next, boolean[] n_unuse) throws IOException {
+        super(basic, n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next, n_unuse);
+
         m_temp_pre = null;
         m_temp_post = null;
         if (n_gitem != null) m_chain = m_chain.operator_assign(n_gitem.userData);
-        allocData(n_sector, n_data);
+
+        allocData(n_sector, n_data, dataP);
+
         used(checkUsed(n_unuse[0]));
+
         calcFileSize();
     }
 
-    // Private helper methods
-    private void allocData(DiskImageSector n_sector, byte[] n_data) {
+    private void allocData(DiskImageSector n_sector, byte[] n_data, int dataP) throws IOException {
         m_data.alloc(DirectoryAmiga.class);
-        m_data.attach(new DirectoryAmiga());
+
         if (n_sector != null && n_data != null) {
             int num = type.getSectorPosFromNum(n_sector.getIDC(), n_sector.getIDH(), n_sector.getIDR());
             m_data.data().blockNum = num;
-            // Pointers assigned to null as placeholder for memory mapping
-            m_data.data().pre = null;
-            m_data.data().post = null;
+            m_data.data().pre = new AmigaBlockPre();
+            Serdes.Util.deserialize(new ByteArrayInputStream(n_data, dataP, AmigaBlockPre.SIZE), m_data.data().pre);
+            m_data.data().post = new AmigaBlockPost();
+            Serdes.Util.deserialize(new ByteArrayInputStream(n_data, n_sector.getSectorSize() - AmigaBlockPost.SIZE, AmigaBlockPost.SIZE), m_data.data().post);
         } else {
             m_data.data().blockNum = 0;
             m_data.data().pre = null;
@@ -237,12 +227,12 @@ public class DiskBasicDirItemAmiga extends DiskBasicDirItem<DirectoryAmiga> {
         m_data.data().post = m_temp_post;
     }
 
-    // Overridden methods
     @Override
-    public void setDataPtr(int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, SectorParam n_next) throws IOException {
-        super.setDataPtr(n_num, n_gitem, n_sector, n_secpos, n_data, n_next);
-        if (n_gitem != null) m_chain = m_chain.operator_assign(n_gitem.userData);
-        allocData(n_sector, n_data);
+    public void setDataPtr(int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP, SectorParam n_next) throws IOException {
+        super.setDataPtr(n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next);
+
+        if (n_gitem != null) m_chain = m_chain.operator_assign(n_gitem.userData); // TODO serdes
+        allocData(n_sector, n_data, dataP);
     }
 
     @Override
@@ -355,13 +345,13 @@ public class DiskBasicDirItemAmiga extends DiskBasicDirItem<DirectoryAmiga> {
     public String getFileAttrStr() { // virtual wxString GetFileAttrStr() const
         StringBuilder str = new StringBuilder();
         int spos = convFileType1Pos(getFileType1());
-        str.append(spos >= 0 ? AmigaDosTypes.G_TYPE_NAME_AMIGA1.get(spos) : "???");
+        str.append(spos >= 0 ? G_TYPE_NAME_AMIGA1.get(spos) : "???");
         str.append(" ,");
         int type2 = getFileType2();
         for (int i = 7; i >= 0; i--) {
             boolean high = (i >= 4);
-            boolean bset = (((type2 & AmigaDosTypes.G_TYPE_CONV_AMIGA2[i]) != 0));
-            str.append(bset == high ? AmigaDosTypes.G_TYPE_NAME_AMIGA2.charAt(i) : "-");
+            boolean bset = (((type2 & G_TYPE_CONV_AMIGA2[i]) != 0));
+            str.append(bset == high ? G_TYPE_NAME_AMIGA2.charAt(i) : "-");
         }
         return str.toString();
     }
@@ -588,10 +578,9 @@ public class DiskBasicDirItemAmiga extends DiskBasicDirItem<DirectoryAmiga> {
 
     public static int convFromFileType1(int type1) { // static int ConvFromFileType1(int type1)
         int val = 0;
-        for (AmigaDosTypes.ValueValue vv : AmigaDosTypes.G_TYPE_CONV_AMIGA1) {
-            if (vv.ori_value == -1) break;
-            if (type1 == vv.ori_value) {
-                val = vv.com_value;
+        for (Map.Entry<Integer, Integer> vv : G_TYPE_CONV_AMIGA1.entrySet()) {
+            if (type1 == vv.getKey()) {
+                val = vv.getValue();
                 break;
             }
         }
@@ -611,7 +600,7 @@ public class DiskBasicDirItemAmiga extends DiskBasicDirItem<DirectoryAmiga> {
     }
 
     public int convFileType1Pos(int type1) {
-        return Utils.indexOf(AmigaDosTypes.G_TYPE_NAME_AMIGA1, type1);
+        return Utils.indexOf(G_TYPE_NAME_AMIGA1, type1);
     }
 
     @Override

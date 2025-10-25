@@ -6,11 +6,11 @@ import java.util.Map;
 
 import l3diskex.Utils;
 import l3diskex.basicfmt.BasicCommon.DirectoryFrost;
+import l3diskex.basicfmt.BasicCommon.DirectoryN88;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
-import l3diskex.basicfmt.BasicFmt.DiskBasic;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
 
@@ -35,51 +35,33 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
     public static final int FILETYPE_FROST_BIN = 0x01;
     public static final int FILETYPE_FROST_RGB = 0x02;
 
-    // Attributes for property dialog (mapped to Swing component IDs)
-    private static final int IDC_RADIO_TYPE1 = 51;
-
-    // Placeholder for DiskBasicDirData<directory_frost_t>
-    private final DiskBasicDirData<DirectoryFrost> m_data;
+    private final DiskBasicDirData<DirectoryFrost> m_data = new DiskBasicDirData<>();
 
     public static final Map<String, Object> gTypeNameFROST_1 = new LinkedHashMap<>() {{
         put("BAS", FILETYPE_FROST_BAS);
         put("BIN", FILETYPE_FROST_BIN);
         put("RGB", FILETYPE_FROST_RGB);
-        put("???", 0);
     }};
-
-    private DiskBasicDirItemFROST() {
-        super();
-        m_data = new DiskBasicDirData<>();
-    }
-
-    // Simplified copy constructor
-    private DiskBasicDirItemFROST(DiskBasicDirItemFROST src) {
-        super(src);
-        m_data = new DiskBasicDirData<>();
-        m_data.copy(src.m_data.data());
-    }
 
     public DiskBasicDirItemFROST(DiskBasic basic) {
         super(basic);
-        m_data = new DiskBasicDirData<>();
+
+        m_data.alloc(DirectoryFrost.class);
     }
 
-    public DiskBasicDirItemFROST(DiskBasic basic, DiskImageSector n_sector, int n_secpos, byte[] n_data) {
-        super(basic, n_sector, n_secpos, n_data);
-        m_data = new DiskBasicDirData<>();
-        m_data.attach(n_data);
+    public DiskBasicDirItemFROST(DiskBasic basic, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP) {
+        super(basic, n_sector, n_secpos, n_data, dataP);
+
+        m_data.attach(DirectoryFrost.class, n_data, dataP);
     }
 
-    public DiskBasicDirItemFROST(DiskBasic basic, int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, SectorParam n_next, boolean[] n_unuse) throws IOException {
-        super(basic, n_num, n_gitem, n_sector, n_secpos, n_data, n_next, n_unuse);
-        m_data = new DiskBasicDirData<>();
-        m_data.attach(n_data);
+    public DiskBasicDirItemFROST(DiskBasic basic, int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP, SectorParam n_next, boolean[] n_unuse) throws IOException {
+        super(basic, n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next, n_unuse);
 
-        boolean[] unuseRef = new boolean[] {n_unuse[0]};
-        used(checkUsed(unuseRef[0]));
-        unuseRef[0] = (unuseRef[0] || (m_data.data().name[0] == (byte) 0xff));
-        n_unuse[0] = unuseRef[0];
+        m_data.attach(DirectoryFrost.class, n_data, dataP);
+
+        used(checkUsed(n_unuse[0]));
+        n_unuse[0] = (n_unuse[0] || (m_data.data().name[0] == (byte) 0xff));
 
         // ファイルサイズとグループ数を計算
         calcFileSize();
@@ -89,9 +71,9 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
      * アイテムへのポインタを設定
      */
     @Override
-    public void setDataPtr(int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, SectorParam n_next) throws IOException {
-        super.setDataPtr(n_num, n_gitem, n_sector, n_secpos, n_data, n_next);
-        m_data.attach(n_data);
+    public void setDataPtr(int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP, SectorParam n_next) throws IOException {
+        super.setDataPtr(n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next);
+        m_data.attach(DirectoryFrost.class, n_data);
     }
 
     /**
@@ -443,7 +425,6 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
      */
     @Override
     public boolean copyData(DirectoryFrost val) {
-        // Cast must be safe assuming proper usage of the framework
         return m_data.copy(val);
     }
 
@@ -497,8 +478,7 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
      */
     @Override
     public int convOriginalTypeFromFileName(String filename) {
-        int[] t1 = new int[1];
-        t1[0] = 0;
+        int[] t1 = {0};
         // 拡張子で属性を設定する
         if (!isContainAttrByExtension(filename, gTypeNameFROST_1, TYPE_NAME_FROST_BAS, TYPE_NAME_FROST_RGB, null, t1, null)) {
             t1[0] = FILETYPE_FROST_BIN;
@@ -521,12 +501,11 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
      */
     @Override
     public void setInternalDataInAttrDialog(KeyValArray vals) {
-        vals.add("self", m_data.isSelf());
         vals.add("NAME", m_data.data().name, m_data.data().name.length);
         vals.add("EXT", m_data.data().ext, m_data.data().ext.length);
-        vals.add("TYPE", m_data.data().type & 0xff); // Treat as unsigned byte
-        vals.add("TRACK", m_data.data().track & 0xff); // Treat as unsigned byte
-        vals.add("SECTOR", m_data.data().sector & 0xff); // Treat as unsigned byte
+        vals.add("TYPE", m_data.data().type & 0xff);
+        vals.add("TRACK", m_data.data().track & 0xff);
+        vals.add("SECTOR", m_data.data().sector & 0xff);
         vals.add("LOAD_ADDR", (byte) m_data.data().loadAddr, basic.isBigEndian());
         vals.add("SIZE", (byte) m_data.data().size, basic.isBigEndian());
     }

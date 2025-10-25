@@ -20,11 +20,9 @@ import l3diskex.ui.IntNameBox;
 import l3diskex.ui.UiDirItem;
 
 import static l3diskex.basicfmt.DiskBasicDirItemC1541.FILETYPE_MASK_C1541_REL;
-import static l3diskex.basicfmt.DiskBasicDirItemC1541.IDC_TEXT_RECSIZE;
 import static l3diskex.basicfmt.DiskBasicDirItemC1541.TYPE_NAME_C1541_DEL;
 import static l3diskex.basicfmt.DiskBasicDirItemC1541.TYPE_NAME_C1541_REL;
 import static l3diskex.basicfmt.DiskBasicDirItemC1541.gTypeNameC1541;
-import static l3diskex.basicfmt.DiskBasicDirItemSDOS.IDC_COMBO_TYPE1;
 import static l3diskex.ui.IntNameBox.INTNAME_NEW_FILE;
 
 
@@ -36,7 +34,20 @@ import static l3diskex.ui.IntNameBox.INTNAME_NEW_FILE;
  */
 public class UiDirItemC1541 extends UiDirItem {
 
+    static final int IDC_COMBO_TYPE1 = 51;
+    static final int IDC_TEXT_RECSIZE = 52;
+    static final int IDC_TEXT_SIDESEC = 53;
+
     DiskBasicDirItemC1541 dirItem;
+
+    /// インポート時ダイアログ表示前にファイルの属性を設定
+    public void setFileTypeForAttrDialog(int show_flags, String name, int[] file_type_1, int[] file_type_2) {
+        // INTNAME_NEW_FILE is a mock constant for new file
+        if ((show_flags & 0x01) != 0) { // Assuming INTNAME_NEW_FILE = 0x01
+            // 外部からインポート時
+            file_type_1[0] = dirItem.convOriginalTypeFromFileName(name);
+        }
+    }
 
     /// ダイアログ内に属性を設定
     /// @param show_flags      ダイアログ表示フラグ
@@ -46,14 +57,15 @@ public class UiDirItemC1541 extends UiDirItem {
     // This is the private method SetFileTypeForAttrDialog, implemented above as a helper.
 
     /// ダイアログ内の属性部分のレイアウトを作成
-    public void CreateControlsForAttrDialog(IntNameBox parent, int show_flags, String file_path, BoxLayout sizer, Object flags) {
+    @Override
+    public void createControlsForAttrDialog(IntNameBox parent, int show_flags, String file_path, BoxLayout sizer, Object flags) {
         int[] file_type_1_arr = {dirItem.getFileType1()};
         int[] file_type_2_arr = {0};
         JComboBox comType1 = new JComboBox(); // Mock
         JTextField txtRecSize = new JTextField(); // Mock
         JTextField txtSideSec = new JTextField(); // Mock
 
-        dirItem.setFileTypeForAttrDialog(show_flags, file_path, file_type_1_arr, file_type_2_arr);
+        setFileTypeForAttrDialog(show_flags, file_path, file_type_1_arr, file_type_2_arr);
         int file_type_1 = file_type_1_arr[0];
 
         List<String> types1 = new ArrayList<>();
@@ -90,7 +102,7 @@ public class UiDirItemC1541 extends UiDirItem {
             // IntNameBox::CreateFileSize(parent, IDC_TEXT_SIDESEC, "Size of Side Sector", 20, true, null, null, szrG, txtSideSecArr); // Mock call
             txtSideSec = (JTextField) txtSideSecArr[0]; // Assuming it's set by the mock call
 
-            int sid_size = (int) m_ss_groups.getSize();
+            int sid_size = (int) dirItem.m_ss_groups.getSize();
             String sid_size_str = IntNameBox.convFileSize(sid_size);
             txtSideSec.setText(sid_size_str);
             txtSideSec.setEditable(false);
@@ -101,17 +113,20 @@ public class UiDirItemC1541 extends UiDirItem {
     }
 
     /// ダイアログ内の値を設定
-    public void InitializeForAttrDialog(IntNameBox parent, int show_flags, int[] user_data) {
+    @Override
+    public void initializeForAttrDialog(IntNameBox parent, int show_flags, int[] user_data) {
         // Implementation is empty in C++, so it remains empty here.
     }
 
     /// 属性を変更した際に呼ばれるコールバック
-    public void ChangeTypeInAttrDialog(IntNameBox parent) {
+    @Override
+    public void changeTypeInAttrDialog(IntNameBox parent) {
         // Implementation is empty in C++, so it remains empty here.
     }
 
     /// 機種依存の属性を設定する
-    public boolean SetAttrInAttrDialog(IntNameBox parent, DiskBasicDirItemAttr attr, DiskBasicError errinfo) {
+    @Override
+    public boolean setAttrInAttrDialog(IntNameBox parent, DiskBasicDirItemAttr attr, DiskBasicError errinfo) {
         JComboBox comType1 = (JComboBox) parent.getComponent(IDC_COMBO_TYPE1);
         JTextField txtRecSize = (JTextField) parent.getComponent(IDC_TEXT_RECSIZE);
         boolean valid = true;

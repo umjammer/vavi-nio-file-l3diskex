@@ -211,25 +211,4 @@ public class FileSelBox extends JDialog {
             formats.add(new FileFormat("format_c", "Format C"));
         }
     }
-
-    /* ------------------------------------------------------------
-     *  8. テスト用 main（省略可）
-     * ------------------------------------------------------------ */
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                JFrame dummy = new JFrame();
-                dummy.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-                dummy.setSize(300, 200);
-                dummy.setVisible(false);   // 親ウィンドウを表示しない
-
-                FileSelBox dlg = new FileSelBox(dummy, 0);
-                dlg.showModal();
-
-                System.out.println("Selected Index: " + dlg.getSelection());
-                System.out.println("Selected Format: " + dlg.getFormatType());
-            }
-        });
-    }
 }

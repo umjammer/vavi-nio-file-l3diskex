@@ -28,7 +28,7 @@ import vavi.io.SeekableDataInputStream;
  * <p>
  * 1トラック分を解析
  */
-abstract class RunLengthLimitedParser {
+abstract class runLengthLimitedParser {
 
     protected DiskImageDisk disk;
     protected DiskImageTrack track;
@@ -92,7 +92,7 @@ abstract class RunLengthLimitedParser {
 
     protected abstract byte decodeData(byte[] indata);
 
-    public RunLengthLimitedParser() {
+    public runLengthLimitedParser() {
         disk = null;
         track = null;
         track_size = 0;
@@ -106,7 +106,7 @@ abstract class RunLengthLimitedParser {
         curr_ids = new CurrentIDs();
     }
 
-    public RunLengthLimitedParser(DiskImageDisk n_disk, int n_track_number, int n_side_number, int n_d88_offset_pos, byte[] n_data, int n_data_len, DiskResult n_result) {
+    public runLengthLimitedParser(DiskImageDisk n_disk, int n_track_number, int n_side_number, int n_d88_offset_pos, byte[] n_data, int n_data_len, DiskResult n_result) {
         disk = n_disk;
         track = null;
         track_size = 0;
@@ -196,7 +196,7 @@ abstract class RunLengthLimitedParser {
  * <p>
  * 1トラック分を解析
  */
-class FormatMFMParser extends RunLengthLimitedParser {
+class FormatMFMParser extends runLengthLimitedParser {
 
     @Override
     protected boolean adjustGap() {
@@ -421,7 +421,7 @@ class FormatMFMParser extends RunLengthLimitedParser {
  * <p>
  * 1トラック分を解析
  */
-class FormatFMParser extends RunLengthLimitedParser {
+class FormatFMParser extends runLengthLimitedParser {
 
     @Override
     protected boolean adjustGap() {
@@ -802,7 +802,7 @@ public class DiskHfeParser extends DiskImageParser {
             int d88_track_size = 0;
             DiskImageTrack track = null;
             int sector_nums = 0;
-            RunLengthLimitedParser ps = null;
+            runLengthLimitedParser ps = null;
 
             int side_encoding = encoding[side] & 0xFF;
 

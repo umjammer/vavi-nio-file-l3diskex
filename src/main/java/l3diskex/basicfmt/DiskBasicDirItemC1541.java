@@ -1,8 +1,8 @@
 package l3diskex.basicfmt;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,11 +14,8 @@ import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
-import l3diskex.basicfmt.BasicFmt.DiskBasic;
-import l3diskex.basicfmt.DiskBasicDirItemAmiga.AmigaDosTypes.ValueValue;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
-import vavi.util.serdes.Serdes;
 
 import static l3diskex.Config.gConfig;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_ASCII_MASK;
@@ -33,10 +30,6 @@ import static l3diskex.basicfmt.DiskBasicTypeC1541.C1541_START_TRACK_OFFSET;
 
 
 public class DiskBasicDirItemC1541 extends DiskBasicDirItem<DirectoryC1541> {
-
-    static final int IDC_COMBO_TYPE1 = 51;
-    public static final int IDC_TEXT_RECSIZE = 52;
-    static final int IDC_TEXT_SIDESEC = 53;
 
     static final int FILETYPE_MASK_C1541_DEL = 0x80;
     static final int FILETYPE_MASK_C1541_SEQ = 0x81;
@@ -59,47 +52,46 @@ public class DiskBasicDirItemC1541 extends DiskBasicDirItem<DirectoryC1541> {
     }};
 
     /** C1541属性変換テーブル */
-    private static final ValueValue[] gTypeConvC1541 = {
-            new ValueValue(FILE_TYPE_DATA_MASK.getValue() | FILE_TYPE_ASCII_MASK.getValue(), FILETYPE_MASK_C1541_SEQ),
-            new ValueValue(FILE_TYPE_BASIC_MASK.getValue() | FILE_TYPE_BINARY_MASK.getValue(), FILETYPE_MASK_C1541_PRG),
-            new ValueValue(FILE_TYPE_MACHINE_MASK.getValue() | FILE_TYPE_BINARY_MASK.getValue(), FILETYPE_MASK_C1541_USR),
-            new ValueValue(FILE_TYPE_DATA_MASK.getValue() | FILE_TYPE_RANDOM_MASK.getValue(), FILETYPE_MASK_C1541_REL),
-            new ValueValue(-1, -1)
-    };
+    private static final Map<Integer, Integer> gTypeConvC1541 = new HashMap<>() {{
+            put(FILE_TYPE_DATA_MASK.getValue() | FILE_TYPE_ASCII_MASK.getValue(), FILETYPE_MASK_C1541_SEQ);
+            put(FILE_TYPE_BASIC_MASK.getValue() | FILE_TYPE_BINARY_MASK.getValue(), FILETYPE_MASK_C1541_PRG);
+            put(FILE_TYPE_MACHINE_MASK.getValue() | FILE_TYPE_BINARY_MASK.getValue(), FILETYPE_MASK_C1541_USR);
+            put(FILE_TYPE_DATA_MASK.getValue() | FILE_TYPE_RANDOM_MASK.getValue(), FILETYPE_MASK_C1541_REL);
+    }};
 
     private final DiskBasicDirData<DirectoryC1541> m_data = new DiskBasicDirData<>();
-    private DiskBasicGroups m_ss_groups = new DiskBasicGroups(); // For REL files, side sectors
+
+    // For REL files, side sectors
+    public DiskBasicGroups m_ss_groups = new DiskBasicGroups();
 
     public DiskBasicDirItemC1541(DiskBasic basic) {
         super(basic);
+
         m_data.alloc(DirectoryC1541.class);
     }
 
-    public DiskBasicDirItemC1541(DiskBasic basic, DiskImageSector n_sector, int n_secpos, byte[] n_data) throws IOException {
-        super(basic, n_sector, n_secpos, n_data);
-        DirectoryC1541 d = new DirectoryC1541();
-        Serdes.Util.deserialize(new ByteArrayInputStream(n_data), d);
-        m_data.attach(d);
+    public DiskBasicDirItemC1541(DiskBasic basic, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP) throws IOException {
+        super(basic, n_sector, n_secpos, n_data, dataP);
+
+        m_data.attach(DirectoryC1541.class, n_data, dataP);
     }
 
-    public DiskBasicDirItemC1541(DiskBasic basic, int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, SectorParam n_next, boolean[] n_unuse) throws IOException {
-        super(basic, n_num, n_gitem, n_sector, n_secpos, n_data, n_next, n_unuse);
-        DirectoryC1541 d = new DirectoryC1541();
-        Serdes.Util.deserialize(new ByteArrayInputStream(n_data), d);
-        m_data.attach(d);
+    public DiskBasicDirItemC1541(DiskBasic basic, int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP, SectorParam n_next, boolean[] n_unuse) throws IOException {
+        super(basic, n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next, n_unuse);
 
-        n_unuse[0] = checkUsed(n_unuse[0]);
-        used(n_unuse[0]);
+        m_data.attach(DirectoryC1541.class, n_data);
+
+        used(checkUsed(n_unuse[0]));
 
         calcFileSize();
     }
 
     /// アイテムへのポインタを設定
     @Override
-    public void setDataPtr(int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, SectorParam n_next) throws IOException {
-        DirectoryC1541 d = new DirectoryC1541();
-        Serdes.Util.deserialize(new ByteArrayInputStream(n_data), d);
-        m_data.attach(d);
+    public void setDataPtr(int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP, SectorParam n_next) throws IOException {
+        super.setDataPtr(n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next);
+
+        m_data.attach(DirectoryC1541.class, n_data, dataP);
     }
 
     /// ファイル名を格納する位置を返す
@@ -157,11 +149,11 @@ public class DiskBasicDirItemC1541 extends DiskBasicDirItem<DirectoryC1541> {
     }
 
     /// 共通属性を個別属性に変換
-    public static int ConvToFileType1(int ftype) {
+    public static int convToFileType1(int ftype) {
         int t1 = 0;
-        for (int i = 0; gTypeConvC1541[i].ori_value != -1; i++) {
-            if ((ftype & FILE_TYPE_EXTENSION_MASK) == gTypeConvC1541[i].com_value) {
-                t1 = gTypeConvC1541[i].ori_value;
+        for (Map.Entry<Integer, Integer> e : gTypeConvC1541.entrySet()) {
+            if ((ftype & FILE_TYPE_EXTENSION_MASK) == e.getValue()) {
+                t1 = e.getKey();
                 break;
             }
         }
@@ -171,9 +163,9 @@ public class DiskBasicDirItemC1541 extends DiskBasicDirItem<DirectoryC1541> {
     /// 個別属性を共通属性に変換
     public static int convFromFileType1(int type1) {
         int val = 0;
-        for (int i = 0; gTypeConvC1541[i].ori_value != -1; i++) {
-            if (type1 == gTypeConvC1541[i].ori_value) {
-                val = gTypeConvC1541[i].com_value;
+        for (Map.Entry<Integer, Integer> e : gTypeConvC1541.entrySet()) {
+            if (type1 == e.getKey()) {
+                val = e.getValue();
                 break;
             }
         }
@@ -193,15 +185,6 @@ public class DiskBasicDirItemC1541 extends DiskBasicDirItem<DirectoryC1541> {
     /// ブロック数を返す
     private short getBlocks() {
         return m_data.data().numOfBlocks; // be
-    }
-
-    /// インポート時ダイアログ表示前にファイルの属性を設定
-    public void setFileTypeForAttrDialog(int show_flags, String name, int[] file_type_1, int[] file_type_2) {
-        // INTNAME_NEW_FILE is a mock constant for new file
-        if ((show_flags & 0x01) != 0) { // Assuming INTNAME_NEW_FILE = 0x01
-            // 外部からインポート時
-            file_type_1[0] = convOriginalTypeFromFileName(name);
-        }
     }
 
     /// ディレクトリアイテムのチェック
@@ -251,7 +234,7 @@ public class DiskBasicDirItemC1541 extends DiskBasicDirItem<DirectoryC1541> {
             setRecordLength(rl);
         } else {
             // 違うOSから
-            int t1 = ConvToFileType1(ftype);
+            int t1 = convToFileType1(ftype);
             if (t1 > 0) setFileType1(t1);
         }
     }
@@ -262,7 +245,6 @@ public class DiskBasicDirItemC1541 extends DiskBasicDirItem<DirectoryC1541> {
         int rl = getRecordLength();
         int t1 = getFileType1();
         int val = convFromFileType1(t1);
-        // Assuming DiskBasicFileType constructor is DiskBasicFileType(format, common_type, origin_type)
         return new DiskBasicFileType(basic.getFormatTypeNumber(), val, (rl << 8) | t1);
     }
 
@@ -274,7 +256,7 @@ public class DiskBasicDirItemC1541 extends DiskBasicDirItem<DirectoryC1541> {
         if (spos >= 0) {
             str = Utils.keyAt(gTypeNameC1541, spos);
         } else {
-            str = "???"; // Equivalent of "???"
+            str = "???";
         }
         return str;
     }
@@ -303,7 +285,7 @@ public class DiskBasicDirItemC1541 extends DiskBasicDirItem<DirectoryC1541> {
     /// ファイルサイズとグループ数を計算する
     @Override
     public void calcFileUnitSize(int fileunit_num) {
-        if (!checkUsed(false)) return; // Assuming IsUsed() is CheckUsed(false)
+        if (!checkUsed(false)) return;
 
         getUnitGroups(fileunit_num, groups);
     }
@@ -311,12 +293,11 @@ public class DiskBasicDirItemC1541 extends DiskBasicDirItem<DirectoryC1541> {
     /// 指定ディレクトリのすべてのグループを取得
     @Override
     public void getUnitGroups(int fileunit_num, DiskBasicGroups group_items) {
-        //	if (!chain.IsValid()) return; // chain is not defined, skipping check
+//        if (!chain.isValid()) return;
 
-        int track_num = 0;
-        int side_num = 0;
-        int sector_num = 0;
-        int[] track_num_arr = {track_num}, side_num_arr = {side_num}, sector_num_arr = {sector_num};
+        int[] track_num = {0};
+        int[] side_num = {0};
+        int[] sector_num = {0};
 
         int sector_size = basic.getSectorSize();
         // 1セクタ当たり2バイトはチェイン用のリンクポインタになるので減算
@@ -327,7 +308,7 @@ public class DiskBasicDirItemC1541 extends DiskBasicDirItem<DirectoryC1541> {
         int type1 = getFileType1();
         // RELative fileの場合はサイドセクタ分を加算する
         if (type1 == FILETYPE_MASK_C1541_REL) {
-            m_ss_groups.empty();
+            m_ss_groups.clear();
             blks = 2;
         }
 
@@ -340,7 +321,7 @@ public class DiskBasicDirItemC1541 extends DiskBasicDirItem<DirectoryC1541> {
 
             while (limit > 0) {
                 int sector_pos = group_num;
-                DiskImageSector sector = basic.getSectorFromSectorPos(sector_pos, track_num_arr, side_num_arr);
+                DiskImageSector sector = basic.getSectorFromSectorPos(sector_pos, track_num, side_num);
                 if (sector == null) {
                     break;
                 }
@@ -348,11 +329,9 @@ public class DiskBasicDirItemC1541 extends DiskBasicDirItem<DirectoryC1541> {
                 if (buffer == null) {
                     break;
                 }
-                sector_num = sector.getSectorNumber();
-                track_num = track_num_arr[0];
-                side_num = side_num_arr[0];
+                sector_num[0] = sector.getSectorNumber();
 
-                tmp_grp_items.add(group_num, 0, track_num, side_num, sector_num, sector_num);
+                tmp_grp_items.add(group_num, 0, track_num[0], side_num[0], sector_num[0], sector_num[0]);
 
                 calc_groups++;
                 calc_file_size += bytes_per_group;
@@ -365,7 +344,6 @@ public class DiskBasicDirItemC1541 extends DiskBasicDirItem<DirectoryC1541> {
                 C1541Ptr next = new C1541Ptr();
                 next.track = buffer[0]; // track
                 next.sector = buffer[1]; // sector
-
                 if (next.track == 0 || (next.track & 0xff) > basic.getTracksPerSideOnBasic()) {
                     break;
                 }
@@ -396,7 +374,7 @@ public class DiskBasicDirItemC1541 extends DiskBasicDirItem<DirectoryC1541> {
     /// 最終セクタのサイズを計算してファイルサイズを返す
     @Override
     public int recalcFileSize(DiskBasicGroups group_items, int occupied_size) {
-        if (group_items.count() == 0) return occupied_size;
+        if (group_items.size() == 0) return occupied_size;
 
         // 現在のセクタ
         DiskBasicGroupItem lastItem = group_items.last();
@@ -439,12 +417,7 @@ public class DiskBasicDirItemC1541 extends DiskBasicDirItem<DirectoryC1541> {
     /// ディレクトリアイテムのサイズ
     @Override
     public int getDataSize() {
-        return new DirectoryC1541().doNotWrite.length + 1 + 2 + m_data.data().name.length + 2 + 1 + m_data.data().unused.length + 2 + 2;
-        // In C++, sizeof(directory_c1541_t) is used, assuming struct packing is standard.
-        // We use the Java object size equivalent, which is likely wrong without byte-level
-        // conversion. For now, use the byte-size of the fields.
-        // sizeof(directory_c1541_t) = 2 + 1 + 2 + 16 + 2 + 1 + 4 + 2 + 2 = 32 bytes (if fields are packed)
-        // return 32;
+        return m_data.getDataSize();
     }
 
     /// アイテムを返す
@@ -470,14 +443,13 @@ public class DiskBasicDirItemC1541 extends DiskBasicDirItem<DirectoryC1541> {
     /// 最初のグループ番号をセット
     @Override
     public void setStartGroup(int fileunit_num, int val, int size) {
-        int[] trk_num_arr = {0}, sec_num_arr = {0};
-        type.getNumFromSectorPosS(val, trk_num_arr, sec_num_arr);
-        int trk_num = trk_num_arr[0];
-        int sec_num = sec_num_arr[0];
-        trk_num += C1541_START_TRACK_OFFSET;
-        sec_num += C1541_START_SECTOR_OFFSET;
-        m_data.data().firstData.track = (byte) (trk_num & 0xff);
-        m_data.data().firstData.sector = (byte) (sec_num & 0xff);
+        int[] trk_num = {0};
+        int[] sec_num = {0};
+        type.getNumFromSectorPosS(val, trk_num, sec_num);
+        trk_num[0] += C1541_START_TRACK_OFFSET;
+        sec_num[0] += C1541_START_SECTOR_OFFSET;
+        m_data.data().firstData.track = (byte) (trk_num[0] & 0xff);
+        m_data.data().firstData.sector = (byte) (sec_num[0] & 0xff);
     }
 
     /// 最初のグループ番号を返す
@@ -491,14 +463,13 @@ public class DiskBasicDirItemC1541 extends DiskBasicDirItem<DirectoryC1541> {
     /// サイドセクタのあるグループ番号をセット(機種依存)(REL file)
     @Override
     public void setExtraGroup(int val) {
-        int[] trk_num_arr = {0}, sec_num_arr = {0};
-        type.getNumFromSectorPosS(val, trk_num_arr, sec_num_arr);
-        int trk_num = trk_num_arr[0];
-        int sec_num = sec_num_arr[0];
-        trk_num += C1541_START_TRACK_OFFSET;
-        sec_num += C1541_START_SECTOR_OFFSET;
-        m_data.data().firstSide.track = (byte) (trk_num & 0xff);
-        m_data.data().firstSide.sector = (byte) (sec_num & 0xff);
+        int[] trk_num = {0};
+        int[] sec_num = {0};
+        type.getNumFromSectorPosS(val, trk_num, sec_num);
+        trk_num[0] += C1541_START_TRACK_OFFSET;
+        sec_num[0] += C1541_START_SECTOR_OFFSET;
+        m_data.data().firstSide.track = (byte) (trk_num[0] & 0xff);
+        m_data.data().firstSide.sector = (byte) (sec_num[0] & 0xff);
     }
 
     /// サイドセクタのあるグループ番号を返す(機種依存)(REL file)
@@ -526,20 +497,15 @@ public class DiskBasicDirItemC1541 extends DiskBasicDirItem<DirectoryC1541> {
         int type1 = getFileType1();
         if (type1 != FILETYPE_MASK_C1541_REL) return;
 
-        // Assuming m_ss_groups has a method to get items
-        // Mocking the iteration
-        for (int i = 0; i < m_ss_groups.count(); i++) {
-            // arr.add((int)m_ss_groups.Item(i).group); // Mocking retrieval of group number
-            arr.add(0); // Mock value
+        for (int i = 0; i < m_ss_groups.size(); i++) {
+            arr.add(m_ss_groups.get(i).group);
         }
     }
 
     /// サイドセクタのグループリストを返す(機種依存)
     @Override
-    public void getExtraGroups(DiskBasicGroups grps) {
-        // Assuming DiskBasicGroups has a copy constructor or equivalent
-        // grps = m_ss_groups; // Direct assignment is not a deep copy
-        // grps.copy(m_ss_groups); // Mock
+    public void getExtraGroups(DiskBasicGroups[] grps) {
+        grps[0] = m_ss_groups;
     }
 
     /// ファイルの終端コードをチェックする必要があるか
@@ -595,7 +561,7 @@ public class DiskBasicDirItemC1541 extends DiskBasicDirItem<DirectoryC1541> {
             p1 = p1_arr[0];
             // 外部パラメータで設定したものは共通属性なので変換
             if (p1 < 0) {
-                t1 = ConvToFileType1(t1);
+                t1 = convToFileType1(t1);
             }
         } else {
             // default
@@ -608,13 +574,11 @@ public class DiskBasicDirItemC1541 extends DiskBasicDirItem<DirectoryC1541> {
     /// アイテムの属するセクタを変更済みにする
     @Override
     public void setModify() {
-        // Implementation depends on DiskBasicDirItem and its relationship with DiskImageSector
     }
 
     /// プロパティで表示する内部データを設定
     @Override
     public void setInternalDataInAttrDialog(KeyValArray vals) {
-        vals.add("self", m_data.isSelf());
         vals.add("(DO_NOT_WRITE)", m_data.data().doNotWrite, m_data.data().doNotWrite.length);
         vals.add("TYPE", m_data.data().type & 0xff);
         vals.add("FIRST_DATA.TRACK", m_data.data().firstData.track & 0xff);

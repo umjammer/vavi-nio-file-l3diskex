@@ -8,6 +8,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,7 +19,6 @@ import l3diskex.basicfmt.BasicCommon.DirectoryMzFdos;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
-import l3diskex.basicfmt.BasicFmt.DiskBasic;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
 import vavi.util.serdes.Serdes;
@@ -29,84 +29,64 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_BINARY_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_LIBRARY_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_MACHINE_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_SYSTEM_MASK;
-import static l3diskex.basicfmt.DiskBasicDirItemMZFDOS.enTypeNameMZFDOS.TYPE_NAME_MZ_FDOS_OBJ;
 
 
 public class DiskBasicDirItemMZFDOS extends DiskBasicDirItemMZBase<DirectoryMzFdos> {
 
-    public enum enTypeNameMZFDOS {
-        TYPE_NAME_MZ_FDOS_UNKNOWN,
-        TYPE_NAME_MZ_FDOS_OBJ,
-        TYPE_NAME_MZ_FDOS_BTX,
-        TYPE_NAME_MZ_FDOS_DAT,
-        TYPE_NAME_MZ_FDOS_ASC,
-        TYPE_NAME_MZ_FDOS_RB,
-        TYPE_NAME_MZ_FDOS_FTN,
-        TYPE_NAME_MZ_FDOS_LIB,
-        TYPE_NAME_MZ_FDOS_PAS,
-        TYPE_NAME_MZ_FDOS_TEM,
-        TYPE_NAME_MZ_FDOS_SYS,
-        TYPE_NAME_MZ_FDOS_GR,
-        TYPE_NAME_MZ_FDOS_GRH,
-        TYPE_NAME_MZ_FDOS_END
-    }
+    static final int TYPE_NAME_MZ_FDOS_UNKNOWN = 0;
+    static final int TYPE_NAME_MZ_FDOS_OBJ = 1;
+    static final int TYPE_NAME_MZ_FDOS_BTX = 2;
+    static final int TYPE_NAME_MZ_FDOS_DAT = 3;
+    static final int TYPE_NAME_MZ_FDOS_ASC = 4;
+    static final int TYPE_NAME_MZ_FDOS_RB = 5;
+    static final int TYPE_NAME_MZ_FDOS_FTN = 6;
+    static final int TYPE_NAME_MZ_FDOS_LIB = 7;
+    static final int TYPE_NAME_MZ_FDOS_PAS = 8;
+    static final int TYPE_NAME_MZ_FDOS_TEM = 9;
+    static final int TYPE_NAME_MZ_FDOS_SYS = 10;
+    static final int TYPE_NAME_MZ_FDOS_GR = 11;
+    static final int TYPE_NAME_MZ_FDOS_GRH = 12;
 
     // MZ Floppy DOS 属性
-    public enum en_file_type_mz_fdos {
-        FILETYPE_MZ_FDOS_UNKNOWN(0x0),
-        FILETYPE_MZ_FDOS_OBJ(0x1),
-        FILETYPE_MZ_FDOS_BTX(0x2),
-        FILETYPE_MZ_FDOS_DAT(0x3),
-        FILETYPE_MZ_FDOS_ASC(0x4),
-        FILETYPE_MZ_FDOS_RB(0x5),
-        FILETYPE_MZ_FDOS_FTN(0x6),
-        FILETYPE_MZ_FDOS_LIB(0x7),
-        FILETYPE_MZ_FDOS_PAS(0x8),
-        FILETYPE_MZ_FDOS_TEM(0x9),
-        FILETYPE_MZ_FDOS_SYS(0xa),
-        FILETYPE_MZ_FDOS_GR(0xb),
-        FILETYPE_MZ_FDOS_GRH(0xc);
-
-        private final int value;
-
-        en_file_type_mz_fdos(int value) {
-            this.value = value;
-        }
-
-        public int getValue() {
-            return value;
-        }
-    }
+    static final int FILETYPE_MZ_FDOS_UNKNOWN = 0x0;
+    static final int FILETYPE_MZ_FDOS_OBJ = 0x1;
+    static final int FILETYPE_MZ_FDOS_BTX = 0x2;
+    static final int FILETYPE_MZ_FDOS_DAT = 0x3;
+    static final int FILETYPE_MZ_FDOS_ASC = 0x4;
+    static final int FILETYPE_MZ_FDOS_RB = 0x5;
+    static final int FILETYPE_MZ_FDOS_FTN = 0x6;
+    static final int FILETYPE_MZ_FDOS_LIB = 0x7;
+    static final int FILETYPE_MZ_FDOS_PAS = 0x8;
+    static final int FILETYPE_MZ_FDOS_TEM = 0x9;
+    static final int FILETYPE_MZ_FDOS_SYS = 0xa;
+    static final int FILETYPE_MZ_FDOS_GR = 0xb;
+    static final int FILETYPE_MZ_FDOS_GRH = 0xc;
 
     // FDOSチェイン情報
     static class mz_fdos_chain_t {
 
-        public short sectors; // wxUint16
+        public short sectors;
         public byte[] map = new byte[1];    // byte[] (resizable - Java array cannot be resized easily, using byte[] as a base)
     }
 
     // MZ FDOS属性名 (Assuming name_value_t is a structure with String name and int value)
     static final Map<String, Object> gTypeNameMZFDOS = new LinkedHashMap<>() {{
-        put("???", en_file_type_mz_fdos.FILETYPE_MZ_FDOS_UNKNOWN.getValue());
-        put("OBJ", en_file_type_mz_fdos.FILETYPE_MZ_FDOS_OBJ.getValue());
-        put("BTX", en_file_type_mz_fdos.FILETYPE_MZ_FDOS_BTX.getValue());
-        put("DAT", en_file_type_mz_fdos.FILETYPE_MZ_FDOS_DAT.getValue());
-        put("ASC", en_file_type_mz_fdos.FILETYPE_MZ_FDOS_ASC.getValue());
-        put("RB", en_file_type_mz_fdos.FILETYPE_MZ_FDOS_RB.getValue());
-        put("FTN", en_file_type_mz_fdos.FILETYPE_MZ_FDOS_FTN.getValue());
-        put("LIB", en_file_type_mz_fdos.FILETYPE_MZ_FDOS_LIB.getValue());
-        put("PAS", en_file_type_mz_fdos.FILETYPE_MZ_FDOS_PAS.getValue());
-        put("TEM", en_file_type_mz_fdos.FILETYPE_MZ_FDOS_TEM.getValue());
-        put("SYS", en_file_type_mz_fdos.FILETYPE_MZ_FDOS_SYS.getValue());
-        put("GR", en_file_type_mz_fdos.FILETYPE_MZ_FDOS_GR.getValue());
-        put("GRH", en_file_type_mz_fdos.FILETYPE_MZ_FDOS_GRH.getValue());
+        put("???", FILETYPE_MZ_FDOS_UNKNOWN);
+        put("OBJ", FILETYPE_MZ_FDOS_OBJ);
+        put("BTX", FILETYPE_MZ_FDOS_BTX);
+        put("DAT", FILETYPE_MZ_FDOS_DAT);
+        put("ASC", FILETYPE_MZ_FDOS_ASC);
+        put("RB", FILETYPE_MZ_FDOS_RB);
+        put("FTN", FILETYPE_MZ_FDOS_FTN);
+        put("LIB", FILETYPE_MZ_FDOS_LIB);
+        put("PAS", FILETYPE_MZ_FDOS_PAS);
+        put("TEM", FILETYPE_MZ_FDOS_TEM);
+        put("SYS", FILETYPE_MZ_FDOS_SYS);
+        put("GR", FILETYPE_MZ_FDOS_GR);
+        put("GRH", FILETYPE_MZ_FDOS_GRH);
     }};
-    // Placeholder for external constant, actual value needed for compilation
-    // Assuming gTypeNameMZFDOS is an accessible array of name_value_t objects.
-    final int MZ_FDOS_NO_PROTECT = 0x3053;    // "0S"
-    // Placeholder for external classes/interfaces
 
-    /// ///////////////////////////////////////////////////////////////////
+    static final int MZ_FDOS_NO_PROTECT = 0x3053;    // "0S"
 
     // FDOSチェイン情報アクセス
     static class DiskBasicDirItemMZFDOSChain {
@@ -129,19 +109,18 @@ public class DiskBasicDirItemMZFDOS extends DiskBasicDirItemMZBase<DirectoryMzFd
 
         // 代入 (Java equivalent of operator=)
         public DiskBasicDirItemMZFDOSChain operator_assign(DiskBasicDirItemMZFDOSChain src) {
-            this.Dup(src);
+            this.dup(src);
             return this;
         }
 
         // 複製
-        public void Dup(DiskBasicDirItemMZFDOSChain src) {
+        public void dup(DiskBasicDirItemMZFDOSChain src) {
             secs_per_track = src.secs_per_track;
             sector = src.sector;
             if (src.chain_ownmake) {
                 chain = new mz_fdos_chain_t();
-                // memcpy(&chain, src.chain, sizeof(mz_fdos_chain_t)); // Need to manually copy fields
                 chain.sectors = src.chain.sectors;
-                chain.map = src.chain.map.clone(); // Deep copy of map array
+                System.arraycopy(src.chain.map, 0, chain.map, 0, src.chain.map.length);
             } else {
                 chain = src.chain;
             }
@@ -150,7 +129,7 @@ public class DiskBasicDirItemMZFDOS extends DiskBasicDirItemMZBase<DirectoryMzFd
         }
 
         // ポインタをセット
-        public void Set(DiskBasic n_basic, DiskImageSector n_sector, mz_fdos_chain_t n_chain) {
+        public void set(DiskBasic n_basic, DiskImageSector n_sector, mz_fdos_chain_t n_chain) {
             basic = n_basic;
             sector = n_sector;
             if (chain_ownmake) { /* delete chain; */
@@ -161,49 +140,45 @@ public class DiskBasicDirItemMZFDOS extends DiskBasicDirItemMZBase<DirectoryMzFd
         }
 
         // メモリ確保
-        public void Alloc() {
+        public void alloc() {
             if (chain_ownmake) { /* delete chain; */ }
             chain = new mz_fdos_chain_t();
             chain_ownmake = true;
-            // memset(chain, 0, sizeof(mz_fdos_chain_t)); // Java new object is usually zeroed
         }
 
         // クリア
-        public void Clear() {
+        public void clear() {
             if (sector != null) {
-                // sector->Fill(0); // Assuming DiskImageSector has a Fill method
+                sector.fill((byte) 0);
             } else if (chain != null) {
-                // memset(chain, 0, sizeof(mz_fdos_chain_t)); // Manual zeroing/reset
                 chain.sectors = 0;
-                // Assuming chain.map is correctly sized or handled
-                for (int i = 0; i < chain.map.length; i++) chain.map[i] = 0;
+                Arrays.fill(chain.map, (byte) 0);
             }
         }
 
         // 有効か
-        public boolean IsValid() {
+        public boolean isValid() {
             return (chain != null);
         }
 
         // セクタ位置の使用状態を返す
-        public boolean IsUsedSector(int sector_pos) {
+        public boolean isUsedSector(int sector_pos) {
             if (chain == null || basic == null || sector_pos >= map_size) return true;
 
             int mask = 1 << (sector_pos & 7);
             int idx = (sector_pos >> 3);
 
-            // Note: basic->InvertUint8 returns byte, but Java's bitwise ops promote to int.
             int bits = basic.invertUint8(chain.map[idx]) & 0xff;
             return (bits & mask) != 0;
         }
 
         // セクタ数を返す
-        public short GetSectors() {
+        public short getSectors() {
             return chain != null ? (basic != null ? basic.invertAndOrderUint16(chain.sectors) : chain.sectors) : 0;
         }
 
         // セクタ位置の使用状態を設定
-        public void UsedSector(int sector_pos, boolean val) {
+        public void usedSector(int sector_pos, boolean val) {
             if (chain == null || basic == null || sector_pos >= map_size) return;
 
             int mask = 1 << (sector_pos & 7);
@@ -215,61 +190,55 @@ public class DiskBasicDirItemMZFDOS extends DiskBasicDirItemMZBase<DirectoryMzFd
         }
 
         // セクタ数を設定
-        public void SetSectors(short val) {
+        public void setSectors(short val) {
             if (chain != null) {
                 chain.sectors = basic != null ? basic.invertAndOrderUint16(val) : val;
             }
         }
 
-        public void SetSectorsPerTrack(int val) {
+        public void setSectorsPerTrack(int val) {
             secs_per_track = val;
         }
 
-        public void SetMapSize(int val) {
+        public void setMapSize(int val) {
             map_size = val;
         }
     }
 
-    /// ///////////////////////////////////////////////////////////////////
-
     // ディレクトリ１アイテム MZ Floppy DOS
 
     // ディレクトリデータ
-    private final DiskBasicDirData<DirectoryMzFdos> m_data;
+    private final DiskBasicDirData<DirectoryMzFdos> m_data = new DiskBasicDirData<>();
 
     // チェイン情報
-    private final DiskBasicDirItemMZFDOSChain chain;
+    private final DiskBasicDirItemMZFDOSChain chain = new DiskBasicDirItemMZFDOSChain();
 
     // Public constructors
     public DiskBasicDirItemMZFDOS(DiskBasic basic) {
         super(basic);
-        m_data = new DiskBasicDirData<>();
+
         m_data.alloc(DirectoryMzFdos.class);
-        chain = new DiskBasicDirItemMZFDOSChain();
-        chain.SetSectorsPerTrack(basic.diskBasicParam.getSectorsPerTrackOnBasic());
-        chain.SetMapSize(basic.diskBasicParam.getFatEndGroup());
-        chain.Alloc();
+        chain.setSectorsPerTrack(basic.diskBasicParam.getSectorsPerTrackOnBasic());
+        chain.setMapSize(basic.diskBasicParam.getFatEndGroup());
+        chain.alloc();
     }
 
-    public DiskBasicDirItemMZFDOS(DiskBasic basic, DiskImageSector n_sector, int n_secpos, byte[] n_data) {
-        super(basic, n_sector, n_secpos, n_data);
-        m_data = new DiskBasicDirData<>();
-        m_data.attach(n_data);
-        chain = new DiskBasicDirItemMZFDOSChain();
-        chain.SetSectorsPerTrack(basic.diskBasicParam.getSectorsPerTrackOnBasic());
-        chain.SetMapSize(basic.diskBasicParam.getFatEndGroup());
+    public DiskBasicDirItemMZFDOS(DiskBasic basic, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP) {
+        super(basic, n_sector, n_secpos, n_data, dataP);
+
+        m_data.attach(DirectoryMzFdos.class, n_data, dataP);
+        chain.setSectorsPerTrack(basic.diskBasicParam.getSectorsPerTrackOnBasic());
+        chain.setMapSize(basic.diskBasicParam.getFatEndGroup());
     }
 
-    public DiskBasicDirItemMZFDOS(DiskBasic basic, int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, SectorParam n_next, boolean[] n_unuse) throws IOException {
-        super(basic, n_num, n_gitem, n_sector, n_secpos, n_data, n_next, n_unuse);
-        m_data = new DiskBasicDirData<>();
-        m_data.attach(n_data);
-        chain = new DiskBasicDirItemMZFDOSChain();
-        chain.SetSectorsPerTrack(basic.diskBasicParam.getSectorsPerTrackOnBasic());
-        chain.SetMapSize(basic.diskBasicParam.getFatEndGroup());
+    public DiskBasicDirItemMZFDOS(DiskBasic basic, int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP, SectorParam n_next, boolean[] n_unuse) throws IOException {
+        super(basic, n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next, n_unuse);
 
-        boolean unuse_val = n_unuse[0];
-        used(checkUsed(unuse_val));
+        m_data.attach(DirectoryMzFdos.class, n_data, dataP);
+        chain.setSectorsPerTrack(basic.diskBasicParam.getSectorsPerTrackOnBasic());
+        chain.setMapSize(basic.diskBasicParam.getFatEndGroup());
+
+        used(checkUsed(n_unuse[0]));
 
         // チェインセクタへのポインタをセット
         if (isUsed()) {
@@ -277,13 +246,10 @@ public class DiskBasicDirItemMZFDOS extends DiskBasicDirItemMZBase<DirectoryMzFd
             if (grp != 0) {
                 DiskImageSector sector = basic.getSectorFromGroup(grp);
                 if (sector != null) {
-                    // Assuming sector->GetSectorBuffer() returns byte[]
-                    // Assuming mz_fdos_chain_t can be cast/mapped from sector buffer
-                    // This is highly platform/library dependent. Mocking the call.
                     mz_fdos_chain_t chain_data = new mz_fdos_chain_t();
-                    byte[] b = sector.getSectorBuffer(); // Placeholder for actual conversion
+                    byte[] b = sector.getSectorBuffer();
                     Serdes.Util.deserialize(new ByteArrayInputStream(b), chain_data);
-                    chain.Set(basic, sector, chain_data);
+                    chain.set(basic, sector, chain_data);
                 }
             }
         }
@@ -293,9 +259,10 @@ public class DiskBasicDirItemMZFDOS extends DiskBasicDirItemMZBase<DirectoryMzFd
 
     // アイテムへのポインタを設定
     @Override
-    public void setDataPtr(int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, SectorParam n_next) throws IOException {
-        super.setDataPtr(n_num, n_gitem, n_sector, n_secpos, n_data, n_next);
-        m_data.attach(n_data);
+    public void setDataPtr(int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP, SectorParam n_next) throws IOException {
+        super.setDataPtr(n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next);
+
+        m_data.attach(DirectoryMzFdos.class, n_data, dataP);
     }
 
     // ファイル名を格納する位置を返す
@@ -398,16 +365,16 @@ public class DiskBasicDirItemMZFDOS extends DiskBasicDirItemMZBase<DirectoryMzFd
         int val = 0;
         if ((file_type & FILE_TYPE_BINARY_MASK.getValue()) != 0) {
             if ((file_type & FILE_TYPE_MACHINE_MASK.getValue()) != 0) {
-                val = en_file_type_mz_fdos.FILETYPE_MZ_FDOS_OBJ.getValue();
+                val = FILETYPE_MZ_FDOS_OBJ;
             } else {
-                val = en_file_type_mz_fdos.FILETYPE_MZ_FDOS_RB.getValue();
+                val = FILETYPE_MZ_FDOS_RB;
             }
         } else if ((file_type & FILE_TYPE_SYSTEM_MASK.getValue()) != 0) {
-            val = en_file_type_mz_fdos.FILETYPE_MZ_FDOS_SYS.getValue();
+            val = FILETYPE_MZ_FDOS_SYS;
         } else if ((file_type & FILE_TYPE_LIBRARY_MASK.getValue()) != 0) {
-            val = en_file_type_mz_fdos.FILETYPE_MZ_FDOS_LIB.getValue();
+            val = FILETYPE_MZ_FDOS_LIB;
         } else {
-            val = en_file_type_mz_fdos.FILETYPE_MZ_FDOS_ASC.getValue();
+            val = FILETYPE_MZ_FDOS_ASC;
         }
         return val;
     }
@@ -480,7 +447,7 @@ public class DiskBasicDirItemMZFDOS extends DiskBasicDirItemMZBase<DirectoryMzFd
     public void setGroupSize(int val) {
         // m_groups.SetNums(val); // Assuming m_groups is a field
         m_data.data().groups = basic.invertAndOrderUint16((short) val);
-        chain.SetSectors((short) val);
+        chain.setSectors((short) val);
     }
 
     // グループ数を返す
@@ -736,19 +703,19 @@ public class DiskBasicDirItemMZFDOS extends DiskBasicDirItemMZBase<DirectoryMzFd
     public void setChainSector(DiskImageSector sector, byte[] data, DiskBasicDirItem pitem) throws IOException {
         mz_fdos_chain_t chain_data = new mz_fdos_chain_t();
         Serdes.Util.deserialize(new ByteArrayInputStream(data), chain_data);
-        chain.Set(basic, sector, chain_data);
+        chain.set(basic, sector, chain_data);
     }
 
     /** チェイン情報にセクタをセット */
     public void setChainUsedSector(int sector_pos, boolean val) {
-        chain.UsedSector(sector_pos, val);
+        chain.usedSector(sector_pos, val);
     }
 
     /** インポート時のダイアログを出す前にファイルパスから内部ファイル名を生成する */
     @Override
     public boolean preImportDataFile(String[] filename) {
         if (gConfig.isDecideAttrImport()) {
-            isContainAttrByExtension(filename[0], gTypeNameMZFDOS, TYPE_NAME_MZ_FDOS_OBJ.ordinal(), enTypeNameMZFDOS.TYPE_NAME_MZ_FDOS_GRH.ordinal(), filename, null, null); // Placeholder
+            isContainAttrByExtension(filename[0], gTypeNameMZFDOS, TYPE_NAME_MZ_FDOS_OBJ, TYPE_NAME_MZ_FDOS_GRH, filename, null, null);
         }
         // 拡張子を消す
         filename[0] = remakeFileNameOnlyStr(filename[0]);
@@ -760,8 +727,8 @@ public class DiskBasicDirItemMZFDOS extends DiskBasicDirItemMZBase<DirectoryMzFd
     public int convOriginalTypeFromFileName(String filename) {
         int[] t1 = {0};
         // 拡張子で属性を設定する
-        if (!isContainAttrByExtension(filename, gTypeNameMZFDOS, TYPE_NAME_MZ_FDOS_OBJ.ordinal(), enTypeNameMZFDOS.TYPE_NAME_MZ_FDOS_GRH.ordinal(), null, t1, null)) { // Placeholder
-            t1[0] = en_file_type_mz_fdos.FILETYPE_MZ_FDOS_ASC.getValue();
+        if (!isContainAttrByExtension(filename, gTypeNameMZFDOS, TYPE_NAME_MZ_FDOS_OBJ, TYPE_NAME_MZ_FDOS_GRH, null, t1, null)) {
+            t1[0] = FILETYPE_MZ_FDOS_ASC;
         }
 
         // プロテクト
@@ -798,28 +765,27 @@ public class DiskBasicDirItemMZFDOS extends DiskBasicDirItemMZBase<DirectoryMzFd
     // プロパティで表示する内部データを設定
     @Override
     public void setInternalDataInAttrDialog(KeyValArray vals) {
-        vals.add("self", m_data.isSelf()); // Placeholder
-        vals.add("inverted", basic.isDataInverted()); // Placeholder
+        vals.add("inverted", basic.isDataInverted());
 
-        vals.add("TYPE", m_data.data().type, basic.isDataInverted()); // Placeholder
-        vals.add("NAME", m_data.data().name, m_data.data().name.length, basic.isDataInverted()); // Placeholder
-        vals.add("FILE_SIZE", m_data.data().fileSize, basic.isBigEndian(), basic.isDataInverted()); // Placeholder
-        vals.add("LOAD_ADDR", m_data.data().loadAddr, basic.isBigEndian(), basic.isDataInverted()); // Placeholder
-        vals.add("EXEC_ADDR", m_data.data().execAddr, basic.isBigEndian(), basic.isDataInverted()); // Placeholder
-        vals.add("GROUPS", m_data.data().groups, basic.isBigEndian(), basic.isDataInverted()); // Placeholder
-        vals.add("ATTR", m_data.data().attr, m_data.data().attr.length, basic.isDataInverted()); // Placeholder
-        vals.add("PASSWORD", m_data.data().password, m_data.data().password.length, basic.isDataInverted()); // Placeholder
-        vals.add("DUMMY_SECTOR", m_data.data().dummySector, basic.isBigEndian(), basic.isDataInverted()); // Placeholder
+        vals.add("TYPE", m_data.data().type, basic.isDataInverted());
+        vals.add("NAME", m_data.data().name, m_data.data().name.length, basic.isDataInverted());
+        vals.add("FILE_SIZE", m_data.data().fileSize, basic.isBigEndian(), basic.isDataInverted());
+        vals.add("LOAD_ADDR", m_data.data().loadAddr, basic.isBigEndian(), basic.isDataInverted());
+        vals.add("EXEC_ADDR", m_data.data().execAddr, basic.isBigEndian(), basic.isDataInverted());
+        vals.add("GROUPS", m_data.data().groups, basic.isBigEndian(), basic.isDataInverted());
+        vals.add("ATTR", m_data.data().attr, m_data.data().attr.length, basic.isDataInverted());
+        vals.add("PASSWORD", m_data.data().password, m_data.data().password.length, basic.isDataInverted());
+        vals.add("DUMMY_SECTOR", m_data.data().dummySector, basic.isBigEndian(), basic.isDataInverted());
 
-        vals.add("MMDDYY", m_data.data().mmddyy, m_data.data().mmddyy.length, basic.isDataInverted()); // Placeholder
-        vals.add("RESERVED2", m_data.data().reserved2, m_data.data().reserved2.length, basic.isDataInverted()); // Placeholder
-        vals.add("TRACK", m_data.data().track, basic.isDataInverted()); // Placeholder
-        vals.add("SECTOR", m_data.data().sector, basic.isDataInverted()); // Placeholder
-        vals.add("RESERVED3", m_data.data().reserved3, m_data.data().reserved3.length, basic.isDataInverted()); // Placeholder
-        vals.add("SEQ_NUM", m_data.data().seqNum, basic.isDataInverted()); // Placeholder
-        vals.add("UNKNOWN1", m_data.data().unknown1, basic.isDataInverted()); // Placeholder
-        vals.add("UNKNOWN2", m_data.data().unknown2, basic.isDataInverted()); // Placeholder
-        vals.add("DATA_TRACK", m_data.data().dataTrack, basic.isDataInverted()); // Placeholder
-        vals.add("DATA_SECTOR", m_data.data().dataSector, basic.isDataInverted()); // Placeholder
+        vals.add("MMDDYY", m_data.data().mmddyy, m_data.data().mmddyy.length, basic.isDataInverted());
+        vals.add("RESERVED2", m_data.data().reserved2, m_data.data().reserved2.length, basic.isDataInverted());
+        vals.add("TRACK", m_data.data().track, basic.isDataInverted());
+        vals.add("SECTOR", m_data.data().sector, basic.isDataInverted());
+        vals.add("RESERVED3", m_data.data().reserved3, m_data.data().reserved3.length, basic.isDataInverted());
+        vals.add("SEQ_NUM", m_data.data().seqNum, basic.isDataInverted());
+        vals.add("UNKNOWN1", m_data.data().unknown1, basic.isDataInverted());
+        vals.add("UNKNOWN2", m_data.data().unknown2, basic.isDataInverted());
+        vals.add("DATA_TRACK", m_data.data().dataTrack, basic.isDataInverted());
+        vals.add("DATA_SECTOR", m_data.data().dataSector, basic.isDataInverted());
     }
 }

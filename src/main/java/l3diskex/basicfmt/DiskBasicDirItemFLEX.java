@@ -12,12 +12,12 @@ import java.util.Map;
 
 import l3diskex.Utils;
 import l3diskex.basicfmt.BasicCommon.DirectoryFlex;
+import l3diskex.basicfmt.BasicCommon.DirectoryN88;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.BasicCommon.FlexPtr;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
-import l3diskex.basicfmt.BasicFmt.DiskBasic;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
 import vavi.util.serdes.Serdes;
@@ -49,20 +49,20 @@ public class DiskBasicDirItemFLEX extends DiskBasicDirItem<DirectoryFlex> {
     public static final int FILETYPE_FLEX_RANDOM_MASK = 0xff00000;
     public static final int FILETYPE_FLEX_RANDOM_POS = 20;
 
-    private int PhySecPos(int sector_number) {
+    private int phySecPos(int sector_number) {
         return (sector_number - 1) % basic.diskBasicParam.getGroupsPerSector();
     }
 
-    private int SecBufOfs(int sector_number) {
-        return PhySecPos(sector_number) * basic.getSectorSize() / basic.diskBasicParam.getGroupsPerSector();
+    private int secBufOfs(int sector_number) {
+        return phySecPos(sector_number) * basic.getSectorSize() / basic.diskBasicParam.getGroupsPerSector();
     }
 
-    private int LogSecSiz(int sector_size) {
+    private int logSecSiz(int sector_size) {
         return sector_size / basic.diskBasicParam.getGroupsPerSector();
     }
 
     /// ディレクトリデータ */
-    private final DiskBasicDirData<DirectoryFlex> m_data;
+    private final DiskBasicDirData<DirectoryFlex> m_data = new DiskBasicDirData<>();
 
     /// ランダムアクセスファイルのインデックス(FSM)のグループ番号 */
     private final List<Integer> m_random_group_nums = new ArrayList<>();
@@ -117,25 +117,25 @@ public class DiskBasicDirItemFLEX extends DiskBasicDirItem<DirectoryFlex> {
     }
 
     /// インポート時ダイアログ表示前にファイルの属性を設定 */
-    public void SetFileTypeForAttrDialog(int show_flags, String name, int[] file_type_1, int[] file_type_2) {
+    public void setFileTypeForAttrDialog(int show_flags, String name, int[] file_type_1, int[] file_type_2) {
     }
 
     public DiskBasicDirItemFLEX(DiskBasic basic) {
         super(basic);
-        m_data = new DiskBasicDirData<>();
+
         m_data.alloc(DirectoryFlex.class);
     }
 
-    public DiskBasicDirItemFLEX(DiskBasic basic, DiskImageSector n_sector, int n_secpos, byte[] n_data) {
-        super(basic, n_sector, n_secpos, n_data);
-        m_data = new DiskBasicDirData<>();
-        m_data.attach(n_data);
+    public DiskBasicDirItemFLEX(DiskBasic basic, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP) {
+        super(basic, n_sector, n_secpos, n_data, dataP);
+
+        m_data.attach(DirectoryFlex.class, n_data, dataP);
     }
 
-    public DiskBasicDirItemFLEX(DiskBasic basic, int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, SectorParam n_next, boolean[] n_unuse) throws IOException {
-        super(basic, n_num, n_gitem, n_sector, n_secpos, n_data, n_next, n_unuse);
-        m_data = new DiskBasicDirData<>();
-        m_data.attach(n_data);
+    public DiskBasicDirItemFLEX(DiskBasic basic, int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP, SectorParam n_next, boolean[] n_unuse) throws IOException {
+        super(basic, n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next, n_unuse);
+
+        m_data.attach(DirectoryFlex.class, n_data, dataP);
 
         used(checkUsed(n_unuse[0]));
 
@@ -144,9 +144,9 @@ public class DiskBasicDirItemFLEX extends DiskBasicDirItem<DirectoryFlex> {
 
     /// アイテムへのポインタを設定
     @Override
-    public void setDataPtr(int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, SectorParam n_next) throws IOException {
-        super.setDataPtr(n_num, n_gitem, n_sector, n_secpos, n_data, n_next);
-        m_data.attach(n_data);
+    public void setDataPtr(int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP, SectorParam n_next) throws IOException {
+        super.setDataPtr(n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next);
+        m_data.attach(DirectoryFlex.class, n_data);
     }
 
     /// ディレクトリアイテムのチェック
@@ -171,7 +171,7 @@ public class DiskBasicDirItemFLEX extends DiskBasicDirItem<DirectoryFlex> {
     @Override
     public boolean delete() {
         // 削除はエントリのMSBをセットするだけ
-        m_data.data().name[0] |= 0x80;
+        m_data.data().name[0] |= (byte) 0x80;
         used(false);
         return true;
     }
@@ -241,7 +241,7 @@ public class DiskBasicDirItemFLEX extends DiskBasicDirItem<DirectoryFlex> {
     @Override
     public void setFileSize(int val) {
         groups.setSize(val);
-        int sec_size = LogSecSiz(basic.getSectorSize()) - 4;
+        int sec_size = logSecSiz(basic.getSectorSize()) - 4;
         val = (val + sec_size - 1) / sec_size;
         // Assuming a static utility method for byte swap (wxUINT16_SWAP_ON_LE)
         m_data.data().totalSectors = (short) val; // le
@@ -258,7 +258,7 @@ public class DiskBasicDirItemFLEX extends DiskBasicDirItem<DirectoryFlex> {
     @Override
     public void getUnitGroups(int fileunit_num, DiskBasicGroups group_items) throws IOException {
         // セクタ先頭4バイトを除く
-        int sec_size = LogSecSiz(basic.getSectorSize()) - 4;
+        int sec_size = logSecSiz(basic.getSectorSize()) - 4;
 
         int calc_file_size = 0;
         int calc_groups = 0;
@@ -285,7 +285,7 @@ public class DiskBasicDirItemFLEX extends DiskBasicDirItem<DirectoryFlex> {
                 }
 
                 // Assuming flex_ptr_t can be cast/read from byte[]
-                byte[] buffer = sector.getSectorBuffer(SecBufOfs(div_num[0] + 1));
+                byte[] buffer = sector.getSectorBuffer(secBufOfs(div_num[0] + 1));
                 FlexPtr p = new FlexPtr();
                 Serdes.Util.deserialize(new ByteArrayInputStream(buffer), p);
                 next_track_num = p.nextTrack;
@@ -310,7 +310,7 @@ public class DiskBasicDirItemFLEX extends DiskBasicDirItem<DirectoryFlex> {
                 break;
             }
 
-            byte[] buffer = sector.getSectorBuffer(SecBufOfs(div_num[0] + 1));
+            byte[] buffer = sector.getSectorBuffer(secBufOfs(div_num[0] + 1));
             FlexPtr p = new FlexPtr();
             Serdes.Util.deserialize(new ByteArrayInputStream(buffer), p);
             next_track_num = p.nextTrack;
@@ -334,8 +334,8 @@ public class DiskBasicDirItemFLEX extends DiskBasicDirItem<DirectoryFlex> {
 
             if (track_num == 0 || sector_num == 0) {
                 // 最終セクタは0パディング部分のサイズを減らす
-                byte[] buf = sector.getSectorBuffer(SecBufOfs(div_num[0] + 1));
-                for (int pos = LogSecSiz(sector.getSectorSize()) - 1; pos >= 4; pos--) {
+                byte[] buf = sector.getSectorBuffer(secBufOfs(div_num[0] + 1));
+                for (int pos = logSecSiz(sector.getSectorSize()) - 1; pos >= 4; pos--) {
                     if (buf[pos] != 0) break;
                     calc_file_size--;
                 }
@@ -350,7 +350,7 @@ public class DiskBasicDirItemFLEX extends DiskBasicDirItem<DirectoryFlex> {
         // ...
 
         group_items.setSize(calc_file_size);
-        group_items.setSizePerGroup(LogSecSiz(basic.getSectorSize()) * basic.getSectorsPerGroup());
+        group_items.setSizePerGroup(logSecSiz(basic.getSectorSize()) * basic.getSectorsPerGroup());
     }
 
     @Override
@@ -488,49 +488,48 @@ public class DiskBasicDirItemFLEX extends DiskBasicDirItem<DirectoryFlex> {
     }
 
     /// 最初のトラック番号をセット
-    public void SetStartTrack(int val) {
+    public void setStartTrack(int val) {
         m_data.data().startTrack = (byte) val;
     }
 
     /// 最初のセクタ番号をセット
-    public void SetStartSector(int val) {
+    public void setStartSector(int val) {
         m_data.data().startSector = (byte) val;
     }
 
     /// 最初のトラック番号を返す
-    public int GetStartTrack() {
+    public int getStartTrack() {
         return m_data.data().startTrack;
     }
 
     /// 最初のセクタ番号を返す
-    public int GetStartSector() {
+    public int getStartSector() {
         return m_data.data().startSector;
     }
 
     /// 最後のトラック番号をセット
-    public void SetLastTrack(int val) {
+    public void setLastTrack(int val) {
         m_data.data().lastTrack = (byte) val;
     }
 
     /// 最後のセクタ番号をセット
-    public void SetLastSector(int val) {
+    public void setLastSector(int val) {
         m_data.data().lastSector = (byte) val;
     }
 
     /// 最後のトラック番号を返す
-    public int GetLastTrack() {
+    public int getLastTrack() {
         return m_data.data().lastTrack;
     }
 
     /// 最後のセクタ番号を返す
-    public int GetLastSector() {
+    public int getLastSector() {
         return m_data.data().lastSector;
     }
 
     /// プロパティで表示する内部データを設定
     @Override
     public void setInternalDataInAttrDialog(KeyValArray vals) {
-        vals.add("self", m_data.isSelf());
         vals.add("NAME", m_data.data().name, m_data.data().name.length);
         vals.add("EXT", m_data.data().ext, m_data.data().ext.length);
         vals.add("TYPE", m_data.data().type);

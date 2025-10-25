@@ -209,7 +209,7 @@ public class DiskCQMParser extends DiskPlainParser {
      *
      * @return The number of bytes written to {@code ostream}.
      */
-    private int ExpandData(InputStream istream, OutputStream ostream)
+    private int expandData(InputStream istream, OutputStream ostream)
             throws IOException {
 
         byte[] buf = new byte[2];
@@ -279,7 +279,7 @@ public class DiskCQMParser extends DiskPlainParser {
 
         // 4. Expand the data into a byte array
         ByteArrayOutputStream otemp = new ByteArrayOutputStream(diskSizeHint);
-        ExpandData(istream, otemp);
+        expandData(istream, otemp);
         byte[] data = otemp.toByteArray();
 
         // 5. Feed the decompressed data to the base parser

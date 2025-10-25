@@ -1,5 +1,6 @@
 package l3diskex.basicfmt;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.System.Logger;
@@ -14,16 +15,14 @@ import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.BasicCommon.Os9Date;
 import l3diskex.basicfmt.BasicCommon.Os9Lsn;
-import l3diskex.basicfmt.BasicFat.DiskBasicAvailability;
-import l3diskex.basicfmt.BasicFat.DiskBasicBitMLMap;
-import l3diskex.basicfmt.BasicFat.DiskBasicFat;
-import l3diskex.basicfmt.BasicFat.FatAvailability;
-import l3diskex.basicfmt.BasicFmt.DiskBasic;
-import l3diskex.basicfmt.BasicFmt.DiskBasicIdentifiedData;
+import l3diskex.basicfmt.DiskBasic.DiskBasicIdentifiedData;
 import l3diskex.basicfmt.DiskBasicDirItemOS9.DiskBasicDirItemOS9FD;
+import l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability;
+import l3diskex.basicfmt.DiskBasicFat.DiskBasicBitMLMap;
 import l3diskex.basicfmt.DiskBasicParam.DiskBasicFormat;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskImage.DiskImageTrack;
+import vavi.util.serdes.Serdes;
 
 import static l3diskex.basicfmt.DiskBasicDirItemOS9.DiskBasicDirItemOS9FD.EnFileTypeMaskOs9.FILETYPE_MASK_OS9_DIRECTORY;
 import static l3diskex.basicfmt.DiskBasicDirItemOS9.DiskBasicDirItemOS9FD.EnFileTypeMaskOs9.FILETYPE_MASK_OS9_PUBLIC_EXEC;
@@ -142,9 +141,9 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
                         boolean used = ((buf[pos] & (0x80 >> bit)) != 0);
                         for (int i = 0; i < secs_per_bit && lsn <= end_lsn; i++) {
                             if (!used) {
-                                fat.add(FatAvailability.FAT_AVAIL_FREE.getValue(), sector_size, 1);
+                                fat.add(DiskBasicAvailability.FatAvailability.FAT_AVAIL_FREE.ordinal(), sector_size, 1);
                             } else {
-                                fat.add(FatAvailability.FAT_AVAIL_USED.getValue(), 0, 0);
+                                fat.add(DiskBasicAvailability.FatAvailability.FAT_AVAIL_USED.ordinal(), 0, 0);
                             }
                             lsn++;
                         }
@@ -263,7 +262,7 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
         // total groups
         int lval = os9_ident.DD_TOT.l;
         ival = lval;
-        logger.log(Level.INFO, "OS9: DD_TOT: Total Sectors: %d", ival);
+        logger.log(Level.INFO, "OS9: DD_TOT: Total Sectors: %d".formatted(ival));
         if (ival < 1) {
             return -1.0;
         }
@@ -273,12 +272,12 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
 
         // sectors per track
         ival = os9_ident.DD_SPT;
-        logger.log(Level.INFO, "OS9: DD_SPT: Sectors per Track: %d", ival);
+        logger.log(Level.INFO, "OS9: DD_SPT: Sectors per Track: %d".formatted(ival));
         if (ival == 0) {
             return -1.0;
         }
         if (ival > basic.getSectorsPerTrack()) {
-            logger.log(Level.INFO, "OS9: %d > %d", ival, basic.getSectorsPerTrack());
+            logger.log(Level.INFO, "OS9: %d > %d".formatted(ival, basic.getSectorsPerTrack()));
             valid_ratio = 0.5;
         } else {
             basic.diskBasicParam.setSectorsPerTrackOnBasic(ival);
@@ -286,7 +285,7 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
 
         // sectors per bit on bitmap table
         ival = os9_ident.DD_BIT;
-        logger.log(Level.INFO, "OS9: DD_BIT: Sectors per Bit on Bitmap: %d", ival);
+        logger.log(Level.INFO, "OS9: DD_BIT: Sectors per Bit on Bitmap: %d".formatted(ival));
         if (ival == 0 || !Utils.IsPowerOfTwo(ival, 16)) {
             return -1.0;
         }
@@ -300,7 +299,7 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
         if ((ival & 4) != 0) sval = sval + (", double track (96/135TPI)");
         if ((ival & 8) != 0) sval = sval + (", quad track density (192TPI)");
         if ((ival & 16) != 0) sval = sval + (", octal track density (384TPI)");
-        logger.log(Level.INFO, "OS9: DD_FMT: 0x%x (%s)", ival, sval);
+        logger.log(Level.INFO, "OS9: DD_FMT: 0x%x (%s)".formatted(ival, sval));
 
         // tracks per side
         ival = (basic.getFatEndGroup() + 1) / basic.getSectorsPerTrackOnBasic() / basic.getSidesPerDiskOnBasic();
@@ -308,7 +307,7 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
 
         // root directory
         int dir_fd_lsn = os9_ident.DD_DIR.getOs9Lsn();
-        logger.log(Level.INFO, "OS9: DD_DIR: LSN on Root Directory: %d", dir_fd_lsn);
+        logger.log(Level.INFO, "OS9: DD_DIR: LSN on Root Directory: %d".formatted(dir_fd_lsn));
         if (dir_fd_lsn > basic.getFatEndGroup()) {
             return -1.0;
         }
@@ -335,7 +334,7 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
         // Allocation Map
         int map_lsn = os9_ident.DD_MapLSN;
         int map_bytes = os9_ident.DD_MAP;
-        logger.log(Level.INFO, "OS9: DD_MapLSN: %d", map_lsn);
+        logger.log(Level.INFO, "OS9: DD_MapLSN: %d".formatted(map_lsn));
         if (!alloc_map.AllocMap(basic, map_lsn > 0 ? map_lsn : 1, map_bytes)) {
             return -1.0;
         }
@@ -395,14 +394,14 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
         DiskBasicDirItemOS9 ditem = (DiskBasicDirItemOS9) dir_item;
 
         int dir_fd_lsn = os9_ident.DD_DIR.getOs9Lsn();
-        ditem.SetStartGroup(0, dir_fd_lsn, 0);
+        ditem.setStartGroup(0, dir_fd_lsn, 0);
         DiskBasicDirItemOS9FD fd = ditem.getFD();
         DiskImageSector sector = basic.getManagedSector(dir_fd_lsn);
         if (sector == null) return false;
         // The cast in C++ means `fd` points to a structure mapped over the sector buffer.
         // In Java, we call `Set` which would handle the mapping/reading.
         DirectoryOs9Fd fdd = new DirectoryOs9Fd(); // Mock: actual fdd would be from sector buffer
-        fd.Set(basic, sector, dir_fd_lsn, fdd);
+        fd.set(basic, sector, dir_fd_lsn, fdd);
 
         return sts;
     }
@@ -430,7 +429,7 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
             return false;
         }
 
-        group_items.empty();
+        group_items.clear();
 
         int dir_size = 0;
         for (int i = 0; i < 48 && valid; i++) {
@@ -474,8 +473,8 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
 
         int index_number = 0;
         DiskBasicDirItem<DirectoryOs9> nitem = dir.newItem();
-        for (int idx = 0; idx < group_items.count(); idx++) {
-            DiskBasicGroupItem gitem = group_items.itemPtr(idx);
+        for (int idx = 0; idx < group_items.size(); idx++) {
+            DiskBasicGroupItem gitem = group_items.get(idx);
             int trk_num = gitem.track;
             int sid_num = gitem.side;
             DiskImageTrack track = basic.getTrack(trk_num, sid_num);
@@ -491,6 +490,7 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
                     break;
                 }
                 byte[] buffer = sector.getSectorBuffer();
+                int bufferOffset = 0;
                 if (buffer == null) {
                     valid = false;
                     break;
@@ -501,72 +501,37 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
 
                 // ディレクトリにファイルがないかのチェック
                 while (valid && !last && pos < size) {
-                    // C++: nitem->SetDataPtr(index_number, gitem, sector, pos, buffer);
-                    // This is complex for direct Java translation due to pointer manipulation (buffer += nitem->GetDataSize();)
-                    // We must pass a slice or offset.
-                    // Assuming SetDataPtr handles the offset correctly.
-
-                    // C++: buffer (pointer) is advanced. In Java, we must use an offset `pos` and `buffer`.
-                    // We can't change `buffer` pointer. `buffer` in C++ is a pointer into the sector buffer.
-                    // The C++ line `buffer += nitem->GetDataSize();` is equivalent to `pos += nitem->GetDataSize()` for the next loop if we use the same `buffer` byte array but increment `pos`.
-                    // The line `nitem->SetDataPtr(..., pos, buffer);` is expected to use `pos` as offset into the sector buffer.
-
-                    // Since we can't safely replicate the pointer math `buffer += nitem->GetDataSize();`
-                    // we'll assume `nitem->SetDataPtr(..., pos, buffer)` is designed to work with a fixed buffer and an offset `pos`.
-                    // For C++: `buffer` is the pointer *to the start of the item data*, not the start of the sector.
-
-                    // Reworking C++ logic with Java's fixed arrays:
-                    // In Java, we use `buffer` as the full sector buffer and `pos` as the offset.
-                    // `nitem` needs to read from `buffer` starting at `pos`.
-
-                    // The C++ logic:
-                    //   byte *buffer = sector->GetSectorBuffer();
-                    //   ...
-                    //   while(valid && !last && pos < size) {
-                    //       nitem->SetDataPtr(index_number, gitem, sector, pos, buffer);
-                    //       ...
-                    //       pos    += nitem->GetDataSize();
-                    //       buffer += nitem->GetDataSize(); // This is the issue
-                    //       index_number++;
-                    //   }
-
-                    // Java logic simulation:
-                    nitem.setDataPtr(index_number, gitem, sector, pos, buffer, null);
-
+                    nitem.setDataPtr(index_number, gitem, sector, pos, buffer, bufferOffset, null);
                     // FDセクタを調べる
                     int start_nsl = nitem.getStartGroup(0);
                     DiskImageSector fd_sector = basic.getSectorFromGroup(start_nsl);
                     if (fd_sector != null) {
                         DirectoryOs9Fd fd_buf = new DirectoryOs9Fd();
-                        // fd_buf = (directory_os9_fd_t *)fd_sector->GetSectorBuffer();
-                        if (fd_buf != null) {
-                            DiskBasicDirItemOS9FD fd = ((DiskBasicDirItemOS9) nitem).getFD();
-                            fd.Set(basic, fd_sector, start_nsl, fd_buf);
-                            if (nitem.isNormalFile()) {
-                                valid = !nitem.checkUsed(last);
-                            }
+                        byte[] b = fd_sector.getSectorBuffer();
+                        Serdes.Util.deserialize(new ByteArrayInputStream(b), fd_sector);
+                        DiskBasicDirItemOS9FD fd = ((DiskBasicDirItemOS9) nitem).getFD();
+                        fd.set(basic, fd_sector, start_nsl, fd_buf);
+                        if (nitem.isNormalFile()) {
+                            valid = !nitem.checkUsed(last);
                         }
                     }
                     pos += nitem.getDataSize();
-                    // The original C++ increments `buffer` pointer too, but with Java's fixed array, we just rely on `pos`.
+                    bufferOffset += nitem.getDataSize();
                     index_number++;
                 }
             }
         }
-        // In Java, garbage collection handles memory, but if nitem holds resources, we might need a close method.
-        // Assuming no manual delete/close is needed for simple Java objects.
-        // delete nitem; // No equivalent in Java, relies on GC
+
         return valid;
     }
 
     /**
-     * /// ディレクトリエリアのサイズに達したらアサイン終了するか
-     * ///
-     * /// @return 0 : 終了しない
-     * /// @return 1 : 強制的に未使用とする アサインは継続
-     * /// @param pos         [in,out] ディレクトリの位置
-     * /// @param size        [in,out] ディレクトリのセクタサイズ
-     * /// @param size_remain [in,out] ディレクトリの残りサイズ
+     * ディレクトリエリアのサイズに達したらアサイン終了するか
+     *
+     * @param pos         [in,out] ディレクトリの位置
+     * @param size        [in,out] ディレクトリのセクタサイズ
+     * @param size_remain [in,out] ディレクトリの残りサイズ
+     * @return 0: 終了しない, 1: 強制的に未使用とする アサインは継続
      */
     @Override
     public int finishAssigningDirectory(int[] pos, int[] size, int[] size_remain) {
@@ -602,7 +567,7 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
                     DiskBasicGroupItem gitem = item.getGroup(gcnt - 1);
                     int gnum = gitem.group;
                     if (gnum <= basic.getFatEndGroup()) {
-                        fat_availability.set(gnum, FatAvailability.FAT_AVAIL_USED_LAST.getValue());
+                        fat_availability.set(gnum, DiskBasicAvailability.FatAvailability.FAT_AVAIL_USED_LAST.ordinal());
                     }
                 }
             }
@@ -715,7 +680,7 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
             // 追加の場合、既にあるセグメントを計算
             seg_idx = 48;
             for (int idx = 0; idx < 48; idx++) {
-                if (fd.GetLSN(idx) == 0 && fd.GetSIZ(idx) == 0) {
+                if (fd.getLSN(idx) == 0 && fd.getSIZ(idx) == 0) {
                     seg_idx = idx - 1;
                     break;
                 }
@@ -727,7 +692,7 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
         }
         int start_seg_idx = seg_idx + 1;
 
-        int file_size = fd.GetSIZ();
+        int file_size = fd.getSIZ();
         data_size += file_size;
 
         // 新規作成でDD_BITが2以上のとき
@@ -743,7 +708,7 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
             int start = 0;
             if (is_first_lsn) {
                 // 新規作成でDD_BITが2以上のときはFDセクタの空きからデータを書き込んでいく
-                lsn = fd.GetMyLSN() + 1;
+                lsn = fd.getMyLSN() + 1;
                 start++;
                 is_first_lsn = false;
             } else {
@@ -764,11 +729,11 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
                 }
                 fd.SetLSN(seg_idx, lsn);
                 seg_cnt = (basic.diskBasicParam.getGroupWidth() - start);
-                fd.SetSIZ(seg_idx, seg_cnt);
+                fd.setSIZ(seg_idx, seg_cnt);
             } else {
                 // LSNが連続しているなら、同じセグメントでセクタ数を増やす
                 seg_cnt += basic.diskBasicParam.getGroupWidth();
-                fd.SetSIZ(seg_idx, seg_cnt);
+                fd.setSIZ(seg_idx, seg_cnt);
             }
             // セクタを予約
             setGroupNumber(lsn, 1);
@@ -786,7 +751,7 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
                 file_size += basic.getSectorSize() * (basic.diskBasicParam.getGroupWidth() - start);
             }
             // ファイルサイズ
-            fd.SetSIZ(file_size);
+            fd.setSIZ(file_size);
 
             limit--;
         }
@@ -797,19 +762,19 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
         // エラーの場合、確保したエリアを開放
         if (rc < 0) {
             for (int idx = start_seg_idx; idx < 48; idx++) {
-                int seg_lsn = fd.GetLSN(idx);
-                int seg_siz = fd.GetSIZ(idx);
+                int seg_lsn = fd.getLSN(idx);
+                int seg_siz = fd.getSIZ(idx);
                 if (seg_lsn == 0 && seg_siz == 0) {
                     break;
                 }
                 for (int siz = 0; siz < seg_siz; siz++) {
                     // セクタを未使用にする
-                    if ((seg_lsn / basic.diskBasicParam.getGroupWidth()) != (fd.GetMyLSN() / basic.diskBasicParam.getGroupWidth()))
+                    if ((seg_lsn / basic.diskBasicParam.getGroupWidth()) != (fd.getMyLSN() / basic.diskBasicParam.getGroupWidth()))
                         setGroupNumber(seg_lsn, 0);
                     seg_lsn++;
                 }
                 fd.SetLSN(idx, 0);
-                fd.SetSIZ(idx, 0);
+                fd.setSIZ(idx, 0);
             }
         }
 
@@ -873,11 +838,11 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
 
         DiskBasicDirItemOS9FD fd = ditem.getFD();
         DirectoryOs9Fd fdd = new DirectoryOs9Fd(); // Mock
-        fd.Set(basic, sector, lsn, fdd);
-        fd.Clear();
+        fd.set(basic, sector, lsn, fdd);
+        fd.clear();
 
         // 開始LSNを設定
-        ditem.SetStartGroup(0, lsn, 0);
+        ditem.setStartGroup(0, lsn, 0);
         // 日付を設定
         LocalDateTime tm = LocalDateTime.now();
         ditem.setFileCreateDateTime(tm);
@@ -891,7 +856,7 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
     /// サブディレクトリを作成した後の個別処理
     @Override
     public void additionalProcessOnMadeDirectory(DiskBasicDirItem<DirectoryOs9> item, DiskBasicGroups group_items, DiskBasicDirItem<DirectoryOs9> parent_item) throws IOException {
-        if (group_items.count() <= 0) return;
+        if (group_items.size() <= 0) return;
 
         // ディレクトリ属性
         item.setFileAttr(basic.getFormatTypeNumber(), 0,
@@ -908,12 +873,13 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
         item.setFileSize(item.getDataSize() * 2);
 
         // カレントと親ディレクトリのエントリを作成する
-        DiskBasicGroupItem gitem = group_items.item(0);
+        DiskBasicGroupItem gitem = group_items.get(0);
 
         DiskImageSector sector = basic.getTrack(gitem.track, gitem.side).getSector(gitem.sectorStart); // Simplified access
 
         byte[] buf = sector.getSectorBuffer();
-        DiskBasicDirItem<DirectoryOs9> newitem = basic.createDirItem(sector, 0, buf);
+        int bufOffset = 0;
+        DiskBasicDirItem<DirectoryOs9> newitem = basic.createDirItem(sector, 0, buf, bufOffset);
 
         // 親をつくる
         newitem.clearData();
@@ -925,19 +891,16 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
             newitem.setStartGroup(0, os9_ident.DD_DIR.getOs9Lsn());
         }
         newitem.setFileNamePlain("..");
-        // newitem->SetFileAttr(FILE_TYPE_DIRECTORY_MASK);
+//        newitem.setFileAttr(FILE_TYPE_DIRECTORY_MASK);
 
         // カレント
-        // C++: buf += newitem->GetDataSize();
-        // In Java, we create a new temporary item that reads from an offset.
-        int item_data_size = newitem.getDataSize();
-        DiskBasicDirItem<DirectoryOs9> current_item = basic.createDirItem(sector, 0, buf); // Re-use buf, but newitem will read from offset
-        current_item.setDataPtr(0, null, sector, item_data_size, buf, null);
+        bufOffset += newitem.getDataSize();
+        newitem.setDataPtr(0, null, sector, 0, buf, bufOffset, null);
 
-        current_item.clearData();
-        current_item.setStartGroup(0, item.getStartGroup(0));
-        current_item.setFileNamePlain(".");
-        // newitem->SetFileAttr(FILE_TYPE_DIRECTORY_MASK);
+        newitem.clearData();
+        newitem.setStartGroup(0, item.getStartGroup(0));
+        newitem.setFileNamePlain(".");
+//        newitem.setFileAttr(FILE_TYPE_DIRECTORY_MASK);
 
         // ディレクトリサイズを更新
         int dir_size = dir.calcSize();
@@ -945,8 +908,6 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
         if (dir_item != null) {
             dir_item.setFileSize(dir_size);
         }
-
-        // delete newitem; // No delete in Java
     }
 
     /// セクタデータを指定コードで埋める
@@ -961,7 +922,7 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
         // Ident
         DiskImageSector sector = basic.getManagedSector(0);
         if (sector == null) return false;
-        os9_ident = new os9_ident_t();
+        os9_ident = new DiskBasicTypeOS9.os9_ident_t();
         // os9_ident = (os9_ident_t *)sector->GetSectorBuffer();
         if (os9_ident == null) return false;
 
@@ -1065,18 +1026,18 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
         DiskBasicDirItemOS9FD root_fd = root_item.getFD();
 
         DirectoryOs9Fd fdd = new DirectoryOs9Fd(); // Mock
-        root_fd.Set(basic, sector, root_start_lsn, fdd);
-        root_fd.Clear();
+        root_fd.set(basic, sector, root_start_lsn, fdd);
+        root_fd.clear();
 
-        root_item.SetStartGroup(0, root_start_lsn, 0);
+        root_item.setStartGroup(0, root_start_lsn, 0);
         // 日付を設定
         root_item.setFileCreateDateTime(tm);
         root_item.setFileModifyDateTime(tm);
         // セグメント設定
         root_fd.SetLSN(0, root_start_lsn + 1);
-        root_fd.SetSIZ(0, root_end_lsn - root_start_lsn);
+        root_fd.setSIZ(0, root_end_lsn - root_start_lsn);
         // リンクの数
-        root_fd.SetLNK((short) 2);
+        root_fd.setLNK((short) 2);
         // セクタを予約
         setGroupNumber(root_start_lsn, 1);
 
@@ -1153,7 +1114,7 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
         DiskBasicFormat fmt = basic.getFormatType();
 
         // volume label
-        if (fmt.HasVolumeName()) {
+        if (fmt.hasVolumeName()) {
             String vol = data.getVolumeName();
             DiskBasicDirItemOS9.encodeString(os9_ident.DD_NAM, os9_ident.DD_NAM.length, vol, vol.length());
         }

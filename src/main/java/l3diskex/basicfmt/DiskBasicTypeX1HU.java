@@ -4,17 +4,15 @@
 
 package l3diskex.basicfmt;
 
-import l3diskex.basicfmt.BasicFat.DiskBasicFat;
-import l3diskex.basicfmt.BasicFat.DiskBasicFatArea;
-import l3diskex.basicfmt.BasicFat.DiskBasicFatBuffer;
-import l3diskex.basicfmt.BasicFat.DiskBasicFatBuffers;
-import l3diskex.basicfmt.BasicFmt.DiskBasic;
+import l3diskex.basicfmt.DiskBasicFat.DiskBasicFatArea;
+import l3diskex.basicfmt.DiskBasicFat.DiskBasicFatBuffer;
+import l3diskex.basicfmt.DiskBasicFat.DiskBasicFatBuffers;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 
-import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_MISSING;
-import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_USED;
 import static l3diskex.basicfmt.DiskBasicDirItemX1HU.EXTERNAL_X1_DEFAULT;
 import static l3diskex.basicfmt.DiskBasicDirItemX1HU.EXTERNAL_X1_SWORD;
+import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_MISSING;
+import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_USED;
 
 
 /**
@@ -184,16 +182,16 @@ public class DiskBasicTypeX1HU extends DiskBasicType {
     public void calcDiskFreeSize(boolean wrote) {
         int fsize = 0;
         int grps = 0;
-        int fsts = FAT_AVAIL_USED.getValue();
+        int fsts = FAT_AVAIL_USED.ordinal();
         fatAvailability.empty();
         for (int pos = 0; pos <= basic.getFatEndGroup(); pos++) {
             int gnum = getGroupNumber(pos);
-            if (gnum == FAT_AVAIL_USED.getValue()) {
+            if (gnum == FAT_AVAIL_USED.ordinal()) {
                 fsize = 0;
                 grps = 0;
             }
-            if (gnum == FAT_AVAIL_MISSING.getValue()) {
-                fsts = FAT_AVAIL_MISSING.getValue();
+            if (gnum == FAT_AVAIL_MISSING.ordinal()) {
+                fsts = FAT_AVAIL_MISSING.ordinal();
                 fsize = 0;
                 grps = 0;
             }

@@ -1,6 +1,8 @@
 package l3diskex.ui;
 
 
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
 import javax.xml.validation.Validator;
 
 import l3diskex.Parambase.ValidNameRule;
@@ -8,6 +10,8 @@ import l3diskex.basicfmt.DiskBasicDirItem;
 
 
 public class IntNameValidatorFile {
+
+    private static final Logger logger = System.getLogger(IntNameValidatorFile.class.getName());
 
     /* ------------------------------------------------------------------ */
     /* 1.  Constants used by the validators                                 */
@@ -277,7 +281,7 @@ public class IntNameValidatorFile {
                 "example",
                 rule);
 
-        System.out.println("Validation result: " +
+        logger.log(Level.DEBUG, "Validation result: " +
                 validator.Validate(null, "TestValue"));
     }
 }

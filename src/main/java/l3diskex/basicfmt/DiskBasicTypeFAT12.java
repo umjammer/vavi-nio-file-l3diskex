@@ -3,9 +3,6 @@ package l3diskex.basicfmt;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import l3diskex.basicfmt.BasicFat.DiskBasicFat;
-import l3diskex.basicfmt.BasicFmt.DiskBasic;
-
 
 /**
  * Concrete implementation of a FAT12/16 driver.

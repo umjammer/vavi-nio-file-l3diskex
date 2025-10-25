@@ -160,7 +160,7 @@ public class DiskD88Writer extends DiskImageWriter {
         /* 1. Prepare the disk header -------------------------------- */
         disk.setOffsetStart(d88Header.getHeaderSize());
         if (sideNumber < 0) {                // Only when saving a whole disk
-            newSize = disk.shrinkTracks(p_dw.IsTrimUnusedData());
+            newSize = disk.shrinkTracks(p_dw.isTrimUnusedData());
             disk.setSizeWithoutHeader(newSize);
         }
         d88Header.newHeader(disk.getHeader());
@@ -229,7 +229,7 @@ public class DiskD88Writer extends DiskImageWriter {
             }
 
             /* 2b. Append data from the side file (if any) ------------ */
-            if (!p_dw.IsTrimUnusedData()) {
+            if (!p_dw.isTrimUnusedData()) {
                 byte[] extra = track.getExtraData();
                 int extraSize = track.getExtraDataSize();
                 if (extra != null && extraSize > 0) {

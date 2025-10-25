@@ -7,17 +7,15 @@ import java.io.OutputStream;
 import l3diskex.basicfmt.BasicCommon.ApledosPtr;
 import l3diskex.basicfmt.BasicCommon.DirectoryApledos;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
-import l3diskex.basicfmt.BasicFat.DiskBasicFat;
-import l3diskex.basicfmt.BasicFmt.DiskBasic;
-import l3diskex.basicfmt.BasicFmt.DiskBasicIdentifiedData;
+import l3diskex.basicfmt.DiskBasic.DiskBasicIdentifiedData;
 import l3diskex.basicfmt.DiskBasicDirItemAppleDOS.apledos_chain_t;
 import l3diskex.basicfmt.DiskBasicParam.DiskBasicFormat;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 
-import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_FREE;
-import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_SYSTEM;
-import static l3diskex.basicfmt.BasicFat.FatAvailability.FAT_AVAIL_USED;
 import static l3diskex.basicfmt.DiskBasicDirItemAppleDOS.APLEDOS_TRACK_LIST_MAX;
+import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_FREE;
+import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_SYSTEM;
+import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_USED;
 
 
 /**
@@ -351,7 +349,7 @@ public class DiskBasicTypeAppleDOS extends DiskBasicType<DirectoryApledos> {
     public boolean calcGroupsOnRootDirectory(int start_sector, int end_sector, DiskBasicGroups group_items) {
         boolean valid = true;
 
-        group_items.empty();
+        group_items.clear();
 
         // Follow the directory chain
         int dir_size = 0;
@@ -432,11 +430,11 @@ public class DiskBasicTypeAppleDOS extends DiskBasicType<DirectoryApledos> {
 
             for (int sec = 0; sec < basic.getSectorsPerTrackOnBasic(); sec++) {
                 if (trk < 3 || trk == managed_track_num) {
-                    fatAvailability.add(FAT_AVAIL_SYSTEM.getValue(), 0, 0);
+                    fatAvailability.add(FAT_AVAIL_SYSTEM.ordinal(), 0, 0);
                 } else if ((usemap & (1L << sec)) != 0) {
-                    fatAvailability.add(FAT_AVAIL_FREE.getValue(), basic.getSectorSize(), 1);
+                    fatAvailability.add(FAT_AVAIL_FREE.ordinal(), basic.getSectorSize(), 1);
                 } else {
-                    fatAvailability.add(FAT_AVAIL_USED.getValue(), 0, 0);
+                    fatAvailability.add(FAT_AVAIL_USED.ordinal(), 0, 0);
                 }
             }
         }
@@ -457,7 +455,7 @@ public class DiskBasicTypeAppleDOS extends DiskBasicType<DirectoryApledos> {
     /// Allocate groups for the data size
     @Override
     public int allocateUnitGroups(int fileunit_num, DiskBasicDirItem<DirectoryApledos> item, int data_size, AllocateGroupFlags flags, DiskBasicGroups group_items) throws IOException {
-        //logger.log(Level.DEBUG, "DiskBasicTypeAppleDOS::AllocateGroups {");
+        //logger.log(Level.TRACE, "DiskBasicTypeAppleDOS::AllocateGroups {");
 
         //int file_size = 0;
         int groups = 0;
@@ -507,7 +505,7 @@ public class DiskBasicTypeAppleDOS extends DiskBasicType<DirectoryApledos> {
             rc = -2;
         }
 
-        //logger.log(Level.DEBUG, "rc: %d }", rc);
+        //logger.log(Level.TRACE, "rc: %d }".formatted(rc));
         return rc;
     }
 
@@ -811,7 +809,7 @@ public class DiskBasicTypeAppleDOS extends DiskBasicType<DirectoryApledos> {
         DiskBasicFormat fmt = basic.getFormatType();
 
         // volume number
-        if (fmt.HasVolumeNumber()) {
+        if (fmt.hasVolumeNumber()) {
             apledos_vtoc.volume_numberbyte = (byte) data.getVolumeNumber();
             if (apledos_vtoc.volume_numberbyte == 0) {
                 apledos_vtoc.volume_numberbyte = (byte) 0xfe;    // default

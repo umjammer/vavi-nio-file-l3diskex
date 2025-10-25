@@ -15,7 +15,6 @@ import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
-import l3diskex.basicfmt.BasicFmt.DiskBasic;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
 
@@ -52,18 +51,21 @@ public abstract class DiskBasicDirItemTRSDOS<T extends DirectoryT> extends DiskB
 
     public DiskBasicDirItemTRSDOS(DiskBasic basic) {
         super(basic);
+
         m_position_in_hit = -1;
         next_item = null;
     }
 
-    public DiskBasicDirItemTRSDOS(DiskBasic basic, DiskImageSector n_sector, int n_secpos, byte[] n_data) {
-        super(basic, n_sector, n_secpos, n_data);
+    public DiskBasicDirItemTRSDOS(DiskBasic basic, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP) {
+        super(basic, n_sector, n_secpos, n_data, dataP);
+
         m_position_in_hit = -1;
         next_item = null;
     }
 
-    public DiskBasicDirItemTRSDOS(DiskBasic basic, int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, SectorParam n_next, boolean[] n_unuse) {
-        super(basic, n_num, n_gitem, n_sector, n_secpos, n_data, n_next, n_unuse);
+    public DiskBasicDirItemTRSDOS(DiskBasic basic, int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP, SectorParam n_next, boolean[] n_unuse) {
+        super(basic, n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next, n_unuse);
+
         m_position_in_hit = -1;
         next_item = null;
     }
@@ -72,8 +74,9 @@ public abstract class DiskBasicDirItemTRSDOS<T extends DirectoryT> extends DiskB
      * アイテムへのポインタを設定
      */
     @Override
-    public void setDataPtr(int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, SectorParam n_next) throws IOException {
-        super.setDataPtr(n_num, n_gitem, n_sector, n_secpos, n_data, n_next);
+    public void setDataPtr(int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP, SectorParam n_next) throws IOException {
+        super.setDataPtr(n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next);
+
         m_position_in_hit = -1;
     }
 
@@ -94,15 +97,15 @@ public abstract class DiskBasicDirItemTRSDOS<T extends DirectoryT> extends DiskB
      * ファイル内部のアドレスを取り出す
      */
     protected void takeAddressesInFile(DiskBasicGroups group_items) {
-        if (group_items.count() == 0) {
+        if (group_items.size() == 0) {
             return;
         }
-        // DiskBasicGroupItem item = group_items.Item(0);
-        // DiskImageSector sector = basic.GetSector(item.track, item.side, item.sector_start);
-        // if (sector == null) return;
+        //DiskBasicGroupItem item = group_items.get(0);
+        //DiskImageSector sector = basic.getSector(item.track, item.side, item.sectorStart);
+        //if (sector == null) return;
 
         // 開始アドレス
-        // m_start_address = (int)sector.Get16(0);
+        //m_start_address = (int) sector.get16(0);
     }
 
     /**
@@ -384,32 +387,36 @@ class DiskBasicDirItemTRSD23 extends DiskBasicDirItemTRSDOS<DirectoryTrsd23> {
 
     public DiskBasicDirItemTRSD23(DiskBasic basic) {
         super(basic);
+
         m_data.alloc(DirectoryTrsd23.class);
     }
 
-    public DiskBasicDirItemTRSD23(DiskBasic basic, DiskImageSector n_sector, int n_secpos, byte[] n_data) {
-        super(basic, n_sector, n_secpos, n_data);
-        m_data.attach(n_data);
+    public DiskBasicDirItemTRSD23(DiskBasic basic, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP) {
+        super(basic, n_sector, n_secpos, n_data, dataP);
+
+        m_data.attach(DirectoryTrsd23.class, n_data, dataP);
         if (n_sector != null) {
             m_position_in_hit = DiskBasicTypeTRSD23.getHIPosition(n_sector.getSectorNumber() - basic.getSectorNumberBase(), n_secpos / getDataSize());
         }
     }
 
-    public DiskBasicDirItemTRSD23(DiskBasic basic, int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, SectorParam n_next, boolean[] n_unuse) {
-        super(basic, n_num, n_gitem, n_sector, n_secpos, n_data, n_next, n_unuse);
-        m_data.attach(n_data);
+    public DiskBasicDirItemTRSD23(DiskBasic basic, int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP, SectorParam n_next, boolean[] n_unuse) {
+        super(basic, n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next, n_unuse);
+
+        m_data.attach(DirectoryTrsd23.class, n_data, dataP);
         m_position_in_hit = DiskBasicTypeTRSD23.getHIPosition(n_sector.getSectorNumber() - basic.getSectorNumberBase(), n_secpos / getDataSize());
-        n_unuse[0] = !checkUsed(n_unuse[0]); // C++ has bool& n_unuse, in Java we use array
-        used(!n_unuse[0]);
+
+        used(checkUsed(n_unuse[0]));
     }
 
     /**
      * アイテムへのポインタを設定
      */
     @Override
-    public void setDataPtr(int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, SectorParam n_next) throws IOException {
-        super.setDataPtr(n_num, n_gitem, n_sector, n_secpos, n_data, n_next);
-        m_data.attach(n_data);
+    public void setDataPtr(int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP, SectorParam n_next) throws IOException {
+        super.setDataPtr(n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next);
+
+        m_data.attach(DirectoryTrsd23.class, n_data, dataP);
         m_position_in_hit = DiskBasicTypeTRSD23.getHIPosition(n_sector.getSectorNumber() - basic.getSectorNumberBase(), n_secpos / getDataSize());
     }
 
@@ -714,7 +721,6 @@ class DiskBasicDirItemTRSD23 extends DiskBasicDirItemTRSDOS<DirectoryTrsd23> {
      */
     @Override
     public void setInternalDataInAttrDialog(KeyValArray vals) {
-        vals.add("self", m_data.isSelf());
         vals.add("ACCESS_CONTROL", m_data.data().accessControl);
         vals.add("OVERFLOW", m_data.data().overflow);
         vals.add("EOF_BYTE_OFFSET", m_data.data().eofByteOffset);
@@ -744,33 +750,35 @@ class DiskBasicDirItemTRSD13 extends DiskBasicDirItemTRSDOS<DirectoryTrsd13> {
 
     public DiskBasicDirItemTRSD13(DiskBasic basic) {
         super(basic);
-        m_data.alloc(DirectoryTrsd13.class);
     }
 
-    public DiskBasicDirItemTRSD13(DiskBasic basic, DiskImageSector n_sector, int n_secpos, byte[] n_data) {
-        super(basic, n_sector, n_secpos, n_data);
-        m_data.attach(n_data);
+    public DiskBasicDirItemTRSD13(DiskBasic basic, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP) {
+        super(basic, n_sector, n_secpos, n_data, dataP);
+
+        m_data.attach(DirectoryTrsd13.class, n_data, dataP);
         if (n_sector != null) {
             int n = (basic.getSectorSize() / getDataSize());
             m_position_in_hit = getHIPosition((n_sector.getSectorNumber() - basic.getSectorNumberBase() - 2) * n + (n_secpos / getDataSize()));
         }
     }
 
-    public DiskBasicDirItemTRSD13(DiskBasic basic, int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, SectorParam n_next, boolean[] n_unuse) {
-        super(basic, n_num, n_gitem, n_sector, n_secpos, n_data, n_next, n_unuse);
-        m_data.attach(n_data);
+    public DiskBasicDirItemTRSD13(DiskBasic basic, int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP, SectorParam n_next, boolean[] n_unuse) {
+        super(basic, n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next, n_unuse);
+
+        m_data.attach(DirectoryTrsd13.class, n_data, dataP);
         m_position_in_hit = getHIPosition(n_num);
-        n_unuse[0] = !checkUsed(n_unuse[0]);
-        used(!n_unuse[0]);
+
+        used(checkUsed(n_unuse[0]));
     }
 
     /**
      * アイテムへのポインタを設定
      */
     @Override
-    public void setDataPtr(int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, SectorParam n_next) throws IOException {
-        super.setDataPtr(n_num, n_gitem, n_sector, n_secpos, n_data, n_next);
-        m_data.attach(n_data);
+    public void setDataPtr(int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP, SectorParam n_next) throws IOException {
+        super.setDataPtr(n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next);
+
+        m_data.attach(DirectoryTrsd13.class, n_data, dataP);
         m_position_in_hit = getHIPosition(n_num);
     }
 
@@ -780,6 +788,7 @@ class DiskBasicDirItemTRSD13 extends DiskBasicDirItemTRSDOS<DirectoryTrsd13> {
     @Override
     public boolean check(boolean[] last) {
         if (!m_data.isValid()) return false;
+
         return true;
     }
 
@@ -1039,7 +1048,6 @@ class DiskBasicDirItemTRSD13 extends DiskBasicDirItemTRSDOS<DirectoryTrsd13> {
      */
     @Override
     public void setInternalDataInAttrDialog(KeyValArray vals) {
-        vals.add("self", m_data.isSelf());
         vals.add("ACCESS_CONTROL", m_data.data().accessControl);
         vals.add("MONTH", m_data.data().month);
         vals.add("YEAR", m_data.data().year);

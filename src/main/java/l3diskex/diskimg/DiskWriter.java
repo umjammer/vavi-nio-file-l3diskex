@@ -30,7 +30,7 @@ public class DiskWriter extends DiskWriteOptions {
     private final DiskResult p_result;
 
     // 拡張子をさがす
-    private int CanSaveDiskByExt(int disk_number, int side_number) {
+    private int canSaveDiskByExt(int disk_number, int side_number) {
         int rc = 0;
 
         // ファイル形式の指定がない場合
@@ -61,7 +61,7 @@ public class DiskWriter extends DiskWriteOptions {
             // C++: const FileParamFormat *param_format = &formats->Item(i);
             FileParamFormat param_format = formats.get(i);
             // C++: rc = SelectCanSaveDisk(param_format->GetType(), disk_number, side_number);
-            rc = SelectCanSaveDisk(param_format.getType(), disk_number, side_number);
+            rc = selectCanSaveDisk(param_format.getType(), disk_number, side_number);
             if (rc >= 0) {
                 break;
             }
@@ -71,7 +71,7 @@ public class DiskWriter extends DiskWriteOptions {
     }
 
     // 拡張子で保存形式を判定
-    private int SelectCanSaveDisk(String file_format, int disk_number, int side_number) {
+    private int selectCanSaveDisk(String file_format, int disk_number, int side_number) {
         int rc = -1;
         // C++: wxT("d88") -> "d88" (assuming wxT converts to String)
         if (file_format.equals("d88")) {
@@ -91,7 +91,7 @@ public class DiskWriter extends DiskWriteOptions {
     }
 
     // 拡張子をさがす
-    private int SaveDiskByExt(int disk_number, int side_number, boolean[] support) {
+    private int saveDiskByExt(int disk_number, int side_number, boolean[] support) {
         int rc = 0;
 
         // ファイル形式の指定がない場合
@@ -122,7 +122,7 @@ public class DiskWriter extends DiskWriteOptions {
             // C++: const FileParamFormat *param_format = &formats->Item(i);
             FileParamFormat param_format = formats.get(i);
             // C++: rc = SelectSaveDisk(param_format->GetType(), disk_number, side_number, support);
-            rc = SelectSaveDisk(param_format.getType(), disk_number, side_number, support);
+            rc = selectSaveDisk(param_format.getType(), disk_number, side_number, support);
             if (rc >= 0) {
                 break;
             }
@@ -132,7 +132,7 @@ public class DiskWriter extends DiskWriteOptions {
     }
 
     // 拡張子で保存形式を判定
-    private int SelectSaveDisk(String file_format, int disk_number, int side_number, boolean[] support) {
+    private int selectSaveDisk(String file_format, int disk_number, int side_number, boolean[] support) {
         int rc = -1;
         support[0] = false; // Initialize support status before switch/if-else
 
@@ -174,7 +174,7 @@ public class DiskWriter extends DiskWriteOptions {
         m_file_path = path;
         p_result = result;
         p_ostream = null;
-        Open(path);
+        open(path);
     }
 
     /**
@@ -206,7 +206,6 @@ public class DiskWriter extends DiskWriteOptions {
         }
         p_ostream = null;
     }
-    // C++ equivalent: ~DiskWriter()
 
     /**
      * 出力先を開く
@@ -214,7 +213,7 @@ public class DiskWriter extends DiskWriteOptions {
      * @param path 出力先ファイルパス
      * @return 結果
      */
-    public int Open(String path) {
+    public int open(String path) {
         // C++: wxFileOutputStream *fstream = new wxFileOutputStream(path);
         FileOutputStream fstream;
         try {
@@ -241,7 +240,7 @@ public class DiskWriter extends DiskWriteOptions {
      *
      * @return true if open and ready, false otherwise
      */
-    public boolean IsOk() {
+    public boolean isOk() {
         // In Java, an OutputStream is considered "OK" if it's not null, hasn't been closed, and no IOException occurred on last operation.
         // Direct equivalent to wxOutputStream::IsOk() is difficult. We'll approximate.
         return p_ostream != null; // Simplified approximation
@@ -253,7 +252,7 @@ public class DiskWriter extends DiskWriteOptions {
      * @param file_format ファイルフォーマット
      * @return true if supported, false otherwise
      */
-    public static boolean SupportedFormat(String file_format) {
+    public static boolean supportedFormat(String file_format) {
         boolean match = false;
         for (int i = 1; cFormatTypeNamesForSave[i] != null; i++) {
             if (file_format.equals(cFormatTypeNamesForSave[i])) {
@@ -270,8 +269,8 @@ public class DiskWriter extends DiskWriteOptions {
      * @param file_format ファイルフォーマット
      * @return 0:できる, 1:警告あり (>=0 success, <0 error)
      */
-    public int CanSave(String file_format) {
-        return CanSaveDisk(-1, -1, file_format);
+    public int canSave(String file_format) {
+        return canSaveDisk(-1, -1, file_format);
     }
 
     /**
@@ -282,14 +281,14 @@ public class DiskWriter extends DiskWriteOptions {
      * @param file_format ファイルフォーマット
      * @return 0:できる, 1:警告あり (>=0 success, <0 error)
      */
-    public int CanSaveDisk(int disk_number, int side_number, String file_format) {
+    public int canSaveDisk(int disk_number, int side_number, String file_format) {
         int rc = 0;
         if (file_format.isEmpty()) {
             // ファイル形式の指定がない場合
-            rc = CanSaveDiskByExt(disk_number, side_number);
+            rc = canSaveDiskByExt(disk_number, side_number);
         } else {
             // ファイル形式の指定あり
-            rc = SelectCanSaveDisk(file_format, disk_number, side_number);
+            rc = selectCanSaveDisk(file_format, disk_number, side_number);
         }
         return rc;
     }
@@ -300,8 +299,8 @@ public class DiskWriter extends DiskWriteOptions {
      * @param file_format ファイルフォーマット
      * @return 結果
      */
-    public int Save(String file_format) {
-        return SaveDisk(-1, -1, file_format);
+    public int save(String file_format) {
+        return saveDisk(-1, -1, file_format);
     }
 
     /**
@@ -312,22 +311,22 @@ public class DiskWriter extends DiskWriteOptions {
      * @param file_format ファイルフォーマット
      * @return 結果
      */
-    public int SaveDisk(int disk_number, int side_number, String file_format) {
+    public int saveDisk(int disk_number, int side_number, String file_format) {
         int rc = 0;
         // In C++, 'bool support' is an output parameter, in Java, use a mutable object (or Ref class)
         boolean[] support = {false};
 
-        if (!IsOk()) {
+        if (!isOk()) {
             p_result.setError(DiskResult.ERR_CANNOT_SAVE);
             return p_result.getValid();
         }
 
         if (file_format.isEmpty()) {
             // ファイル形式の指定がない場合
-            rc = SaveDiskByExt(disk_number, side_number, support);
+            rc = saveDiskByExt(disk_number, side_number, support);
         } else {
             // ファイル形式の指定あり
-            rc = SelectSaveDisk(file_format, disk_number, side_number, support);
+            rc = selectSaveDisk(file_format, disk_number, side_number, support);
         }
         if (!support[0]) {
             p_result.setError(DiskResult.ERR_UNSUPPORTED);
@@ -400,7 +399,7 @@ class DiskWriteOptions {
 
     // Java doesn't have explicit destructors, so no direct equivalent for virtual ~DiskWriteOptions()
 
-    public boolean IsTrimUnusedData() {
+    public boolean isTrimUnusedData() {
         return m_trim_unused_data;
     }
 }

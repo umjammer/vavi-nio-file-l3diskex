@@ -16,7 +16,6 @@ import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
-import l3diskex.basicfmt.BasicFmt.DiskBasic;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
 import vavi.util.serdes.Serdes;
@@ -233,7 +232,7 @@ public class DiskBasicDirItemProDOS extends DiskBasicDirItem<DirectoryProdos> {
         }
     }
 
-    DiskBasicDirData<DirectoryProdos> m_data;
+    DiskBasicDirData<DirectoryProdos> m_data = new DiskBasicDirData<>();
     DirItemSectorBoundary m_sdata;
 
     public final int mDirGroupNum; // int
@@ -241,53 +240,87 @@ public class DiskBasicDirItemProDOS extends DiskBasicDirItem<DirectoryProdos> {
     private final ProDOSIndex mIndex = new ProDOSIndex();
 
     // Assuming DiskBasicDirItem has constructors that take DiskBasic, etc.
-    public DiskBasicDirItemProDOS(DiskBasic basic) {
+    public DiskBasicDirItemProDOS(DiskBasic basic) throws IOException {
         super(basic);
-        m_data = new DiskBasicDirData<>();
-        mDirGroupNum = 0;
-        // AllocateItem(null) logic needs to be here (or in the base constructor)
-    }
 
-    public DiskBasicDirItemProDOS(DiskBasic basic, DiskImageSector nSector, int nSecpos, byte[] nData) {
-        super(basic, nSector, nSecpos, nData);
-        m_data = new DiskBasicDirData<>();
-        m_data.attach(nData);
-        mDirGroupNum = 0;
+        m_data.alloc(DirectoryProdos.class);
         allocateItem(null);
+
+        mDirGroupNum = 0;
     }
 
-    public DiskBasicDirItemProDOS(DiskBasic basic, int nNum, DiskBasicGroupItem nGitem, DiskImageSector nSector, int nSecpos, byte[] nData, SectorParam nNext, boolean[] nUnuse) throws IOException {
-        super(basic, nNum, nGitem, nSector, nSecpos, nData, nNext, nUnuse);
-        m_data = new DiskBasicDirData<>();
-        m_data.attach(nData);
+    public DiskBasicDirItemProDOS(DiskBasic basic, DiskImageSector nSector, int nSecpos, byte[] nData, int dataP) throws IOException {
+        super(basic, nSector, nSecpos, nData, dataP);
 
-        // m_dir_group_num calculation... too dependent on 'type' (DiskBasicTypeProDOS)
+        m_data.attach(DirectoryProdos.class, nData, dataP);
+        allocateItem(null);
+
         mDirGroupNum = 0;
+    }
+
+    public DiskBasicDirItemProDOS(DiskBasic basic, int nNum, DiskBasicGroupItem nGitem, DiskImageSector nSector, int nSecpos, byte[] nData, int dataP, SectorParam nNext, boolean[] nUnuse) throws IOException {
+        super(basic, nNum, nGitem, nSector, nSecpos, nData, dataP, nNext, nUnuse);
+
+        m_data.attach(DirectoryProdos.class, nData, dataP);
+        allocateItem(nNext);
+
+        int _mDirGroupNum = type.getSectorPosFromNum(nGitem.track, nGitem.side, nSector.getSectorNumber());
+        mDirGroupNum = _mDirGroupNum / basic.getSectorsPerGroup();
 
         used(checkUsed(nUnuse[0]));
 
-        // Check if Used() and initialize mIndex logic needs to be here
-        // The index initialization logic is complex and relies on DiskBasic/DiskBasicTypeProDOS
-        mIndex.clear();
+        // チェインセクタへのポインタをセット
+        if (isUsed()) {
+            mIndex.clear();
+            mIndex.setBasic(basic);
+            int stype = getFileType1();
+            switch(stype) {
+                case FILETYPE_MASK_PRODOS_SAPLING:
+                case FILETYPE_MASK_PRODOS_TREE:
+                    int grp_num = getStartGroup(0);
+
+//			          int sector_size = basic.getSectorSize();
+                    int st_pos = type.getStartSectorFromGroup(grp_num);
+
+                    ProDOSOneIndex item = new ProDOSOneIndex();
+                    item.attachBuffer(basic, grp_num, st_pos);
+                    mIndex.add(item);
+
+                    if (stype == FILETYPE_MASK_PRODOS_TREE) {
+                        // tree
+                        int size = 256;
+                        for(int i = 0; i < size; i++) {
+                            grp_num = mIndex.getGroupNumber(i);
+                            if (grp_num == 0) {
+                                break;
+                            }
+                            st_pos = type.getStartSectorFromGroup(grp_num);
+
+                            item = new ProDOSOneIndex();
+                            item.attachBuffer(basic, grp_num, st_pos);
+                            mIndex.add(item);
+                        }
+                    }
+                    break;
+            }
+        }
 
         calcFileSize();
     }
 
     // Private helper methods from CPP
-    private boolean allocateItem(SectorParam next) {
+    private boolean allocateItem(SectorParam next) throws IOException {
         m_sdata.clear();
-        // Requires DiskBasic's GetDataSize and directory_t cast on m_data.Data()
-        // boolean bound = m_sdata.Set(basic, m_sector, m_position, (directory_t)m_data.Data(), GetDataSize(), next);
-        boolean bound = false; // Placeholder
+        boolean bound = m_sdata.set(basic, sector, position, m_data.getRawData(), getDataSize(), next);
 
-        if (!m_data.isSelf() && bound) {
+        if (bound) {
+            // セクタをまたぐ場合、dataは内部で確保する
             m_data.alloc(DirectoryProdos.class);
             m_data.fill(0);
         }
 
-        if (m_data.isSelf()) {
-            // m_sdata.CopyTo((directory_t)m_data.Data());
-        }
+        // コピー
+        m_sdata.copyTo(m_data.getRawData());
 
         return true;
     }
@@ -716,11 +749,11 @@ public class DiskBasicDirItemProDOS extends DiskBasicDirItem<DirectoryProdos> {
 
     // Private helper from CPP
     private void takeAddressesInFile(DiskBasicGroups groupItems) {
-        if (groupItems.count() == 0) {
+        if (groupItems.size() == 0) {
             return;
         }
 
-        DiskBasicGroupItem item = groupItems.item(0);
+        DiskBasicGroupItem item = groupItems.get(0);
         DiskImageSector sector = basic.getSector(item.track, item.side, item.sectorStart);
         if (sector == null) return;
     }
@@ -879,14 +912,19 @@ public class DiskBasicDirItemProDOS extends DiskBasicDirItem<DirectoryProdos> {
         return true;
     }
 
-    // @Override
+    /**
+     * データをインポートする前に必要な処理
+     *
+     * @param filename [in,out] ファイル名
+     * @return false このファイルは対象外とする
+     */
     @Override
     public boolean preImportDataFile(String[] filename) {
         if (gConfig.isDecideAttrImport()) {
-// gTypeNameProDOS2 is external
             isContainAttrByExtension(filename[0], G_TYPE_NAME_PRODOS2, TYPE_NAME_PRODOS_NOT, TYPE_NAME_PRODOS_SYS, filename, null, null);
         }
-        // filename = RemakeFileNameAndExtStr(filename); // Assuming this is defined
+        // 拡張子を消す
+        filename[0] = remakeFileNameAndExtStr(filename[0]);
         return true;
     }
 
@@ -1063,45 +1101,42 @@ public class DiskBasicDirItemProDOS extends DiskBasicDirItem<DirectoryProdos> {
     }
 
     public void increaseFileCount() {
-        // short val = 0;
-        // int stype = GetFileType1();
-        // switch (stype) {
-        // case FILETYPE_MASK_PRODOS_SUBVOL:
-        // case FILETYPE_MASK_PRODOS_VOLUME:
-        //     val = IOUtils.swapOnBE(m_data.Data().v.file_count);
-        //     val++;
-        //     m_data.Data().v.file_count = IOUtils.swapOnBE(val);
-        // default:
-        //     break;
-        // }
+         short val = 0;
+         int stype = getFileType1();
+         switch (stype) {
+         case FILETYPE_MASK_PRODOS_SUBVOL:
+         case FILETYPE_MASK_PRODOS_VOLUME:
+             val = m_data.data().aux.v.fileCount;
+             val++;
+             m_data.data().aux.v.fileCount = val;
+         default:
+             break;
+         }
     }
 
     public void decreaseFileCount() {
-        // short val = 0;
-        // int stype = GetFileType1();
-        // switch (stype) {
-        // case FILETYPE_MASK_PRODOS_SUBVOL:
-        // case FILETYPE_MASK_PRODOS_VOLUME:
-        //     val = IOUtils.swapOnBE(m_data.Data().v.file_count);
-        //     val--;
-        //     m_data.Data().v.file_count = IOUtils.swapOnBE(val);
-        //     break;
-        // default:
-        //     break;
-        // }
+         short val = 0;
+         int stype = getFileType1();
+         switch (stype) {
+         case FILETYPE_MASK_PRODOS_SUBVOL:
+         case FILETYPE_MASK_PRODOS_VOLUME:
+             val = m_data.data().aux.v.fileCount;
+             val--;
+             m_data.data().aux.v.fileCount = val;
+             break;
+         default:
+             break;
+         }
     }
 
+    /// アイテムの属するセクタを変更済みにする
     @Override
     public void setModify() {
-        if (m_data.isSelf()) {
-            // m_sdata.CopyFrom((directory_t)m_data.Data());
-        }
+        m_sdata.copyFrom(m_data.getRawData());
     }
 
-    // @Override
     @Override
     public void setInternalDataInAttrDialog(KeyValArray vals) {
-        vals.add("self", m_data.isSelf());
         int stype = getFileType1();
         vals.add("STORAGE_TYPE", m_data.data().stypeAndNlen);
         vals.add("FILE_NAME", m_data.data().name, m_data.data().name.length);

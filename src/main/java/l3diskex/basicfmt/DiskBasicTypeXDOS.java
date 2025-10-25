@@ -10,10 +10,8 @@ import java.io.OutputStream;
 
 import l3diskex.basicfmt.BasicCommon.DirectoryXdos;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
-import l3diskex.basicfmt.BasicFat.DiskBasicFat;
-import l3diskex.basicfmt.BasicFat.DiskBasicFatBuffer;
-import l3diskex.basicfmt.BasicFmt.DiskBasic;
-import l3diskex.basicfmt.BasicFmt.DiskBasicIdentifiedData;
+import l3diskex.basicfmt.DiskBasic.DiskBasicIdentifiedData;
+import l3diskex.basicfmt.DiskBasicFat.DiskBasicFatBuffer;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 
 
@@ -291,7 +289,7 @@ public class DiskBasicTypeXDOS extends DiskBasicType<DirectoryXdos> {
     /** Set IPL and volume name information */
     @Override
     public void setIdentifiedData(DiskBasicIdentifiedData data) {
-        if (basic.getFormatType().HasVolumeName()) {
+        if (basic.getFormatType().hasVolumeName()) {
             DiskImageSector sector = basic.getSectorFromSectorPos(basic.diskBasicParam.getDirStartSector() - 1);
             if (sector != null) {
                 byte[] dst = new byte[VOLUME_NAME_LENGTH + 1];

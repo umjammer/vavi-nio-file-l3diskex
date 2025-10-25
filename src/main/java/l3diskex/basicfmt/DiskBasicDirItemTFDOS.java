@@ -10,7 +10,6 @@ import l3diskex.basicfmt.BasicCommon.DirectoryTfdos;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
-import l3diskex.basicfmt.BasicFmt.DiskBasic;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
 
@@ -61,40 +60,41 @@ public class DiskBasicDirItemTFDOS extends DiskBasicDirItemMZBase<DirectoryTfdos
     public static final int DATATYPE_TFDOS_HIDDEN = 0x40;
     public static final int DATATYPE_TFDOS_READ_ONLY = 0x80;
 
-    private final DiskBasicDirData<DirectoryTfdos> m_data;
-    public int m_show_flags;
+    private final DiskBasicDirData<DirectoryTfdos> m_data = new DiskBasicDirData<>();
 
     public DiskBasicDirItemTFDOS(DiskBasic basic) {
         super(basic);
-        m_data = new DiskBasicDirData<DirectoryTfdos>();
+
         m_data.alloc(DirectoryTfdos.class);
-        externalAttr = 2;
+        externalAttr = 2;	// TXTの時、BASE互換かを自動判定
     }
 
-    public DiskBasicDirItemTFDOS(DiskBasic basic, DiskImageSector n_sector, int n_secpos, byte[] n_data) {
-        super(basic, n_sector, n_secpos, n_data);
-        m_data = new DiskBasicDirData<DirectoryTfdos>();
-        m_data.attach(n_data);
-        externalAttr = 2;
+    public DiskBasicDirItemTFDOS(DiskBasic basic, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP) {
+        super(basic, n_sector, n_secpos, n_data, dataP);
+
+        m_data.attach(DirectoryTfdos.class, n_data, dataP);
+        externalAttr = 2;	// TXTの時、BASE互換かを自動判定
     }
 
     public DiskBasicDirItemTFDOS(DiskBasic basic, int n_num, DiskBasicGroupItem n_gitem,
-                                 DiskImageSector n_sector, int n_secpos, byte[] n_data,
+                                 DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP,
                                  SectorParam n_next, boolean[] n_unuse) throws IOException {
-        super(basic, n_num, n_gitem, n_sector, n_secpos, n_data, n_next, n_unuse);
-        m_data = new DiskBasicDirData<DirectoryTfdos>();
-        m_data.attach(n_data);
-        externalAttr = 2;
+        super(basic, n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next, n_unuse);
+
+        m_data.attach(DirectoryTfdos.class, n_data, dataP);
+        externalAttr = 2;	// TXTの時、BASE互換かを自動判定
 
         used(checkUsed(n_unuse[0]));
+
         calcFileSize();
     }
 
     @Override
     public void setDataPtr(int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector,
-                           int n_secpos, byte[] n_data, SectorParam n_next) throws IOException {
-        super.setDataPtr(n_num, n_gitem, n_sector, n_secpos, n_data, n_next);
-        m_data.attach(n_data);
+                           int n_secpos, byte[] n_data, int dataP, SectorParam n_next) throws IOException {
+        super.setDataPtr(n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next);
+
+        m_data.attach(DirectoryTfdos.class, n_data, dataP);
     }
 
     @Override
@@ -341,7 +341,6 @@ public class DiskBasicDirItemTFDOS extends DiskBasicDirItemMZBase<DirectoryTfdos
 
     @Override
     public void setInternalDataInAttrDialog(KeyValArray vals) {
-        vals.add("self", m_data.isSelf());
         vals.add("inverted", basic.isDataInverted());
 
         vals.add("TYPE", m_data.data().type, basic.isDataInverted());

@@ -53,6 +53,8 @@ import static l3diskex.basicfmt.DiskBasicDirItemMZ.MZConstants.TYPE_NAME_MZ_VOLS
  */
 public class UiDirItemMZ extends UiDirItem {
 
+    private static final int IDC_COMBO_TYPE1 = 1001;
+
     DiskBasicDirItemMZ dirItem;
 
     @Override

@@ -1,7 +1,7 @@
 [![Release](https://jitpack.io/v/umjammer/vavi-nio-file-l3diskex.svg)](https://jitpack.io/#umjammer/vavi-nio-file-l3diskex)
 [![Java CI](https://github.com/umjammer/vavi-nio-file-l3diskex/actions/workflows/maven.yml/badge.svg)](https://github.com/umjammer/vavi-nio-file-l3diskex/actions/workflows/maven.yml)
 [![CodeQL](https://github.com/umjammer/vavi-nio-file-l3diskex/actions/workflows/codeql.yml/badge.svg)](https://github.com/umjammer/vavi-nio-file-l3diskex/actions/workflows/codeql.yml)
-![Java](https://img.shields.io/badge/Java-17-b07219)
+![Java](https://img.shields.io/badge/Java-21-b07219)
 
 # vavi-nio-file-l3diskex
 
@@ -21,7 +21,7 @@
 
 ---
 
-# <img alt="logo" src="docs/l3diskex_icon.png" /> L3 Disk Explorer
+# <img alt="logo" src="docs/l3diskex_icon.png" /> [Original](https://github.com/bml3mk5/L3DiskEx)
 
 Copyright(C) Sasaji 2015-2024 All Rights Reserved.
 

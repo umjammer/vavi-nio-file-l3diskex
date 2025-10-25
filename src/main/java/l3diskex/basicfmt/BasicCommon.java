@@ -10,9 +10,13 @@ import java.util.Comparator;
 import java.util.List;
 
 import l3diskex.Common;
+import l3diskex.basicfmt.BasicCommon.FileTypeMask;
 import vavi.util.ByteUtil;
+import vavi.util.serdes.Element;
+import vavi.util.serdes.Serdes;
 
 
+// TODO demolish
 public class BasicCommon {
 
     /**
@@ -64,77 +68,130 @@ public class BasicCommon {
     /**
      * ディレクトリエントリ L3,S1 ５インチ,８インチ(倍密度)
      */
+    @Serdes
     public static class DirectoryL32d implements DirectoryT {
 
+        @Element(sequence = 1)
         public byte[] name = new byte[8];
+        @Element(sequence = 2)
         public byte[] ext = new byte[3];
-        public byte type; // byte
-        public byte type2; // byte
-        public byte startGroup; // byte
+        @Element(sequence = 3)
+        public byte type;
+        @Element(sequence = 4)
+        public byte type2;
+        @Element(sequence = 5)
+        public byte startGroup;
+        @Element(sequence = 6)
         public short endBytes; // used size of end cluster (big endian)
 
+        @Element(sequence = 7)
         public byte[] reserved = new byte[16]; // char reserved[16]
+
+        public static final int SIZE = 32;
     }
 
     /**
      * ディレクトリエントリ L3 ３インチ(単密度) / F-BASIC 倍密度
      */
+    @Serdes(bigEndian = false)
     public static class DirectoryFat8f implements DirectoryT {
-
+        @Element(sequence = 1)
         public byte[] name = new byte[8];
+        @Element(sequence = 2)
         public byte[] ext = new byte[3]; // not used.
-        public byte type; // byte
-        public byte type2; // byte
-        public byte type3; // byte
-        public byte startGroup; // byte
+        @Element(sequence = 3)
+        public byte type;
+        @Element(sequence = 4)
+        public byte type2;
+        @Element(sequence = 5)
+        public byte type3;
+        @Element(sequence = 6)
+        public byte startGroup;
 
+        @Element(sequence = 7)
         public byte[] reserved = new byte[17];
+
+        public static final int SIZE = 32;
     }
 
     /**
-     * ディレクトリエントリ n88 BASIC (16bytes)
+     * ディレクトリエントリ n88 BASIC
      */
+    @Serdes(bigEndian = false)
     public static class DirectoryN88 implements DirectoryT {
 
+        @Element(sequence = 1)
         public byte[] name = new byte[6];
+        @Element(sequence = 2)
         public byte[] ext = new byte[3];
+        @Element(sequence = 3)
         public byte type; // byte
+        @Element(sequence = 4)
         public byte startGroup; // byte
+        @Element(sequence = 5)
         public byte[] reserved = new byte[5];
+
+        public static final int SIZE = 16;
     }
 
     /**
-     * ディレクトリエントリ X1 Hu-BASIC (32bytes)
+     * ディレクトリエントリ X1 Hu-BASIC
      */
+    @Serdes(bigEndian = false)
     public static class DirectoryX1Hu implements DirectoryT {
 
+        @Element(sequence = 1)
         public byte type;
+        @Element(sequence = 2)
         public byte[] name = new byte[13];
+        @Element(sequence = 3)
         public byte[] ext = new byte[3];
+        @Element(sequence = 4)
         public byte password;
+        @Element(sequence = 5)
         public short fileSize;
+        @Element(sequence = 6)
         public short loadAddr;
+        @Element(sequence = 7)
         public short execAddr;
+        @Element(sequence = 8)
         public byte[] date = new byte[3]; // yymwdd yy:BCD 00-99 m:HEX 0-C w:WEEK HEX 0(SUN)-7(SAT) dd:BCD
+        @Element(sequence = 9)
         public byte[] time = new byte[2]; // hhmi BCD
+        @Element(sequence = 19)
         public byte startGroupH;
+        @Element(sequence = 11)
         public short startGroupL;
+
+        public static final int SIZE = 32;
     }
 
     /**
-     * ディレクトリエントリ MZ DISK BASIC (32bytes)
+     * ディレクトリエントリ MZ DISK BASIC
      */
+    @Serdes(bigEndian = false)
     public static class DirectoryMz implements DirectoryT {
 
+        @Element(sequence = 1)
         public byte type;
+        @Element(sequence = 2)
         public byte[] name = new byte[17]; // file name has $0D on the end of string
+        @Element(sequence = 3)
         public byte type2;
+        @Element(sequence = 4)
         public byte reserved;
+        @Element(sequence = 5)
         public short fileSize;
+        @Element(sequence = 6)
         public short loadAddr;
+        @Element(sequence = 7)
         public short execAddr;
+        @Element(sequence = 8)
         public byte[] dateTime = new byte[4];
+        @Element(sequence = 9)
         public short startSector;
+
+        public static final int SIZE = 32;
     }
 
     /**
@@ -155,6 +212,8 @@ public class BasicCommon {
         public short wdate;
         public short startGroup;
         public int fileSize;
+
+        public static final int SIZE = 32;
     }
 
     /**
@@ -170,6 +229,8 @@ public class BasicCommon {
         public byte[] name2 = new byte[12];
         public short dummyGroup; // wxUint16
         public byte[] name3 = new byte[4];
+
+        public static final int SIZE = 32;
     }
 
     /**
@@ -185,6 +246,8 @@ public class BasicCommon {
         public short wdate; // wxUint16
         public short startGroup; // wxUint16
         public int fileSize; // int
+
+        public static final int SIZE = 32;
     }
 
     /**
@@ -203,6 +266,8 @@ public class BasicCommon {
         public short wdate; // wxUint16
         public short startGroup; // wxUint16
         public int fileSize; // int
+
+        public static final int SIZE = 32;
     }
 
     // Since Java doesn't have unions like C++, we'll use a common interface/superclass
@@ -218,6 +283,8 @@ public class BasicCommon {
         public DirectoryMsLfn mslfn = new DirectoryMsLfn();
         public DirectoryHu68k hu68k = new DirectoryHu68k();
         public DirectoryLosa losa = new DirectoryLosa();
+
+        public static final int SIZE = 32;
     }
 
     /**
@@ -239,15 +306,21 @@ public class BasicCommon {
         public byte month; // byte
         public byte day; // byte
         public byte year; // byte
+
+        public static final int SIZE = 24;
     }
 
     /**
      * FLEX top of each sector
      */
+    @Serdes
     public static class FlexPtr {
 
+        @Element(sequence = 1)
         public byte nextTrack; // byte
+        @Element(sequence = 2)
         public byte nextSector; // byte
+        @Element(sequence = 3)
         public short seqNum; // wxUint16
     }
 
@@ -310,6 +383,8 @@ public class BasicCommon {
         public byte[] deNam = new byte[28];
         public byte deReserved; // byte
         public Os9Lsn deLsn = new Os9Lsn(); // link to FD
+
+        public static final int SIZE = 32;
     }
 
     /**
@@ -317,12 +392,12 @@ public class BasicCommon {
      */
     public static class DirectoryOs9Fd implements DirectoryT {
 
-        public byte fdAtt; // byte attr
-        public short fdOwn; // wxUint16 owner id
-        public Os9Date fdDat = new Os9Date(); // date
-        public byte fdLnk; // byte link count
-        public int fdSiz; // int in bytes
-        public Os9Cdate fdDcr = new Os9Cdate(); // created date
+        public byte fdAtt; // 1 attr
+        public short fdOwn; // 2 owner id
+        public Os9Date fdDat = new Os9Date(); // 5 date
+        public byte fdLnk; // 1 link count
+        public int fdSiz; // 4 in bytes
+        public Os9Cdate fdDcr = new Os9Cdate(); // 3 created date
         public Os9Segment[] fdSeg = new Os9Segment[48]; // 5*48=240
 
         public DirectoryOs9Fd() {
@@ -330,6 +405,8 @@ public class BasicCommon {
                 fdSeg[i] = new Os9Segment();
             }
         }
+
+        public static final int SIZE = 256;
     }
 
     /**
@@ -352,33 +429,48 @@ public class BasicCommon {
         public DirectoryCpm clone() {
             return new DirectoryCpm();
         }
+
+        public static final int SIZE = 32;
     }
 
     /**
      * ディレクトリエントリ TF-DOS (16bytes)
      */
+    @Serdes(bigEndian = false)
     public static class DirectoryTfdos implements DirectoryT {
 
+        @Element(sequence = 1)
         public byte type; // byte
+        @Element(sequence = 2)
         public byte[] name = new byte[8]; // file name ends with $0D and fills rest with $20
-        public short fileSize; // wxUint16
-        public short loadAddr; // wxUint16
-        public short execAddr; // wxUint16
+        @Element(sequence = 3)
+        public short fileSize;
+        @Element(sequence = 4)
+        public short loadAddr;
+        @Element(sequence = 5)
+        public short execAddr;
+        @Element(sequence = 6)
         public byte track; // byte
+
+        public static final int SIZE = 16;
     }
 
     /**
      * ディレクトリエントリ PC-8001 DOS (New PC.DOS) (16bytes)
      */
+    @Serdes(bigEndian = false)
     public static class DirectoryDos80 implements DirectoryT {
 
+        @Element(sequence = 1)
         public byte[] name = new byte[16];
+
+        public static final int SIZE = 16;
     }
 
     /**
      * PC-8001 DOS (New PC.DOS) グループエントリ
      */
-    static class DirectoryDos80Grp implements DirectoryT {
+    static class DirectoryDos80Grp {
 
         public byte g; // byte
         public short a; // wxUint16
@@ -389,7 +481,7 @@ public class BasicCommon {
      */
     public static class DirectoryDos80_2 implements DirectoryT {
 
-        public DirectoryDos80Grp[] grps = new DirectoryDos80Grp[5];
+        public DirectoryDos80Grp[] grps = new DirectoryDos80Grp[5]; // 3 x 5
         public byte reserved; // byte
 
         public DirectoryDos80_2() {
@@ -397,53 +489,93 @@ public class BasicCommon {
                 grps[i] = new DirectoryDos80Grp();
             }
         }
+
+        public static final int SIZE = 16;
     }
 
     /**
      * ディレクトリエントリ C-DOS (32bytes)
      */
+    @Serdes(bigEndian = false)
     public static class DirectoryCdos implements DirectoryT {
 
-        public byte type; // byte
+        @Element(sequence = 1)
+        public byte type;
+        @Element(sequence = 2)
         public byte[] name = new byte[17]; // file name ends with $0D
-        public byte type2; // byte
-        public byte byteOrder; // byte
-        public short fileSize; // wxUint16
-        public short loadAddr; // wxUint16
-        public short execAddr; // wxUint16
-        public byte yy; // byte
-        public byte mm; // byte
-        public byte dd; // byte
-        public byte reserved2; // byte
-        public byte track; // byte
-        public byte sector; // byte
+        @Element(sequence = 3)
+        public byte type2;
+        @Element(sequence = 4)
+        public byte byteOrder;
+        @Element(sequence = 5)
+        public short fileSize;
+        @Element(sequence = 6)
+        public short loadAddr;
+        @Element(sequence = 7)
+        public short execAddr;
+        @Element(sequence = 8)
+        public byte yy;
+        @Element(sequence = 9)
+        public byte mm;
+        @Element(sequence = 10)
+        public byte dd;
+        @Element(sequence = 11)
+        public byte reserved2;
+        @Element(sequence = 12)
+        public byte track;
+        @Element(sequence = 13)
+        public byte sector;
+
+        public static final int SIZE = 32;
     }
 
     /**
      * ディレクトリエントリ MZ Floppy DOS (64bytes)
      */
+    @Serdes(bigEndian = false)
     public static class DirectoryMzFdos implements DirectoryT {
 
-        public byte type; // byte
+        @Element(sequence = 1)
+        public byte type;
+        @Element(sequence = 2)
         public byte[] name = new byte[17]; // file name has $0D on the end of string
-        public short fileSize; // wxUint16
+        @Element(sequence = 3)
+        public short fileSize;
+        @Element(sequence = 4)
         public short loadAddr; // wxUint16
-        public short execAddr; // wxUint16
-        public short groups; // wxUint16
+        @Element(sequence = 5)
+        public short execAddr;
+        @Element(sequence = 6)
+        public short groups;
+        @Element(sequence = 7)
         public byte[] attr = new byte[2]; // 0x30 0x53
+        @Element(sequence = 8)
         public byte[] password = new byte[2]; // 0x00 0x00
+        @Element(sequence = 9)
         public short dummySector; // 0x01 0x02
 
+        @Element(sequence = 10)
         public byte[] mmddyy = new byte[7];
+        @Element(sequence = 11)
         public byte[] reserved2 = new byte[13];
-        public byte track; // byte
-        public byte sector; // byte
+        @Element(sequence = 12)
+        public byte track;
+        @Element(sequence = 13)
+        public byte sector;
+        @Element(sequence = 14)
         public byte[] reserved3 = new byte[5];
-        public byte seqNum; // byte
+        @Element(sequence = 15)
+        public byte seqNum;
+        @Element(sequence = 16)
         public byte unknown1; // 0x9x - 0xax
+        @Element(sequence = 17)
         public byte unknown2; // 0x15
-        public byte dataTrack; // byte
-        public byte dataSector; // byte
+        @Element(sequence = 18)
+        public byte dataTrack;
+        @Element(sequence = 19)
+        public byte dataSector;
+
+        public static final int SIZE = 64;
     }
 
     /**
@@ -458,6 +590,8 @@ public class BasicCommon {
         public byte sector; // byte
         public short loadAddr; // wxUint16
         public short size; // wxUint16
+
+        public static final int SIZE = 16;
     }
 
     /**
@@ -484,6 +618,8 @@ public class BasicCommon {
         public short time; // wxUint16
         public byte attr; // byte アトリビュート
         public XdosSeg start = new XdosSeg();
+
+        public static final int SIZE = 32;
     }
 
     /**
@@ -501,51 +637,80 @@ public class BasicCommon {
      */
     public static class DirectoryMagical implements DirectoryT {
 
-        public byte type; // byte
+        public byte type; // 1
         public byte[] name = new byte[31];
-        public byte type2; // byte
-        public short loadAddr; // wxUint16
-        public short fileSize; // wxUint16
-        public short execAddr; // wxUint16
+        public byte type2; // 1
+        public short loadAddr; // 2
+        public short fileSize; // 2
+        public short execAddr; // 2
         public byte[] date = new byte[2];
         public byte[] time = new byte[2];
         public byte[] reserved = new byte[2];
-        public MagicalSeg start = new MagicalSeg();
+        public MagicalSeg start = new MagicalSeg(); // 3
+
+        public static final int SIZE = 48;
     }
 
     /**
      * ディレクトリエントリ S-DOS (32bytes)
      */
+    @Serdes(bigEndian = false)
     public static class DirectorySdos implements DirectoryT {
 
+        @Element(sequence = 1)
         public byte[] name = new byte[22];
-        public byte type; // byte
-        public byte track; // byte
-        public byte sector; // byte
-        public byte size; // byte number of sector
-        public byte restSize; // byte
-        public short loadAddr; // wxUint16
-        public short execAddr; // wxUint16
-        public byte reserved; // byte
+        @Element(sequence = 2)
+        public byte type;
+        @Element(sequence = 3)
+        public byte track;
+        @Element(sequence = 4)
+        public byte sector;
+        @Element(sequence = 5)
+        public byte size; // number of sector
+        @Element(sequence = 6)
+        public byte restSize;
+        @Element(sequence = 7)
+        public short loadAddr;
+        @Element(sequence = 8)
+        public short execAddr;
+        @Element(sequence = 9)
+        public byte reserved;
+
+        public static final int SIZE = 32;
     }
 
     /**
      * ディレクトリエントリ C82-BASIC (32bytes)
      */
+    @Serdes(bigEndian = false)
     public static class DirectoryFp implements DirectoryT {
 
-        public byte type; // byte
+        @Element(sequence = 1)
+        public byte type;
+        @Element(sequence = 2)
         public byte[] name = new byte[8];
+        @Element(sequence = 3)
         public byte[] ext = new byte[3];
-        public byte term; // byte
+        @Element(sequence = 4)
+        public byte term;
+        @Element(sequence = 5)
         public byte[] unknown = new byte[7];
-        public short loadAddr; // wxUint16
-        public short endAddr; // wxUint16
-        public short execAddr; // wxUint16
-        public short fileSize; // wxUint16
-        public byte startGroup; // byte
-        public byte attr; // byte
+        @Element(sequence = 6)
+        public short loadAddr;
+        @Element(sequence = 7)
+        public short endAddr;
+        @Element(sequence = 8)
+        public short execAddr;
+        @Element(sequence = 9)
+        public short fileSize;
+        @Element(sequence = 10)
+        public byte startGroup;
+        @Element(sequence = 11)
+        public byte attr;
+        @Element(sequence = 12)
         public byte[] reserved = new byte[2];
+
+        public static final int SIZE = 32;
     }
 
     /**
@@ -558,6 +723,8 @@ public class BasicCommon {
         public byte unknown; // byte
         public short startGroup; // wxUint16 little endien
         public short fileSize; // wxUint16 big endien
+
+        public static final int SIZE = 16;
     }
 
     /**
@@ -581,6 +748,8 @@ public class BasicCommon {
                 return new byte[0];
             }
         }
+
+        public static final int SIZE = 16;
     }
 
     /**
@@ -593,6 +762,8 @@ public class BasicCommon {
         public byte type; // byte
         public byte[] name = new byte[30];
         public short sectorCount; // wxUint16 size (little endien)
+
+        public static final int SIZE = 35;
     }
 
     /**
@@ -658,6 +829,8 @@ public class BasicCommon {
             public byte[] mtime = new byte[2];
             public short headerPointer; // wxUint16
         }
+
+        public static final int SIZE = 39;
     }
 
     /**
@@ -683,6 +856,8 @@ public class BasicCommon {
         public byte[] unused = new byte[4];
         public C1541Ptr replace = new C1541Ptr();
         public short numOfBlocks; // wxUint16
+
+        public static final int SIZE = 32;
     }
 
     /**
@@ -739,6 +914,7 @@ public class BasicCommon {
      */
     public static class AmigaHeaderPost {
 
+        public static final int SIZE = 4 + 2 + 2 + 4 + 4 + 1 + 79 + 12 + 4 + 4 + 4 + 1 + 31 + 4 + 4 + 4 + 20 + 4 + 4 + 4 + 4;
         public byte[] unused0 = new byte[4];
         public short uid; // wxUint16 user id
         public short gid; // wxUint16 user group
@@ -767,6 +943,7 @@ public class BasicCommon {
      * In C++, this was a union. In Java, we'll make a holder class.
      */
     public static class AmigaBlockPost {
+        public static final int SIZE = Math.max(AmigaRootBlockPost.SIZE, AmigaHeaderPost.SIZE);
 
         public AmigaRootBlockPost r = new AmigaRootBlockPost();
         public AmigaHeaderPost h = new AmigaHeaderPost();
@@ -777,11 +954,14 @@ public class BasicCommon {
      * <p>
      * AmigaDOSは1セクタ分になるのでブロック番号だけを保持
      */
+    @Serdes
     public static class DirectoryAmiga implements DirectoryT {
 
         public int blockNum; // int
         public AmigaBlockPre pre; // pointer
         public AmigaBlockPost post; // pointer
+
+        public static final int SIZE = 9;
     }
 
     /**
@@ -822,6 +1002,8 @@ public class BasicCommon {
             public short w; // big endien
             public byte[] b = new byte[2];
         }
+
+        public static final int SIZE = 31;
     }
 
     /**
@@ -855,6 +1037,8 @@ public class BasicCommon {
                 gap[i] = new TrsdosGap();
             }
         }
+
+        public static final int SIZE = 32;
     }
 
     /**
@@ -879,6 +1063,8 @@ public class BasicCommon {
                 gap[i] = new TrsdosGap();
             }
         }
+
+        public static final int SIZE = 48;
     }
 
     /**
@@ -1300,17 +1486,6 @@ public class BasicCommon {
         public static int compare(DiskBasicGroupItem item1, DiskBasicGroupItem item2) {
             return Integer.compare(item1.group, item2.group);
         }
-
-        /**
-         * Comparator for sorting a list/array of DiskBasicGroupItem
-         */
-        public static class GroupComparator implements Comparator<DiskBasicGroupItem> {
-
-            @Override
-            public int compare(DiskBasicGroupItem item1, DiskBasicGroupItem item2) {
-                return DiskBasicGroupItem.compare(item1, item2);
-            }
-        }
     }
 
     /**
@@ -1318,7 +1493,8 @@ public class BasicCommon {
      * <p>
      * ディスク内ファイルのチェインをこのリストに保持する
      *
-     * @see DiskBasicGroupItem , DiskBasicDirItem
+     * @see DiskBasicGroupItem
+     * @see DiskBasicDirItem
      */
     public static class DiskBasicGroups {
 
@@ -1395,8 +1571,8 @@ public class BasicCommon {
          *               追加
          */
         public void add(DiskBasicGroups nItems) {
-            for (int i = 0; i < nItems.count(); i++) {
-                items.add(new DiskBasicGroupItem(nItems.item(i)));
+            for (int i = 0; i < nItems.size(); i++) {
+                items.add(new DiskBasicGroupItem(nItems.get(i)));
             }
             nums += nItems.nums;
             size += nItems.size;
@@ -1405,7 +1581,7 @@ public class BasicCommon {
         /**
          * リストをクリア
          */
-        public void empty() {
+        public void clear() {
             items.clear();
             nums = 0;
             size = 0;
@@ -1415,7 +1591,7 @@ public class BasicCommon {
         /**
          * リストの数を返す
          */
-        public int count() {
+        public int size() {
             return items.size();
         }
 
@@ -1429,15 +1605,7 @@ public class BasicCommon {
         /**
          * リストアイテムを返す
          */
-        public DiskBasicGroupItem item(int idx) {
-            return items.get(idx);
-        }
-
-        /**
-         * リストアイテムを返す
-         * C++ version returns a pointer, Java returns a reference (the object itself).
-         */
-        public DiskBasicGroupItem itemPtr(int idx) {
+        public DiskBasicGroupItem get(int idx) {
             return items.get(idx);
         }
 
@@ -1510,7 +1678,7 @@ public class BasicCommon {
          * グループ番号でソート
          */
         public void sortItems() {
-            items.sort(new DiskBasicGroupItem.GroupComparator());
+            items.sort(DiskBasicGroupItem::compare);
         }
     }
 

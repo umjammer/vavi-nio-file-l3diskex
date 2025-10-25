@@ -269,7 +269,7 @@ class Params {
 
     public static final int LISTCOL_NAME = 0;
 
-    public static final int  LISTCOL_END = 5;
+    public static final int LISTCOL_END = 5;
 
     public static final int MAX_RECENT_FILES = 20;
 

@@ -11,6 +11,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import l3diskex.Common;
+import l3diskex.basicfmt.DiskBasic;
+import l3diskex.basicfmt.DiskBasicDirItem;
 import l3diskex.diskimg.DiskD88.DiskD88Image;
 import l3diskex.diskimg.DiskImage;
 import l3diskex.diskimg.DiskImage.DiskImageDisk;
@@ -97,5 +99,28 @@ Debug.print("d88: " + d88);
 Debug.printf("name: \"%s\"", disk.getName(true));
         assertFalse(disk.getTracks().isEmpty(), "Disk has no tracks");
 Debug.println("tracks: " + disk.getTracks().size());
+Debug.println("typeName: " + disk.getDiskTypeName());
+        disk.setDiskParam(disk.calcMajorNumber());
+Debug.println("sectorSize: " + disk.getSectorSize());
+
+        // Create a DiskBasic instance to handle the file system
+        DiskBasic diskBasic = disk.getDiskBasic(0);
+Debug.println(diskBasic);
+
+        result = diskBasic.parseBasic(disk, 0, null, false);
+        assert result == 0 : "diskBasic.parseBasic";
+Debug.println("FORMAT: " + diskBasic.getFormatTypeNumber());
+
+        // Assign FAT and directory
+        boolean r = diskBasic.assignFatAndDirectory();
+        assert r : "diskBasic.assignFatAndDirectory";
+
+        DiskBasicDirItem<?> root = diskBasic.getRootDirectory();
+        assert root != null : "root is null";
+Debug.println("files at dir: " + root.getChildren().size());
+        // List files and directories
+        for (DiskBasicDirItem<?> dir : root.getChildren()) {
+            System.out.println(dir.getFileNameStr());
+        }
     }
 }

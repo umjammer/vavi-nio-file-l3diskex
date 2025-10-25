@@ -10,7 +10,7 @@ import javax.swing.JPanel;
 import javax.swing.JToolBar;
 
 import l3diskex.Utils;
-import l3diskex.basicfmt.BasicFmt.DiskBasic;
+import l3diskex.basicfmt.DiskBasic;
 import l3diskex.diskimg.DiskD88;
 import l3diskex.diskimg.DiskImage;
 import l3diskex.ui.Main.UiDiskAbout;
