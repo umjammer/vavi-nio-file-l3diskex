@@ -9,14 +9,14 @@ package l3diskex.ui.dirItem;
 import javax.swing.BoxLayout;
 
 import l3diskex.basicfmt.DiskBasicDirItem.DiskBasicDirItemAttr;
-import l3diskex.basicfmt.DiskBasicDirItemMSDOS;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemMSDOS;
 import l3diskex.basicfmt.DiskBasicError;
 import l3diskex.ui.IntNameBox;
 import l3diskex.ui.UiDirItem;
 
 import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_UNKNOWN;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_ARCHIVE_MASK;
-import static l3diskex.basicfmt.DiskBasicDirItemMSDOS.TYPE_NAME_MS_ARCHIVE;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemMSDOS.TYPE_NAME_MS_ARCHIVE;
 import static l3diskex.ui.IntNameBox.INTNAME_NEW_FILE;
 
 
@@ -30,7 +30,7 @@ public class UiDirItemMSDOS extends UiDirItem {
 
     DiskBasicDirItemMSDOS dirItem;
 
-    /// ダイアログ表示前にファイルの属性を設定
+    /** ダイアログ表示前にファイルの属性を設定 */
     public void setFileTypeForAttrDialog(int show_flags, String name, int[] file_type_1, int[] file_type_2) {
         int ft1 = file_type_1[0];
         // file_type_2 is not used in the MS-DOS base class, so we ignore it here
@@ -56,7 +56,7 @@ public class UiDirItemMSDOS extends UiDirItem {
         return staType1;
     }
 
-    /// 属性を設定する
+    /** 属性を設定する */
     public void SetAttrSubInAttrDialog(IntNameBox parent, DiskBasicDirItemAttr attr) {
         int val = 0;
 
@@ -74,7 +74,7 @@ public class UiDirItemMSDOS extends UiDirItem {
         attr.setFileAttr(FORMAT_TYPE_UNKNOWN, val, 0);
     }
 
-    /// ダイアログ内の属性部分のレイアウトを作成
+    /** ダイアログ内の属性部分のレイアウトを作成 */
     @Override
     public void createControlsForAttrDialog(IntNameBox parent, int show_flags, String file_path, BoxLayout sizer, Object flags) {
         // int[] is used to pass int by reference
@@ -87,7 +87,7 @@ public class UiDirItemMSDOS extends UiDirItem {
         CreateControlsSubForAttrDialog(parent, show_flags, sizer, flags, file_type_1[0]);
     }
 
-    /// 機種依存の属性を設定する
+    /** 機種依存の属性を設定する */
     @Override
     public boolean setAttrInAttrDialog(IntNameBox parent, DiskBasicDirItemAttr attr, DiskBasicError errinfo) {
         // 属性
@@ -95,7 +95,7 @@ public class UiDirItemMSDOS extends UiDirItem {
         return true;
     }
 
-    /// ダイアログ入力後のファイル名チェック
+    /** ダイアログ入力後のファイル名チェック */
     public boolean validateFileName(IntNameBox parent, String filename, StringBuilder errormsg) {
         boolean valid = true;
         String name = filename;

@@ -14,7 +14,7 @@ import javax.swing.ButtonGroup;
 import javax.swing.JCheckBox;
 
 import l3diskex.basicfmt.DiskBasicDirItem.DiskBasicDirItemAttr;
-import l3diskex.basicfmt.DiskBasicDirItemFP;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemFP;
 import l3diskex.basicfmt.DiskBasicError;
 import l3diskex.ui.IntNameBox;
 import l3diskex.ui.UiDirItem;
@@ -28,14 +28,14 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_MACHINE_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_RANDOM_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_READONLY_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_READWRITE_MASK;
-import static l3diskex.basicfmt.DiskBasicDirItemFAT8.TypeNames.G_TYPE_NAME_1;
-import static l3diskex.basicfmt.DiskBasicDirItemFAT8.TypeNames.G_TYPE_NAME_2;
-import static l3diskex.basicfmt.DiskBasicDirItemFAT8.TypeNames.TYPE_NAME_1_BASIC;
-import static l3diskex.basicfmt.DiskBasicDirItemFAT8.TypeNames.TYPE_NAME_1_DATA;
-import static l3diskex.basicfmt.DiskBasicDirItemFAT8.TypeNames.TYPE_NAME_1_MACHINE;
-import static l3diskex.basicfmt.DiskBasicDirItemFAT8.TypeNames.TYPE_NAME_2_ASCII;
-import static l3diskex.basicfmt.DiskBasicDirItemFAT8.TypeNames.TYPE_NAME_2_BINARY;
-import static l3diskex.basicfmt.DiskBasicDirItemFAT8.TypeNames.TYPE_NAME_2_RANDOM;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemFAT8.TypeNames.G_TYPE_NAME_1;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemFAT8.TypeNames.G_TYPE_NAME_2;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemFAT8.TypeNames.TYPE_NAME_1_BASIC;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemFAT8.TypeNames.TYPE_NAME_1_DATA;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemFAT8.TypeNames.TYPE_NAME_1_MACHINE;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemFAT8.TypeNames.TYPE_NAME_2_ASCII;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemFAT8.TypeNames.TYPE_NAME_2_BINARY;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemFAT8.TypeNames.TYPE_NAME_2_RANDOM;
 
 
 /**

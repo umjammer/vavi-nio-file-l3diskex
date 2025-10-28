@@ -9,13 +9,13 @@ package l3diskex.ui.dirItem;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 
-import l3diskex.basicfmt.DiskBasicDirItemL32D;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemL32D;
 import l3diskex.ui.IntNameBox;
 import l3diskex.ui.UiDirItem;
 
-import static l3diskex.basicfmt.DiskBasicDirItemFAT8.TypeNames.ATTR_DIALOG_IDC_RADIO_TYPE2;
-import static l3diskex.basicfmt.DiskBasicDirItemFAT8.TypeNames.TYPE_NAME_2_ASCII;
-import static l3diskex.basicfmt.DiskBasicDirItemFAT8.TypeNames.TYPE_NAME_2_RANDOM;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemFAT8.TypeNames.ATTR_DIALOG_IDC_RADIO_TYPE2;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemFAT8.TypeNames.TYPE_NAME_2_ASCII;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemFAT8.TypeNames.TYPE_NAME_2_RANDOM;
 
 
 /**

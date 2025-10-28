@@ -8,7 +8,7 @@ import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JWindow;
 
-import l3diskex.basicfmt.DiskBasicDirItemMSX;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemMSX;
 import l3diskex.diskimg.DiskImage.DiskImageDisk;
 import l3diskex.diskimg.DiskImage.DiskImageFile;
 

@@ -18,160 +18,16 @@ import javax.swing.JSpinner;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
-import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
+
+import l3diskex.Config;
 
 
 /**
  * Main dialog – `ConfigBox`
  */
 public class ConfigBox extends JDialog {
-
-    /*  */
-    /*  Configuration stub – mimics the original Config interface          */
-    /*  */
-    static class Config {
-
-        /*  fields  */
-        private boolean trimUnusedData = false;
-        private boolean showDeletedFile = false;
-        private boolean addExtExport = false;
-        private boolean dateExport = false;
-        private boolean skipImportDialog = false;
-        private boolean decideAttrImport = false;
-        private boolean dateImport = false;
-        private boolean ignoreDate = false;
-        private int dirDepth = 1;
-        private String temporaryFolder = "";
-        private String binaryEditor = "";
-        private String textEditor = "";
-        private boolean interDirItem = false;
-        private String language = "";
-
-        /*  getters  */
-        public boolean IsTrimUnusedData() {
-            return trimUnusedData;
-        }
-
-        public boolean IsShownDeletedFile() {
-            return showDeletedFile;
-        }
-
-        public boolean IsAddExtensionExport() {
-            return addExtExport;
-        }
-
-        public boolean IsSetCurrentDateExport() {
-            return dateExport;
-        }
-
-        public boolean IsSkipImportDialog() {
-            return skipImportDialog;
-        }
-
-        public boolean IsDecideAttrImport() {
-            return decideAttrImport;
-        }
-
-        public boolean IsSetCurrentDateImport() {
-            return dateImport;
-        }
-
-        public boolean DoesIgnoreDateTime() {
-            return ignoreDate;
-        }
-
-        public boolean DoesShowInterDirItem() {
-            return interDirItem;
-        }
-
-        public int GetDirDepth() {
-            return dirDepth;
-        }
-
-        public String GetTemporaryFolder() {
-            return temporaryFolder;
-        }
-
-        public String GetBinaryEditor() {
-            return binaryEditor;
-        }
-
-        public String GetTextEditor() {
-            return textEditor;
-        }
-
-        public String GetLanguage() {
-            return language;
-        }
-
-        /*  setters - */
-        public void TrimUnusedData(boolean v) {
-            trimUnusedData = v;
-        }
-
-        public void ShowDeletedFile(boolean v) {
-            showDeletedFile = v;
-        }
-
-        public void AddExtensionExport(boolean v) {
-            addExtExport = v;
-        }
-
-        public void SetCurrentDateExport(boolean v) {
-            dateExport = v;
-        }
-
-        public void SkipImportDialog(boolean v) {
-            skipImportDialog = v;
-        }
-
-        public void DecideAttrImport(boolean v) {
-            decideAttrImport = v;
-        }
-
-        public void SetCurrentDateImport(boolean v) {
-            dateImport = v;
-        }
-
-        public void IgnoreDateTime(boolean v) {
-            ignoreDate = v;
-        }
-
-        public void SetDirDepth(int v) {
-            dirDepth = v;
-        }
-
-        public void SetTemporaryFolder(String v) {
-            temporaryFolder = v;
-        }
-
-        public void ClearTemporaryFolder() {
-            temporaryFolder = "";
-        }
-
-        public void SetBinaryEditor(String v) {
-            binaryEditor = v;
-        }
-
-        public void SetTextEditor(String v) {
-            textEditor = v;
-        }
-
-        public void ShowInterDirItem(boolean v) {
-            interDirItem = v;
-        }
-
-        public void SetLanguage(String v) {
-            language = v;
-        }
-
-        /*  convenience  */
-        public boolean GetLanguageIsEmpty() {
-            return language.isEmpty();
-        }
-    }
 
     /*  event return codes  */
     public static final int OK = 1;
@@ -276,17 +132,17 @@ public class ConfigBox extends JDialog {
         p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
 
         /* - Trim data - */
-        chkTrimData = new JCheckBox("Trim unused data", ini.IsTrimUnusedData());
+        chkTrimData = new JCheckBox("Trim unused data", ini.isTrimUnusedData());
         p.add(chkTrimData);
 
         /* - Show deleted files - */
-        chkShowDelFile = new JCheckBox("Show deleted files", ini.IsShownDeletedFile());
+        chkShowDelFile = new JCheckBox("Show deleted files", ini.isShownDeletedFile());
         p.add(chkShowDelFile);
 
         /* - Inter‑directory depth -- */
         JPanel depth = new JPanel(new FlowLayout(FlowLayout.LEFT));
         depth.add(new JLabel("Depth of subdirectories processed at once:"));
-        spnDirDepth = new JSpinner(new SpinnerNumberModel(ini.GetDirDepth(), 1, 100, 1));
+        spnDirDepth = new JSpinner(new SpinnerNumberModel(ini.getDirDepth(), 1, 100, 1));
         depth.add(spnDirDepth);
         p.add(depth);
 
@@ -295,9 +151,9 @@ public class ConfigBox extends JDialog {
         lang.add(new JLabel("Language:"));
         comLanguage = new JComboBox<>(getLanguageList());
         int sel = 0;
-        if (!ini.GetLanguage().isEmpty()) {
+        if (!ini.getLanguage().isEmpty()) {
             sel = comLanguage.getItemCount() > 0 ?
-                    findStringInCombo(comLanguage, ini.GetLanguage()) : -1;
+                    findStringInCombo(comLanguage, ini.getLanguage()) : -1;
         }
         if (sel < 0) sel = 1;   // "Unknown"
         comLanguage.setSelectedIndex(sel);
@@ -312,11 +168,11 @@ public class ConfigBox extends JDialog {
         p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
 
         chkAddExtExport = new JCheckBox("Add extension suitable for file attribute to filename",
-                ini.IsAddExtensionExport());
+                ini.isAddExtensionExport());
         p.add(chkAddExtExport);
 
         chkDateExport = new JCheckBox("Set current date and time to exported file",
-                ini.IsSetCurrentDateExport());
+                ini.isSetCurrentDateExport());
         p.add(chkDateExport);
 
         return p;
@@ -327,19 +183,19 @@ public class ConfigBox extends JDialog {
         p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
 
         chkSuppImport = new JCheckBox("Suppress confirmation dialog",
-                ini.IsSkipImportDialog());
+                ini.isSkipImportDialog());
         p.add(chkSuppImport);
 
         chkDecAttrImport = new JCheckBox("Trim extension in filename when decided file attribute by extension",
-                ini.IsDecideAttrImport());
+                ini.isDecideAttrImport());
         p.add(chkDecAttrImport);
 
         chkDateImport = new JCheckBox("Set current date and time to importing file",
-                ini.IsSetCurrentDateImport());
+                ini.isSetCurrentDateImport());
         p.add(chkDateImport);
 
         chkIgnoreDate = new JCheckBox("Ignore date and time when import or change property (Supported system only)",
-                ini.DoesIgnoreDateTime());
+                ini.doesIgnoreDateTime());
         p.add(chkIgnoreDate);
 
         return p;
@@ -354,7 +210,7 @@ public class ConfigBox extends JDialog {
         tmp.setBorder(new TitledBorder("Path of the temporary folder"));
         tmp.setLayout(new BoxLayout(tmp, BoxLayout.Y_AXIS));
 
-        chkTempFolder = new JCheckBox("Use system setting", ini.GetTemporaryFolder().isEmpty());
+        chkTempFolder = new JCheckBox("Use system setting", ini.getTemporaryFolder().isEmpty());
         chkTempFolder.addItemListener(e -> setEditableTempFolder(!chkTempFolder.isSelected()));
         tmp.add(chkTempFolder);
 
@@ -375,7 +231,7 @@ public class ConfigBox extends JDialog {
         bin.setLayout(new BorderLayout(5, 0));
 
         txtBinaryEditor = new JTextField(20);
-        txtBinaryEditor.setText(ini.GetBinaryEditor());
+        txtBinaryEditor.setText(ini.getBinaryEditor());
         bin.add(txtBinaryEditor, BorderLayout.CENTER);
         JButton btnBin = new JButton("File...");
         btnBin.addActionListener(e -> onClickBinaryEditor());
@@ -389,7 +245,7 @@ public class ConfigBox extends JDialog {
         txt.setLayout(new BorderLayout(5, 0));
 
         txtTextEditor = new JTextField(20);
-        txtTextEditor.setText(ini.GetTextEditor());
+        txtTextEditor.setText(ini.getTextEditor());
         txt.add(txtTextEditor, BorderLayout.CENTER);
         JButton btnTxt = new JButton("File...");
         btnTxt.addActionListener(e -> onClickTextEditor());
@@ -480,23 +336,23 @@ public class ConfigBox extends JDialog {
      * back into the configuration object.
      */
     public void CommitData() {
-        ini.TrimUnusedData(chkTrimData.isSelected());
-        ini.ShowDeletedFile(chkShowDelFile.isSelected());
-        ini.AddExtensionExport(chkAddExtExport.isSelected());
-        ini.SetCurrentDateExport(chkDateExport.isSelected());
-        ini.SkipImportDialog(chkSuppImport.isSelected());
-        ini.DecideAttrImport(chkDecAttrImport.isSelected());
-        ini.SetCurrentDateImport(chkDateImport.isSelected());
-        ini.IgnoreDateTime(chkIgnoreDate.isSelected());
-        ini.SetDirDepth(((SpinnerNumberModel) spnDirDepth.getModel()).getNumber().intValue());
+        ini.trimUnusedData(chkTrimData.isSelected());
+        ini.showDeletedFile(chkShowDelFile.isSelected());
+        ini.addExtensionExport(chkAddExtExport.isSelected());
+        ini.setCurrentDateExport(chkDateExport.isSelected());
+        ini.skipImportDialog(chkSuppImport.isSelected());
+        ini.decideAttrImport(chkDecAttrImport.isSelected());
+        ini.setCurrentDateImport(chkDateImport.isSelected());
+        ini.ignoreDateTime(chkIgnoreDate.isSelected());
+        ini.setDirDepth(((SpinnerNumberModel) spnDirDepth.getModel()).getNumber().intValue());
         if (chkTempFolder.isSelected()) {
-            ini.ClearTemporaryFolder();
+            ini.clearTemporaryFolder();
         } else {
-            ini.SetTemporaryFolder(txtTempFolder.getText());
+            ini.setTemporaryFolder(txtTempFolder.getText());
         }
-        ini.SetBinaryEditor(txtBinaryEditor.getText());
-        ini.SetTextEditor(txtTextEditor.getText());
-        ini.ShowInterDirItem(chkInterDirItem.isSelected());
+        ini.setBinaryEditor(txtBinaryEditor.getText());
+        ini.setTextEditor(txtTextEditor.getText());
+        ini.showInterDirItem(chkInterDirItem.isSelected());
 
         /* language  */
         int sel = comLanguage.getSelectedIndex();
@@ -508,7 +364,7 @@ public class ConfigBox extends JDialog {
         } else {
             lang = comLanguage.getItemAt(sel);
         }
-        ini.SetLanguage(lang);
+        ini.setLanguage(lang);
     }
 
     /**
@@ -516,7 +372,7 @@ public class ConfigBox extends JDialog {
      */
     private void initializeTempFolder() {
         String tmpDir = System.getProperty("java.io.tmpdir");
-        String iniTmp = ini.GetTemporaryFolder();
+        String iniTmp = ini.getTemporaryFolder();
         boolean useSystem = iniTmp.isEmpty();
         if (useSystem) {
             iniTmp = tmpDir;

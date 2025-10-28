@@ -59,7 +59,7 @@ public abstract class UiDirItem {
         return false;
     }
 
-    /// プロパティで表示する内部データを設定
+    /** プロパティで表示する内部データを設定 */
     public void setCommonDataInAttrDialog(Map<String, Object> vals) {
 //        vals.put("num", num);
 //        vals.put("position", position);

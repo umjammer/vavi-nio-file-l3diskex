@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.prefs.Preferences;
 
 
-/// 設定ファイル入出力
+/** 設定ファイル入出力 */
 public class Config extends Params {
 
     private String ini_file;
@@ -255,7 +255,7 @@ public class Config extends Params {
     public static final Config gConfig = new Config();
 }
 
-/// 設定ファイルパラメータ
+/** 設定ファイルパラメータ */
 class Params {
 
     // Placeholder for unreferenced C++ types and constants

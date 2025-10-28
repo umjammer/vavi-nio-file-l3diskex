@@ -10,13 +10,13 @@ import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
 
 import l3diskex.basicfmt.DiskBasicDirItem.DiskBasicDirItemAttr;
-import l3diskex.basicfmt.DiskBasicDirItemMSDOS;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemMSDOS;
 import l3diskex.basicfmt.DiskBasicError;
 import l3diskex.ui.IntNameBox;
 import l3diskex.ui.UiDirItem;
 
-import static l3diskex.basicfmt.DiskBasicDirItemLOSA.FILE_TYPE_LOSA_BINARY;
-import static l3diskex.basicfmt.DiskBasicDirItemLOSA.TYPE_NAME_LOSA_BINARY;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemLOSA.FILE_TYPE_LOSA_BINARY;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemLOSA.TYPE_NAME_LOSA_BINARY;
 
 
 /**

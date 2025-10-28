@@ -10,11 +10,19 @@ import javax.swing.BoxLayout;
 import javax.swing.JWindow;
 
 import l3diskex.basicfmt.DiskBasicDirItem.DiskBasicDirItemAttr;
-import l3diskex.basicfmt.DiskBasicDirItemOS9;
-import l3diskex.basicfmt.DiskBasicDirItemOS9.DiskBasicDirItemOS9FD.EnFileTypeMaskOs9;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemOS9;
 import l3diskex.basicfmt.DiskBasicError;
 import l3diskex.ui.IntNameBox;
 import l3diskex.ui.UiDirItem;
+
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemOS9.FILETYPE_MASK_OS9_DIRECTORY;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemOS9.FILETYPE_MASK_OS9_NONSHARE;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemOS9.FILETYPE_MASK_OS9_PUBLIC_EXEC;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemOS9.FILETYPE_MASK_OS9_PUBLIC_READ;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemOS9.FILETYPE_MASK_OS9_PUBLIC_WRITE;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemOS9.FILETYPE_MASK_OS9_USER_EXEC;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemOS9.FILETYPE_MASK_OS9_USER_READ;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemOS9.FILETYPE_MASK_OS9_USER_WRITE;
 
 
 /**
@@ -47,9 +55,21 @@ public class UiDirItemOS9 extends UiDirItem {
     private final int INTNAME_NEW_FILE = 0x01; // Assuming constant definition
 
     /**
+     * インポート時ダイアログ表示前にファイルの属性を設定
+     */
+    public void setFileTypeForAttrDialog(int show_flags, String name, int[] file_type_1) {
+        final int INTNAME_NEW_FILE = 0x01;
+        if ((show_flags & INTNAME_NEW_FILE) != 0) {
+            // 外部からインポート時
+            file_type_1[0] = dirItem.convOriginalTypeFromFileName(name);
+        }
+    }
+
+    /**
      * ダイアログ内の属性部分のレイアウトを作成
      */
-    public void CreateControlsForAttrDialog(IntNameBox parent, int show_flags, String file_path, BoxLayout sizer, Object flags) {
+    @Override
+    public void createControlsForAttrDialog(IntNameBox parent, int show_flags, String file_path, BoxLayout sizer, Object flags) {
         int file_type_1 = dirItem.getFileType1Pos();
         // int file_type_2 = 0;
         int user_id = dirItem.getUserID();
@@ -59,7 +79,7 @@ public class UiDirItemOS9 extends UiDirItem {
         // The logic for setting initial values is kept.
 
         int[] ft1 = {file_type_1};
-        dirItem.setFileTypeForAttrDialog(show_flags, file_path, ft1);
+        setFileTypeForAttrDialog(show_flags, file_path, ft1);
         file_type_1 = ft1[0];
 
         // ... GUI creation placeholders ...
@@ -67,20 +87,20 @@ public class UiDirItemOS9 extends UiDirItem {
         // Initial values for dialog controls:
 
         // Owner ID
-        m_group_id = (short) ((user_id >> 8) & 0xff);
-        m_owner_id = (short) (user_id & 0xff);
+        dirItem.m_group_id = (short) ((user_id >> 8) & 0xff);
+        dirItem.m_owner_id = (short) (user_id & 0xff);
 
         // File Attributes
-        boolean chkDirectoryValue = (file_type_1 & EnFileTypeMaskOs9.FILETYPE_MASK_OS9_DIRECTORY.getValue()) != 0;
-        boolean chkSharableValue = (file_type_1 & EnFileTypeMaskOs9.FILETYPE_MASK_OS9_NONSHARE.getValue()) != 0;
+        boolean chkDirectoryValue = (file_type_1 & FILETYPE_MASK_OS9_DIRECTORY) != 0;
+        boolean chkSharableValue = (file_type_1 & FILETYPE_MASK_OS9_NONSHARE) != 0;
 
         // Permission
-        boolean chkPubExecValue = (file_type_1 & EnFileTypeMaskOs9.FILETYPE_MASK_OS9_PUBLIC_EXEC.getValue()) != 0;
-        boolean chkPubWriteValue = (file_type_1 & EnFileTypeMaskOs9.FILETYPE_MASK_OS9_PUBLIC_WRITE.getValue()) != 0;
-        boolean chkPubReadValue = (file_type_1 & EnFileTypeMaskOs9.FILETYPE_MASK_OS9_PUBLIC_READ.getValue()) != 0;
-        boolean chkUsrExecValue = (file_type_1 & EnFileTypeMaskOs9.FILETYPE_MASK_OS9_USER_EXEC.getValue()) != 0;
-        boolean chkUsrWriteValue = (file_type_1 & EnFileTypeMaskOs9.FILETYPE_MASK_OS9_USER_WRITE.getValue()) != 0;
-        boolean chkUsrReadValue = (file_type_1 & EnFileTypeMaskOs9.FILETYPE_MASK_OS9_USER_READ.getValue()) != 0;
+        boolean chkPubExecValue = (file_type_1 & FILETYPE_MASK_OS9_PUBLIC_EXEC) != 0;
+        boolean chkPubWriteValue = (file_type_1 & FILETYPE_MASK_OS9_PUBLIC_WRITE) != 0;
+        boolean chkPubReadValue = (file_type_1 & FILETYPE_MASK_OS9_PUBLIC_READ) != 0;
+        boolean chkUsrExecValue = (file_type_1 & FILETYPE_MASK_OS9_USER_EXEC) != 0;
+        boolean chkUsrWriteValue = (file_type_1 & FILETYPE_MASK_OS9_USER_WRITE) != 0;
+        boolean chkUsrReadValue = (file_type_1 & FILETYPE_MASK_OS9_USER_READ) != 0;
     }
 
     /**
@@ -115,16 +135,16 @@ public class UiDirItemOS9 extends UiDirItem {
         // but they are used in the calculation, assuming they are updated by the dialog's validators.
 
         int t1 = 0;
-        t1 |= (chkDirectoryValue ? EnFileTypeMaskOs9.FILETYPE_MASK_OS9_DIRECTORY.getValue() : 0);
-        t1 |= (chkSharableValue ? EnFileTypeMaskOs9.FILETYPE_MASK_OS9_NONSHARE.getValue() : 0);
-        t1 |= (chkPubExecValue ? EnFileTypeMaskOs9.FILETYPE_MASK_OS9_PUBLIC_EXEC.getValue() : 0);
-        t1 |= (chkPubWriteValue ? EnFileTypeMaskOs9.FILETYPE_MASK_OS9_PUBLIC_WRITE.getValue() : 0);
-        t1 |= (chkPubReadValue ? EnFileTypeMaskOs9.FILETYPE_MASK_OS9_PUBLIC_READ.getValue() : 0);
-        t1 |= (chkUsrExecValue ? EnFileTypeMaskOs9.FILETYPE_MASK_OS9_USER_EXEC.getValue() : 0);
-        t1 |= (chkUsrWriteValue ? EnFileTypeMaskOs9.FILETYPE_MASK_OS9_USER_WRITE.getValue() : 0);
-        t1 |= (chkUsrReadValue ? EnFileTypeMaskOs9.FILETYPE_MASK_OS9_USER_READ.getValue() : 0);
+        t1 |= (chkDirectoryValue ? FILETYPE_MASK_OS9_DIRECTORY : 0);
+        t1 |= (chkSharableValue ? FILETYPE_MASK_OS9_NONSHARE : 0);
+        t1 |= (chkPubExecValue ? FILETYPE_MASK_OS9_PUBLIC_EXEC : 0);
+        t1 |= (chkPubWriteValue ? FILETYPE_MASK_OS9_PUBLIC_WRITE : 0);
+        t1 |= (chkPubReadValue ? FILETYPE_MASK_OS9_PUBLIC_READ : 0);
+        t1 |= (chkUsrExecValue ? FILETYPE_MASK_OS9_USER_EXEC : 0);
+        t1 |= (chkUsrWriteValue ? FILETYPE_MASK_OS9_USER_WRITE : 0);
+        t1 |= (chkUsrReadValue ? FILETYPE_MASK_OS9_USER_READ : 0);
 
-        int user_id = (((int) m_group_id << 8) | m_owner_id);
+        int user_id = ((dirItem.m_group_id << 8) | dirItem.m_owner_id);
         attr.setFileAttr(dirItem.getBasic().getFormatTypeNumber(), 0, t1, user_id, 0);
 
         return true;
@@ -138,7 +158,7 @@ public class UiDirItemOS9 extends UiDirItem {
         String name = filename;
         // ".",".."は設定できない
         if (name.equals(".") || name.equals("..")) {
-            // errormsg = String.Format(Utils.getTranslation(DiskBasicErrorMsgs.ERRV_CANNOT_SET_NAME), name); // Placeholder
+            //errormsg = String.Format(Utils.getTranslation(DiskBasicErrorMsgs.ERRV_CANNOT_SET_NAME), name); // Placeholder
             valid = false;
         }
         return valid;

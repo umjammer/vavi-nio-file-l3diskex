@@ -17,9 +17,9 @@ import javax.swing.JWindow;
 import l3diskex.Parambase;
 import l3diskex.Utils;
 import l3diskex.basicfmt.DiskBasicDirItem.DiskBasicDirItemAttr;
-import l3diskex.basicfmt.DiskBasicDirItemAppleDOS;
-import l3diskex.basicfmt.DiskBasicDirItemAppleDOS.en_file_type_mask_appledos;
-import l3diskex.basicfmt.DiskBasicDirItemAppleDOS.en_type_name_appledos;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemAppleDOS;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemAppleDOS.en_file_type_mask_appledos;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemAppleDOS.en_type_name_appledos;
 import l3diskex.basicfmt.DiskBasicError;
 import l3diskex.ui.IntNameBox;
 import l3diskex.ui.UiDirItem;
@@ -31,8 +31,8 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_DATA_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_INTEGER_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_MACHINE_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_READONLY_MASK;
-import static l3diskex.basicfmt.DiskBasicDirItemAppleDOS.APLEDOS_TRACK_LIST_MAX;
-import static l3diskex.basicfmt.DiskBasicDirItemAppleDOS.gTypeNameAppleDOS;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemAppleDOS.APLEDOS_TRACK_LIST_MAX;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemAppleDOS.gTypeNameAppleDOS;
 
 
 /**

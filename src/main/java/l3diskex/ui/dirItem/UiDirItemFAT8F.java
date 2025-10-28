@@ -7,7 +7,7 @@
 package l3diskex.ui.dirItem;
 
 import l3diskex.Parambase;
-import l3diskex.basicfmt.DiskBasicDirItemFAT8.TypeNames;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemFAT8.TypeNames;
 import l3diskex.basicfmt.DiskBasicDirItemFAT8F;
 import l3diskex.ui.UiDirItem;
 

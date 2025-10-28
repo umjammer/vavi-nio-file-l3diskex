@@ -22,7 +22,7 @@ import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasicDirItem;
 import l3diskex.basicfmt.DiskBasicDirItem.DiskBasicDirItemAttr;
 import l3diskex.basicfmt.DiskBasicDirItem.DiskBasicDirItems;
-import l3diskex.basicfmt.DiskBasicDirItemMZ.Globals;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemMZ.Globals;
 
 
 public class UiDiskFileList {

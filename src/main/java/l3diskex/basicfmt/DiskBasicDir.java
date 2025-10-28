@@ -8,24 +8,55 @@ import l3diskex.basicfmt.BasicCommon.DiskBasicFileName;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFormatType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemAmiga;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemAppleDOS;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemC1541;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemCDOS;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemCPM;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemDOS80;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemFLEX;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemFM;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemFP;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemFROST;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemFalcom;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemHU68K;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemL31S;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemL32D;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemLOSA;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemM68FDOS;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemMAGICAL;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemMDOS;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemMSDOS.DiskBasicDirItemVFAT;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemMSX;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemMZ;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemMZFDOS;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemN88;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemOS9;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemProDOS;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemSDOS;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemTFDOS;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemTRSDOS.DiskBasicDirItemTRSD13;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemTRSDOS.DiskBasicDirItemTRSD23;
 import l3diskex.basicfmt.DiskBasicParam.DiskBasicFormat;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemX1HU;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemXDOS;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
 
 import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_UNKNOWN;
 
 
-/// ディレクトリアクセス
+/** ディレクトリアクセス */
 public class DiskBasicDir<T extends DirectoryT> {
 
     private final DiskBasic basic;
     private final DiskBasicFat fat;
 
-    ///< フォーマットタイプ
+    /** フォーマットタイプ */
     private DiskBasicFormat formatType;
-    ///< ルートディレクトリの仮想的なアイテム
+    /** ルートディレクトリの仮想的なアイテム */
     private DiskBasicDirItem<T> root;
-    ///< 現ディレクトリのアイテム
+    /** 現ディレクトリのアイテム */
     private DiskBasicDirItem<T> currentItem;
 
     public DiskBasicDir(DiskBasic basic) {

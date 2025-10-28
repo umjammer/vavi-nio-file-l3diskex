@@ -26,7 +26,7 @@ import l3diskex.ui.IntNameValidatorFile.IntNameValidator;
 import l3diskex.ui.UIBinDump.UiDiskBinDumpFrame;
 
 
-/// ディスク＆ファイル操作
+/** ディスク＆ファイル操作 */
 class UiDiskProcess extends JFrame {
 
     protected int m_unique_number;
@@ -285,11 +285,11 @@ class UiDiskProcess extends JFrame {
     /// 指定したファイルにエクスポート
     ///
     /// @return true:OK false:Error
-    /// @param[in] dir_basic    抽出元のOS
-    /// @param[in] item         抽出したいディレクトリアイテム
-    /// @param[in] path         ファイルパス
-    /// @param[in] start_msg    開始メッセージ
-    /// @param[in] end_msg      終了メッセージ
+    /// @param dir_basic    抽出元のOS
+    /// @param item         抽出したいディレクトリアイテム
+    /// @param path         ファイルパス
+    /// @param start_msg    開始メッセージ
+    /// @param end_msg      終了メッセージ
     public boolean ExportDataFile(DiskBasic dir_basic, DiskBasicDirItem item, String path, String start_msg, String end_msg) {
         if (dir_basic == null) return false;
 
@@ -448,7 +448,7 @@ class UiDiskProcess extends JFrame {
     /// 指定したファイルを削除
     ///
     /// @return 0:OK >0:Warning <0:Error
-    /// @param[in] dir_basic BASIC
+    /// @param dir_basic BASIC
     /// @param[in,out] dst_item  削除対象アイテム
     public int DeleteDataFile(DiskBasic dir_basic, DiskBasicDirItem dst_item) {
         if (dst_item == null) return -1;
@@ -484,9 +484,9 @@ class UiDiskProcess extends JFrame {
     ///
     /// @return 0:OK >0:Warning <0:Error
     /// @attention 再帰的に呼ばれる。 This function is called recursively.
-    /// @param[in] dir_basic       BASIC
+    /// @param dir_basic       BASIC
     /// @param[in,out] items           削除対象アイテムリスト
-    /// @param[in] depth           深さ
+    /// @param depth           深さ
     /// @param[in,out] dir_items       サブディレクトリアイテムリスト
     public int DeleteDataFiles(DiskBasic dir_basic, List<DiskBasicDirItem> items, int depth, List<DiskBasicDirItem> dir_items) {
         if (depth > gConfig.GetDirDepth()) {
@@ -547,8 +547,8 @@ class UiDiskProcess extends JFrame {
     /// @return 1:同じ名前がある -1:その他エラー
     /// @param[in,out] dir_basic 作成先のOS
     /// @param[in,out] dir_item  作成先のディレクトリ
-    /// @param[in] name      ディレクトリ名
-    /// @param[in] title     ダイアログのタイトル
+    /// @param name      ディレクトリ名
+    /// @param title     ダイアログのタイトル
     /// @param[out] nitem     作成したディレクトリアイテム
     public int MakeDirectory(DiskBasic dir_basic, DiskBasicDirItem dir_item, String name, String title, DiskBasicDirItem[] nitem) {
         int sts = 1;
@@ -865,14 +865,14 @@ class UiDiskProcess extends JFrame {
 
     // --- Virtual methods from uimainprocess.h ---
 
-    /// リストウィンドウのデフォルトフォントを得る
+    /** リストウィンドウのデフォルトフォントを得る */
     public void GetDefaultListFont(Object font) {
     } // wxFont is replaced by Object, as it's just a placeholder
 
     /// @name 左パネルのディスクツリー
     //@{
 
-    /// 左パネルのディスクツリーを返す
+    /** 左パネルのディスクツリーを返す */
     public UiDiskList GetDiskListPanel() {
         return null;
     }
@@ -881,7 +881,7 @@ class UiDiskProcess extends JFrame {
     /// @name 右下パネルのファイルリスト
     //@{
 
-    /// 右下パネルのファイルリストパネルを返す
+    /** 右下パネルのファイルリストパネルを返す */
     public UiDiskFileList GetFileListPanel(boolean inst) {
         return null;
     }
@@ -891,7 +891,7 @@ class UiDiskProcess extends JFrame {
     }
     //@}
 
-    /// ダンプウィンドウを返す
+    /** ダンプウィンドウを返す */
     public UiDiskBinDumpFrame GetBinDumpFrame() {
         return null;
     }
@@ -935,12 +935,12 @@ class UiDiskProcess extends JFrame {
     /// @name プロパティ
     //@{
 
-    /// ユニーク番号
+    /** ユニーク番号 */
     public int GetUniqueNumber() {
         return m_unique_number;
     }
 
-    /// ユニーク番号を＋１
+    /** ユニーク番号を＋１ */
     public void IncreaseUniqueNumber() {
         m_unique_number++;
     }

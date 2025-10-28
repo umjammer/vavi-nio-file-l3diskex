@@ -14,17 +14,16 @@ import javax.swing.JComboBox;
 
 import l3diskex.Utils;
 import l3diskex.basicfmt.DiskBasicDirItem.DiskBasicDirItemAttr;
-import l3diskex.basicfmt.DiskBasicDirItemXDOS;
-import l3diskex.basicfmt.DiskBasicDirItemXDOS.XdosSubTypeT;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemXDOS;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemXDOS.XdosSubTypeT;
 import l3diskex.basicfmt.DiskBasicError;
 import l3diskex.ui.IntNameBox;
 import l3diskex.ui.UiDirItem;
 
-import static l3diskex.basicfmt.DiskBasicDirItemXDOS.convStrToUserFileType;
-import static l3diskex.basicfmt.DiskBasicDirItemXDOS.gTypeNameXDOS1;
-import static l3diskex.basicfmt.DiskBasicDirItemXDOS.gTypeNameXDOS2;
-import static l3diskex.basicfmt.DiskBasicDirItemXDOS.xdosSubTypes;
-import static l3diskex.ui.IntNameBox.INTNAME_NEW_FILE;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemXDOS.convStrToUserFileType;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemXDOS.gTypeNameXDOS1;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemXDOS.gTypeNameXDOS2;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemXDOS.xdosSubTypes;
 
 
 /**
@@ -36,6 +35,10 @@ import static l3diskex.ui.IntNameBox.INTNAME_NEW_FILE;
 public class UiDirItemXDOS extends UiDirItem {
 
     private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
+
+    private static final int INTNAME_NEW_FILE = 0x01;
+    private static final int VERTICAL = 0;
+    private static final int EVT_COMBOBOX = 0;
 
     DiskBasicDirItemXDOS dirItem;
 

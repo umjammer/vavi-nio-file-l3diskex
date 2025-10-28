@@ -9,21 +9,21 @@ package l3diskex.ui.dirItem;
 import java.util.ResourceBundle;
 
 import l3diskex.basicfmt.DiskBasicDirItem.DiskBasicDirItemAttr;
-import l3diskex.basicfmt.DiskBasicDirItemProDOS;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemProDOS;
 import l3diskex.basicfmt.DiskBasicError;
 import l3diskex.ui.IntNameBox;
 import l3diskex.ui.UiDirItem;
 
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_DIRECTORY_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_VOLUME_MASK;
-import static l3diskex.basicfmt.DiskBasicDirItemProDOS.FILETYPE_MASK_PRODOS_ACCESS_ALL;
-import static l3diskex.basicfmt.DiskBasicDirItemProDOS.FILETYPE_MASK_PRODOS_DIR;
-import static l3diskex.basicfmt.DiskBasicDirItemProDOS.FILETYPE_MASK_PRODOS_SEEDING;
-import static l3diskex.basicfmt.DiskBasicDirItemProDOS.FILETYPE_MASK_PRODOS_SUBDIR;
-import static l3diskex.basicfmt.DiskBasicDirItemProDOS.FILETYPE_MASK_PRODOS_SUBVOL;
-import static l3diskex.basicfmt.DiskBasicDirItemProDOS.FILETYPE_MASK_PRODOS_VOLUME;
-import static l3diskex.basicfmt.DiskBasicDirItemProDOS.TYPE_NAME_PRODOS_SUBDIR;
-import static l3diskex.basicfmt.DiskBasicDirItemProDOS.TYPE_NAME_PRODOS_VOLUME;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemProDOS.FILETYPE_MASK_PRODOS_ACCESS_ALL;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemProDOS.FILETYPE_MASK_PRODOS_DIR;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemProDOS.FILETYPE_MASK_PRODOS_SEEDING;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemProDOS.FILETYPE_MASK_PRODOS_SUBDIR;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemProDOS.FILETYPE_MASK_PRODOS_SUBVOL;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemProDOS.FILETYPE_MASK_PRODOS_VOLUME;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemProDOS.TYPE_NAME_PRODOS_SUBDIR;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemProDOS.TYPE_NAME_PRODOS_VOLUME;
 import static l3diskex.ui.IntNameBox.INTNAME_NEW_FILE;
 
 

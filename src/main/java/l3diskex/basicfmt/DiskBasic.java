@@ -28,6 +28,9 @@ import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.DiskBasicDirItem.DiskBasicDirItemAttr;
 import l3diskex.basicfmt.DiskBasicParam.DiskBasicFormat;
 import l3diskex.basicfmt.DiskBasicParam.DiskBasicParams;
+import l3diskex.basicfmt.type.*;
+import l3diskex.basicfmt.type.DiskBasicTypeTRSDOS.DiskBasicTypeTRSD13;
+import l3diskex.basicfmt.type.DiskBasicTypeTRSDOS.DiskBasicTypeTRSD23;
 import l3diskex.diskimg.DiskImage.DiskImageDisk;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskImage.DiskImageTrack;
@@ -46,12 +49,12 @@ import static l3diskex.basicfmt.DiskBasicType.AllocateGroupFlags.ALLOCATE_GROUPS
 import static l3diskex.basicfmt.DiskBasicType.AllocateGroupFlags.ALLOCATE_GROUPS_NEW;
 
 
-/// DISK BASIC Structure analysis
+/** DISK BASIC Structure analysis */
 public class DiskBasic extends DiskParam {
 
     private static final Logger logger = getLogger(DiskBasic.class.getName());
 
-    /// Formatter, dialogs
+    /** Formatter, dialogs */
     public static class DiskBasicIdentifiedData {
 
         private String mVolumeName;
@@ -272,7 +275,7 @@ public class DiskBasic extends DiskParam {
         return diskBasicParam.canMountEachSides();
     }
 
-    /// Set BASIC type
+    /** Set BASIC type */
     private void createType() {
         type = null;
 
@@ -384,7 +387,7 @@ public class DiskBasic extends DiskParam {
         }
     }
 
-    /// Returns the index of the highest value
+    /** Returns the index of the highest value */
     private int maxRatio(List<Double> values) {
         int idx = -1;
         double maxRatio = -1.0;
@@ -557,7 +560,7 @@ if (getSectorSize() <= 0) {
         return validRatio;
     }
 
-    /// Clear parameters
+    /** Clear parameters */
     public void clear() {
         pDisk = null;
         mFormatted = false;
@@ -572,17 +575,17 @@ if (getSectorSize() <= 0) {
         if (type != null) type.clearDiskFreeSize();
     }
 
-    /// DISKイメージの番号を返す
+    /** DISKイメージの番号を返す */
     public int getDiskNumber() {
         return pDisk != null ? pDisk.getNumber() : -1;
     }
 
-    /// 選択中のサイド文字列を返す
+    /** 選択中のサイド文字列を返す */
     public String getSelectedSideStr() {
         return Utils.getSideStr(selectedSide, canMountEachSides());
     }
 
-    /// DISK BASICの説明を取得
+    /** DISK BASICの説明を取得 */
     public String getDescriptionDetails() {
         String desc = getBasicDescription();
         int freeSize = type != null ? type.getFreeDiskSize() : -1;
@@ -598,14 +601,14 @@ if (getSectorSize() <= 0) {
         return desc;
     }
 
-    /// FATエリアの空き状況を取得
+    /** FATエリアの空き状況を取得 */
     public void getFatAvailability(int[] offset, List<Integer>[] arr) {
         if (type != null) {
             type.getFatAvailability(offset, arr);
         }
     }
 
-    /// ディレクトリのアイテムを取得
+    /** ディレクトリのアイテムを取得 */
     public DiskBasicDirItem<?> getDirItem(int pos) {
         return dir.itemPtr(pos);
     }
@@ -684,23 +687,23 @@ if (getSectorSize() <= 0) {
         return enough;
     }
 
-    /// DISK BASICで使用できる残りディスクサイズを返す
+    /** DISK BASICで使用できる残りディスクサイズを返す */
     public int getFreeDiskSize() {
         return type.getFreeDiskSize();
     }
 
-    /// 固有のパラメータをセット
+    /** 固有のパラメータをセット */
     public void assignParameter() {
         dataStartSector = type.calcDataStartSectorPos();
         skippedTrack = type.calcSkippedTrack();
     }
 
-    /// 現在選択しているディスクのFAT領域をアサイン
-    ///
-    /// @param isFormatting フォーマット中か
-    /// @return 1.0  正常
-    /// @return <1.0 警告あり
-    /// @return <0.0 エラーあり
+    /**
+     * 現在選択しているディスクのFAT領域をアサイン
+     *
+     * @param isFormatting フォーマット中か
+     * @return 1.0: 正常, <1.0: 警告あり, <0.0: エラーあり
+     */
     public double assignFat(boolean isFormatting) throws IOException {
         if (pDisk == null) return -1.0;
         if (mAssigned) return 0.0;
@@ -724,7 +727,7 @@ if (getSectorSize() <= 0) {
 
     /// 現在選択しているディスクのルートディレクトリをアサイン
     ///
-    /// @return true / false ディレクトリにエラーあり
+    /// @return false: ディレクトリにエラーあり
     public boolean assignRootDirectory() throws IOException {
         if (pDisk == null) return false;
 
@@ -1104,16 +1107,16 @@ if (getSectorSize() <= 0) {
         }
 //#endif
 
-        DiskBasicGroups gitems = new DiskBasicGroups();
+        DiskBasicGroups[] gitems = {new DiskBasicGroups()};
         int rc = type.allocateUnitGroups(fileunitNum, item, isize[0], ALLOCATE_GROUPS_NEW, gitems);
-        groupItems.add(gitems);
+        groupItems.add(gitems[0]);
         if (rc < 0) {
             errinfo.setError(DiskBasicError.ERR_DISK_FULL);
             return false;
         }
 
         int seqNum = 0;
-        for (DiskBasicGroupItem gitem : gitems.getItems()) {
+        for (DiskBasicGroupItem gitem : gitems[0].getItems()) {
             for (int sectorNum = gitem.sectorStart; sectorNum <= gitem.sectorEnd; sectorNum++) {
                 DiskImageSector sector = pDisk.getSector(gitem.track, gitem.side, sectorNum);
                 if (sector == null) {
@@ -1359,7 +1362,7 @@ if (getSectorSize() <= 0) {
         return errinfo.getValid();
     }
 
-    /// ルートディレクトリを返す
+    /** ルートディレクトリを返す */
     public <T extends DirectoryT> DiskBasicDirItem<T> getRootDirectory() {
         return dir.getRootItem();
     }
@@ -1371,12 +1374,12 @@ if (getSectorSize() <= 0) {
         return dir.getRootItems(dirItem);
     }
 
-    /// カレントディレクトリを返す
+    /** カレントディレクトリを返す */
     public <T extends DirectoryT>DiskBasicDirItem<T> getCurrentDirectory() {
         return dir.getCurrentItem();
     }
 
-    /// カレントディレクトリ内の一覧を返す
+    /** カレントディレクトリ内の一覧を返す */
     public <T extends DirectoryT> List<DiskBasicDirItem<T>> getCurrentDirectoryItems(DiskBasicDirItem<T>[] dirItem) {
         return dir.getCurrentItems(dirItem);
     }
@@ -1412,7 +1415,7 @@ if (getSectorSize() <= 0) {
         return valid;
     }
 
-    /// サブディレクトリの作成できるか
+    /** サブディレクトリの作成できるか */
     public boolean canMakeDirectory() {
         return (type.canMakeDirectory()) && (getSubDirGroupSize() > 0);
     }
@@ -1430,22 +1433,24 @@ if (getSectorSize() <= 0) {
         if (!isWritableIntoDisk()) {
             return -1;
         }
+
         if (!canMakeDirectory()) {
             errinfo.setError(DiskBasicError.ERR_CANNOT_MAKE_DIRECTORY);
             return -1;
         }
 
         DiskBasicFileName dirName = new DiskBasicFileName();
-        dirName.setName(filename);
+        String[] filenameRef = {filename};
         // サブディレクトリを作成する前にディレクトリ名を編集する
-        if (!type.renameOnMakingDirectory(dirName.getName())) {
+        if (!type.renameOnMakingDirectory(filenameRef)) {
             errinfo.setError(DiskBasicError.ERR_CANNOT_MAKE_DIRECTORY);
             return -1;
         }
+        dirName.setName(filenameRef[0]);
 
-        /// 同じファイル名があるか
-        DiskBasicDirItem[] nextItemArr = {null};
-        DiskBasicDirItem<T> item = dir.findFile(dirItem, dirName, isCompareCaseInsense(), null, nextItemArr);
+        // 同じファイル名があるか
+        DiskBasicDirItem[] nextItem = {null};
+        DiskBasicDirItem<T> item = dir.findFile(dirItem, dirName, isCompareCaseInsense(), null, nextItem);
         if (item != null) {
             errinfo.setError(DiskBasicError.ERR_FILE_ALREADY_EXIST);
             return 1;
@@ -1473,7 +1478,7 @@ if (getSectorSize() <= 0) {
         }
 
         // 新しいディレクトリアイテムを確保
-        while ((item = dir.getEmptyItem(dirItem, pitem, nextItemArr)) == null) {
+        while ((item = dir.getEmptyItem(dirItem, pitem, nextItem)) == null) {
             // 確保できない時
             boolean valid = false;
             // ディレクトリエリアを拡張する
@@ -1485,7 +1490,7 @@ if (getSectorSize() <= 0) {
                 return -1;
             }
         }
-        item.setEndMark(nextItemArr[0]);
+        item.setEndMark(nextItem[0]);
 
         if (nitem != null) nitem[0] = item;
 
@@ -1493,6 +1498,10 @@ if (getSectorSize() <= 0) {
         item.clearData();
         // ファイル名属性を設定
         item.copyItem(pitem);
+
+//        item.setFileNameStr(dir_name.getName());
+//        item.setFileAttr(FORMAT_TYPE_UNKNOWN, FILE_TYPE_DIRECTORY_MASK, 0);
+//        item.setFileCreateDateTime(tm.now());
 
         // ディレクトリを作成する前の準備を行う
         if (!type.prepareToMakeDirectory(item)) {
@@ -1510,10 +1519,13 @@ if (getSectorSize() <= 0) {
             return -1;
         }
 
-        // 必要なディスク領域を確保する
         int[] fileSize = {0};
-        DiskBasicGroups groupItems = new DiskBasicGroups();
-        int rc = type.allocateGroups(item, sizeremain[0], ALLOCATE_GROUPS_NEW, groupItems);
+
+        int rc;
+
+        // 必要なディスク領域を確保する
+        DiskBasicGroups[] groupItems = {new DiskBasicGroups()};
+        rc = type.allocateGroups(item, sizeremain[0], ALLOCATE_GROUPS_NEW, groupItems);
         if (rc < 0) {
             // 空きが足りない
             errinfo.setError(DiskBasicError.ERR_DISK_FULL);
@@ -1523,7 +1535,7 @@ if (getSectorSize() <= 0) {
         }
 
         // セクタに書き込む
-        rc = type.initializeSectorsAsDirectory(groupItems, fileSize, sizeremain, errinfo);
+        rc = type.initializeSectorsAsDirectory(groupItems[0], fileSize, sizeremain, errinfo);
 
         // ディレクトリサイズ
         item.setDirectorySize(fileSize[0]);
@@ -1539,7 +1551,7 @@ if (getSectorSize() <= 0) {
         item.setModify();
 
         // ディレクトリ作成後の個別処理
-        type.additionalProcessOnMadeDirectory(item, groupItems, dirItem);
+        type.additionalProcessOnMadeDirectory(item, groupItems[0], dirItem);
 
         // グループ数を計算
         item.calcFileSize();
@@ -1554,7 +1566,7 @@ if (getSectorSize() <= 0) {
     /// @param dirItem ディレクトリのエントリ
     public boolean expandDirectory(DiskBasicDirItem<?> dirItem) throws IOException {
         int[] sizeremain = {getSubDirGroupSize() * getSectorsPerGroup() * getSectorSize()};
-        DiskBasicGroups groupItems = new DiskBasicGroups();
+        DiskBasicGroups[] groupItems = {new DiskBasicGroups()};
         int rc = type.allocateGroups(dirItem, sizeremain[0], ALLOCATE_GROUPS_APPEND, groupItems);
         if (rc < 0) {
             errinfo.setError(DiskBasicError.ERR_DISK_FULL);
@@ -1562,7 +1574,7 @@ if (getSectorSize() <= 0) {
         }
 
         int[] fileSize = {dirItem.getFileSize()};
-        rc = type.initializeSectorsAsDirectory(groupItems, fileSize, sizeremain, errinfo);
+        rc = type.initializeSectorsAsDirectory(groupItems[0], fileSize, sizeremain, errinfo);
         if (rc < 0) {
             return false;
         }
@@ -1573,7 +1585,7 @@ if (getSectorSize() <= 0) {
             curItem.setDirectorySize(fileSize[0]);
         }
 
-        if (!type.additionalProcessOnExpandedDirectory(dirItem, groupItems, dir.getParentItem(dirItem))) {
+        if (!type.additionalProcessOnExpandedDirectory(dirItem, groupItems[0], dir.getParentItem(dirItem))) {
             errinfo.setError(DiskBasicError.ERR_DIRECTORY_FULL);
             return false;
         }
@@ -1581,7 +1593,7 @@ if (getSectorSize() <= 0) {
         return true;
     }
 
-    /// ディレクトリアイテムの作成
+    /** ディレクトリアイテムの作成 */
     public DiskBasicDirItem<?> createDirItem() throws IOException {
         return dir.newItem();
     }
@@ -1597,7 +1609,7 @@ if (getSectorSize() <= 0) {
         return dir.newItem(sector, secpos, data, dataP);
     }
 
-    /// ディレクトリアイテムの位置から開始セクタを返す
+    /** ディレクトリアイテムの位置から開始セクタを返す */
     public DiskImageSector getSectorFromPosition(int position, int[] startGroup) {
         DiskBasicDirItem<?> item = dir.itemPtr(position);
         if (item == null) return null;
@@ -1885,7 +1897,7 @@ if (getSectorSize() <= 0) {
         return val;
     }
 
-    /// キャラクターコードの文字体系を設定
+    /** キャラクターコードの文字体系を設定 */
     public void setCharCode(String name) {
         if (name.equals(charCode)) return;
         charCode = name;
@@ -1928,28 +1940,28 @@ if (getSectorSize() <= 0) {
         return type;
     }
 
-    /// 必要ならデータを反転する
+    /** 必要ならデータを反転する */
     public byte invertUint8(byte val) {
         return isDataInverted() ? (byte) (val ^ 0xff) : val;
     }
 
-    /// 必要ならデータを反転する
+    /** 必要ならデータを反転する */
     public short invertUint16(short val) {
         return isDataInverted() ? (short) (val ^ 0xffff) : val;
     }
 
-    /// 必要ならデータを反転する＆エンディアンを考慮
+    /** 必要ならデータを反転する＆エンディアンを考慮 */
     public short invertAndOrderUint16(short val) {
         val = isDataInverted() ? (short) (val ^ 0xffff) : val;
         return orderUint16(val);
     }
 
-    /// 必要ならデータを反転する
+    /** 必要ならデータを反転する */
     public int invertUint32(int val) {
         return isDataInverted() ? ~val : val;
     }
 
-    /// 必要ならデータを反転する＆エンディアンを考慮
+    /** 必要ならデータを反転する＆エンディアンを考慮 */
     public int invertAndOrderUint32(int val) {
         val = isDataInverted() ? ~val : val;
         return orderUint32(val);
@@ -1961,23 +1973,23 @@ if (getSectorSize() <= 0) {
         }
     }
 
-    /// 必要ならデータを反転する
+    /** 必要ならデータを反転する */
     public void invertMem(byte[] data, int len) {
         if (isDataInverted()) memInvert(data, len);
     }
 
-    /// 必要ならデータを反転する
+    /** 必要ならデータを反転する */
     public void invertMem(byte[] src, int len, byte[] dst) {
         System.arraycopy(src, 0, dst, 0, len);
         if (isDataInverted()) memInvert(dst, len);
     }
 
-    /// エンディアンを考慮した値を返す
+    /** エンディアンを考慮した値を返す */
     public short orderUint16(short val) {
         return isBigEndian() ? Short.reverseBytes(val) : val;
     }
 
-    /// エンディアンを考慮した値を返す
+    /** エンディアンを考慮した値を返す */
     public int orderUint32(int val) {
         return isBigEndian() ? Integer.reverseBytes(val) : val;
     }
@@ -1987,7 +1999,7 @@ if (getSectorSize() <= 0) {
         return getFormatType().getTypeNumber();
     }
 
-    /// エラーメッセージ
+    /** エラーメッセージ */
     public List<String> getErrorMessage(int maxrow) {
         return errinfo.getMessages(maxrow);
     }
@@ -2003,12 +2015,12 @@ if (getSectorSize() <= 0) {
         return errinfo;
     }
 
-    /// エラーメッセージを表示
+    /** エラーメッセージを表示 */
     public void showErrorMessage() {
         ResultInfo.showMessage(getErrorLevel(), getErrorMessage(20));
     }
 
-    /// エラーメッセージをクリア
+    /** エラーメッセージをクリア */
     public void clearErrorMessage() {
         errinfo.clear();
     }

@@ -13,14 +13,14 @@ import javax.swing.JPanel;
 
 import l3diskex.Utils;
 import l3diskex.basicfmt.DiskBasicDirItem.DiskBasicDirItemAttr;
-import l3diskex.basicfmt.DiskBasicDirItemFLEX;
-import l3diskex.basicfmt.DiskBasicDirItemFLEX.en_type_name_flex;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemFLEX;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemFLEX.en_type_name_flex;
 import l3diskex.basicfmt.DiskBasicError;
 import l3diskex.ui.IntNameBox;
 import l3diskex.ui.UiDirItem;
 
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_RANDOM_MASK;
-import static l3diskex.basicfmt.DiskBasicDirItemFLEX.gTypeNameFLEX;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemFLEX.gTypeNameFLEX;
 
 
 /**
@@ -33,7 +33,11 @@ public class UiDirItemFLEX extends UiDirItem {
 
     DiskBasicDirItemFLEX dirItem;
 
-    /// ダイアログ内の属性部分のレイアウトを作成
+    /** インポート時ダイアログ表示前にファイルの属性を設定 */
+    public void setFileTypeForAttrDialog(int show_flags, String name, int[] file_type_1, int[] file_type_2) {
+    }
+
+    /** ダイアログ内の属性部分のレイアウトを作成 */
     @Override
     public void createControlsForAttrDialog(IntNameBox parent, int show_flags, String file_path, BoxLayout sizer, Object flags) {
         int file_type_1 = dirItem.getFileAttr().getType();
@@ -41,7 +45,7 @@ public class UiDirItemFLEX extends UiDirItem {
 
         int[] ft1 = {file_type_1};
         int[] ft2 = {file_type_2};
-        dirItem.setFileTypeForAttrDialog(show_flags, file_path, ft1, ft2);
+        setFileTypeForAttrDialog(show_flags, file_path, ft1, ft2);
         file_type_1 = ft1[0];
         file_type_2 = ft2[0];
 
@@ -67,12 +71,12 @@ public class UiDirItemFLEX extends UiDirItem {
     // wxWidgets to Swing helper IDs
     public static final int IDC_CHECK_ATTR1 = 51;
 
-    /// 属性を変更した際に呼ばれるコールバック
+    /** 属性を変更した際に呼ばれるコールバック */
     @Override
     public void changeTypeInAttrDialog(IntNameBox parent) {
     }
 
-    /// 機種依存の属性を設定する
+    /** 機種依存の属性を設定する */
     @Override
     public boolean setAttrInAttrDialog(IntNameBox parent, DiskBasicDirItemAttr attr, DiskBasicError errinfo) {
         int val = 0;
@@ -94,7 +98,7 @@ public class UiDirItemFLEX extends UiDirItem {
         return true;
     }
 
-    /// ダイアログ入力後のファイル名チェック
+    /** ダイアログ入力後のファイル名チェック */
     public boolean validateFileName(IntNameBox parent, String filename, StringBuilder errormsg) {
         // wxFileName fn(filename) equivalent
         int lastDot = filename.lastIndexOf('.');

@@ -6,7 +6,7 @@
 
 package l3diskex.ui.dirItem;
 
-import l3diskex.basicfmt.DiskBasicDirItemHU68K;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemHU68K;
 import l3diskex.ui.UiDirItem;
 
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_ARCHIVE_MASK;

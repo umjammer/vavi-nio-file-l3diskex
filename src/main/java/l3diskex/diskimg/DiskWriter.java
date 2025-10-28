@@ -4,12 +4,16 @@
 
 package l3diskex.diskimg;
 
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 
+import l3diskex.Utils;
 import l3diskex.diskimg.FileParam.FileParamFormat;
+import l3diskex.diskimg.writer.DiskD88Writer;
+import l3diskex.diskimg.writer.DiskPlainWriter;
 
 import static l3diskex.diskimg.FileParam.gFileTypes;
 
@@ -29,25 +33,19 @@ public class DiskWriter extends DiskWriteOptions {
     private boolean m_ownstream;
     private final DiskResult p_result;
 
-    // 拡張子をさがす
+    /// 拡張子をさがす
+    /// @param disk_number ディスク番号
+    /// @param side_number サイド番号
     private int canSaveDiskByExt(int disk_number, int side_number) {
         int rc = 0;
 
         // ファイル形式の指定がない場合
-        // C++: wxFileName fpath(m_file_path);
-        java.io.File fpath = new java.io.File(m_file_path);
+        String fpath = m_file_path;
 
         // 拡張子で判定
-        // C++: wxString ext = fpath.GetExt();
-        String filename = fpath.getName();
-        String ext = "";
-        int dotIndex = filename.lastIndexOf('.');
-        if (dotIndex > 0 && dotIndex < filename.length() - 1) {
-            ext = filename.substring(dotIndex + 1);
-        }
+        String ext = Utils.getExt(fpath);
 
         // サポートしているファイルか
-        // C++: const FileParam *fitem = gFileTypes.FindExt(ext);
         FileParam fitem = gFileTypes.findExt(ext);
         if (fitem == null) {
             p_result.setError(DiskResult.ERR_UNSUPPORTED);
@@ -55,12 +53,9 @@ public class DiskWriter extends DiskWriteOptions {
         }
 
         // 指定した形式でファイル出力
-        // C++: const FileParamFormats *formats = &fitem->GetFormats();
         List<FileParamFormat> formats = fitem.getFormats();
         for (int i = 0; i < formats.size(); i++) {
-            // C++: const FileParamFormat *param_format = &formats->Item(i);
             FileParamFormat param_format = formats.get(i);
-            // C++: rc = SelectCanSaveDisk(param_format->GetType(), disk_number, side_number);
             rc = selectCanSaveDisk(param_format.getType(), disk_number, side_number);
             if (rc >= 0) {
                 break;
@@ -70,7 +65,10 @@ public class DiskWriter extends DiskWriteOptions {
         return rc;
     }
 
-    // 拡張子で保存形式を判定
+    /// 拡張子で保存形式を判定＆保存できるか
+    /// @param file_format ファイルフォーマット
+    /// @param disk_number ディスク番号
+    /// @param side_number サイド番号
     private int selectCanSaveDisk(String file_format, int disk_number, int side_number) {
         int rc = -1;
         // C++: wxT("d88") -> "d88" (assuming wxT converts to String)
@@ -78,10 +76,10 @@ public class DiskWriter extends DiskWriteOptions {
             // d88形式
             DiskD88Writer wr = new DiskD88Writer(this, p_result);
             rc = wr.validateDisk(p_image, disk_number, side_number);
-            // } else if (file_format.equals("cpcdsk")) {
-            // // CPC DSK形式
-            // DiskDskWriter wr(result);
-            // rc = wr.ValidateDisk(p_image, disk_number, side_number);
+//        } else if (file_format.equals("cpcdsk")) {
+//            // CPC DSK形式
+//            DiskDskWriter wr (result);
+//            rc = wr.ValidateDisk(p_image, disk_number, side_number);
         } else if (file_format.equals("plain")) {
             // ベタ
             DiskPlainWriter wr = new DiskPlainWriter(this, p_result);
@@ -90,25 +88,22 @@ public class DiskWriter extends DiskWriteOptions {
         return rc;
     }
 
-    // 拡張子をさがす
-    private int saveDiskByExt(int disk_number, int side_number, boolean[] support) {
+    /**
+     拡張子をさがす
+     @param disk_number ディスク番号
+     @param side_number サイド番号
+     @param support   [out] 対応しているフォーマットならtrue
+     */
+    private int saveDiskByExt(int disk_number, int side_number, boolean[] support) throws IOException {
         int rc = 0;
 
         // ファイル形式の指定がない場合
-        // C++: wxFileName fpath(m_file_path);
-        java.io.File fpath = new java.io.File(m_file_path);
+        String fpath = m_file_path;
 
         // 拡張子で判定
-        // C++: wxString ext = fpath.GetExt();
-        String filename = fpath.getName();
-        String ext = "";
-        int dotIndex = filename.lastIndexOf('.');
-        if (dotIndex > 0 && dotIndex < filename.length() - 1) {
-            ext = filename.substring(dotIndex + 1);
-        }
+        String ext = Utils.getExt(fpath);
 
         // サポートしているファイルか
-        // C++: const FileParam *fitem = gFileTypes.FindExt(ext);
         FileParam fitem = gFileTypes.findExt(ext);
         if (fitem == null) {
             p_result.setError(DiskResult.ERR_UNSUPPORTED);
@@ -116,12 +111,9 @@ public class DiskWriter extends DiskWriteOptions {
         }
 
         // 指定した形式でファイル出力
-        // C++: const FileParamFormats *formats = &fitem->GetFormats();
         List<FileParamFormat> formats = fitem.getFormats();
         for (int i = 0; i < formats.size(); i++) {
-            // C++: const FileParamFormat *param_format = &formats->Item(i);
             FileParamFormat param_format = formats.get(i);
-            // C++: rc = SelectSaveDisk(param_format->GetType(), disk_number, side_number, support);
             rc = selectSaveDisk(param_format.getType(), disk_number, side_number, support);
             if (rc >= 0) {
                 break;
@@ -132,11 +124,8 @@ public class DiskWriter extends DiskWriteOptions {
     }
 
     // 拡張子で保存形式を判定
-    private int selectSaveDisk(String file_format, int disk_number, int side_number, boolean[] support) {
+    private int selectSaveDisk(String file_format, int disk_number, int side_number, boolean[] support) throws IOException {
         int rc = -1;
-        support[0] = false; // Initialize support status before switch/if-else
-
-        // C++: wxT("d88") -> "d88" (assuming wxT converts to String)
         if (file_format.equals("d88")) {
             // d88形式
             DiskD88Writer wr = new DiskD88Writer(this, p_result);
@@ -161,13 +150,17 @@ public class DiskWriter extends DiskWriteOptions {
         return rc;
     }
 
+    //
+    // 形式ごとの保存
+    //
+
     /**
      * @param image   ディスクイメージ
      * @param path    ファイルパス
      * @param options 出力時のオプション
      * @param result  結果
      */
-    public DiskWriter(DiskImage image, String path, DiskWriteOptions options, DiskResult result) {
+    public DiskWriter(DiskImage image, String path, DiskWriteOptions options, DiskResult result) throws FileNotFoundException {
         // C++: DiskWriter(DiskImage *image, const wxString &path, const DiskWriteOptions &options, DiskResult *result) : DiskWriteOptions(options)
         super(options.m_trim_unused_data);
         p_image = image;
@@ -182,8 +175,6 @@ public class DiskWriter extends DiskWriteOptions {
      * @param result 結果
      */
     public DiskWriter(DiskImage image, DiskResult result) {
-        // C++: DiskWriter(DiskImage *image, DiskResult *result) : DiskWriteOptions()
-        super();
         p_image = image;
         m_file_path = ""; // wxEmptyString equivalent
         p_result = result;
@@ -213,24 +204,10 @@ public class DiskWriter extends DiskWriteOptions {
      * @param path 出力先ファイルパス
      * @return 結果
      */
-    public int open(String path) {
-        // C++: wxFileOutputStream *fstream = new wxFileOutputStream(path);
+    public int open(String path) throws FileNotFoundException {
         FileOutputStream fstream;
-        try {
-            fstream = new FileOutputStream(path);
-            p_ostream = fstream;
-            // C++: if (!fstream->IsOk()) { result->SetError(DiskResult::ERR_CANNOT_SAVE); }
-            // For FileOutputStream, IsOk() check equivalent is usually handled by catching FileNotFoundException
-            // and checking if stream is null, but since it's constructed, we assume it's "ok" unless an
-            // IOException occurs during write. We'll rely on the later IsOk() check for stream validity.
-            // The C++ logic only checks after creating the stream.
-            // The C++ comment suggests a check *was* there but is commented out. We just create.
-
-        } catch (java.io.FileNotFoundException e) {
-            // FileOutputStream constructor throws this.
-            p_result.setError(DiskResult.ERR_CANNOT_SAVE);
-            p_ostream = null; // Ensure stream is null on failure
-        }
+        fstream = new FileOutputStream(path);
+        p_ostream = fstream;
         m_ownstream = true;
         return p_result.getValid();
     }
@@ -241,9 +218,7 @@ public class DiskWriter extends DiskWriteOptions {
      * @return true if open and ready, false otherwise
      */
     public boolean isOk() {
-        // In Java, an OutputStream is considered "OK" if it's not null, hasn't been closed, and no IOException occurred on last operation.
-        // Direct equivalent to wxOutputStream::IsOk() is difficult. We'll approximate.
-        return p_ostream != null; // Simplified approximation
+        return p_ostream != null;
     }
 
     /**
@@ -299,7 +274,7 @@ public class DiskWriter extends DiskWriteOptions {
      * @param file_format ファイルフォーマット
      * @return 結果
      */
-    public int save(String file_format) {
+    public int save(String file_format) throws IOException {
         return saveDisk(-1, -1, file_format);
     }
 
@@ -311,9 +286,8 @@ public class DiskWriter extends DiskWriteOptions {
      * @param file_format ファイルフォーマット
      * @return 結果
      */
-    public int saveDisk(int disk_number, int side_number, String file_format) {
+    public int saveDisk(int disk_number, int side_number, String file_format) throws IOException {
         int rc = 0;
-        // In C++, 'bool support' is an output parameter, in Java, use a mutable object (or Ref class)
         boolean[] support = {false};
 
         if (!isOk()) {
@@ -335,12 +309,10 @@ public class DiskWriter extends DiskWriteOptions {
         return rc;
     }
 
-    // ----------------------------------------------------------------------
-
     /**
      * 形式ごとのディスクライター
      */
-    static class DiskImageWriter {
+    public static class DiskImageWriter {
 
         protected DiskWriter p_dw;
         protected DiskResult p_result;
@@ -349,9 +321,6 @@ public class DiskWriter extends DiskWriteOptions {
             p_dw = dw_;
             p_result = result_;
         }
-
-        // Java equivalent to virtual destructor is no explicit destructor
-        // public void close() {}
 
         /**
          * ストリームの内容をファイルに保存できるか
@@ -363,6 +332,7 @@ public class DiskWriter extends DiskWriteOptions {
          */
         public int validateDisk(DiskImage image, int disk_number, int side_number) {
             p_result.clear();
+
             return 0;
         }
 
@@ -375,8 +345,9 @@ public class DiskWriter extends DiskWriteOptions {
          * @param ostream     出力先
          * @return 0 正常
          */
-        public int saveDisk(DiskImage image, int disk_number, int side_number, OutputStream ostream) {
+        public int saveDisk(DiskImage image, int disk_number, int side_number, OutputStream ostream) throws IOException {
             p_result.clear();
+
             return 0;
         }
     }
@@ -396,8 +367,6 @@ class DiskWriteOptions {
     public DiskWriteOptions(boolean n_trim_unused_data) {
         m_trim_unused_data = n_trim_unused_data;
     }
-
-    // Java doesn't have explicit destructors, so no direct equivalent for virtual ~DiskWriteOptions()
 
     public boolean isTrimUnusedData() {
         return m_trim_unused_data;

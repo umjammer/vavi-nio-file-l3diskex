@@ -5,26 +5,19 @@
 package l3diskex.diskimg;
 
 import java.lang.System.Logger;
-import java.lang.System.Logger.Level;
 
 import l3diskex.ResultInfo;
 
 
 /**
  * Disk analysis result.
- *
- * <p>The class contains a list of error codes and a message array that
- * holds the textual representation of each error.  It also provides
- * {@link #setMessageV(int, Object...)} to format and store an error
- * message.</p>
  */
 public class DiskResult extends ResultInfo {
 
     private static final Logger logger = System.getLogger(DiskResult.class.getName());
 
-    /* Error code enumeration */
-
     public static final int ERR_NONE = 0;
+    // 引数なしのメッセージ
     public static final int ERR_CANNOT_OPEN = ERR_NONE + 1;
     public static final int ERR_CANNOT_SAVE = ERR_CANNOT_OPEN + 1;
     public static final int ERR_NO_DATA = ERR_CANNOT_SAVE + 1;
@@ -39,6 +32,7 @@ public class DiskResult extends ResultInfo {
     public static final int ERR_UNSUPPORTED = ERR_WRITE_PROTECTED + 1;
 
     public static final int ERRV_START = ERR_UNSUPPORTED + 1;
+    // 引数あり（フォーマットあり）のメッセージ
     public static final int ERRV_INVALID_DISK = ERRV_START + 1;
     public static final int ERRV_DISK_SIZE_ZERO = ERRV_INVALID_DISK + 1;
     public static final int ERRV_DISK_TOO_SMALL = ERRV_DISK_SIZE_ZERO + 1;
@@ -64,8 +58,6 @@ public class DiskResult extends ResultInfo {
     public static final int ERRV_TOO_MANY_TRACKS = ERRV_IGNORE_DATA + 1;
     public static final int ERRV_UNSUPPORTED_TYPE = ERRV_TOO_MANY_TRACKS + 1;
     public static final int ERRV_END = ERRV_UNSUPPORTED_TYPE + 1;
-
-    /* Message array */
 
     /** Messages corresponding to the error codes above. */
     private static final String[] gDiskResultMsgs = new String[] {
@@ -111,8 +103,6 @@ public class DiskResult extends ResultInfo {
             /* ERRV_END                     */ "Unknown error. code:%d"
     };
 
-    /* Message handling */
-
     /**
      * Formats and stores an error message.
      *
@@ -121,24 +111,20 @@ public class DiskResult extends ResultInfo {
      */
     @Override
     public void setMessageV(int errorNumber, Object... args) {
-        if (errorNumber <= 0) {
-            return; // nothing to do for non‑positive codes
-        }
 
         String msg;
-        if (errorNumber < ERRV_START) {
-            /* Fixed message (no formatting) */
+
+        if (errorNumber <= 0) {
+            return;
+        } else if (errorNumber < ERRV_START) {
             msg = gDiskResultMsgs[errorNumber];
         } else if (errorNumber < ERRV_END) {
-            /* Message requires formatting */
             msg = String.format(gDiskResultMsgs[errorNumber], args);
         } else {
-            /* Code outside the defined range – use ERRV_END format */
             msg = String.format(gDiskResultMsgs[ERRV_END], errorNumber);
         }
-
         if (!msg.isEmpty()) {
-logger.log(Level.TRACE, msg, new Exception("dummy"));
+//logger.log(Level.TRACE, msg, new Exception("MESSAGE: " + msg));
             msgs.add(msg);
         }
     }

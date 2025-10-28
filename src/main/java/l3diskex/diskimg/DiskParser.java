@@ -15,6 +15,22 @@ import l3diskex.Utils;
 import l3diskex.diskimg.DiskImage.DiskImageFile;
 import l3diskex.diskimg.FileParam.DiskTypeHint;
 import l3diskex.diskimg.FileParam.FileParamFormat;
+import l3diskex.diskimg.parser.Disk2MGParser;
+import l3diskex.diskimg.parser.DiskADCParser;
+import l3diskex.diskimg.parser.DiskCQMParser;
+import l3diskex.diskimg.parser.DiskD88Parser;
+import l3diskex.diskimg.parser.DiskDIMParser;
+import l3diskex.diskimg.parser.DiskDmkParser;
+import l3diskex.diskimg.parser.DiskDskParser;
+import l3diskex.diskimg.parser.DiskFDIParser;
+import l3diskex.diskimg.parser.DiskG64Parser;
+import l3diskex.diskimg.parser.DiskHfeParser;
+import l3diskex.diskimg.parser.DiskIMDParser;
+import l3diskex.diskimg.parser.DiskJV3Parser;
+import l3diskex.diskimg.parser.DiskPlainParser;
+import l3diskex.diskimg.parser.DiskSTRParser;
+import l3diskex.diskimg.parser.DiskTD0Parser;
+import l3diskex.diskimg.parser.DiskVFDParser;
 
 import static l3diskex.diskimg.FileParam.gFileTypes;
 
@@ -183,7 +199,7 @@ public class DiskParser {
         } else if ("cpcdsk".equalsIgnoreCase(type)) {
             DiskDskParser ps = new DiskDskParser(file, mod_flags, result);
             if (ps.check(stream) != 0) {
-                rc = ps.parse(stream);
+                rc = ps.parse(stream, disk_param);
             }
             support[0] = true;
         } else if ("fdi".equalsIgnoreCase(type)) {
@@ -335,7 +351,7 @@ public class DiskParser {
         return rc;
     }
 
-    /// ディスクパーサー
+    /** ディスクパーサー */
     public static abstract class DiskImageParser {
 
         protected DiskImageFile file;

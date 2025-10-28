@@ -10,7 +10,7 @@ import javax.swing.ButtonGroup;
 import javax.swing.JTextField;
 
 import l3diskex.basicfmt.DiskBasicDirItem.DiskBasicDirItemAttr;
-import l3diskex.basicfmt.DiskBasicDirItemFAT8;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemFAT8;
 import l3diskex.basicfmt.DiskBasicError;
 import l3diskex.ui.IntNameBox;
 import l3diskex.ui.UiDirItem;
@@ -19,8 +19,8 @@ import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_UNKN
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_ASCII_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_BINARY_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_RANDOM_MASK;
-import static l3diskex.basicfmt.DiskBasicDirItemFAT8.G_TYPE_NAME_1;
-import static l3diskex.basicfmt.DiskBasicDirItemFAT8.TYPE_NAME_1_MACHINE;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemFAT8.G_TYPE_NAME_1;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemFAT8.TYPE_NAME_1_MACHINE;
 
 
 /**

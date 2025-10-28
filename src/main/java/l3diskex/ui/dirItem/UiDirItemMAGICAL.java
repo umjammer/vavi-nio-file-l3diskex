@@ -15,20 +15,20 @@ import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 
 import l3diskex.basicfmt.DiskBasicDirItem.DiskBasicDirItemAttr;
-import l3diskex.basicfmt.DiskBasicDirItemMAGICAL;
-import l3diskex.basicfmt.DiskBasicDirItemMAGICAL.en_data_type_magical;
-import l3diskex.basicfmt.DiskBasicDirItemMAGICAL.en_file_type_magical;
-import l3diskex.basicfmt.DiskBasicDirItemMAGICAL.en_type_name_magical_1;
-import l3diskex.basicfmt.DiskBasicDirItemMAGICAL.en_type_name_magical_2;
-import l3diskex.basicfmt.DiskBasicDirItemMAGICAL.en_type_name_magical_3;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemMAGICAL;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemMAGICAL.en_data_type_magical;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemMAGICAL.en_file_type_magical;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemMAGICAL.en_type_name_magical_1;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemMAGICAL.en_type_name_magical_2;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemMAGICAL.en_type_name_magical_3;
 import l3diskex.basicfmt.DiskBasicError;
 import l3diskex.ui.IntNameBox;
 import l3diskex.ui.UiDirItem;
 
-import static l3diskex.basicfmt.DiskBasicDirItemMAGICAL.gTypeNameMAGICALMap;
-import static l3diskex.basicfmt.DiskBasicDirItemMAGICAL.gTypeNameMAGICAL_1;
-import static l3diskex.basicfmt.DiskBasicDirItemMAGICAL.gTypeNameMAGICAL_2;
-import static l3diskex.basicfmt.DiskBasicDirItemMAGICAL.gTypeNameMAGICAL_3;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemMAGICAL.gTypeNameMAGICALMap;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemMAGICAL.gTypeNameMAGICAL_1;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemMAGICAL.gTypeNameMAGICAL_2;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemMAGICAL.gTypeNameMAGICAL_3;
 
 
 /**

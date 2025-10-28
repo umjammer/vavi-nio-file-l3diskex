@@ -47,6 +47,9 @@ class TestCase {
     @Property(name = "test.d88")
     String d88 = "src/test/resources/test.d88";
 
+    @Property(name = "test.type")
+    String type = "d88";
+
     @BeforeEach
     void setup() throws Exception {
         if (localPropertiesExists()) {
@@ -76,14 +79,11 @@ Debug.print("d88: " + d88);
 
         DiskImage diskImage = new DiskD88Image();
 
-        // Format type (e.g. "D88" for .d88 files)
-        String fileFormat = "d88";
-
         // Create empty disk parameters as hint
         DiskParam paramHint = new DiskParam();
 
         // Try to open the disk image
-        int result = diskImage.open(d88, fileFormat, paramHint);
+        int result = diskImage.open(d88, type, paramHint);
 
         // Verify open was successful
         assertEquals(0, result, "Failed to open disk image: " + diskImage.getErrorMessage(-1));
@@ -105,22 +105,25 @@ Debug.println("sectorSize: " + disk.getSectorSize());
 
         // Create a DiskBasic instance to handle the file system
         DiskBasic diskBasic = disk.getDiskBasic(0);
-Debug.println(diskBasic);
+Debug.println(diskBasic.getDiskNumber());
 
         result = diskBasic.parseBasic(disk, 0, null, false);
-        assert result == 0 : "diskBasic.parseBasic";
+        assert result == 0 : "diskBasic.parseBasic: " + diskBasic.getErrorMessage(result);
 Debug.println("FORMAT: " + diskBasic.getFormatTypeNumber());
 
         // Assign FAT and directory
-        boolean r = diskBasic.assignFatAndDirectory();
-        assert r : "diskBasic.assignFatAndDirectory";
+        boolean r = diskBasic.assignRootDirectory(); // w/o this diskBasic#getRootDirectory returns null
+        assert r : "diskBasic.assignRootDirectory";
+Debug.println("ASSIGN: done");
 
         DiskBasicDirItem<?> root = diskBasic.getRootDirectory();
         assert root != null : "root is null";
 Debug.println("files at dir: " + root.getChildren().size());
         // List files and directories
         for (DiskBasicDirItem<?> dir : root.getChildren()) {
-            System.out.println(dir.getFileNameStr());
+            if (dir.isUsed()) {
+                System.out.println(dir.getFileNameStr());
+            }
         }
     }
 }

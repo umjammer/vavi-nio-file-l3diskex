@@ -13,7 +13,7 @@ import javax.swing.ButtonGroup;
 import javax.swing.JCheckBox;
 
 import l3diskex.basicfmt.DiskBasicDirItem.DiskBasicDirItemAttr;
-import l3diskex.basicfmt.DiskBasicDirItemN88;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemN88;
 import l3diskex.basicfmt.DiskBasicError;
 import l3diskex.ui.IntNameBox;
 import l3diskex.ui.UiDirItem;
@@ -26,15 +26,15 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_MACHINE_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_RANDOM_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_READONLY_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_READWRITE_MASK;
-import static l3diskex.basicfmt.DiskBasicDirItemN88.G_TYPE_NAME_N88_1;
-import static l3diskex.basicfmt.DiskBasicDirItemN88.G_TYPE_NAME_N88_2;
-import static l3diskex.basicfmt.DiskBasicDirItemN88.TYPE_NAME_N88_ASCII;
-import static l3diskex.basicfmt.DiskBasicDirItemN88.TYPE_NAME_N88_BINARY;
-import static l3diskex.basicfmt.DiskBasicDirItemN88.TYPE_NAME_N88_ENCRYPTED;
-import static l3diskex.basicfmt.DiskBasicDirItemN88.TYPE_NAME_N88_MACHINE;
-import static l3diskex.basicfmt.DiskBasicDirItemN88.TYPE_NAME_N88_RANDOM;
-import static l3diskex.basicfmt.DiskBasicDirItemN88.TYPE_NAME_N88_READ_ONLY;
-import static l3diskex.basicfmt.DiskBasicDirItemN88.TYPE_NAME_N88_READ_WRITE;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemN88.G_TYPE_NAME_N88_1;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemN88.G_TYPE_NAME_N88_2;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemN88.TYPE_NAME_N88_ASCII;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemN88.TYPE_NAME_N88_BINARY;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemN88.TYPE_NAME_N88_ENCRYPTED;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemN88.TYPE_NAME_N88_MACHINE;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemN88.TYPE_NAME_N88_RANDOM;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemN88.TYPE_NAME_N88_READ_ONLY;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemN88.TYPE_NAME_N88_READ_WRITE;
 
 
 /**

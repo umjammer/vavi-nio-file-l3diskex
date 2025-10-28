@@ -145,26 +145,12 @@ public class UiCdListCtrl {
     protected UiDiskFrame frame;
     protected List<MyCDListColumn> m_columns = new ArrayList<>();
     protected int m_idOnFirstColumn = 0;
-    protected Config.Config_ m_ini;
+    protected Config m_ini;
     protected List<Icon> m_icons = new ArrayList<>();
     protected List<Integer> m_selecting = new ArrayList<>();
 
-    /* ----------------------------------------------------------------- */
-    /*  Data‑view list control stub – in real code this would extend a   */
-    /*  wxWidgets UI component.  Here it only provides the minimal API   */
-    /*  used by the original C++ implementation.                        */
-    /* ----------------------------------------------------------------- */
-
-    public static class DataViewListCtrl {
-        /* empty – stub for the original wxDataViewListCtrl */
-    }
-
-    /* ----------------------------------------------------------------- */
-    /*  Constructor & Destructor                                         */
-    /* ----------------------------------------------------------------- */
-
     public UiCdListCtrl(UiDiskFrame parentframe, Object parent, int id,
-                        ListColumnInfo[] columns, Config.Config_ ini,
+                        ListColumnInfo[] columns, Config ini,
                         int style, DataViewModel model,
                         Point pos, Size size) {
 
@@ -187,16 +173,6 @@ public class UiCdListCtrl {
 
         /* bind events – in the original code this is done via wxWidgets
            event table.  Here we simply remember the methods. */
-    }
-
-    /* ----------------------------------------------------------------- */
-    /*  Destructor – just clear all lists                                 */
-    /* ----------------------------------------------------------------- */
-
-    public void destroy() {
-        m_columns.clear();
-        m_icons.clear();
-        m_selecting.clear();
     }
 
     /* ----------------------------------------------------------------- */

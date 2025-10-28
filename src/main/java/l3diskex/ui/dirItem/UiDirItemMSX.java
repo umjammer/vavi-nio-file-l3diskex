@@ -11,15 +11,15 @@ import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
 
 import l3diskex.basicfmt.DiskBasicDirItem.DiskBasicDirItemAttr;
-import l3diskex.basicfmt.DiskBasicDirItemMSX;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemMSX;
 import l3diskex.basicfmt.DiskBasicError;
 import l3diskex.ui.IntNameBox;
 import l3diskex.ui.UiDirItem;
 
 import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_UNKNOWN;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_HIDDEN_MASK;
-import static l3diskex.basicfmt.DiskBasicDirItemMSX.TYPE_NAME_MS_HIDDEN;
-import static l3diskex.basicfmt.DiskBasicDirItemMSX.gTypeNameMS_l;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemMSX.TYPE_NAME_MS_HIDDEN;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemMSX.gTypeNameMS_l;
 import static l3diskex.ui.dirItem.UiDirItemTFDOS.IDC_CHECK_HIDDEN;
 
 

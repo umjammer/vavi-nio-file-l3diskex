@@ -1,23 +1,9 @@
 package l3diskex.ui;
 /*  
     RawExpBox.java
-    ---------
-    This file is a direct, line‑by‑line port of the C++ header / source
-    pair (rawexpbox.h / rawexpbox.cpp).  All C++ identifiers have been
-    kept exactly as they appear in the original code; only the syntax
-    has been adapted so that the code compiles as valid Java.
-
-    Because the original program is a wxWidgets GUI, all wxWidgets
-    classes are replaced by minimal stubs that provide the methods
-    used by the translated code.  These stubs do **not** provide
-    any real GUI functionality – they merely allow the Java file
-    to compile and to be type‑checked.
-
-    The event table macro (`wxDECLARE_EVENT_TABLE` / `BEGIN_EVENT_TABLE`)
-    has no direct equivalent in Java; it is omitted because the
-    translated code simply calls the event handlers directly.
      */
 
+import java.awt.event.ActionEvent;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
@@ -27,20 +13,12 @@ import l3diskex.diskimg.DiskImage.DiskImageDisk;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskImage.DiskImageTrack;
 
-// ----------
-// Minimal stubs for the wxWidgets types used in the original C++ source
-// ----------
-
-// --- Fundamental wx types -----------------------------------------------------
-
-
-// ----------
-// Actual RawExpBox implementation (converted from rawexpbox.h / .cpp)
-// ----------
-
+//
+// Actual RawExpBox implementation
+//
 public class RawExpBox extends JDialog {
 
-    /* -------------------- member variables -------------------- */
+    /*  member variables  */
     private final JTextField[] txtTrack = new JTextField[2];
     private final JTextField[] txtSide = new JTextField[2];
     private final JTextField[] txtSector = new JTextField[2];
@@ -50,7 +28,7 @@ public class RawExpBox extends JDialog {
     private final DiskImageDisk p_disk;
     private final int m_sel_side_num;
 
-    /* -------------------- constants (original enum) -------------------- */
+    /*  constants (original enum)  */
     public static final int IDC_TEXT_TRACK_ST = 1;
     public static final int IDC_TEXT_TRACK_ED = 2;
     public static final int IDC_TEXT_SIDE_ST = 3;
@@ -60,7 +38,7 @@ public class RawExpBox extends JDialog {
     public static final int IDC_CHK_INV_DATA = 7;
     public static final int IDC_CHK_REV_SIDE = 8;
 
-    /* -------------------- constructor (original RawExpBox ctor) -------------------- */
+    /*  constructor (original RawExpBox ctor)  */
     public RawExpBox(JComponent parent, int id, String caption, DiskImageDisk disk,
                      int sel_side_num,
                      int start_track_num, int start_side_num, int start_sector_num,
@@ -109,7 +87,7 @@ public class RawExpBox extends JDialog {
         // Normally a sizer would be used here; omitted for brevity.
     }
 
-    /* -------------------- public methods -------------------- */
+    /*  public methods  */
     public int ShowModal() {
         return super.ShowModal();
     }
@@ -205,14 +183,4 @@ public class RawExpBox extends JDialog {
     public boolean ReverseSide() {
         return chkRevSide.GetValue();
     }
-
-    /* -------------------- stub event class -------------------- */
-    public static class ActionEvent {
-
-    }
-
-    /* ------
-       wxDECLARE_EVENT_TABLE() in the original header is omitted – the
-       Java code simply calls the event handler directly.
-    ------ */
 }

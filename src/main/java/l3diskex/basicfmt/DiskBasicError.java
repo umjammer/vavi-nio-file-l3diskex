@@ -5,7 +5,6 @@
 package l3diskex.basicfmt;
 
 import java.lang.System.Logger;
-import java.lang.System.Logger.Level;
 
 import l3diskex.ResultInfo;
 
@@ -172,7 +171,7 @@ public class DiskBasicError extends ResultInfo {
 
         // add to the collection only if it is not already present
         if (!msgs.contains(msg)) {
-logger.log(Level.TRACE, msg, new Exception("MESSAGE: " + msg));
+//logger.log(Level.TRACE, msg, new Exception("MESSAGE: " + msg));
             msgs.add(msg);
         }
     }

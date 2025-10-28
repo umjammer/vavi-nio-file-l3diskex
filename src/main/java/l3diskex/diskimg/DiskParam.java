@@ -54,7 +54,7 @@ public class DiskParam {
             this.sector_size = n_sector_size;
         }
 
-        /// 比較
+        /** 比較 */
         public boolean equals(SectorParam dst) {
             return (track_num == dst.track_num
                     && side_num == dst.side_num
@@ -134,7 +134,7 @@ public class DiskParam {
             this.id = new int[4];
         }
 
-        /// 比較
+        /** 比較 */
         public boolean equals(TrackParam dst) {
             return (track_num == dst.track_num
                     && side_num == dst.side_num
@@ -317,7 +317,7 @@ public class DiskParam {
             super();
         }
 
-        /// セクタ/トラックのリスト内で最小値を返す
+        /** セクタ/トラックのリスト内で最小値を返す */
         public int getMinSectorsPerTrack(int default_number) {
             int val = 0xffff;
             for (int i = 0; i < size(); i++) {
@@ -331,7 +331,7 @@ public class DiskParam {
             return val;
         }
 
-        /// セクタ/トラックのリスト内で最大値を返す
+        /** セクタ/トラックのリスト内で最大値を返す */
         public int getMaxSectorsPerTrack(int default_number) {
             int val = 0;
             for (int i = 0; i < size(); i++) {
@@ -345,7 +345,7 @@ public class DiskParam {
             return val;
         }
 
-        /// 全ての値が一致するか
+        /** 全ての値が一致するか */
         public boolean equals(DiskParticulars dst) {
             boolean match = true;
             if (this.size() != dst.size()) {
@@ -386,9 +386,9 @@ public class DiskParam {
             this.sectors_per_track = 1;
         }
 
-        /// @param[in] n_start_track_num   開始トラック番号
-        /// @param[in] n_num_of_tracks     トラック数
-        /// @param[in] n_sectors_per_track セクタ数/トラック
+        /// @param n_start_track_num   開始トラック番号
+        /// @param n_num_of_tracks     トラック数
+        /// @param n_sectors_per_track セクタ数/トラック
         public NumSectorsParam(int n_start_track_num, int n_num_of_tracks, int n_sectors_per_track) {
             this.start_track_num = n_start_track_num;
             this.num_of_tracks = n_num_of_tracks;
@@ -429,7 +429,7 @@ public class DiskParam {
             super();
         }
 
-        /// セクタ/トラックのリスト内の最小値を返す
+        /** セクタ/トラックのリスト内の最小値を返す */
         public int getMinSectorOfTracks() {
             int val = 0xffff;
             for (int i = 0; i < size(); i++) {
@@ -489,7 +489,7 @@ public class DiskParam {
         }
 
         public int get() {
-            return secs.get(0);
+            return secs.getFirst();
         }
 
         public int get(int idx) {
@@ -647,7 +647,7 @@ if (sector_size == 0) {
         this.ptracks.addAll(n_ptracks);
     }
 
-    /// 初期化
+    /** 初期化 */
     public void clearDiskParam() {
         this.disk_type_name = "";
         this.basic_types = new ArrayList<>();
@@ -887,12 +887,9 @@ if (sector_size == 0) {
      *
      * @param sectors_per_track [out] セクタ数
      * @param sector_size       [out] セクタサイズ
-     * @return 0 なし
-     * @return 1 全トラック
-     * @return 2 トラック0,サイド0
-     * @return 3 トラック0,両面
+     * @return 0: なし, 1: 全トラック, 2: トラック0,サイド0, 3: トラック0,両面
      */
-    public int hasSingleDensity(int[] sectors_per_track, int[] sector_size) {
+    public int hasSingleDensity(int[] sectors_per_track /* = null */, int[] sector_size /* = null */) {
         int val = 0;
         DiskParticular sd = null;
         for (int i = 0; i < singles.size(); i++) {
@@ -929,7 +926,7 @@ if (sector_size == 0) {
         return val;
     }
 
-    /// ディスクサイズを計算する（ベタディスク用）
+    /** ディスクサイズを計算する（ベタディスク用） */
     public int calcDiskSize() {
         int disk_size = 0;
         int trk = getTrackNumberBaseOnDisk();
@@ -953,10 +950,10 @@ if (sector_size == 0) {
     /// 特殊なトラックか
     ///
     /// @return true / false
-    /// @param[in] track_num         トラック番号
-    /// @param[in] side_num          サイド番号
-    /// @param[in] sectors_per_track セクタ/トラック
-    /// @param[in] sector_size       セクタサイズ
+    /// @param track_num         トラック番号
+    /// @param side_num          サイド番号
+    /// @param sectors_per_track セクタ/トラック
+    /// @param sector_size       セクタサイズ
     public boolean findParticularTrack(int track_num, int side_num, int[] sectors_per_track, int[] sector_size) {
         DiskParticular match = null;
         for (int i = 0; i < ptracks.size(); i++) {
@@ -981,10 +978,10 @@ if (sector_size == 0) {
     /// 特殊なセクタか
     ///
     /// @return true / false
-    /// @param[in] track_num   トラック番号
-    /// @param[in] side_num    サイド番号
-    /// @param[in] sector_num  セクタ番号
-    /// @param[in] sector_size セクタサイズ
+    /// @param track_num   トラック番号
+    /// @param side_num    サイド番号
+    /// @param sector_num  セクタ番号
+    /// @param sector_size セクタサイズ
     /// @param[out] sector_id   C,H,R,Nの入った配列を返す
     public boolean findParticularSector(int track_num, int side_num, int sector_num, int[] sector_size, int[][] sector_id) {
         DiskParticular match = null;
@@ -1010,8 +1007,8 @@ if (sector_size == 0) {
     /// DISK BASICをさがす
     ///
     /// @return 名前
-    /// @param[in] type_name タイプ名
-    /// @param[in] flags     フラグ
+    /// @param type_name タイプ名
+    /// @param flags     フラグ
     public DiskParamName findBasicType(String type_name, int flags) {
         DiskParamName match = null;
         for (int i = 0; i < basic_types.size(); i++) {

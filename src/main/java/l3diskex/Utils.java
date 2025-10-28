@@ -18,7 +18,7 @@ import java.util.regex.Pattern;
 public final class Utils {
 
     private Utils() {
-    } // Private constructor for utility class
+    }
 
     public static final int TEMP_DATA_SIZE = 2048;
 
@@ -38,6 +38,7 @@ public final class Utils {
     /**
      * Placeholder for the external CharCodes class.
      */
+    @Deprecated
     public static class CharCodes {
 
         public void setMap(String char_code) { /* no-op */ }
@@ -55,13 +56,14 @@ public final class Utils {
         public void convCtrlCodes(byte[] c, int len) { /* no-op */ }
 
         public Charset charset() {
-            return Charset.defaultCharset();
+            return Charset.defaultCharset(); // TODO
         }
     }
 
     /**
      * Temporary data buffer.
      */
+    @Deprecated
     public static class TempData {
 
         private byte[] data;
@@ -591,7 +593,7 @@ public final class Utils {
         }
     }
 
-    //////////////////////////////////////////////////////////////////////
+    // ----
 
     /**
      * Convert time structure to date/time data (MS-DOS format).
@@ -758,7 +760,7 @@ public final class Utils {
      * @param tm Time structure.
      * @return Formatted date string.
      */
-    public static String formatYMDStr(LocalDateTime tm) {
+    public static String formatYMDStr(LocalDate tm) {
         String yearStr = (tm.getYear() >= 0 ? String.format("%04d", tm.getYear() + 1900) : "----");
         String monthStr = (tm.getMonth().ordinal() >= -1 ? String.format("%02d", tm.getMonth().ordinal() + 1) : "--");
         String dayStr = (tm.getDayOfMonth() >= 0 ? String.format("%02d", tm.getDayOfMonth()) : "--");
@@ -771,7 +773,7 @@ public final class Utils {
      * @param tm Time structure.
      * @return Formatted time string.
      */
-    public static String formatHMSStr(LocalDateTime tm) {
+    public static String formatHMSStr(LocalTime tm) {
         String hourStr = (tm.getHour() >= 0 ? String.format("%02d", tm.getHour()) : "--");
         String minStr = (tm.getMinute() >= 0 ? String.format("%02d", tm.getMinute()) : "--");
         String secStr = (tm.getSecond() >= 0 ? String.format("%02d", tm.getSecond()) : "--");
@@ -784,7 +786,7 @@ public final class Utils {
      * @param tm Time structure.
      * @return Formatted time string.
      */
-    public static String formatHMStr(LocalDateTime tm) {
+    public static String formatHMStr(LocalTime tm) {
         String hourStr = (tm.getHour() >= 0 ? String.format("%02d", tm.getHour()) : "--");
         String minStr = (tm.getMinute() >= 0 ? String.format("%02d", tm.getMinute()) : "--");
         return hourStr + ":" + minStr;

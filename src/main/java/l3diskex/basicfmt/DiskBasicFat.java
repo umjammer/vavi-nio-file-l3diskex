@@ -8,6 +8,7 @@ import java.util.List;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskImage.DiskImageTrack;
 
+import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_FREE;
 import static l3diskex.basicfmt.DiskBasicType.INVALID_GROUP_NUMBER;
 
 
@@ -32,10 +33,10 @@ public class DiskBasicFat {
             FAT_AVAIL_USED_LAST,
             FAT_AVAIL_MISSING,
             FAT_AVAIL_LEAK,
-            FAT_AVAIL_NULLEND;
+            FAT_AVAIL_NULLEND
         }
 
-        List<Integer> contents = new ArrayList<>();
+        List<FatAvailability> list = new ArrayList<>();
 
         /** 空きサイズ */
         private int m_free_size;
@@ -52,7 +53,7 @@ public class DiskBasicFat {
          * 初期化 空きサイズを 0 にする
          */
         public void clear() {
-            contents.clear();
+            list.clear();
             m_free_size = 0;
             m_free_grps = 0;
         }
@@ -61,7 +62,7 @@ public class DiskBasicFat {
          * 初期化 空きサイズを 0 にする
          */
         public void empty() {
-            contents.clear();
+            list.clear();
             m_free_size = 0;
             m_free_grps = 0;
         }
@@ -70,7 +71,7 @@ public class DiskBasicFat {
          * 初期化 空きサイズを -1 にする
          */
         public void emptyInit() {
-            contents.clear();
+            list.clear();
             m_free_size = -1;
             m_free_grps = -1;
         }
@@ -81,8 +82,8 @@ public class DiskBasicFat {
          * @param group 空きグループ数
          *              追加
          */
-        public void add(int val, int size, int group) {
-            contents.add(val);
+        public void add(FatAvailability val, int size, int group) {
+            list.add(val);
             m_free_size += size;
             m_free_grps += group;
         }
@@ -92,9 +93,9 @@ public class DiskBasicFat {
          * @param val 値
          *            セット (Safety)
          */
-        public void set(int idx, int val) {
-            if (idx < contents.size()) {
-                contents.set(idx, val);
+        public void set(int idx, FatAvailability val) {
+            if (idx < list.size()) {
+                list.set(idx, val);
             }
         }
 
@@ -103,17 +104,17 @@ public class DiskBasicFat {
          * @return 値
          * ゲット (Safety)
          */
-        public final int get(int idx) {
-            int val = 0;
-            if (idx < contents.size()) {
-                val = contents.get(idx);
+        public final FatAvailability get(int idx) {
+            FatAvailability val = FAT_AVAIL_FREE;
+            if (idx < list.size()) {
+                val = list.get(idx);
             }
             return val;
         }
 
         // Size is int in Java, but for internal use, we map Count() to size()
         public int count() {
-            return contents.size();
+            return list.size();
         }
 
         /**
@@ -145,7 +146,7 @@ public class DiskBasicFat {
         }
 
         public int size() {
-            return contents.size();
+            return list.size();
         }
     }
 
@@ -154,7 +155,7 @@ public class DiskBasicFat {
      *
      * @see DiskBasicBitMLMap
      */
-    static class BitMLBuffer {
+    public static class BitMLBuffer {
 
         protected byte[] m_buffer;
         protected int m_size;
@@ -239,17 +240,18 @@ public class DiskBasicFat {
     /**
      * ビット ON/OFF マップ BitMLBuffer の配列
      */
-    public static class DiskBasicBitMLMap extends ArrayList<BitMLBuffer> {
+    public static class DiskBasicBitMLMap {
+
+        public List<BitMLBuffer> list = new ArrayList<>();
 
         public DiskBasicBitMLMap() {
-            super();
         }
 
         /**
          * ポインタをセット
          */
         public void addBuffer(byte[] buffer, int size) {
-            add(new BitMLBuffer(buffer, size));
+            list.add(new BitMLBuffer(buffer, size));
         }
 
         /**
@@ -311,6 +313,15 @@ public class DiskBasicFat {
                 group_num -= size;
             }
             return valid;
+        }
+
+        public BitMLBuffer get(int i) {
+            return list.get(i);
+
+        }
+
+        public int size() {
+            return list.size();
         }
     }
 
@@ -379,8 +390,7 @@ public class DiskBasicFat {
          * @return 値
          */
         public int get(int pos) {
-            // Use 0xFF to treat byte as unsigned when converting to int
-            return (buffer != null && pos < size) ? (buffer[pos] & 0xFF) : INVALID_GROUP_NUMBER;
+            return buffer != null ? (buffer[pos] & 0xff) : INVALID_GROUP_NUMBER;
         }
 
         /**
@@ -390,8 +400,8 @@ public class DiskBasicFat {
          * @param val 値
          */
         public void set(int pos, int val) {
-            if (buffer != null && pos < size) {
-                buffer[pos] = (byte) (val & 0xFF);
+            if (buffer != null) {
+                buffer[pos] = (byte) (val & 0xff);
             }
         }
 
@@ -408,9 +418,9 @@ public class DiskBasicFat {
             if (pos >= size) return false;
 
             int bit = get(pos); // Get returns 0-255
-            if (invert) bit ^= 0xFF;
-            bit = (val ? (bit | (mask & 0xFF)) : (bit & ~(mask & 0xFF)));
-            if (invert) bit ^= 0xFF;
+            if (invert) bit ^= 0xff;
+            bit = (val ? (bit | (mask & 0xff)) : (bit & ~(mask & 0xff)));
+            if (invert) bit ^= 0xff;
             set(pos, bit);
             return true;
         }
@@ -423,7 +433,7 @@ public class DiskBasicFat {
          * @param invert 反転するか
          * @return ビットがON
          */
-        public boolean BitTest(int pos, byte mask, boolean invert) {
+        public boolean bitTest(int pos, byte mask, boolean invert) {
             if (pos >= size) return false;
 
             int bit = get(pos); // Get returns 0-255
@@ -716,22 +726,23 @@ public class DiskBasicFat {
     /**
      * FATバッファ（ミラーリング含む） DiskBasicFatBuffers の配列
      */
-    public static class DiskBasicFatArea extends ArrayList<DiskBasicFatBuffers> {
+    public static class DiskBasicFatArea {
+
+        List<DiskBasicFatBuffers> list = new ArrayList<>();
 
         /** 有効なバッファ数 */
         private int validCount;
 
         public DiskBasicFatArea() {
-            super();
-            validCount = size();
+            validCount = list.size();
         }
 
         /**
          * 代入
          */
         public DiskBasicFatArea operatorAssign(DiskBasicFatArea src) {
-            super.clear();
-            super.addAll(src); // Similar to C++ operator=
+            list.clear();
+            list.addAll(src.list);
             validCount = src.validCount;
             return this;
         }
@@ -740,7 +751,7 @@ public class DiskBasicFat {
          * クリア
          */
         public void empty() {
-            super.clear();
+            list.clear();
             validCount = 0;
         }
 
@@ -748,19 +759,17 @@ public class DiskBasicFat {
          * 追加
          *
          * @param lItem   追加するアイテム
-         * @param nInsert 追加する数 (ignored in ArrayList add)
+         * @param nInsert 追加する数
          */
-        public void Add(DiskBasicFatBuffers lItem, int nInsert) {
-            // C++ wxArray: Add(item, count) repeats item 'count' times.
+        public void add(DiskBasicFatBuffers lItem, int nInsert) {
             for (int i = 0; i < nInsert; i++) {
-                super.add(lItem);
+                list.add(lItem);
             }
-            validCount = size();
+            validCount = list.size();
         }
 
-        // Simplification for the most common case:
-        public void Add(DiskBasicFatBuffers lItem) {
-            Add(lItem, 1);
+        public void add(DiskBasicFatBuffers lItem) {
+            add(lItem, 1);
         }
 
         /**
@@ -786,9 +795,9 @@ public class DiskBasicFat {
          */
         public int getData8(int idx, int pos) {
             int val = INVALID_GROUP_NUMBER;
-            if (idx >= size()) return val;
+            if (idx >= list.size()) return val;
 
-            DiskBasicFatBuffers bufs = get(idx);
+            DiskBasicFatBuffers bufs = list.get(idx);
             val = bufs.getData8(pos);
             return val;
         }
@@ -813,9 +822,9 @@ public class DiskBasicFat {
          * @param val 値
          */
         public void setData8(int idx, int pos, int val) {
-            if (idx >= size()) return;
+            if (idx >= list.size()) return;
 
-            DiskBasicFatBuffers bufs = get(idx);
+            DiskBasicFatBuffers bufs = list.get(idx);
             bufs.setData8(pos, val);
         }
 
@@ -843,9 +852,9 @@ public class DiskBasicFat {
          * @return 一致した
          */
         public boolean matchData8(int idx, int pos, int val) {
-            if (idx >= size()) return false;
+            if (idx >= list.size()) return false;
 
-            DiskBasicFatBuffers bufs = get(idx);
+            DiskBasicFatBuffers bufs = list.get(idx);
             return bufs.matchData8(pos, val);
         }
 
@@ -859,9 +868,9 @@ public class DiskBasicFat {
          * @param invert 反転するか
          */
         public void bitData8(int idx, int pos, byte mask, boolean val, boolean invert) {
-            if (idx >= size()) return;
+            if (idx >= list.size()) return;
 
-            DiskBasicFatBuffers bufs = get(idx);
+            DiskBasicFatBuffers bufs = list.get(idx);
             bufs.bitData8(pos, mask, val, invert);
         }
 
@@ -874,9 +883,9 @@ public class DiskBasicFat {
          */
         public int getData12LE(int idx, int pos) {
             int val = INVALID_GROUP_NUMBER;
-            if (idx >= size()) return val;
+            if (idx >= list.size()) return val;
 
-            DiskBasicFatBuffers bufs = get(idx);
+            DiskBasicFatBuffers bufs = list.get(idx);
             val = bufs.getData12LE(pos);
             return val;
         }
@@ -901,9 +910,9 @@ public class DiskBasicFat {
          * @param val 値
          */
         public void setData12LE(int idx, int pos, int val) {
-            if (idx >= size()) return;
+            if (idx >= list.size()) return;
 
-            DiskBasicFatBuffers bufs = get(idx);
+            DiskBasicFatBuffers bufs = list.get(idx);
             bufs.setData12LE(pos, val);
         }
 
@@ -916,9 +925,9 @@ public class DiskBasicFat {
          */
         public int getData16LE(int idx, int pos) {
             int val = INVALID_GROUP_NUMBER;
-            if (idx >= size()) return val;
+            if (idx >= list.size()) return val;
 
-            DiskBasicFatBuffers bufs = get(idx);
+            DiskBasicFatBuffers bufs = list.get(idx);
             val = bufs.getData16LE(pos);
             return val;
         }
@@ -943,9 +952,9 @@ public class DiskBasicFat {
          * @param val 値
          */
         public void setData16LE(int idx, int pos, int val) {
-            if (idx >= size()) return;
+            if (idx >= list.size()) return;
 
-            DiskBasicFatBuffers bufs = get(idx);
+            DiskBasicFatBuffers bufs = list.get(idx);
             bufs.setData16LE(pos, val);
         }
 
@@ -958,9 +967,9 @@ public class DiskBasicFat {
          */
         public int getData16BE(int idx, int pos) {
             int val = INVALID_GROUP_NUMBER;
-            if (idx >= size()) return val;
+            if (idx >= list.size()) return val;
 
-            DiskBasicFatBuffers bufs = get(idx);
+            DiskBasicFatBuffers bufs = list.get(idx);
             val = bufs.getData16BE(pos);
             return val;
         }
@@ -985,10 +994,18 @@ public class DiskBasicFat {
          * @param val 値
          */
         public void setData16BE(int idx, int pos, int val) {
-            if (idx >= size()) return;
+            if (idx >= list.size()) return;
 
-            DiskBasicFatBuffers bufs = get(idx);
+            DiskBasicFatBuffers bufs = list.get(idx);
             bufs.setData16BE(pos, val);
+        }
+
+        public int size() {
+            return list.size();
+        }
+
+        public DiskBasicFatBuffers get(int i) {
+            return list.get(i);
         }
     }
 
@@ -1106,7 +1123,7 @@ public class DiskBasicFat {
                     DiskBasicFatBuffer fatbuf = new DiskBasicFatBuffer(sliced_buf, buf_size);
                     fatbufs.add(fatbuf);
                 }
-                bufs.Add(fatbufs);
+                bufs.add(fatbufs);
 
                 startSector += size;
                 endSector += size;
@@ -1132,7 +1149,7 @@ public class DiskBasicFat {
         start = 0;
         startPos = 0;
 
-        bufs.clear();
+        bufs.list.clear();
     }
 
     /**
@@ -1227,10 +1244,10 @@ public class DiskBasicFat {
      *            FATバッファを返す
      */
     public DiskBasicFatBuffers getDiskBasicFatBuffers(int idx) {
-        if (idx >= bufs.size()) {
+        if (idx >= bufs.list.size()) {
             return null;
         }
-        return bufs.get(idx);
+        return bufs.list.get(idx);
     }
 
     /**

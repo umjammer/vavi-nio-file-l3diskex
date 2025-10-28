@@ -19,6 +19,8 @@
 
 ## TODO
 
+* \[serdes] check deserialized objects that need to serialize again 
+
 ---
 
 # <img alt="logo" src="docs/l3diskex_icon.png" /> [Original](https://github.com/bml3mk5/L3DiskEx)

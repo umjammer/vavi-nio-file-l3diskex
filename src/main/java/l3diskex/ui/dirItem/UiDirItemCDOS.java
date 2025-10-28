@@ -8,11 +8,11 @@ package l3diskex.ui.dirItem;
 
 import javax.swing.JComboBox;
 
-import l3diskex.basicfmt.DiskBasicDirItemCDOS;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemCDOS;
 import l3diskex.ui.IntNameBox;
 import l3diskex.ui.UiDirItem;
 
-import static l3diskex.basicfmt.DiskBasicDirItemSDOS.IDC_COMBO_TYPE1;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemSDOS.IDC_COMBO_TYPE1;
 
 
 /**

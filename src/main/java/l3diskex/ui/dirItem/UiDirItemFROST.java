@@ -14,13 +14,13 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 
 import l3diskex.basicfmt.DiskBasicDirItem.DiskBasicDirItemAttr;
-import l3diskex.basicfmt.DiskBasicDirItemFROST;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemFROST;
 import l3diskex.basicfmt.DiskBasicError;
 import l3diskex.ui.IntNameBox;
 import l3diskex.ui.UiDirItem;
 
-import static l3diskex.basicfmt.DiskBasicDirItemFROST.FILETYPE_FROST_BAS;
-import static l3diskex.basicfmt.DiskBasicDirItemFROST.gTypeNameFROST_1;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemFROST.FILETYPE_FROST_BAS;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemFROST.gTypeNameFROST_1;
 
 
 /**

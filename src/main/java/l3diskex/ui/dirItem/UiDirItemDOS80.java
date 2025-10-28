@@ -9,7 +9,7 @@ package l3diskex.ui.dirItem;
 import javax.swing.BoxLayout;
 
 import l3diskex.basicfmt.DiskBasicDirItem.DiskBasicDirItemAttr;
-import l3diskex.basicfmt.DiskBasicDirItemDOS80;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemDOS80;
 import l3diskex.basicfmt.DiskBasicError;
 import l3diskex.ui.IntNameBox;
 import l3diskex.ui.UiDirItem;

@@ -26,8 +26,6 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_VOLUME_MASK;
 
 /**
  * parameter template.
- *
- * @author Sasaji
  */
 public class Parambase {
 

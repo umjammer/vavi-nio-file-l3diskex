@@ -1,3 +1,7 @@
+///
+/// Copyright (c) Sasaji. All rights reserved.
+///
+
 package l3diskex.diskimg;
 
 import java.nio.ByteBuffer;
@@ -16,8 +20,10 @@ import vavi.util.serdes.Element;
 import vavi.util.serdes.Serdes;
 
 
+/// D88ディスクイメージ入出力
 public class DiskD88 {
 
+    /// disk density 0: 2D, 1: 2DD, 2: 2HD
     public static class DiskDensity {
 
         byte val;
@@ -29,65 +35,85 @@ public class DiskD88 {
         }
     }
 
+    /// disk density 0: 2D, 1: 2DD, 2: 2HD, 3: 1DD(unofficial)
     public static final DiskDensity[] gDiskDensity = {
             new DiskDensity(0x00, "2D"),
             new DiskDensity(0x10, "2DD"),
             new DiskDensity(0x20, "2HD"),
             new DiskDensity(0x30, "0x30 1DD"),
-            new DiskDensity(0xff, null)
     };
 
     public static final int DISKD88_MAX_TRACKS = 164;
     public static final int HEADER_TYPE_D88 = 1;
 
+    /** D88 sector id */
     @Serdes(bigEndian = false)
-    static class D88SectorId {
+    public static class D88SectorId {
 
+        /** cylinder (track) id (0...) */
         @Element(sequence = 1)
-        byte c;
+        public byte c;
+        /** head (side) id */
         @Element(sequence = 2)
-        byte h;
+        public byte h;
+        /** record (sector) id (1...) */
         @Element(sequence = 3)
         byte r;
+        /** sector size (0:128bytes 1:256bytes 2:512bytes 3:1024bytes) */
         @Element(sequence = 4)
         byte n;
     }
 
+    /** D88 sector header */
     @Serdes(bigEndian = false)
-    static class D88SectorHeader {
+    public static class D88SectorHeader {
+
+        public static final int SIZE = 16;
 
         @Element(sequence = 1)
-        D88SectorId id = new D88SectorId();
+        public D88SectorId id = new D88SectorId();
+        /** sector numbers per track */
         @Element(sequence = 2)
-        short secnums;
+        public short secnums;
+        /** 0x00:double density 0x40:single density */
         @Element(sequence = 3)
         byte density;
+        /** 0x10:deleted data */
         @Element(sequence = 4)
         byte deleted;
+        /** 0x00:no error */
         @Element(sequence = 5)
         byte status;
         @Element(sequence = 6)
         byte[] reserved = new byte[5];
+        /** sector size (bytes) */
         @Element(sequence = 7)
-        short size;
+        public short size;
     }
 
+    /** D88 disk header */
     @Serdes(bigEndian = false)
-    static class D88Header {
+    public static class D88Header {
 
-        public static final int SIZE = 17 + 9 + 1 + 1 + 4 + 4 * DiskD88.DISKD88_MAX_TRACKS;
+        public static final int SIZE = 17 + 9 + 1 + 1 + 4 + 4 * DISKD88_MAX_TRACKS;
+
+        /** disk name */
         @Element(sequence = 1)
-        byte[] diskname = new byte[17];
+        public byte[] diskname = new byte[17];
         @Element(sequence = 2)
         byte[] reserved1 = new byte[9];
+        /** 0x10 write protected */
         @Element(sequence = 3)
         byte write_protect;
+        /** disk density 00H: 2D, 10H: 2DD, 20H: 2HD */
         @Element(sequence = 4)
         byte disk_density;
+        /** disk size */
         @Element(sequence = 5)
         int disk_size;
+        /** track table */
         @Element(sequence = 6)
-        int[] offsets = new int[DiskD88.DISKD88_MAX_TRACKS];
+        public int[] offsets = new int[DISKD88_MAX_TRACKS];
 
         @Override
         public String toString() {
@@ -102,10 +128,10 @@ public class DiskD88 {
         }
     }
 
-    static class DiskD88SectorHeader extends DiskImageSectorHeader {
+    /** セクタデータへのヘッダ部分を渡すクラス */
+    public static class DiskD88SectorHeader extends DiskImageSectorHeader {
 
-        public static final int SIZE = 16;
-
+        /** sector header */
         private D88SectorHeader m_header;
 
         public DiskD88SectorHeader() {
@@ -122,7 +148,7 @@ public class DiskD88 {
         }
 
         public int getHeaderSize() {
-            return SIZE;
+            return D88SectorHeader.SIZE;
         }
 
         public void alloc() {
@@ -308,11 +334,17 @@ public class DiskD88 {
         }
     }
 
+    /** セクタデータへのポインタを保持するクラス */
     static class DiskD88Sector extends DiskImageSector {
 
+        /** sector header */
         private final DiskD88SectorHeader m_header = new DiskD88SectorHeader();
+        /** sector data */
         private byte[] data;
+
+        /** pre-save header */
         private final DiskD88SectorHeader m_header_origin = new DiskD88SectorHeader();
+        /** pre-save data */
         private byte[] data_origin;
 
         public DiskD88Sector(int n_num, DiskImageSectorHeader n_header, byte[] n_data) {
@@ -629,6 +661,7 @@ public class DiskD88 {
         }
     }
 
+    /** トラックデータへのポインタを保持するクラス */
     public static class DiskD88Track extends DiskImageTrack {
 
         public DiskD88Track(DiskImageDisk disk) {
@@ -650,9 +683,8 @@ public class DiskD88 {
         }
     }
 
+    /** １ディスクのヘッダを渡すクラス */
     public static class DiskD88DiskHeader extends DiskImageDiskHeader {
-
-        public static final int SIZE = 688;
 
         private D88Header m_header;
 
@@ -670,7 +702,7 @@ public class DiskD88 {
         }
 
         public int getHeaderSize() {
-            return SIZE;
+            return D88Header.SIZE;
         }
 
         public void alloc() {
@@ -810,11 +842,16 @@ public class DiskD88 {
         }
     }
 
+    /** １ディスクへのポインタを保持するクラス */
     public static class DiskD88Disk extends DiskImageDisk {
 
+        /** disk header */
         private final DiskD88DiskHeader m_header = new DiskD88DiskHeader();
         private final DiskD88DiskHeader m_header_origin = new DiskD88DiskHeader();
+
+        /** 変更したか */
         private boolean m_modified;
+
         private final int m_offset_start;
 
         public DiskD88Disk(DiskImageFile file, int n_num) {
@@ -977,6 +1014,7 @@ public class DiskD88 {
         }
     }
 
+    /** ディスクイメージへのポインタを保持するクラス */
     public static class DiskD88Image extends DiskImage {
 
         public DiskD88Image() {

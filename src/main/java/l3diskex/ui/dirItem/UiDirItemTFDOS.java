@@ -11,20 +11,20 @@ import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
 
 import l3diskex.basicfmt.DiskBasicDirItem.DiskBasicDirItemAttr;
-import l3diskex.basicfmt.DiskBasicDirItemTFDOS;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemTFDOS;
 import l3diskex.basicfmt.DiskBasicError;
 import l3diskex.ui.IntNameBox;
 import l3diskex.ui.UiDirItem;
 
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_HIDDEN_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_READONLY_MASK;
-import static l3diskex.basicfmt.DiskBasicDirItemTFDOS.DATATYPE_TFDOS_HIDDEN;
-import static l3diskex.basicfmt.DiskBasicDirItemTFDOS.DATATYPE_TFDOS_READ_ONLY;
-import static l3diskex.basicfmt.DiskBasicDirItemTFDOS.TYPE_NAME_TFDOS_DBB;
-import static l3diskex.basicfmt.DiskBasicDirItemTFDOS.TYPE_NAME_TFDOS_READ_ONLY;
-import static l3diskex.basicfmt.DiskBasicDirItemTFDOS.TYPE_NAME_TFDOS_TEX;
-import static l3diskex.basicfmt.DiskBasicDirItemTFDOS.TYPE_NAME_TFDOS_UNKNOWN;
-import static l3diskex.basicfmt.DiskBasicDirItemTFDOS.gTypeNameTFDOS;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemTFDOS.DATATYPE_TFDOS_HIDDEN;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemTFDOS.DATATYPE_TFDOS_READ_ONLY;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemTFDOS.TYPE_NAME_TFDOS_DBB;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemTFDOS.TYPE_NAME_TFDOS_READ_ONLY;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemTFDOS.TYPE_NAME_TFDOS_TEX;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemTFDOS.TYPE_NAME_TFDOS_UNKNOWN;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemTFDOS.gTypeNameTFDOS;
 import static l3diskex.ui.IntNameBox.INTNAME_IMPORT_INTERNAL;
 import static l3diskex.ui.IntNameBox.INTNAME_NEW_FILE;
 

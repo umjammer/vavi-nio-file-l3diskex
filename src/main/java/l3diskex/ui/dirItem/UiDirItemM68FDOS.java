@@ -12,8 +12,8 @@ import javax.swing.JCheckBox;
 import javax.swing.JWindow;
 
 import l3diskex.basicfmt.DiskBasicDirItem.DiskBasicDirItemAttr;
-import l3diskex.basicfmt.DiskBasicDirItemM68FDOS;
-import l3diskex.basicfmt.DiskBasicDirItemM68FDOS.enTypeNameM68FDOS;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemM68FDOS;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemM68FDOS.enTypeNameM68FDOS;
 import l3diskex.basicfmt.DiskBasicError;
 import l3diskex.ui.IntNameBox;
 import l3diskex.ui.UiDirItem;
@@ -34,7 +34,7 @@ public class UiDirItemM68FDOS extends UiDirItem {
 
     DiskBasicDirItemM68FDOS dirItem;
 
-    /// インポート時ダイアログ表示前にファイルの属性を設定
+    /** インポート時ダイアログ表示前にファイルの属性を設定 */
     public void SetFileTypeForAttrDialog(int show_flags, String name, int[] file_type_1, int[] file_type_2) {
         if ((show_flags & INTNAME_NEW_FILE) != 0) {
             // 外部からインポート時
@@ -66,7 +66,7 @@ public class UiDirItemM68FDOS extends UiDirItem {
     /// @name プロパティダイアログ用
     // @{
 
-    /// ダイアログ内の属性部分のレイアウトを作成
+    /** ダイアログ内の属性部分のレイアウトを作成 */
     public void CreateControlsForAttrDialog(IntNameBox parent, int show_flags, String file_path, BoxLayout sizer, Object flags) {
         int type1 = dirItem.getFileType1();
         // int type2 = GetFileType2(); // not used
@@ -106,7 +106,7 @@ public class UiDirItemM68FDOS extends UiDirItem {
         // sizer.Add(hbox, flags);
     }
 
-    /// 機種依存の属性を設定する
+    /** 機種依存の属性を設定する */
     public boolean SetAttrInAttrDialog(IntNameBox parent, DiskBasicDirItemAttr attr, DiskBasicError errinfo) {
         int t1 = GetFileType1InAttrDialog(parent);
         int t2 = dirItem.getFileType2();
@@ -118,12 +118,12 @@ public class UiDirItemM68FDOS extends UiDirItem {
         return true;
     }
 
-    /// ファイルサイズが適正か
+    /** ファイルサイズが適正か */
     public boolean IsFileValidSize(IntNameBox parent, int size, int[] limit) {
         return true;
     }
 
-    /// ダイアログ入力後のファイル名チェック
+    /** ダイアログ入力後のファイル名チェック */
     public boolean ValidateFileName(JWindow parent, String filename, String[] errormsg) {
         // 空白はNG
         if (filename.isEmpty()) {
@@ -133,7 +133,7 @@ public class UiDirItemM68FDOS extends UiDirItem {
         return true;
     }
 
-    /// ダイアログの終了アドレスを編集できるか
+    /** ダイアログの終了アドレスを編集できるか */
     public boolean IsEndAddressEditableInAttrDialog(IntNameBox parent) {
         return false;
     }

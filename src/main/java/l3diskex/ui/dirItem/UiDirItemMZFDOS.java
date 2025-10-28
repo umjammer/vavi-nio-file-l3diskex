@@ -12,14 +12,14 @@ import javax.swing.JTextField;
 import javax.swing.JWindow;
 
 import l3diskex.basicfmt.DiskBasicDirItem.DiskBasicDirItemAttr;
-import l3diskex.basicfmt.DiskBasicDirItemMZFDOS;
-import l3diskex.basicfmt.DiskBasicDirItemMZFDOS.enTypeNameMZFDOS;
-import l3diskex.basicfmt.DiskBasicDirItemMZFDOS.en_file_type_mz_fdos;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemMZFDOS;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemMZFDOS.enTypeNameMZFDOS;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemMZFDOS.en_file_type_mz_fdos;
 import l3diskex.basicfmt.DiskBasicError;
 import l3diskex.ui.IntNameBox;
 import l3diskex.ui.UiDirItem;
 
-import static l3diskex.basicfmt.DiskBasicDirItemMZFDOS.enTypeNameMZFDOS.TYPE_NAME_MZ_FDOS_OBJ;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemMZFDOS.enTypeNameMZFDOS.TYPE_NAME_MZ_FDOS_OBJ;
 
 
 /**

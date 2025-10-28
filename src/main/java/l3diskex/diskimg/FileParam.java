@@ -140,12 +140,16 @@ public class FileParam {
         }
     }
 
-    /**
+    /*
      * FileParam
      */
-    protected String m_extension; // extension
-    protected List<FileParamFormat> m_formats;   // list of formats
-    protected String m_description; // description
+
+    // extension
+    protected String m_extension;
+    // list of formats
+    protected List<FileParamFormat> m_formats;
+    // description
+    protected String m_description;
 
     public FileParam() {
         clearFileParam();
@@ -159,13 +163,11 @@ public class FileParam {
         setFileParam(n_ext, n_formats, n_desc);
     }
 
-    /* assignment operator --------------------------------------------*/
     public FileParam assign(FileParam src) {
         setFileParam(src);
         return this;
     }
 
-    /* setters --------------------------------------------------------*/
     public void setFileParam(FileParam src) {
         m_extension = src.m_extension;
         m_formats = src.m_formats;
@@ -185,7 +187,6 @@ public class FileParam {
         m_description = "";
     }
 
-    /* getters --------------------------------------------------------*/
     public String getExt() {
         return m_extension;
     }

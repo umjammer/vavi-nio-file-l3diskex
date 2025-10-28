@@ -43,25 +43,25 @@ public class IntNameBox extends JDialog {
     private static final int INTNAME_LISTCOL_WIDTH = 42;
 
     public static final int INTNAME_SHOW_TEXT = 0x0001;
-    /// < 内部ファイル名を表示する
+    /** 内部ファイル名を表示する */
     public static final int INTNAME_SHOW_ATTR = 0x0002;
-    /// < 属性を表示する
+    /** 属性を表示する */
     public static final int INTNAME_SHOW_PROPERTY = 0x0004;
-    /// < プロパティ表示（グループ一覧表示）
+    /** プロパティ表示（グループ一覧表示） */
     public static final int INTNAME_SHOW_SKIP_DIALOG = 0x0008;
-    /// < スキップするかチェックボックス表示
+    /** スキップするかチェックボックス表示 */
     public static final int INTNAME_NEW_FILE = 0x0010;
-    /// < 新規ファイル時
+    /** 新規ファイル時 */
     public static final int INTNAME_IMPORT_INTERNAL = 0x0020;
-    /// < アプリ内インポート
+    /** アプリ内インポート */
     public static final int INTNAME_SPECIFY_FILE_NAME = 0x0100;
-    /// < ファイル名を別途指定
+    /** ファイル名を別途指定 */
     public static final int INTNAME_SPECIFY_CDATE_TIME = 0x0200;
-    /// < 作成日時を別途指定
+    /** 作成日時を別途指定 */
     public static final int INTNAME_SPECIFY_MDATE_TIME = 0x0400;
-    /// < 更新日時を別途指定
+    /** 更新日時を別途指定 */
     public static final int INTNAME_SPECIFY_ADATE_TIME = 0x0800;
-    /// < アクセス日時を別途指定
+    /** アクセス日時を別途指定 */
 
     // Control IDs
     public static final int IDC_TEXT_INTNAME = 1;

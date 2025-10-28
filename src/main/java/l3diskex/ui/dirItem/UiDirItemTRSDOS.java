@@ -13,16 +13,16 @@ import javax.swing.JCheckBox;
 import javax.swing.JSpinner;
 
 import l3diskex.basicfmt.DiskBasicDirItem.DiskBasicDirItemAttr;
-import l3diskex.basicfmt.DiskBasicDirItemTRSDOS;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemTRSDOS;
 import l3diskex.basicfmt.DiskBasicError;
 import l3diskex.ui.IntNameBox;
 import l3diskex.ui.UiDirItem;
 
-import static l3diskex.basicfmt.DiskBasicDirItemTRSDOS.FILETYPE_MASK_TRSDOS_ACCESS;
-import static l3diskex.basicfmt.DiskBasicDirItemTRSDOS.FILETYPE_MASK_TRSDOS_INUSE;
-import static l3diskex.basicfmt.DiskBasicDirItemTRSDOS.FILETYPE_MASK_TRSDOS_INVISIBLE;
-import static l3diskex.basicfmt.DiskBasicDirItemTRSDOS.FILETYPE_MASK_TRSDOS_OVERFLOW;
-import static l3diskex.basicfmt.DiskBasicDirItemTRSDOS.FILETYPE_MASK_TRSDOS_SYSTEM;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemTRSDOS.FILETYPE_MASK_TRSDOS_ACCESS;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemTRSDOS.FILETYPE_MASK_TRSDOS_INUSE;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemTRSDOS.FILETYPE_MASK_TRSDOS_INVISIBLE;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemTRSDOS.FILETYPE_MASK_TRSDOS_OVERFLOW;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemTRSDOS.FILETYPE_MASK_TRSDOS_SYSTEM;
 
 
 /**

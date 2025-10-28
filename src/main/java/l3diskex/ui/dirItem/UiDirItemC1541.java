@@ -14,15 +14,15 @@ import javax.swing.JTextField;
 
 import l3diskex.Utils;
 import l3diskex.basicfmt.DiskBasicDirItem.DiskBasicDirItemAttr;
-import l3diskex.basicfmt.DiskBasicDirItemC1541;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemC1541;
 import l3diskex.basicfmt.DiskBasicError;
 import l3diskex.ui.IntNameBox;
 import l3diskex.ui.UiDirItem;
 
-import static l3diskex.basicfmt.DiskBasicDirItemC1541.FILETYPE_MASK_C1541_REL;
-import static l3diskex.basicfmt.DiskBasicDirItemC1541.TYPE_NAME_C1541_DEL;
-import static l3diskex.basicfmt.DiskBasicDirItemC1541.TYPE_NAME_C1541_REL;
-import static l3diskex.basicfmt.DiskBasicDirItemC1541.gTypeNameC1541;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemC1541.FILETYPE_MASK_C1541_REL;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemC1541.TYPE_NAME_C1541_DEL;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemC1541.TYPE_NAME_C1541_REL;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemC1541.gTypeNameC1541;
 import static l3diskex.ui.IntNameBox.INTNAME_NEW_FILE;
 
 
@@ -40,7 +40,35 @@ public class UiDirItemC1541 extends UiDirItem {
 
     DiskBasicDirItemC1541 dirItem;
 
-    /// インポート時ダイアログ表示前にファイルの属性を設定
+    /**
+     * Allocation Mapの開始位置を得る（ダイアログ用）
+     */
+    @Override
+    public void getStartNumOnFat(int[] track_num, int[] side_num, int[] sector_num) {
+        track_num[0] = basic.getManagedTrackNumber();
+        side_num[0] = 0;
+        sector_num[0] = basic.getSectorNumberBase();
+    }
+
+    /**
+     * Allocation Mapの終了位置を得る（ダイアログ用）
+     */
+    @Override
+    public void getEndNumOnFat(int[] track_num, int[] side_num, int[] sector_num) {
+        track_num[0] = basic.getManagedTrackNumber();
+        side_num[0] = 0;
+        sector_num[0] = basic.getSectorNumberBase();
+    }
+
+    /**
+     * タイトル名（ダイアログ用）
+     */
+    @Override
+    public String getTitleForFat() {
+        return "Allocation Map";
+    }
+
+    /** インポート時ダイアログ表示前にファイルの属性を設定 */
     public void setFileTypeForAttrDialog(int show_flags, String name, int[] file_type_1, int[] file_type_2) {
         // INTNAME_NEW_FILE is a mock constant for new file
         if ((show_flags & 0x01) != 0) { // Assuming INTNAME_NEW_FILE = 0x01
@@ -56,7 +84,7 @@ public class UiDirItemC1541 extends UiDirItem {
     /// @param [out] file_type_2    CreateControlsForAttrDialog()に渡す
     // This is the private method SetFileTypeForAttrDialog, implemented above as a helper.
 
-    /// ダイアログ内の属性部分のレイアウトを作成
+    /** ダイアログ内の属性部分のレイアウトを作成 */
     @Override
     public void createControlsForAttrDialog(IntNameBox parent, int show_flags, String file_path, BoxLayout sizer, Object flags) {
         int[] file_type_1_arr = {dirItem.getFileType1()};
@@ -102,7 +130,7 @@ public class UiDirItemC1541 extends UiDirItem {
             // IntNameBox::CreateFileSize(parent, IDC_TEXT_SIDESEC, "Size of Side Sector", 20, true, null, null, szrG, txtSideSecArr); // Mock call
             txtSideSec = (JTextField) txtSideSecArr[0]; // Assuming it's set by the mock call
 
-            int sid_size = (int) dirItem.m_ss_groups.getSize();
+            int sid_size = dirItem.m_ss_groups.getSize();
             String sid_size_str = IntNameBox.convFileSize(sid_size);
             txtSideSec.setText(sid_size_str);
             txtSideSec.setEditable(false);
@@ -112,19 +140,19 @@ public class UiDirItemC1541 extends UiDirItem {
         // sizer->Add(staType2, flags);
     }
 
-    /// ダイアログ内の値を設定
+    /** ダイアログ内の値を設定 */
     @Override
     public void initializeForAttrDialog(IntNameBox parent, int show_flags, int[] user_data) {
         // Implementation is empty in C++, so it remains empty here.
     }
 
-    /// 属性を変更した際に呼ばれるコールバック
+    /** 属性を変更した際に呼ばれるコールバック */
     @Override
     public void changeTypeInAttrDialog(IntNameBox parent) {
         // Implementation is empty in C++, so it remains empty here.
     }
 
-    /// 機種依存の属性を設定する
+    /** 機種依存の属性を設定する */
     @Override
     public boolean setAttrInAttrDialog(IntNameBox parent, DiskBasicDirItemAttr attr, DiskBasicError errinfo) {
         JComboBox comType1 = (JComboBox) parent.getComponent(IDC_COMBO_TYPE1);

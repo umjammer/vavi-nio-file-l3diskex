@@ -9,7 +9,6 @@ import java.awt.Graphics2D;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.lang.System.Logger;
-import java.lang.System.Logger.Level;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -38,38 +37,9 @@ public class UiDiskFatArea {
 
     private static final Logger logger = System.getLogger(UiDiskFatArea.class.getName());
 
-    /* ------------------------------------------------------------------ */
-    /*  CONSTANTS (portions of the original C++ definitions)              */
-    /* ------------------------------------------------------------------ */
-
     static final int SELECT_FLAG = 0x10000;
     static final int EXTRA_FLAG = 0x20000;
 
-    /* ------------------------------------------------------------------ */
-    /*  BASIC STUB CLASSES                                                 */
-    /* ------------------------------------------------------------------ */
-
-    /** Minimal stub for UiDiskFrame. */
-    static class UiDiskFrame {
-
-        void FatAreaWindowClosed() {
-            logger.log(Level.ERROR, "FAT area window closed");
-        }
-    }
-
-    /** Minimal representation of a single group entry. */
-    public static class DiskBasicGroup {
-
-        int group;
-
-        DiskBasicGroup(int g) {
-            this.group = g;
-        }
-    }
-
-    /* ------------------------------------------------------------------ */
-    /*  MAIN FRAME (corresponds to UiDiskFatAreaFrame)                     */
-    /* ------------------------------------------------------------------ */
     static class UiDiskFatAreaFrame extends JFrame {
 
         private final UiDiskFatAreaPanel panel;
@@ -77,7 +47,7 @@ public class UiDiskFatArea {
         UiDiskFatAreaFrame(UiDiskFrame parent, String title, Dimension size) {
             super(title);
 
-            /* ---- Menu ------------------------------------------------- */
+            /*  Menu  */
             JMenuBar menuBar = new JMenuBar();
             JMenu fileMenu = new JMenu("File");
             JMenuItem closeItem = new JMenuItem("Close");
@@ -89,7 +59,7 @@ public class UiDiskFatArea {
             menuBar.add(fileMenu);
             setJMenuBar(menuBar);
 
-            /* ---- Panel + ScrollPane ----------------------------------- */
+            /*  Panel + ScrollPane  */
             panel = new UiDiskFatAreaPanel(this);
             JScrollPane scrollPane = new JScrollPane(panel);
             getContentPane().add(scrollPane, BorderLayout.CENTER);
@@ -97,7 +67,7 @@ public class UiDiskFatArea {
             setSize(size);
             setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
-            /* ---- Close handling --------------------------------------- */
+            /*  Close handling  */
             addWindowListener(new WindowAdapter() {
                 @Override
                 public void windowClosed(WindowEvent e) {
@@ -108,9 +78,9 @@ public class UiDiskFatArea {
             });
         }
 
-        /* --------------------------------------------------------------- */
+        /*  */
         /*  Public interface used by the original code.                    */
-        /* --------------------------------------------------------------- */
+        /*  */
         public void SetData(int offset, List<Integer> arr) {
             panel.setData(offset, arr);
         }
@@ -138,43 +108,43 @@ public class UiDiskFatArea {
         }
     }
 
-    /* ------------------------------------------------------------------ */
+    /* - */
     /*  PANEL (corresponds to UiDiskFatAreaPanel)                         */
-    /* ------------------------------------------------------------------ */
+    /* - */
     static class UiDiskFatAreaPanel extends JPanel /* implements Scrollable */ {
 
         private final UiDiskFatAreaFrame frame;
 
-        /* Data handling ------------------------------------------------ */
+        /* Data handling - */
         private int offset = 0;                     // same as C++ `long` offset
         private List<Integer> datas = new ArrayList<>();
 
-        /* Drawing configuration ---------------------------------------- */
+        /* Drawing configuration - */
         private final Dimension sq = new Dimension(10, 10); // square size
         private final int margin = 2;
         private final int lpadding = 8;
         private final int rpadding = lpadding + 16;
         private final int ll = 4;                     // see original code
 
-        /* Colors (pens and brushes) ----------------------------------- */
+        /* Colors (pens and brushes)  */
         private final Color[] pens = new Color[FAT_AVAIL_NULLEND.ordinal()];
         private final Color[] brushes = new Color[FAT_AVAIL_NULLEND.ordinal()];
         private final Color brushSelect = Color.RED;
         private final Color brushExtra = new Color(0xff, 0x00, 0xff);
 
-        /* Constructor -------------------------------------------------- */
+        /* Constructor - */
         UiDiskFatAreaPanel(UiDiskFatAreaFrame frame) {
             this.frame = frame;
             setBackground(Color.WHITE);
 
-            /* ---- Compute initial preferred size --------------------- */
+            /*  Compute initial preferred size - */
             int width = lpadding + ll + margin
                     + (sq.width + margin) * 16   // 16 squares in a row
                     + rpadding;
             int height = 240;                     // arbitrary initial height
             setPreferredSize(new Dimension(width, height * 100));
 
-            /* ---- Pens ------------------------------------------------ */
+            /*  Pens - */
             pens[FAT_AVAIL_FREE.ordinal()] = Color.BLACK;
             pens[FAT_AVAIL_SYSTEM.ordinal()] = Color.BLACK;
             pens[FAT_AVAIL_USED.ordinal()] = Color.BLACK;
@@ -183,7 +153,7 @@ public class UiDiskFatArea {
             pens[FAT_AVAIL_MISSING.ordinal()] = Color.GRAY;
             pens[FAT_AVAIL_LEAK.ordinal()] = Color.LIGHT_GRAY;
 
-            /* ---- Brushes -------------------------------------------- */
+            /*  Brushes - */
             brushes[FAT_AVAIL_FREE.ordinal()] = Color.WHITE;
             brushes[FAT_AVAIL_SYSTEM.ordinal()] = Color.GRAY;
             brushes[FAT_AVAIL_USED.ordinal()] = Color.CYAN;
@@ -193,15 +163,15 @@ public class UiDiskFatArea {
             brushes[FAT_AVAIL_LEAK.ordinal()] = new Color(0xc0, 0xff, 0xff);
         }
 
-        /* ---------------------------------------------------------------- */
+        /* - */
         /*  Painting routine (simplified version of the original C++ code)  */
-        /* ---------------------------------------------------------------- */
+        /* - */
         @Override
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
             Graphics2D dc = (Graphics2D) g;
 
-            /* ---- Draw the vertical grid lines ----------------------- */
+            /*  Draw the vertical grid lines - */
             int step = (sq.width + margin) * 4;
             int pos = 1;
             int x = lpadding;
@@ -223,7 +193,7 @@ public class UiDiskFatArea {
                 pos++;
             }
 
-            /* ---- Draw the data squares -------------------------------- */
+            /*  Draw the data squares  */
             y += (ll + margin);
             int row = 0;
             x = lpadding;
@@ -236,7 +206,7 @@ public class UiDiskFatArea {
                     x = lpadding;
                 }
 
-                /* ---- Optional row heading -------------------------------- */
+                /*  Optional row heading  */
                 if (x == lpadding && (row % 4) == 0) {
                     int px0 = x - (1 - ((row / 4) & 1)) * ll;
                     int px1 = x + ll;
@@ -252,7 +222,7 @@ public class UiDiskFatArea {
                 }
                 x += (ll + margin);
 
-                /* ---- Draw the individual square ------------------------ */
+                /*  Draw the individual square  */
                 int sts = datas.get(i);
                 Color fillColor;
                 if ((sts & SELECT_FLAG) != 0) {
@@ -274,15 +244,15 @@ public class UiDiskFatArea {
                 x += (sq.width + margin);
             }
 
-            /* ---- Update the panel's preferred size for scrolling ----- */
+            /*  Update the panel's preferred size for scrolling - */
             y += (sq.height + margin);
             setPreferredSize(new Dimension(getWidth(), y));
             revalidate();
         }
 
-        /* ---------------------------------------------------------------- */
+        /* - */
         /*  Data manipulation helpers                                         */
-        /* ---------------------------------------------------------------- */
+        /* - */
         void setData(int offset, List<Integer> arr) {
             if (arr != null) {
                 this.offset = offset;
@@ -322,7 +292,7 @@ public class UiDiskFatArea {
             }
         }
 
-        /* Public API for the frame ------------------------------------- */
+        /* Public API for the frame  */
         void setGroup(int groupNum) {
             setGroupBase(groupNum, SELECT_FLAG);
             repaint();
@@ -354,9 +324,9 @@ public class UiDiskFatArea {
         }
     }
 
-    /* ------------------------------------------------------------------ */
+    /* - */
     /*  Demo main method (creates a frame with dummy data)                */
-    /* ------------------------------------------------------------------ */
+    /* - */
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             /* Create a dummy parent */

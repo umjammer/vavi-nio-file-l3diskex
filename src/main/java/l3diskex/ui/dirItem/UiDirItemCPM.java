@@ -15,9 +15,9 @@ import javax.swing.JCheckBox;
 import javax.swing.JSpinner;
 
 import l3diskex.basicfmt.DiskBasicDirItem.DiskBasicDirItemAttr;
-import l3diskex.basicfmt.DiskBasicDirItemCPM;
-import l3diskex.basicfmt.DiskBasicDirItemCPM.EnTypeNameCPM;
-import l3diskex.basicfmt.DiskBasicDirItemCPM.EnTypeNameCPM2;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemCPM;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemCPM.EnTypeNameCPM;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemCPM.EnTypeNameCPM2;
 import l3diskex.basicfmt.DiskBasicError;
 import l3diskex.ui.IntNameBox;
 import l3diskex.ui.UiDirItem;
@@ -26,8 +26,8 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_ARCHIVE_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_BINARY_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_READONLY_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_SYSTEM_MASK;
-import static l3diskex.basicfmt.DiskBasicDirItemCPM.gTypeNameCPM;
-import static l3diskex.basicfmt.DiskBasicDirItemCPM.gTypeNameCPM_2;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemCPM.gTypeNameCPM;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemCPM.gTypeNameCPM_2;
 
 
 /**
