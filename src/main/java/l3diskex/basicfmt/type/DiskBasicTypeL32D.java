@@ -4,15 +4,15 @@
 
 package l3diskex.basicfmt.type;
 
-import l3diskex.basicfmt.BasicCommon.DirectoryL32d;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasicDir;
 import l3diskex.basicfmt.DiskBasicFat;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemL32D.DirectoryL32d;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 
 
 /**
- LEVEL-3 BASIC 2D(両面・倍密度)の処理
+ * LEVEL-3 BASIC 2D(両面・倍密度)の処理
  */
 public class DiskBasicTypeL32D extends DiskBasicTypeFAT8<DirectoryL32d> {
 

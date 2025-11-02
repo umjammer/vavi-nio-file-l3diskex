@@ -10,15 +10,18 @@ import java.util.Map;
 import java.util.ResourceBundle;
 
 import l3diskex.Utils;
-import l3diskex.basicfmt.BasicCommon.DirectoryFrost;
+import l3diskex.basicfmt.BasicCommon.DirectoryT;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasicDirItem;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemFROST.DirectoryFrost;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
+import vavi.util.serdes.Element;
+import vavi.util.serdes.Serdes;
 
 import static l3diskex.Config.gConfig;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_BASIC_MASK;
@@ -31,6 +34,30 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_MACHINE_MASK;
 public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
 
     private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
+
+    /**
+     * ディレクトリエントリ Frost-DOS (16bytes)
+     */
+    @Serdes(bigEndian = false)
+    public static class DirectoryFrost implements DirectoryT {
+
+        @Element(sequence = 1)
+        public byte[] name = new byte[6];
+        @Element(sequence = 2)
+        public byte[] ext = new byte[3];
+        @Element(sequence = 3)
+        public byte type;
+        @Element(sequence = 4)
+        public byte track;
+        @Element(sequence = 5)
+        public byte sector;
+        @Element(sequence = 6)
+        public short loadAddr;
+        @Element(sequence = 7)
+        public short size;
+
+        public static final int SIZE = 16;
+    }
 
     // Frost-DOS
 

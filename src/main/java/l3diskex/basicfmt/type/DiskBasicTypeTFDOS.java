@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) Sasaji. All rights reserved.
+ */
+
 package l3diskex.basicfmt.type;
 
 import java.io.ByteArrayInputStream;
@@ -7,7 +11,6 @@ import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.List;
 
-import l3diskex.basicfmt.BasicCommon.DirectoryTfdos;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasic.DiskBasicIdentifiedData;
@@ -16,6 +19,7 @@ import l3diskex.basicfmt.DiskBasicDirItem;
 import l3diskex.basicfmt.DiskBasicFat;
 import l3diskex.basicfmt.DiskBasicFat.DiskBasicFatBuffer;
 import l3diskex.basicfmt.DiskBasicParam.DiskBasicFormat;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemTFDOS.DirectoryTfdos;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import vavi.io.SeekableDataInputStream;
 import vavi.util.serdes.Element;
@@ -25,16 +29,17 @@ import static l3diskex.Utils.TEMP_DATA_SIZE;
 
 
 /**
-TF-DOSの処理
-
-DiskBasicParam 固有のパラメータ
-@li IDString  : セクタ1のIPL
-@li VolumeString : FAT領域にあるボリューム名
-@li ReservedGroups : 使用済みにするトラック
+ * TF-DOSの処理
+ * <p>
+ * DiskBasicParam 固有のパラメータ
+ *
+ * @li IDString  セクタ1のIPL
+ * @li VolumeString FAT領域にあるボリューム名
+ * @li ReservedGroups 使用済みにするトラック
  */
 public class DiskBasicTypeTFDOS extends DiskBasicTypeMZBase<DirectoryTfdos> {
 
-    /// TF-DOS IPLセクタ
+    /** TF-DOS IPLセクタ */
     @Serdes
     static class st_ipl_tfdos {
 
@@ -49,7 +54,7 @@ public class DiskBasicTypeTFDOS extends DiskBasicTypeMZBase<DirectoryTfdos> {
         public static int SIZE = 0xf0 + 0x10;
     }
 
-    /// TF-DOS FATセクタ
+    /** TF-DOS FATセクタ */
     @Serdes
     static class st_fat_tfdos {
 

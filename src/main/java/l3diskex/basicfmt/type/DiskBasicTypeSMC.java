@@ -4,10 +4,10 @@
 
 package l3diskex.basicfmt.type;
 
-import l3diskex.basicfmt.BasicCommon.DirectoryCpm;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasicDir;
 import l3diskex.basicfmt.DiskBasicFat;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemCPM.DirectoryCpm;
 
 
 ///

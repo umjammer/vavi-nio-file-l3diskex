@@ -13,16 +13,17 @@ import java.util.List;
 import java.util.Map;
 
 import l3diskex.Utils;
-import l3diskex.basicfmt.BasicCommon.C1541Ptr;
-import l3diskex.basicfmt.BasicCommon.DirectoryC1541;
+import l3diskex.basicfmt.BasicCommon.DirectoryT;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasicDirItem;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemC1541.DirectoryC1541;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
+import vavi.util.serdes.Element;
 import vavi.util.serdes.Serdes;
 
 import static l3diskex.Config.gConfig;
@@ -39,6 +40,45 @@ import static l3diskex.basicfmt.type.DiskBasicTypeC1541.C1541_START_TRACK_OFFSET
 
 /// ディレクトリ１アイテム Commodore 1541
 public class DiskBasicDirItemC1541 extends DiskBasicDirItem<DirectoryC1541> {
+
+    /**
+     * トラック＆セクタ Commodore 1541
+     */
+    @Serdes
+    public static class C1541Ptr {
+        @Element(sequence = 1)
+        public byte track;
+        @Element(sequence = 2)
+        public byte sector;
+    }
+
+    /**
+     * ディレクトリエントリ Commodore 1541 (32bytes)
+     */
+    @Serdes
+    public static class DirectoryC1541 implements DirectoryT {
+
+        @Element(sequence = 1)
+        public byte[] doNotWrite = new byte[2]; // first entry only on each sector
+        @Element(sequence = 2)
+        public byte type;
+        @Element(sequence = 3)
+        public C1541Ptr firstData = new C1541Ptr();
+        @Element(sequence = 4)
+        public byte[] name = new byte[16];
+        @Element(sequence = 5)
+        public C1541Ptr firstSide = new C1541Ptr(); // relative file only
+        @Element(sequence = 6)
+        public byte recordSize; // relative file only
+        @Element(sequence = 7)
+        public byte[] unused = new byte[4];
+        @Element(sequence = 8)
+        public C1541Ptr replace = new C1541Ptr();
+        @Element(sequence = 9)
+        public short numOfBlocks;
+
+        public static final int SIZE = 32;
+    }
 
     /// C1541属性値
     public static final int FILETYPE_MASK_C1541_DEL = 0x80;
@@ -78,7 +118,7 @@ public class DiskBasicDirItemC1541 extends DiskBasicDirItem<DirectoryC1541> {
     /** ディレクトリデータ */
     private final DiskBasicDirData<DirectoryC1541> m_data = new DiskBasicDirData<>();
 
-    // For REL files, side sectors
+    /** For REL files, side sectors */
     public DiskBasicGroups m_ss_groups = new DiskBasicGroups();
 
     public DiskBasicDirItemC1541(DiskBasic basic) {

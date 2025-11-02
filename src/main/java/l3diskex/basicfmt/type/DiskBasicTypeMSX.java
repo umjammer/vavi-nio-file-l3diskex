@@ -6,11 +6,11 @@ package l3diskex.basicfmt.type;
 
 import java.io.IOException;
 
-import l3diskex.basicfmt.BasicCommon.DirectoryMsDos;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasic.DiskBasicIdentifiedData;
 import l3diskex.basicfmt.DiskBasicDir;
 import l3diskex.basicfmt.DiskBasicFat;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemMSDOS.DirectoryMsDos;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 
 
@@ -37,9 +37,7 @@ public class DiskBasicTypeMSX extends DiskBasicTypeMSDOS {
      * ディスクから各パラメータを取得＆必要なパラメータを計算
      *
      * @param is_formatting フォーマット中か
-     * @return 1.0 正常
-     * 0.0 - 1.0 警告あり
-     * <0.0 エラーあり
+     * @return 1.0: 正常, 0.0 - 1.0: 警告あり, <0.0: エラーあり
      */
     @Override
     public double parseParamOnDisk(boolean is_formatting) throws IOException {

@@ -10,7 +10,6 @@ import java.lang.System.Logger;
 
 import l3diskex.Parambase;
 import l3diskex.Utils;
-import l3diskex.basicfmt.BasicCommon.DirectoryFat8f;
 import l3diskex.basicfmt.BasicCommon.DirectoryT;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
@@ -18,8 +17,11 @@ import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasicDirItem;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemFAT8.DiskBasicDirItemFAT8F.DirectoryFat8f;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
+import vavi.util.serdes.Element;
+import vavi.util.serdes.Serdes;
 
 import static l3diskex.Config.gConfig;
 import static l3diskex.Parambase.MyAttributes.findUpperCase;
@@ -319,6 +321,30 @@ public abstract class DiskBasicDirItemFAT8<T extends DirectoryT> extends DiskBas
 
     /// ディレクトリ１アイテム FAT8ビット(F-BASIC, L3 1S)
     public static class DiskBasicDirItemFAT8F extends DiskBasicDirItemFAT8<DirectoryFat8f> {
+
+        /**
+         * ディレクトリエントリ L3 ３インチ(単密度) / F-BASIC 倍密度
+         */
+        @Serdes(bigEndian = false)
+        public static class DirectoryFat8f implements DirectoryT {
+            @Element(sequence = 1)
+            public byte[] name = new byte[8];
+            @Element(sequence = 2)
+            public byte[] ext = new byte[3]; // not used.
+            @Element(sequence = 3)
+            public byte type;
+            @Element(sequence = 4)
+            public byte type2;
+            @Element(sequence = 5)
+            public byte type3;
+            @Element(sequence = 6)
+            public byte startGroup;
+
+            @Element(sequence = 7)
+            public byte[] reserved = new byte[17];
+
+            public static final int SIZE = 32;
+        }
 
         /** ディレクトリデータ */
         protected DiskBasicDirData<DirectoryFat8f> m_data = new DiskBasicDirData<>();

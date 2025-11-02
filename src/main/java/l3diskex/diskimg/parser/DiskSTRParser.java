@@ -579,7 +579,7 @@ public class DiskSTRParser extends DiskImageParser {
      * 2次圧縮データを展開
      *
      * @param istream 元データ
-     * @note estreamを入力ストリームとする
+     * estreamを入力ストリームとする
      */
     private void expand2Element(InputStream istream) throws IOException {
         byte[] ibuf = new byte[16];
@@ -710,7 +710,7 @@ public class DiskSTRParser extends DiskImageParser {
      * @param ostream 展開後データ
      * @param olimit  出力バッファサイズ
      * @return 出力データサイズがolimitに達したらfalse
-     * @note estreamを入力ストリームとする
+     * estreamを入力ストリームとする
      */
     private boolean expand1Element(OutputStream ostream, int olimit) throws IOException {
         int siz;
@@ -790,7 +790,7 @@ public class DiskSTRParser extends DiskImageParser {
      * @param ostream 展開後データ
      * @param olimit  出力バッファサイズ
      * @return 出力データサイズがolimitに達したらfalse
-     * @note estreamを入力ストリームとする
+     * estreamを入力ストリームとする
      */
     private boolean expand0Element(OutputStream ostream, int olimit) throws IOException {
         int siz;

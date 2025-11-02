@@ -8,16 +8,18 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ResourceBundle;
 
-import l3diskex.basicfmt.BasicCommon.DirectoryDos80;
-import l3diskex.basicfmt.BasicCommon.DirectoryDos80_2;
+import l3diskex.basicfmt.BasicCommon.DirectoryT;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasicDirItem;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemDOS80.DirectoryDos80;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
+import vavi.util.serdes.Element;
+import vavi.util.serdes.Serdes;
 
 import static l3diskex.Config.gConfig;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_BASIC_MASK;
@@ -27,11 +29,55 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_MACHINE_MASK;
 
 /// ディレクトリ１アイテム PC-8001 DOS
 ///
-/// @li DefaultStartAddress   デフォルトロードアドレス
-/// @li DefaultExecuteAddress デフォルト実行開始アドレスnged to Java.
+/// "DefaultStartAddress"   デフォルトロードアドレス
+/// "DefaultExecuteAddress" デフォルト実行開始アドレス
 public class DiskBasicDirItemDOS80 extends DiskBasicDirItemFAT8<DirectoryDos80> {
 
     private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
+
+    /**
+     * ディレクトリエントリ PC-8001 DOS (New PC.DOS) (16bytes)
+     */
+    @Serdes(bigEndian = false)
+    public static class DirectoryDos80 implements DirectoryT {
+
+        @Element(sequence = 1)
+        public byte[] name = new byte[16];
+
+        public static final int SIZE = 16;
+    }
+
+    /**
+     * PC-8001 DOS (New PC.DOS) グループエントリ
+     */
+    @Serdes(bigEndian = false)
+    public static class DirectoryDos80Grp {
+
+        @Element(sequence = 1)
+        public byte g; // byte
+        @Element(sequence = 2)
+        public short a; // wxUint16
+    }
+
+    /**
+     * ディレクトリエントリ2 PC-8001 DOS (New PC.DOS) (16bytes)
+     */
+    @Serdes(bigEndian = false)
+    public static class DirectoryDos80_2 implements DirectoryT {
+
+        @Element(sequence = 1)
+        public DirectoryDos80Grp[] grps = new DirectoryDos80Grp[5]; // 3 x 5
+        @Element(sequence = 2)
+        public byte reserved; // byte
+
+        public DirectoryDos80_2() {
+            for (int i = 0; i < 5; i++) {
+                grps[i] = new DirectoryDos80Grp();
+            }
+        }
+
+        public static final int SIZE = 16;
+    }
 
     /// PC-8001 DOS 属性
     static final int TYPE_NAME_DOS80_BASIC = 0;

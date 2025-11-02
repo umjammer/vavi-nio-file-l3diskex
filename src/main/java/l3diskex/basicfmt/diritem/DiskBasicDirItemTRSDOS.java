@@ -13,19 +13,21 @@ import java.util.ResourceBundle;
 
 import l3diskex.Utils;
 import l3diskex.basicfmt.BasicCommon.DirectoryT;
-import l3diskex.basicfmt.BasicCommon.DirectoryTrsd13;
-import l3diskex.basicfmt.BasicCommon.DirectoryTrsd23;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasicDirItem;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemTRSDOS.DiskBasicDirItemTRSD13.DirectoryTrsd13;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemTRSDOS.DiskBasicDirItemTRSD23.DirectoryTrsd23;
 import l3diskex.basicfmt.type.DiskBasicTypeTRSDOS;
 import l3diskex.basicfmt.type.DiskBasicTypeTRSDOS.DiskBasicTypeTRSD13;
 import l3diskex.basicfmt.type.DiskBasicTypeTRSDOS.DiskBasicTypeTRSD23;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
+import vavi.util.serdes.Element;
+import vavi.util.serdes.Serdes;
 
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_HIDDEN_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_SYSTEM_MASK;
@@ -39,6 +41,18 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_SYSTEM_MASK;
 public abstract class DiskBasicDirItemTRSDOS<T extends DirectoryT> extends DiskBasicDirItem<T> {
 
     private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
+
+    /**
+     * TRSDOS gap
+     */
+    @Serdes
+    public static class TrsdosGap {
+
+        @Element(sequence = 1)
+        public byte track;
+        @Element(sequence = 2)
+        public byte granules;
+    }
 
     /// TRSDOS属性位置
     public static final int FILETYPE_MASK_TRSDOS_ACCESS = 0x07;
@@ -392,6 +406,44 @@ public abstract class DiskBasicDirItemTRSDOS<T extends DirectoryT> extends DiskB
      * @see DiskBasicTypeTRSD23
      */
     public static class DiskBasicDirItemTRSD23 extends DiskBasicDirItemTRSDOS<DirectoryTrsd23> {
+
+        /**
+         * ディレクトリエントリ TRSDOS 2.x (32bytes)
+         */
+        @Serdes
+        public static class DirectoryTrsd23 implements DirectoryT {
+
+            @Element(sequence = 1)
+            public byte accessControl;
+            @Element(sequence = 2)
+            public byte overflow;
+            @Element(sequence = 3)
+            public byte reserved1;
+            @Element(sequence = 4)
+            public byte eofByteOffset;
+            @Element(sequence = 5)
+            public byte recordLength;
+            @Element(sequence = 6)
+            public byte[] name = new byte[8];
+            @Element(sequence = 7)
+            public byte[] ext = new byte[3];
+            @Element(sequence = 8)
+            public short updatePassword;
+            @Element(sequence = 9)
+            public short accessPassword;
+            @Element(sequence = 10)
+            public short eofSector;
+            @Element(sequence = 11)
+            public TrsdosGap[] gap = new TrsdosGap[5];
+
+            public DirectoryTrsd23() {
+                for (int i = 0; i < 5; i++) {
+                    gap[i] = new TrsdosGap();
+                }
+            }
+
+            public static final int SIZE = 32;
+        }
 
         /** ディレクトリデータ */
         protected DiskBasicDirData<DirectoryTrsd23> m_data = new DiskBasicDirData<>();
@@ -751,6 +803,32 @@ public abstract class DiskBasicDirItemTRSDOS<T extends DirectoryT> extends DiskB
      * @see DiskBasicTypeTRSD13
      */
     public static class DiskBasicDirItemTRSD13 extends DiskBasicDirItemTRSDOS<DirectoryTrsd13> {
+
+        /**
+         * ディレクトリエントリ TRSDOS 1.3 (48bytes)
+         */
+        public static class DirectoryTrsd13 implements DirectoryT {
+
+            public byte accessControl;
+            public byte month; // 0x01 - 0x0c
+            public byte year;
+            public byte eofByteOffset;
+            public byte recordLength;
+            public byte[] name = new byte[8];
+            public byte[] ext = new byte[3];
+            public short updatePassword;
+            public short accessPassword;
+            public short eofSector;
+            public TrsdosGap[] gap = new TrsdosGap[13];
+
+            public DirectoryTrsd13() {
+                for (int i = 0; i < 13; i++) {
+                    gap[i] = new TrsdosGap();
+                }
+            }
+
+            public static final int SIZE = 48;
+        }
 
         /** ディレクトリデータ */
         protected DiskBasicDirData<DirectoryTrsd13> m_data = new DiskBasicDirData<>();

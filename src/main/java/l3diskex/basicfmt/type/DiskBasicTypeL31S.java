@@ -4,16 +4,16 @@
 
 package l3diskex.basicfmt.type;
 
-import l3diskex.basicfmt.BasicCommon.DirectoryFat8f;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasicDir;
 import l3diskex.basicfmt.DiskBasicFat;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemFAT8.DiskBasicDirItemFAT8F.DirectoryFat8f;
 import l3diskex.basicfmt.type.DiskBasicTypeFAT8.DiskBasicTypeFAT8F;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 
 
 /**
- LEVEL-3 BASIC 1S(片面・単密度)の処理
+ * LEVEL-3 BASIC 1S(片面・単密度)の処理
  */
 public class DiskBasicTypeL31S extends DiskBasicTypeFAT8F {
 

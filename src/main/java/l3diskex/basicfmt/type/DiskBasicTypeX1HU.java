@@ -4,7 +4,6 @@
 
 package l3diskex.basicfmt.type;
 
-import l3diskex.basicfmt.BasicCommon.DirectoryX1Hu;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasicDir;
 import l3diskex.basicfmt.DiskBasicFat;
@@ -13,6 +12,7 @@ import l3diskex.basicfmt.DiskBasicFat.DiskBasicFatArea;
 import l3diskex.basicfmt.DiskBasicFat.DiskBasicFatBuffer;
 import l3diskex.basicfmt.DiskBasicFat.DiskBasicFatBuffers;
 import l3diskex.basicfmt.DiskBasicType;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemX1HU.DirectoryX1Hu;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 
 import static l3diskex.basicfmt.diritem.DiskBasicDirItemX1HU.EXTERNAL_X1_DEFAULT;

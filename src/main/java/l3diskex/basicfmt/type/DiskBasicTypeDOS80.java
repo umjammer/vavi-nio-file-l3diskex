@@ -10,13 +10,13 @@ import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.List;
 
-import l3diskex.basicfmt.BasicCommon.DirectoryDos80;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasic.DiskBasicIdentifiedData;
 import l3diskex.basicfmt.DiskBasicDir;
 import l3diskex.basicfmt.DiskBasicDirItem;
 import l3diskex.basicfmt.DiskBasicFat;
 import l3diskex.basicfmt.DiskBasicType;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemDOS80.DirectoryDos80;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskImage.DiskImageTrack;
 

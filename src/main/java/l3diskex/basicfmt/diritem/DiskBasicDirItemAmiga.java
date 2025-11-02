@@ -16,10 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 import l3diskex.Utils;
-import l3diskex.basicfmt.BasicCommon.AmigaBlockPost;
-import l3diskex.basicfmt.BasicCommon.AmigaBlockPre;
-import l3diskex.basicfmt.BasicCommon.AmigaHeaderPost;
-import l3diskex.basicfmt.BasicCommon.DirectoryAmiga;
+import l3diskex.basicfmt.BasicCommon.DirectoryT;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupUserData;
@@ -27,6 +24,7 @@ import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasicDirItem;
 import l3diskex.basicfmt.diritem.DiskBasicDirItemAmiga.AmigaChain.Pointer;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemAmiga.DirectoryAmiga;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
 import vavi.util.ByteUtil;
@@ -46,6 +44,209 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_WRITEONLY_MAS
 ///
 /// @li FastFileSystem FFSかどうか(bool)
 public class DiskBasicDirItemAmiga extends DiskBasicDirItem<DirectoryAmiga> {
+
+    /**
+     * Amiga block structure head (all Big Endien)
+     */
+    @Serdes
+    public static class AmigaBlockPre {
+
+        public static final int SIZE = 4 + 4 + 4 + 4 + 4 + 4 + 4;
+
+        /** starting block (T_HEADER:2 / T_LIST:16) */
+        @Element(sequence = 1)
+        public int type;
+        /** self pointer (except Root) */
+        @Element(sequence = 2)
+        public int headerKey;
+        /** number of data (File only) */
+        @Element(sequence = 3)
+        public int highSeq;
+        /** hash table size (Root only) (72) */
+        @Element(sequence = 4)
+        public int tableSize;
+        /** first data block pointer (File only) */
+        @Element(sequence = 5)
+        public int firstData;
+        @Element(sequence = 6)
+        public int checkSum;
+
+        @Element(sequence = 7)
+        public AmigaBlockPreUnion u = new AmigaBlockPreUnion();
+
+        @Serdes
+        public static class AmigaBlockPreUnion {
+
+            /** block pointer (72 items) */
+            public int[] table = new int[1];
+            /** symbolic name (Soft link only) */
+            @Element(sequence = 1)
+            public byte[] symName = new byte[4];
+        }
+    }
+
+    /**
+     * Amiga Root Block (above hash_table)
+     */
+    @Serdes
+    public static class AmigaRootBlockPost extends AmigaBlockPost {
+
+        public static final int SIZE = 4 + 4 + 4 + 4 + 4 + 41 + 1 + 4 + 4 + 4 + 4 + 4 + 4 + 4 + 4 + 4 + 4 + 4;
+
+        // value is -1 if disk bitmap is valid
+        @Element(sequence = 1)
+        public int bmFlag;
+        // blocks of disk bitmap
+        @Element(sequence = 2)
+        public int[] bmPages = new int[25];
+        // ext blocks of disk bitmap
+        @Element(sequence = 3)
+        public int bmExt;
+        // root dir modified date
+        @Element(sequence = 4)
+        public int rDays;
+        // root dir modified time
+        @Element(sequence = 5)
+        public int rMins;
+        // root dir modified seconds
+        @Element(sequence = 6)
+        public int rTicks;
+        // in bytes
+        @Element(sequence = 7)
+        public byte diskNameLen;
+        @Element(sequence = 8)
+        public byte[] diskName = new byte[31];
+        // set to 0
+        @Element(sequence = 9)
+        public int[] unused = new int[2];
+        // disk modified date
+        @Element(sequence = 10)
+        public int vDays;
+        // disk modified time
+        @Element(sequence = 11)
+        public int vMins;
+        // disk modified seconds
+        @Element(sequence = 12)
+        public int vTicks;
+        // disk creation date
+        @Element(sequence = 12)
+        public int cDays;
+        // disk creation time
+        @Element(sequence = 13)
+        public int cMins;
+        // disk creation seconds
+        @Element(sequence = 14)
+        public int cTicks;
+        // always 0
+        @Element(sequence = 15)
+        public int nextHash;
+        // always 0
+        @Element(sequence = 16)
+        public int parentDir;
+        // always 0
+        @Element(sequence = 17)
+        public int extension;
+        // always 1
+        @Element(sequence = 18)
+        public int secType;
+    }
+
+    /**
+     * Amiga File / Directory Header Block (post table)
+     */
+    @Serdes
+    public static class AmigaHeaderPost extends AmigaBlockPost {
+
+        public static final int SIZE = 4 + 2 + 2 + 4 + 4 + 1 + 79 + 12 + 4 + 4 + 4 + 1 + 31 + 4 + 4 + 4 + 20 + 4 + 4 + 4 + 4;
+
+        @Element(sequence = 1)
+        public byte[] unused0 = new byte[4];
+        // user id
+        @Element(sequence = 2)
+        public short uid;
+        // user group
+        @Element(sequence = 3)
+        public short gid;
+        @Element(sequence = 4)
+        public int protect;
+        // file size (File only)
+        @Element(sequence = 5)
+        public int byteSize;
+        // in bytes
+        @Element(sequence = 6)
+        public byte commentLen;
+        @Element(sequence = 7)
+        public byte[] comment = new byte[79];
+        @Element(sequence = 8)
+        public byte[] unused1 = new byte[12];
+        // modified date
+        @Element(sequence = 9)
+        public int days;
+        // modified time
+        @Element(sequence = 10)
+        public int mins;
+        // modified seconds
+        @Element(sequence = 11)
+        public int ticks;
+        // in bytes
+        @Element(sequence = 12)
+        public byte nameLen;
+        // 0 terminate
+        @Element(sequence = 13)
+        public byte[] name = new byte[31];
+        @Element(sequence = 14)
+        public byte[] unused2 = new byte[4];
+        // FFS unused (File only)
+        @Element(sequence = 15)
+        public int realEntry;
+        // FFS hardlinks chained list
+        @Element(sequence = 16)
+        public int nextLink;
+        @Element(sequence = 17)
+        public byte[] unused3 = new byte[20];
+        // next entry with same hash
+        @Element(sequence = 18)
+        public Pointer hashChain;
+        @Element(sequence = 19)
+        public int parentDir;
+        // 1st extension block / FFS: cache block
+        @Element(sequence = 20)
+        public int extension;
+        // -2 (ST_USERDIR) / -3 (ST_FILE) / -4 (ST_LINKFILE) / 4 (ST_LINKDIR) / 3 (ST_SOFTLINK)
+        @Element(sequence = 21)
+        public int secType;
+    }
+
+    /**
+     * Amiga block structure post table
+     */
+    public static class AmigaBlockPost {
+        public static final int SIZE = 200;
+        public static class Union {
+
+            public AmigaRootBlockPost r;
+            public AmigaHeaderPost h;
+        }
+        public Union u;
+    }
+
+    /**
+     * ディレクトリエントリ Amiga DOS
+     * <p>
+     * AmigaDOSは1セクタ分になるのでブロック番号だけを保持
+     */
+    @Serdes
+    public static class DirectoryAmiga implements DirectoryT {
+
+        @Element(sequence = 1)
+        public int blockNum; // int
+        @Element(sequence = 2)
+        public AmigaBlockPre pre; // pointer
+        @Element(sequence = 3)
+        public AmigaBlockPost post; // pointer
+
+        public static final int SIZE = 9;
+    }
 
     public static final String KEY_FAST_FILE_SYSTEM = "FastFileSystem";
     public static final String KEY_INTERNATIONAL = "International";
@@ -929,8 +1130,8 @@ public class DiskBasicDirItemAmiga extends DiskBasicDirItem<DirectoryAmiga> {
      * @param tables     ディレクトリヘッダ内のハッシュテーブル
      * @param table_size ハッシュテーブルのサイズ数
      * @param limit      ループ制限値
-     * @param items      [in,out]  ディレクトリの子供アイテムリスト
-     * @param item       [in,out]  新たに追加するアイテム
+     * @param items      [in,out] ディレクトリの子供アイテムリスト
+     * @param item       [in,out] 新たに追加するアイテム
      */
     public static boolean insertItemInDirectory(DiskBasic basic, int[] tables, int table_size, int limit, List<DiskBasicDirItem<DirectoryAmiga>> items, DiskBasicDirItem<DirectoryAmiga> item) {
         boolean valid = true;

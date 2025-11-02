@@ -13,14 +13,17 @@ import java.util.Map;
 import java.util.ResourceBundle;
 
 import l3diskex.Utils;
-import l3diskex.basicfmt.BasicCommon.DirectoryCdos;
+import l3diskex.basicfmt.BasicCommon.DirectoryT;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasicDirItem;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemCDOS.DirectoryCdos;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
+import vavi.util.serdes.Element;
+import vavi.util.serdes.Serdes;
 
 import static l3diskex.Config.gConfig;
 import static l3diskex.Parambase.MyAttributes.findValue;
@@ -37,6 +40,42 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_SYSTEM_MASK;
 public class DiskBasicDirItemCDOS extends DiskBasicDirItemMZBase<DirectoryCdos> {
 
     private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
+
+    /**
+     * ディレクトリエントリ C-DOS (32bytes)
+     */
+    @Serdes(bigEndian = false)
+    public static class DirectoryCdos implements DirectoryT {
+
+        @Element(sequence = 1)
+        public byte type;
+        @Element(sequence = 2)
+        public byte[] name = new byte[17]; // file name ends with $0D
+        @Element(sequence = 3)
+        public byte type2;
+        @Element(sequence = 4)
+        public byte byteOrder;
+        @Element(sequence = 5)
+        public short fileSize;
+        @Element(sequence = 6)
+        public short loadAddr;
+        @Element(sequence = 7)
+        public short execAddr;
+        @Element(sequence = 8)
+        public byte yy;
+        @Element(sequence = 9)
+        public byte mm;
+        @Element(sequence = 10)
+        public byte dd;
+        @Element(sequence = 11)
+        public byte reserved2;
+        @Element(sequence = 12)
+        public byte track;
+        @Element(sequence = 13)
+        public byte sector;
+
+        public static final int SIZE = 32;
+    }
 
     /* type name enum */
     public static final int TYPE_NAME_CDOS_UNKNOWN = 0;

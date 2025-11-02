@@ -25,7 +25,7 @@ import static l3diskex.basicfmt.DiskBasic.clearParseAndAssign;
 import static l3diskex.diskimg.DiskParam.gDiskTemplates;
 
 
-/** @brief ディスクイメージ入出力 */
+/** ディスクイメージ入出力 */
 public abstract class DiskImage {
 
     private static final Logger logger = System.getLogger(DiskImage.class.getName());
@@ -1240,7 +1240,7 @@ public abstract class DiskImage {
 
             int sectorMaxSize;
             int interleaveMax;
-            DiskParticulars singles = new DiskParticulars();
+            List<DiskParticular> singles = new ArrayList<>();
 
             if (tracks != null) {
                 for (int ti = 0; ti < tracks.size(); ti++) {
@@ -1279,7 +1279,7 @@ public abstract class DiskImage {
 
                     List<DiskImageSector> sectors = t.getSectors();
                     if (sectors != null) {
-                        DiskParticulars sis = new DiskParticulars();
+                        List<DiskParticular> sis = new ArrayList<>();
                         for (int si = 0; si < sectors.size(); si++) {
                             DiskImageSector s = sectors.get(si);
                             if (s != null && s.isSingleDensity()) {
@@ -1341,7 +1341,7 @@ public abstract class DiskImage {
                 sectorsPerTrack = (secNumMaj[0] > secNumMaj[1] ? secNumMaj[0] : secNumMaj[1]);
             }
 
-            DiskParticulars ptracks = new DiskParticulars();
+            List<DiskParticular> ptracks = new ArrayList<>();
             if (tracks != null) {
                 for (int ti = 0; ti < tracks.size(); ti++) {
                     DiskImageTrack t = tracks.get(ti);

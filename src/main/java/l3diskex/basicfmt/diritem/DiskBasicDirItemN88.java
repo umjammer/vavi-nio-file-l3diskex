@@ -6,18 +6,23 @@ package l3diskex.basicfmt.diritem;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
+import java.util.StringJoiner;
 
 import l3diskex.Parambase.MyAttribute;
 import l3diskex.Utils;
-import l3diskex.basicfmt.BasicCommon.DirectoryN88;
+import l3diskex.basicfmt.BasicCommon.DirectoryT;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasicDirItem;
 import l3diskex.basicfmt.DiskBasicType;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemN88.DirectoryN88;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
+import vavi.util.serdes.Element;
+import vavi.util.serdes.Serdes;
 
 import static l3diskex.Parambase.MyAttributes.findUpperCase;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_ASCII_MASK;
@@ -33,9 +38,39 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_READWRITE_MAS
 /**
  ディレクトリ１アイテム N88-BASIC
 
- @li m_external_attr ランダムアクセスファイルの時 1
+ {@link #externalAttr} ランダムアクセスファイルの時 1
  */
 public class DiskBasicDirItemN88 extends DiskBasicDirItemFAT8<DirectoryN88> {
+
+    /**
+     * ディレクトリエントリ n88 BASIC
+     */
+    @Serdes(bigEndian = false)
+    public static class DirectoryN88 implements DirectoryT {
+
+        @Element(sequence = 1)
+        public byte[] name = new byte[6];
+        @Element(sequence = 2)
+        public byte[] ext = new byte[3];
+        @Element(sequence = 3)
+        public byte type; // byte
+        @Element(sequence = 4)
+        public byte startGroup; // byte
+        @Element(sequence = 5)
+        public byte[] reserved = new byte[5];
+
+        public static final int SIZE = 16;
+
+        @Override
+        public String toString() {
+            return new StringJoiner(", ", DirectoryN88.class.getSimpleName() + "[", "]")
+                    .add("name=" + new String(name) + "." + new String(ext))
+                    .add("type=" + type)
+                    .add("startGroup=" + startGroup)
+                    .add("reserved=" + Arrays.toString(reserved))
+                    .toString();
+        }
+    }
 
     // N88-BASIC attribute names
     public static final String[] G_TYPE_NAME_N88_1 = {

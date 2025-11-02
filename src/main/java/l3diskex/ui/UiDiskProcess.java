@@ -178,8 +178,8 @@ class UiDiskProcess extends JFrame {
     /// @param full_data_path データファイルパス
     /// @param full_attr_path 属性ファイルパス
     /// @param file_name      ファイル名
-    /// @param dir_basic      [in,out]      保存先のOS
-    /// @param dir_item       [in,out]      保存先ディレクトリアイテム
+    /// @param dir_basic      [in,out] 保存先のOS
+    /// @param dir_item       [in,out] 保存先ディレクトリアイテム
     /// @return 1 警告あり処理継続
     /// @return 0 正常
     /// @return -1 エラー継続不可

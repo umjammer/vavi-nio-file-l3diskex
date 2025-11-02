@@ -17,18 +17,21 @@ import java.util.ResourceBundle;
 
 import l3diskex.Parambase.MyAttribute;
 import l3diskex.Utils;
-import l3diskex.basicfmt.BasicCommon.DirectoryMs;
-import l3diskex.basicfmt.BasicCommon.DirectoryMsDos;
-import l3diskex.basicfmt.BasicCommon.DirectoryMsLfn;
+import l3diskex.basicfmt.BasicCommon.DirectoryT;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasicDirItem;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemHU68K.DirectoryHu68k;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemLOSA.DirectoryLosa;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemMSDOS.DirectoryMs;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
 import vavi.io.SeekableDataInputStream;
+import vavi.util.serdes.Element;
+import vavi.util.serdes.Serdes;
 
 import static l3diskex.Parambase.MyAttributes.findUpperCase;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_ARCHIVE_MASK;
@@ -44,6 +47,81 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_VOLUME_MASK;
 public class DiskBasicDirItemMSDOS extends DiskBasicDirItem<DirectoryMs> {
 
     private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
+
+    /**
+     * ディレクトリエントリ MS-DOS FAT (32bytes)
+     */
+    @Serdes(bigEndian = false)
+    public static class DirectoryMsDos implements DirectoryT {
+
+        @Element(sequence = 1)
+        public byte[] name = new byte[8];
+        @Element(sequence = 2)
+        public byte[] ext = new byte[3];
+        @Element(sequence = 3)
+        public byte type;
+        @Element(sequence = 4)
+        public byte ntres;
+        @Element(sequence = 5)
+        public byte ctimeTenth;
+        @Element(sequence = 6)
+        public short ctime;
+        @Element(sequence = 7)
+        public short cdate;
+        @Element(sequence = 8)
+        public short adate;
+        @Element(sequence = 9)
+        public short startGroupHi;
+        @Element(sequence = 10)
+        public short wtime;
+        @Element(sequence = 11)
+        public short wdate;
+        @Element(sequence = 12)
+        public short startGroup;
+        @Element(sequence = 13)
+        public int fileSize;
+
+        public static final int SIZE = 32;
+    }
+
+    /**
+     * ディレクトリエントリ MS-DOS LFN (32bytes)
+     */
+    @Serdes(bigEndian = false)
+    public static class DirectoryMsLfn implements DirectoryT {
+
+        @Element(sequence = 1)
+        public byte order;
+        @Element(sequence = 2)
+        public byte[] name = new byte[10];
+        @Element(sequence = 3)
+        public byte type;
+        @Element(sequence = 4)
+        public byte type2;
+        @Element(sequence = 5)
+        public byte chksum;
+        @Element(sequence = 6)
+        public byte[] name2 = new byte[12];
+        @Element(sequence = 7)
+        public short dummyGroup;
+        @Element(sequence = 8)
+        public byte[] name3 = new byte[4];
+
+        public static final int SIZE = 32;
+    }
+
+    /**
+     * ディレクトリエントリ MS-DOS compatible (32bytes)
+     */
+    public static class DirectoryMs implements DirectoryT {
+
+        public DirectoryMsDos msdos = new DirectoryMsDos();
+        public DirectoryMsLfn mslfn = new DirectoryMsLfn();
+        public DirectoryHu68k hu68k = new DirectoryHu68k();
+        public DirectoryLosa losa = new DirectoryLosa();
+
+        public static final int SIZE = 32;
+    }
 
     /// MS-DOS 属性名
 

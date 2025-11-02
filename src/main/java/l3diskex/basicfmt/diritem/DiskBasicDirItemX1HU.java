@@ -16,15 +16,18 @@ import java.util.ResourceBundle;
 
 import l3diskex.Parambase.MyAttribute;
 import l3diskex.Utils;
-import l3diskex.basicfmt.BasicCommon.DirectoryX1Hu;
+import l3diskex.basicfmt.BasicCommon.DirectoryT;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasicDirItem;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemX1HU.DirectoryX1Hu;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
+import vavi.util.serdes.Element;
+import vavi.util.serdes.Serdes;
 
 import static l3diskex.Common.mem_invert;
 import static l3diskex.Parambase.MyAttributes.findUpperCase;
@@ -46,6 +49,38 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_READWRITE_MAS
 public class DiskBasicDirItemX1HU extends DiskBasicDirItem<DirectoryX1Hu> {
 
     private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
+
+    /**
+     * ディレクトリエントリ X1 Hu-BASIC
+     */
+    @Serdes(bigEndian = false)
+    public static class DirectoryX1Hu implements DirectoryT {
+
+        @Element(sequence = 1)
+        public byte type;
+        @Element(sequence = 2)
+        public byte[] name = new byte[13];
+        @Element(sequence = 3)
+        public byte[] ext = new byte[3];
+        @Element(sequence = 4)
+        public byte password;
+        @Element(sequence = 5)
+        public short fileSize;
+        @Element(sequence = 6)
+        public short loadAddr;
+        @Element(sequence = 7)
+        public short execAddr;
+        @Element(sequence = 8)
+        public byte[] date = new byte[3]; // yymwdd yy:BCD 00-99 m:HEX 0-C w:WEEK HEX 0(SUN)-7(SAT) dd:BCD
+        @Element(sequence = 9)
+        public byte[] time = new byte[2]; // hhmi BCD
+        @Element(sequence = 19)
+        public byte startGroupH;
+        @Element(sequence = 11)
+        public short startGroupL;
+
+        public static final int SIZE = 32;
+    }
 
     /// X1 Hu-BASIC 属性1位置
     public static final int TYPE_NAME_X1HU_BINARY = 0;

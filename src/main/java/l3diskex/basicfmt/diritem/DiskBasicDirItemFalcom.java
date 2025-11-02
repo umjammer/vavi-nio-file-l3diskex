@@ -6,15 +6,18 @@ package l3diskex.basicfmt.diritem;
 
 import java.io.IOException;
 
-import l3diskex.basicfmt.BasicCommon.DirectoryFalcom;
+import l3diskex.basicfmt.BasicCommon.DirectoryT;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasicDirItem;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemFalcom.DirectoryFalcom;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
+import vavi.util.serdes.Element;
+import vavi.util.serdes.Serdes;
 
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_BINARY_MASK;
 
@@ -24,6 +27,40 @@ public class DiskBasicDirItemFalcom extends DiskBasicDirItem<DirectoryFalcom> {
 
     /** Directory data. */
     private final DiskBasicDirData<DirectoryFalcom> m_data = new DiskBasicDirData<>();
+
+    /**
+     * ディレクトリエントリ Falcom (16bytes)
+     */
+    @Serdes
+    public static class DirectoryFalcom implements DirectoryT {
+
+        @Element(sequence = 1)
+        public byte[] name = new byte[6];
+        @Element(sequence = 2)
+        public short execAddr;
+        @Element(sequence = 3)
+        public short startAddr;
+        @Element(sequence = 4)
+        public short endAddr;
+        @Element(sequence = 5)
+        public GroupPtr startGroup = new GroupPtr();
+        @Element(sequence = 6)
+        public GroupPtr endGroup = new GroupPtr();
+
+        public static class GroupPtr {
+
+            @Element(sequence = 1)
+            public byte track;
+            @Element(sequence = 2)
+            public byte sector;
+
+            public byte[] getBytes() {
+                return new byte[0];
+            }
+        }
+
+        public static final int SIZE = 16;
+    }
 
     /** */
     public DiskBasicDirItemFalcom(DiskBasic basic) {

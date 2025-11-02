@@ -4,11 +4,11 @@
 
 package l3diskex.basicfmt.type;
 
-import l3diskex.basicfmt.BasicCommon.DirectoryFp;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasic.DiskBasicIdentifiedData;
 import l3diskex.basicfmt.DiskBasicDir;
 import l3diskex.basicfmt.DiskBasicFat;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemFP.DirectoryFp;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 
 

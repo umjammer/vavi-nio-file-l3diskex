@@ -17,13 +17,13 @@ import java.util.Map;
 
 import l3diskex.Common;
 import l3diskex.Utils;
-import l3diskex.basicfmt.BasicCommon.DirectoryProdos;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasicDirItem;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemAppleDOS.DirectoryProdos;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
 import vavi.util.serdes.Element;
@@ -551,7 +551,7 @@ public class DiskBasicDirItemProDOS extends DiskBasicDirItem<DirectoryProdos> {
     }
 
     /// 属性を返す
-    /// @note 固有属性の意味: STORAGE_TYPE,FILE_TYPE,ACCESS
+    /// 固有属性の意味: STORAGE_TYPE,FILE_TYPE,ACCESS
     @Override
     public DiskBasicFileType getFileAttr() {
         int val = 0;

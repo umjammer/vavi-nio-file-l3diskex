@@ -15,7 +15,6 @@ import java.nio.ShortBuffer;
 import java.util.Arrays;
 import java.util.List;
 
-import l3diskex.basicfmt.BasicCommon.DirectoryMz;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.DiskBasic;
@@ -27,6 +26,7 @@ import l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability;
 import l3diskex.basicfmt.DiskBasicFat.DiskBasicFatArea;
 import l3diskex.basicfmt.DiskBasicFat.DiskBasicFatBuffer;
 import l3diskex.basicfmt.DiskBasicType;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemMZ.DirectoryMz;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import vavi.util.ByteUtil;
 import vavi.util.serdes.Element;

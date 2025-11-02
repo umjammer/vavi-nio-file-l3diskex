@@ -11,13 +11,16 @@ import java.util.Map;
 import java.util.ResourceBundle;
 
 import l3diskex.Utils;
-import l3diskex.basicfmt.BasicCommon.DirectoryTfdos;
+import l3diskex.basicfmt.BasicCommon.DirectoryT;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
 import l3diskex.basicfmt.DiskBasic;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemTFDOS.DirectoryTfdos;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
+import vavi.util.serdes.Element;
+import vavi.util.serdes.Serdes;
 
 import static l3diskex.Config.gConfig;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_ASCII_MASK;
@@ -32,11 +35,33 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_READONLY_MASK
 /**
  ディレクトリ１アイテム TF-DOS
 
- @li m_external_attr 1: BASE互換, 2: BASE互換かを自動判定
+ {@link #externalAttr} 1: BASE互換, 2: BASE互換かを自動判定
  */
 public class DiskBasicDirItemTFDOS extends DiskBasicDirItemMZBase<DirectoryTfdos> {
 
     private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
+
+    /**
+     * ディレクトリエントリ TF-DOS (16bytes)
+     */
+    @Serdes(bigEndian = false)
+    public static class DirectoryTfdos implements DirectoryT {
+
+        @Element(sequence = 1)
+        public byte type; // byte
+        @Element(sequence = 2)
+        public byte[] name = new byte[8]; // file name ends with $0D and fills rest with $20
+        @Element(sequence = 3)
+        public short fileSize;
+        @Element(sequence = 4)
+        public short loadAddr;
+        @Element(sequence = 5)
+        public short execAddr;
+        @Element(sequence = 6)
+        public byte track; // byte
+
+        public static final int SIZE = 16;
+    }
 
     /// TF-DOS属性名
     public static final Map<String, Object> gTypeNameTFDOS = new HashMap<>() {{

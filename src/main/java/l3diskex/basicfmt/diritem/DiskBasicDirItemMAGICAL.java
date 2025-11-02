@@ -15,13 +15,16 @@ import java.util.Map;
 import java.util.ResourceBundle;
 
 import l3diskex.Utils;
-import l3diskex.basicfmt.BasicCommon.DirectoryMagical;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
 import l3diskex.basicfmt.DiskBasic;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemMAGICAL.DirectoryMagical;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemXDOS.DirectoryXdos;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
+import vavi.util.serdes.Element;
+import vavi.util.serdes.Serdes;
 
 import static l3diskex.Config.gConfig;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_ASCII_MASK;
@@ -39,6 +42,50 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_SYSTEM_MASK;
 public class DiskBasicDirItemMAGICAL extends DiskBasicDirItemXDOSBase<DirectoryMagical> {
 
     static final ResourceBundle rb = ResourceBundle.getBundle("message");
+
+    /**
+     * Magical DOS セグメント情報
+     */
+    @Serdes
+    public static class MagicalSeg {
+
+        @Element(sequence = 1)
+        public byte track;
+        @Element(sequence = 2)
+        public byte sector;
+        @Element(sequence = 3)
+        public byte size;
+    }
+
+    /**
+     * ディレクトリエントリ Magical DOS
+     */
+    @Serdes
+    public static class DirectoryMagical extends DirectoryXdos {
+
+        @Element(sequence = 1)
+        public byte type; // 1
+        @Element(sequence = 2)
+        public byte[] name = new byte[31];
+        @Element(sequence = 3)
+        public byte type2; // 1
+        @Element(sequence = 4)
+        public short loadAddr; // 2
+        @Element(sequence = 5)
+        public short fileSize; // 2
+        @Element(sequence = 6)
+        public short execAddr; // 2
+        @Element(sequence = 7)
+        public byte[] date = new byte[2];
+        @Element(sequence = 8)
+        public byte[] time = new byte[2];
+        @Element(sequence = 9)
+        public byte[] reserved = new byte[2];
+        @Element(sequence = 10)
+        public MagicalSeg start = new MagicalSeg(); // 3
+
+        public static final int SIZE = 48;
+    }
 
     // Enums and Constants from basicdiritem_magical.h
     public enum en_type_name_magical_1 {

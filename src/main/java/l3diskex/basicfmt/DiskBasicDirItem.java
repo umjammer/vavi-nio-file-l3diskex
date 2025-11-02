@@ -268,7 +268,7 @@ logger.log(Level.ERROR, e.getMessage(), e);
      * @param nSecpos セクタ内のディレクトリエントリの位置
      * @param nData   セクタ内のディレクトリエントリ
      * @param nNext   次のセクタ
-     * @param nUnuse  [out]  未使用か
+     * @param nUnuse  [out] 未使用か
      */
     public DiskBasicDirItem(DiskBasic basic, int nNum, DiskBasicGroupItem nGitem, DiskImageSector nSector, int nSecpos, byte[] nData, int dataP, SectorParam nNext, boolean[] nUnuse) {
         this.basic = basic;
@@ -1174,9 +1174,9 @@ logger.log(Level.ERROR, e.getMessage(), e);
      * 拡張子を得る
      *
      * データビットは反転させたまま
-     * @param fileext [in,out]  拡張子
+     * @param fileext [in,out] 拡張子
      * @param size    バッファサイズ
-     * @param length  [out]   長さ
+     * @param length  [out] 長さ
      */
     protected void getNativeExt(byte[] fileext, int size, int[] length) {
         byte[] e = null;
@@ -1192,10 +1192,10 @@ logger.log(Level.ERROR, e.getMessage(), e);
      * ファイル名と拡張子を得る
      * それぞれ空白は右トリミング
      *
-     * @param name [out]        ファイル名バッファ
-     * @param nlen [in,out]     上記バッファサイズ / 文字列長さを返す
-     * @param ext  [out]        拡張子名バッファ
-     * @param elen [in,out]     上記バッファサイズ / 文字列長さを返す
+     * @param name [out] ファイル名バッファ
+     * @param nlen [in,out] 上記バッファサイズ / 文字列長さを返す
+     * @param ext  [out] 拡張子名バッファ
+     * @param elen [in,out] 上記バッファサイズ / 文字列長さを返す
      *             データビットはこの関数で反転させる
      */
     public void getNativeFileName(byte[] name, int[] nlen, byte[] ext, int[] elen) {

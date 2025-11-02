@@ -10,7 +10,6 @@ import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.List;
 
-import l3diskex.basicfmt.BasicCommon.DirectoryM68fdos;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.DiskBasic;
@@ -22,6 +21,7 @@ import l3diskex.basicfmt.DiskBasicFat;
 import l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability;
 import l3diskex.basicfmt.DiskBasicFat.DiskBasicBitMLMap;
 import l3diskex.basicfmt.DiskBasicType;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemM68FDOS.DirectoryM68fdos;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import vavi.util.ByteUtil;
 
@@ -269,10 +269,10 @@ public class DiskBasicTypeM68FDOS extends DiskBasicTypeMZBase<DirectoryM68fdos> 
      * データサイズ分のグループを確保する
      *
      * @param fileunit_num ファイル番号
-     * @param item         [in,out]       ディレクトリアイテム
+     * @param item         [in,out] ディレクトリアイテム
      * @param size    確保するデータサイズ（バイト）
      * @param flags        新規か追加か
-     * @param group_items  [out]  確保したセクタリスト
+     * @param group_items  [out] 確保したセクタリスト
      * @return >0:正常 -1:空きなし(開始グループ設定前) -2:空きなし(開始グループ設定後)
      */
     @Override

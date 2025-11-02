@@ -14,15 +14,18 @@ import java.util.Map;
 import java.util.ResourceBundle;
 
 import l3diskex.Utils;
-import l3diskex.basicfmt.BasicCommon.DirectoryM68fdos;
+import l3diskex.basicfmt.BasicCommon.DirectoryT;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasicDirItem;
 import l3diskex.basicfmt.DiskBasicError;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemM68FDOS.DirectoryM68fdos;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
+import vavi.util.serdes.Element;
+import vavi.util.serdes.Serdes;
 
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_HIDDEN_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_READONLY_MASK;
@@ -37,6 +40,73 @@ import static l3diskex.basicfmt.DiskBasicType.INVALID_GROUP_NUMBER;
 public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68fdos> {
 
     static final ResourceBundle rb = ResourceBundle.getBundle("messages");
+
+    /**
+     * ディレクトリエントリ M68 FDOS (31bytes)
+     */
+    @Serdes
+    public static class DirectoryM68fdos implements DirectoryT {
+
+        @Element(sequence = 1)
+        public M68fdosName name = new M68fdosName();
+        @Element(sequence = 2)
+        public M68fdosExt ext = new M68fdosExt();
+        @Element(sequence = 3)
+        public short attr1;
+        @Element(sequence = 4)
+        public short attr2;
+        @Element(sequence = 5)
+        public short blockSize;
+        @Element(sequence = 6)
+        public byte eofInSector;
+        @Element(sequence = 7)
+        public short date;
+        @Element(sequence = 8)
+        public short time; // unknown
+        @Element(sequence = 9)
+        public M68fdosRev rev = new M68fdosRev();
+        @Element(sequence = 10)
+        public short startSector;
+        @Element(sequence = 11)
+        public byte attr3;
+        @Element(sequence = 12)
+        public short endSector; // unknown
+        @Element(sequence = 13)
+        public short loadAddr;
+        @Element(sequence = 14)
+        public short execAddr;
+        @Element(sequence = 15)
+        public byte[] unknown2 = new byte[3];
+
+        @Serdes
+        public static class M68fdosName {
+
+            @Element(sequence = 1)
+            public short[] w = new short[2]; // big endien
+            @Element(sequence = 2)
+            public byte[] b = new byte[4];
+        }
+
+        @Serdes
+        public static class M68fdosExt {
+
+            @Element(sequence = 1)
+            public short w; // big endien
+            @Element(sequence = 2)
+            public byte[] b = new byte[2];
+        }
+
+        @Serdes
+        public static class M68fdosRev {
+
+            @Element(sequence = 1)
+            public short w; // big endien
+            @Element(sequence = 2)
+            public byte[] b = new byte[2];
+        }
+
+        public static final int SIZE = 31;
+    }
 
     public static final int FILETYPE_M68_FDOS_D = 0x0001;
     public static final int FILETYPE_M68_FDOS_C = 0x0080;

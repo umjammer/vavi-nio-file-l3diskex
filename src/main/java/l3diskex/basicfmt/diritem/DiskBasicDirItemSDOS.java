@@ -11,15 +11,18 @@ import java.util.ResourceBundle;
 
 import l3diskex.Parambase.MyAttribute;
 import l3diskex.Utils;
-import l3diskex.basicfmt.BasicCommon.DirectorySdos;
+import l3diskex.basicfmt.BasicCommon.DirectoryT;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasicDirItem;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemSDOS.DirectorySdos;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
+import vavi.util.serdes.Element;
+import vavi.util.serdes.Serdes;
 
 import static l3diskex.Config.gConfig;
 import static l3diskex.Parambase.MyAttributes.findUpperCase;
@@ -35,6 +38,34 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_MACHINE_MASK;
 public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySdos> {
 
     private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
+
+    /**
+     * ディレクトリエントリ S-DOS (32bytes)
+     */
+    @Serdes(bigEndian = false)
+    public static class DirectorySdos implements DirectoryT {
+
+        @Element(sequence = 1)
+        public byte[] name = new byte[22];
+        @Element(sequence = 2)
+        public byte type;
+        @Element(sequence = 3)
+        public byte track;
+        @Element(sequence = 4)
+        public byte sector;
+        @Element(sequence = 5)
+        public byte size; // number of sector
+        @Element(sequence = 6)
+        public byte restSize;
+        @Element(sequence = 7)
+        public short loadAddr;
+        @Element(sequence = 8)
+        public short execAddr;
+        @Element(sequence = 9)
+        public byte reserved;
+
+        public static final int SIZE = 32;
+    }
 
     // S-DOS
 

@@ -7,12 +7,12 @@ package l3diskex.basicfmt.type;
 import java.io.IOException;
 import java.time.LocalDateTime;
 
-import l3diskex.basicfmt.BasicCommon.DirectoryMsDos;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasic.DiskBasicIdentifiedData;
 import l3diskex.basicfmt.DiskBasicDir;
 import l3diskex.basicfmt.DiskBasicDirItem;
 import l3diskex.basicfmt.DiskBasicFat;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemMSDOS.DirectoryMsDos;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 
 import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_UNKNOWN;

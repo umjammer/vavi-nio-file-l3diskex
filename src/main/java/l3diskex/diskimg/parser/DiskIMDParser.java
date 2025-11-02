@@ -115,7 +115,7 @@ public class DiskIMDParser extends DiskImageParser {
      * @param diskNumber ディスク番号
      * @param offsetPos  オフセット番号
      * @param offset     オフセット位置
-     * @param disk       [in,out]  ディスク
+     * @param disk       [in,out] ディスク
      * @return -1:エラー or 終り >0:トラックサイズ
      */
     private int parseTrack(InputStream istream,

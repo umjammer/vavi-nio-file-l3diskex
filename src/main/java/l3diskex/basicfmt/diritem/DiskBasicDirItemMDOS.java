@@ -7,15 +7,18 @@ package l3diskex.basicfmt.diritem;
 import java.io.IOException;
 import java.io.InputStream;
 
-import l3diskex.basicfmt.BasicCommon.DirectoryMdos;
+import l3diskex.basicfmt.BasicCommon.DirectoryT;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasicDirItem;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemMDOS.DirectoryMdos;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
+import vavi.util.serdes.Element;
+import vavi.util.serdes.Serdes;
 
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_BINARY_MASK;
 
@@ -24,6 +27,26 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_BINARY_MASK;
  * ディレクトリ１アイテム MDOS
  */
 public class DiskBasicDirItemMDOS extends DiskBasicDirItem<DirectoryMdos> {
+
+    /**
+     * ディレクトリエントリ MDOS (16bytes)
+     */
+    @Serdes
+    public static class DirectoryMdos implements DirectoryT {
+
+        @Element(sequence = 1)
+        public byte[] name = new byte[8];
+        @Element(sequence = 2)
+        public byte[] ext = new byte[3];
+        @Element(sequence = 3)
+        public byte unknown; // byte
+        @Element(sequence = 4, bigEndian = "false")
+        public short startGroup; // little endien
+        @Element(sequence = 5)
+        public short fileSize; // big endien
+
+        public static final int SIZE = 16;
+    }
 
     /** ディレクトリデータ */
     private final DiskBasicDirData<DirectoryMdos> m_data = new DiskBasicDirData<>();

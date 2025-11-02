@@ -14,7 +14,6 @@ import l3diskex.diskimg.DiskImage.DiskImageFile;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskImage.DiskImageTrack;
 import l3diskex.diskimg.DiskParam;
-import l3diskex.diskimg.DiskParam.DiskParticulars;
 import l3diskex.diskimg.DiskParam.TrackParam;
 import l3diskex.diskimg.DiskParser.DiskImageParser;
 import l3diskex.diskimg.DiskResult;
@@ -136,7 +135,7 @@ public class DiskPlainParser extends DiskImageParser {
      * @param trackNumber トラック番号
      * @param sideNumber  サイド番号
      * @param isDummySide ダミーサイドか
-     * @param disk        [in,out]  ディスク
+     * @param disk        [in,out] ディスク
      * @return 作成したトラックのサイズ
      */
     protected int parseTrack(InputStream istream, int offsetPos, int offset, int diskNumber, DiskParam diskParam, int trackNumber, int sideNumber, boolean isDummySide, DiskImageDisk disk) throws IOException {
@@ -429,8 +428,8 @@ public class DiskPlainParser extends DiskImageParser {
                 secSizeHints[desidedSecSizeIdx],
                 0,
                 1,
-                new DiskParticulars(),
-                new DiskParticulars()
+                new ArrayList<>(),
+                new ArrayList<>()
         );
     }
 }

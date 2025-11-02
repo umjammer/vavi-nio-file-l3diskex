@@ -21,9 +21,6 @@ import java.util.List;
 
 import l3diskex.Common;
 import l3diskex.Utils;
-import l3diskex.basicfmt.BasicCommon.AmigaBlockPre;
-import l3diskex.basicfmt.BasicCommon.AmigaRootBlockPost;
-import l3diskex.basicfmt.BasicCommon.DirectoryAmiga;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasic.DiskBasicIdentifiedData;
@@ -34,8 +31,11 @@ import l3diskex.basicfmt.DiskBasicFat;
 import l3diskex.basicfmt.DiskBasicParam;
 import l3diskex.basicfmt.DiskBasicType;
 import l3diskex.basicfmt.diritem.DiskBasicDirItemAmiga;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemAmiga.AmigaBlockPre;
 import l3diskex.basicfmt.diritem.DiskBasicDirItemAmiga.AmigaFileDataPre;
 import l3diskex.basicfmt.DiskBasicParam.DiskBasicFormat;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemAmiga.AmigaRootBlockPost;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemAmiga.DirectoryAmiga;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import vavi.util.serdes.Element;
 import vavi.util.serdes.Serdes;
@@ -61,7 +61,7 @@ public class DiskBasicTypeAmiga extends DiskBasicType<DirectoryAmiga> {
 
     private static final Logger logger = System.getLogger(DiskBasicTypeAmiga.class.getName());
 
-    /// Amiga Boot Block (all Big Endien)
+    /** Amiga Boot Block (all Big Endien) */
     @Serdes
     static class AmigaBootBlock {
 
@@ -80,7 +80,7 @@ public class DiskBasicTypeAmiga extends DiskBasicType<DirectoryAmiga> {
         byte[] program = new byte[500];
     }
 
-    /// Amiga Bitmap Block (all Big Endien)
+    /** Amiga Bitmap Block (all Big Endien) */
     @Serdes
     static class AmigaBitmapBlock {
 
@@ -91,7 +91,7 @@ public class DiskBasicTypeAmiga extends DiskBasicType<DirectoryAmiga> {
         int[] map;
     }
 
-    // AMIGA ビットマップ １つ
+    /** AMIGA ビットマップ 1つ */
     static class AmigaOneBitmap {
 
         int m_block_num;

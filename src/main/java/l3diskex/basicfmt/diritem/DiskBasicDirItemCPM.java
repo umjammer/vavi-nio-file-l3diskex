@@ -12,16 +12,19 @@ import java.util.ResourceBundle;
 import l3diskex.Common;
 import l3diskex.Parambase.MyAttribute;
 import l3diskex.Utils;
-import l3diskex.basicfmt.BasicCommon.DirectoryCpm;
+import l3diskex.basicfmt.BasicCommon.DirectoryT;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasicDirItem;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemCPM.DirectoryCpm;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
 import vavi.util.ByteUtil;
+import vavi.util.serdes.Element;
+import vavi.util.serdes.Serdes;
 
 import static l3diskex.Parambase.MyAttributes.findUpperCase;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_ARCHIVE_MASK;
@@ -33,11 +36,43 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_SYSTEM_MASK;
 /**
  * ディレクトリ１アイテム CP/M
  *
- * @li m_external_attr バイナリ属性の時: FILE_TYPE_BINARY_MASK, アスキー属性の時: 0
+ * {@link #externalAttr} バイナリ属性の時: FILE_TYPE_BINARY_MASK, アスキー属性の時: 0
  */
 public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> {
 
     static final ResourceBundle rb = ResourceBundle.getBundle("messages");
+
+    /**
+     * ディレクトリエントリ CP/M (32bytes)
+     */
+    @Serdes(bigEndian = false)
+    public static class DirectoryCpm implements DirectoryT, Cloneable {
+
+        @Element(sequence = 1)
+        public byte type; // byte user id
+        @Element(sequence = 2)
+        public byte[] name = new byte[8];
+        @Element(sequence = 3)
+        public byte[] ext = new byte[3];
+        @Element(sequence = 4)
+        public byte extentNum; // byte
+        @Element(sequence = 5)
+        public byte[] reserved = new byte[2];
+        @Element(sequence = 6)
+        public byte recordNum; // byte
+
+        // This union is complex. In Java, we'll store the bytes and provide accessors if needed.
+        @Element(sequence = 7)
+        public byte[] mapBytes = new byte[16]; // byte b[16]
+        // public short[] mapWords = new short[8]; // wxUint16 w[8]
+
+        @Override
+        public DirectoryCpm clone() {
+            return new DirectoryCpm();
+        }
+
+        public static final int SIZE = 32;
+    }
 
     /// CP/M属性名
     public static final String[] gTypeNameCPM = {

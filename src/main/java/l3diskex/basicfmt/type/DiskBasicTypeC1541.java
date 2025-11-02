@@ -7,8 +7,6 @@ import java.io.OutputStream;
 import java.util.Arrays;
 
 import l3diskex.Common;
-import l3diskex.basicfmt.BasicCommon.C1541Ptr;
-import l3diskex.basicfmt.BasicCommon.DirectoryC1541;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasic.DiskBasicIdentifiedData;
@@ -18,6 +16,8 @@ import l3diskex.basicfmt.DiskBasicError;
 import l3diskex.basicfmt.DiskBasicFat;
 import l3diskex.basicfmt.DiskBasicParam.DiskBasicFormat;
 import l3diskex.basicfmt.DiskBasicType;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemC1541.C1541Ptr;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemC1541.DirectoryC1541;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import vavi.util.serdes.Serdes;
 import vavi.util.serdes.Serdes.Util;

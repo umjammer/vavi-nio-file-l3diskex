@@ -1,3 +1,7 @@
+///
+/// Copyright (c) Sasaji. All rights reserved.
+///
+
 package l3diskex.basicfmt;
 
 import java.io.ByteArrayInputStream;
@@ -17,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import l3diskex.Common;
 import l3diskex.ResultInfo;
 import l3diskex.Utils;
 import l3diskex.Utils.CharCodes;
@@ -57,10 +62,15 @@ public class DiskBasic extends DiskParam {
     /** Formatter, dialogs */
     public static class DiskBasicIdentifiedData {
 
+        /** ボリューム名 */
         private String mVolumeName;
+        /** ボリューム名最大長 */
         private int mVolumeNameMaxlen;
+        /** ボリューム番号 */
         private int mVolumeNumber;
+        /** ボリューム番号が16進か */
         private boolean mVolumeNumberHexa;
+        /** ボリューム日付 */
         private String mVolumeDate;
 
         public DiskBasicIdentifiedData() {
@@ -118,6 +128,11 @@ public class DiskBasic extends DiskParam {
         }
     }
 
+    //
+    //
+    //
+
+    // DiskBasics
     public static void clearParseAndAssign(List<DiskBasic> basics, int idx) {
         if (basics == null) return;
 
@@ -128,6 +143,10 @@ public class DiskBasic extends DiskParam {
             }
         }
     }
+
+    //
+    //
+    //
 
     public DiskBasicParam diskBasicParam; // For composition
 
@@ -141,14 +160,20 @@ public class DiskBasic extends DiskParam {
     private final DiskBasicDir dir;
     private DiskBasicType type;
 
+    /** サイド(1S用) */
     private int selectedSide;
 
+    /** グループ計算用 データ開始セクタ番号 */
     private int dataStartSector;
+    /** グループ計算する際にスキップするトラック番号 */
     private int skippedTrack;
 
+    /** ファイルなどの文字コード体系 */
     private String charCode;
+    /** 文字コード変換 */
     private final CharCodes codes;
 
+    /** エラー情報保存用 */
     private final DiskBasicError errinfo;
 
     public DiskBasic() {
@@ -190,7 +215,8 @@ public class DiskBasic extends DiskParam {
         this.diskBasicParam.clearBasicParam();
     }
 
-    // Delegate methods for DiskBasicParam
+//#region Delegate methods for DiskBasicParam
+
     public DiskBasicFormat getFormatType() {
         return diskBasicParam.getFormatType();
     }
@@ -274,6 +300,8 @@ public class DiskBasic extends DiskParam {
     public boolean canMountEachSides() {
         return diskBasicParam.canMountEachSides();
     }
+
+//#endregion
 
     /** Set BASIC type */
     private void createType() {
@@ -513,10 +541,10 @@ public class DiskBasic extends DiskParam {
         if (getTracksPerSideOnBasic() < 0) setTracksPerSideOnBasic(getTracksPerSide());
         if (getSidesPerDiskOnBasic() <= 0) setSidesPerDiskOnBasic(getSidesPerDisk());
 
-if (getSectorSize() <= 0) {
- logger.log(Level.WARNING, "sector_size is 0");
- return -1.0;
-}
+        if (getSectorSize() <= 0) {
+            logger.log(Level.WARNING, "sector_size is 0");
+            return -1.0;
+        }
         calcDirStartEndSector(getSectorSize());
         createType();
         if (type == null) {
@@ -621,10 +649,10 @@ if (getSectorSize() <= 0) {
      * 管理エリアのサイド番号、セクタ番号、トラックを得る
      *
      * @param sectorPos セクタ位置(管理トラックの最初のサイド＆最初のセクタを 0 した通し番号)
-     * @param sideNum   [out]  サイド番号 Nullable
-     * @param sectorNum [out]  セクタ番号 Nullable
-     * @param divNum    [out]  分割番号 Nullable
-     * @param divNums   [out]  分割数 Nullable
+     * @param sideNum   [out] サイド番号 Nullable
+     * @param sectorNum [out] セクタ番号 Nullable
+     * @param divNum    [out] 分割番号 Nullable
+     * @param divNums   [out] 分割数 Nullable
      * @return トラックデータ
      */
     public DiskImageTrack getManagedTrack(int sectorPos, int[] sideNum, int[] sectorNum, int[] divNum, int[] divNums) {
@@ -652,11 +680,11 @@ if (getSectorSize() <= 0) {
      * 管理エリアのトラック番号、サイド番号、セクタ番号、セクタポインタを得る
      *
      * @param sectorPos セクタ位置(管理トラックの最初のサイド＆最初のセクタを 0 した通し番号)
-     * @param trackNum  [out]   トラック番号 Nullable
-     * @param sideNum   [out]   サイド番号 Nullable
-     * @param sectorNum [out]   セクタ番号 Nullable
-     * @param divNum    [out]   分割番号 Nullable
-     * @param divNums   [out]   分割数 Nullable
+     * @param trackNum  [out] トラック番号 Nullable
+     * @param sideNum   [out] サイド番号 Nullable
+     * @param sectorNum [out] セクタ番号 Nullable
+     * @param divNum    [out] 分割番号 Nullable
+     * @param divNums   [out] 分割数 Nullable
      * @return セクタデータ
      */
     public DiskImageSector getManagedSector(int sectorPos, int[] trackNum, int[] sideNum, int[] sectorNum, int[] divNum, int[] divNums) {
@@ -746,12 +774,16 @@ if (getSectorSize() <= 0) {
         return valid;
     }
 
+    /// 現在選択しているディスクのFATとルートディレクトリをアサイン
+    ///
+    /// @return true / false エラーあり
     public boolean assignFatAndDirectory() throws IOException {
         boolean valid = (assignFat(false) >= 0.0);
         valid = valid && assignRootDirectory();
         return valid;
     }
 
+    /// 解析済みをクリア
     public void clearParseAndAssign(boolean forcely) {
         mParsed = false;
         mAssigned = false;
@@ -760,18 +792,24 @@ if (getSectorSize() <= 0) {
         dir.setCurrentAsRoot();
     }
 
+    /// 解析済みか
     public boolean isParsed() {
         return mParsed;
     }
 
+    /// アサイン済みか
     public boolean isAssigned() {
         return mAssigned;
     }
 
+    /// 解析エラーを無視するか
     public boolean isForcely() {
         return mForcely;
     }
 
+    /// ロードできるか
+    ///
+    /// @param item ディレクトリのアイテム
     public boolean isLoadableFile(DiskBasicDirItem<?> item) {
         if (item == null || !item.isLoadable() || !item.isUsed()) {
             errinfo.setError(DiskBasicError.ERRV_CANNOT_EXPORT, item.getFileNameStr());
@@ -780,11 +818,19 @@ if (getSectorSize() <= 0) {
         return true;
     }
 
+    /// 指定したディレクトリ位置のファイルをロード
+    ///
+    /// @param itemNumber ディレクトリの位置
+    /// @param dstPath    出力先パス
     public boolean loadFile(int itemNumber, String dstPath) {
         DiskBasicDirItem<?> item = dir.itemPtr(itemNumber);
         return loadFile(item, dstPath);
     }
 
+    /// 指定したディレクトリアイテムのファイルをロード
+    ///
+    /// @param item    ディレクトリのアイテム
+    /// @param dstPath 出力先パス
     public boolean loadFile(DiskBasicDirItem<?> item, String dstPath) {
         try (FileOutputStream file = new FileOutputStream(dstPath)) {
             return loadFile(item, file);
@@ -794,6 +840,12 @@ if (getSectorSize() <= 0) {
         }
     }
 
+    /**
+     * 指定したストリームにファイルをロード
+     *
+     * @param item    ディレクトリのアイテム
+     * @param ostream [in,out] 出力先ストリーム
+     */
     public boolean loadFile(DiskBasicDirItem<?> item, OutputStream ostream) throws IOException {
         ByteArrayOutputStream otemp = new ByteArrayOutputStream();
         boolean sts = loadData(item, otemp, null);
@@ -808,6 +860,13 @@ if (getSectorSize() <= 0) {
         return sts;
     }
 
+    /**
+     * 指定したアイテムのファイルをベリファイ
+     *
+     * @param item    ディレクトリのアイテム
+     * @param srcPath 比較するファイルのパス
+     * @return 0:差異なし 1:差異あり -1:エラー
+     */
     public int verifyFile(DiskBasicDirItem<?> item, String srcPath) {
         try (FileInputStream file = new FileInputStream(srcPath)) {
             ByteArrayOutputStream otemp = new ByteArrayOutputStream();
@@ -822,6 +881,13 @@ if (getSectorSize() <= 0) {
         }
     }
 
+    /**
+     * 指定したストリームにファイルをロード
+     *
+     * @param item    [in,out] ディレクトリアイテム
+     * @param ostream [in,out] エクスポート時指定
+     * @param outsize [out] 実際に出力したサイズ(ostreamを指定した時のみ有効)
+     */
     public boolean loadData(DiskBasicDirItem<?> item, OutputStream ostream, int[] outsize) throws IOException {
         int sts = 0;
         for (int fileunitNum = 0; sts == 0; fileunitNum++) {
@@ -833,6 +899,13 @@ if (getSectorSize() <= 0) {
         return (sts == 0);
     }
 
+    /**
+     * 指定したアイテムのファイルをベリファイ
+     *
+     * @param item    [in,out] ディレクトリアイテム
+     * @param istream [in,out] ベリファイ時指定
+     * @return 0:差異なし 1:差異あり -1:エラー
+     */
     public int verifyData(DiskBasicDirItem<?> item, InputStream istream) throws IOException {
         int sts = 0;
         int fileOffset = 0;
@@ -853,6 +926,16 @@ if (getSectorSize() <= 0) {
         return sts;
     }
 
+    /**
+     * ディスクデータにアクセス（ロード/ベリファイで使用）
+     *
+     * @param fileunitNum ファイル番号
+     * @param item        [in,out] ディレクトリアイテム
+     * @param istream     [in,out] ベリファイ    時指定
+     * @param ostream     [in,out] エクスポー    ト時指定
+     * @param outsize     [out] 実際に出力したサイズ(ostreamを指定した時のみ有効)
+     * @return 0:差異なし 1:差異あり -1:エラー
+     */
     public int accessUnitData(int fileunitNum, DiskBasicDirItem<?> item, InputStream istream, OutputStream ostream, int[] outsize) throws IOException {
         if (item == null) {
             errinfo.setError(DiskBasicError.ERR_FILE_NOT_FOUND);
@@ -928,6 +1011,15 @@ if (getSectorSize() <= 0) {
         return rc;
     }
 
+    /**
+     * 同じファイル名が既に存在して上書き可能か
+     *
+     * @param dirItem     検索するディレクトリ
+     * @param filename    ファイル名
+     * @param excludeItem 検索対象から除くアイテム
+     * @param nextItem    [out] 一致したアイテムの次位置にあるアイテム
+     * @return 0: なし, 1: あり 通常ファイル, -1 あり 上書き不可（ディレクトリ or ボリュームラベル）
+     */
     public int isFileNameDuplicated(DiskBasicDirItem<?> dirItem, DiskBasicFileName filename, DiskBasicDirItem<?> excludeItem, DiskBasicDirItem[] nextItem) {
         DiskBasicDirItem<?> item = dir.findFile(dirItem, filename, isCompareCaseInsense(), excludeItem, nextItem);
         if (item == null) {
@@ -936,6 +1028,15 @@ if (getSectorSize() <= 0) {
         return (item.isOverWritable() ? 1 : -1);
     }
 
+    /**
+     * 同じファイル名が既に存在して上書き可能か
+     *
+     * @param dirItem     検索するディレクトリ
+     * @param targetItem  アイテム
+     * @param excludeItem 検索対象から除くアイテム
+     * @param nextItem    [out] 一致したアイテムの次位置にあるアイテム
+     * @return 0: なし,  1: あり 通常ファイル, -1: あり 上書き不可（ディレクトリ or ボリュームラベル）
+     */
     public int isFileNameDuplicated(DiskBasicDirItem<?> dirItem, DiskBasicDirItem<?> targetItem, DiskBasicDirItem<?> excludeItem, DiskBasicDirItem[] nextItem) {
         DiskBasicDirItem<?> item = dir.findFile(dirItem, targetItem, isCompareCaseInsense(), excludeItem, nextItem);
         if (item == null) {
@@ -944,6 +1045,7 @@ if (getSectorSize() <= 0) {
         return (item.isOverWritable() ? 1 : -1);
     }
 
+    /// 書き込みできるか
     public boolean isWritableIntoDisk() {
         errinfo.clear();
         if (pDisk == null) {
@@ -961,6 +1063,12 @@ if (getSectorSize() <= 0) {
         return true;
     }
 
+    /**
+     * 指定ファイルのサイズでディスクに書き込めるかをチェック
+     *
+     * @param srcPath  ファイルパス
+     * @param fileSize [out] ファイルのサイズを返す
+     */
     public boolean checkFile(String srcPath, int[] fileSize) {
         if (!isWritableIntoDisk()) {
             return false;
@@ -987,6 +1095,15 @@ if (getSectorSize() <= 0) {
         }
     }
 
+    /**
+     * 指定ファイルをディスクイメージにセーブ
+     *
+     * @param srcPath 元ファイルのあるパス
+     * @param dirItem [in,out] セーブ先ディレクトリアイテム
+     * @param pitem   [in,out] セーブ用のファイル名、属性を持っているディレクトリアイテム
+     * @param nitem   [out] 確保したディレクトリアイテム
+     * @return false:エラーあり
+     */
     public <T extends DirectoryT> boolean saveFile(String srcPath, DiskBasicDirItem<T> dirItem, DiskBasicDirItem<T> pitem, DiskBasicDirItem<T>[] nitem) {
         if (!isWritableIntoDisk()) return false;
 
@@ -998,6 +1115,15 @@ if (getSectorSize() <= 0) {
         }
     }
 
+    /**
+     * バッファデータをディスクイメージにセーブ
+     *
+     * @param buffer  データ
+     * @param dirItem [in,out] セーブ先ディレクトリアイテム
+     * @param pitem   [in,out] セーブ用のファイル名、属性を持っているディレクトリアイテム
+     * @param nitem   [out] 確保したディレクトリアイテム
+     * @return false:エラーあり
+     */
     public <T extends DirectoryT> boolean saveFile(byte[] buffer, DiskBasicDirItem<T> dirItem, DiskBasicDirItem<T> pitem, DiskBasicDirItem<T>[] nitem) throws IOException {
         if (!isWritableIntoDisk()) return false;
 
@@ -1005,6 +1131,15 @@ if (getSectorSize() <= 0) {
         return saveFile(indata, dirItem, pitem, nitem);
     }
 
+    /**
+     * ストリームデータをディスクイメージにセーブ
+     *
+     * @param istream ストリームバッファ
+     * @param dirItem [in,out] セーブ先ディレクトリアイテム
+     * @param pitem   [in,out] セーブ用のファイル名、属性を持っている仮ディレクトリアイテム
+     * @param nitem   [out] 確保したディレクトリアイテム
+     * @return false:エラーあり
+     */
     public <T extends DirectoryT> boolean saveFile(InputStream istream, DiskBasicDirItem<T> dirItem, DiskBasicDirItem<T> pitem, DiskBasicDirItem<T>[] nitem) throws IOException {
         DiskBasicDirItem[] nextItemArr = {null};
         DiskBasicDirItem<T> item = dir.findFile(dirItem, pitem, isCompareCaseInsense(), null, nextItemArr);
@@ -1079,6 +1214,15 @@ if (getSectorSize() <= 0) {
         return valid;
     }
 
+    /**
+     * ストリームデータをディスクイメージにセーブ
+     *
+     * @param istream    ストリームバッファ
+     * @param pitem      [in,out] ファイル名、属性を持っている仮ディレクトリアイテム
+     * @param item       [in,out] 確保したディレクトリアイテム
+     * @param groupItems [out] グループリスト
+     * @param fileSize   [out] セーブしたファイルのサイズ
+     */
     public <T extends DirectoryT> boolean saveData(InputStream istream, DiskBasicDirItem<T> pitem, DiskBasicDirItem<T> item, DiskBasicGroups groupItems, int[] fileSize) throws IOException {
         boolean valid = true;
         int fileOffset = 0;
@@ -1094,6 +1238,17 @@ if (getSectorSize() <= 0) {
         return valid;
     }
 
+    /**
+     * ストリームデータをディスクイメージにセーブ
+     *
+     * @param fileunitNum ファイル番号
+     * @param istream     ストリームバッファ
+     * @param isize       バッファ内のセーブ対象データサイズ
+     * @param pitem       [in,out] ファイル名、属性を持っている仮ディレクトリアイテム
+     * @param item        [in,out] 確保したディレクトリアイテム
+     * @param groupItems  [out] グループリスト
+     * @param fileSize    [out] セーブしたファイルのサイズ
+     */
     public <T extends DirectoryT> boolean saveUnitData(int fileunitNum, InputStream istream, int[] isize, DiskBasicDirItem<T> pitem, DiskBasicDirItem<T> item, DiskBasicGroups groupItems, int[] fileSize) throws IOException {
         if (!type.prepareToSaveFile(istream, isize, pitem, item, errinfo)) {
             return false;
@@ -1146,6 +1301,7 @@ if (getSectorSize() <= 0) {
         return (rc >= 0);
     }
 
+    /// ファイルを削除できるか
     public boolean isDeletableFiles() {
         errinfo.clear();
         if (type == null || !type.supportDeleting()) {
@@ -1159,6 +1315,11 @@ if (getSectorSize() <= 0) {
         return true;
     }
 
+    /// 指定したファイルを削除できるか
+    ///
+    /// @param item     ディレクトリアイテム
+    /// @param clearmsg エラーメッセージのバッファをクリアするか
+    /// @return -1: エラー継続不可, 1: エラー継続可能
     public int isDeletableFile(DiskBasicDirItem<?> item, boolean clearmsg) {
         if (clearmsg) errinfo.clear();
 
@@ -1176,6 +1337,13 @@ if (getSectorSize() <= 0) {
         return 0;
     }
 
+    /**
+     * 指定したディレクトリが空か
+     *
+     * @param item       ディレクトリアイテム
+     * @param groupItems [out] グループ番号一覧
+     * @param clearmsg   エラーメッセージのバッファをクリアするか
+     */
     public boolean isEmptyDirectory(DiskBasicDirItem<?> item, DiskBasicGroups groupItems, boolean clearmsg) throws IOException {
         if (clearmsg) errinfo.clear();
 
@@ -1190,6 +1358,11 @@ if (getSectorSize() <= 0) {
         return true;
     }
 
+    /// ファイルを削除
+    ///
+    /// @param item     ディレクトリアイテム
+    /// @param clearmsg エラーメッセージのバッファをクリアするか
+    /// @return true: 成功, false: 失敗
     public boolean deleteFile(DiskBasicDirItem<?> item, boolean clearmsg) throws IOException {
         if (item == null) return false;
         if (clearmsg) errinfo.clear();
@@ -1198,6 +1371,11 @@ if (getSectorSize() <= 0) {
         return deleteFile(item, groupItems);
     }
 
+    /// ファイルを削除
+    ///
+    /// @param item       ディレクトリアイテム
+    /// @param groupItems グループ番号一覧
+    /// @return true: 成功, false: 失敗
     public boolean deleteFile(DiskBasicDirItem<?> item, DiskBasicGroups groupItems) throws IOException {
         if (pDisk == null) return false;
 
@@ -1224,6 +1402,11 @@ if (getSectorSize() <= 0) {
         return true;
     }
 
+    /// ファイル名や属性を更新できるか
+    ///
+    /// @param item    ディレクトリアイテム
+    /// @param showmsg エラーメッセージをセットするか
+    /// @return true: できる, false: できない
     public boolean canRenameFile(DiskBasicDirItem<?> item, boolean showmsg) {
         errinfo.clear();
         if (item == null) {
@@ -1244,6 +1427,11 @@ if (getSectorSize() <= 0) {
         return true;
     }
 
+    /// ファイル名を更新
+    ///
+    /// @param item    ディレクトリアイテム
+    /// @param newname ファイル名
+    /// @return true
     public boolean renameFile(DiskBasicDirItem<?> item, String newname) throws IOException {
         if (item.isFileNameEditable()) {
             item.setFileNameStr(newname);
@@ -1254,6 +1442,10 @@ if (getSectorSize() <= 0) {
         return true;
     }
 
+    /// 属性を更新
+    ///
+    /// @param item ディレクトリアイテム
+    /// @param attr 属性値
     public boolean changeAttr(DiskBasicDirItem<?> item, DiskBasicDirItemAttr attr) throws IOException {
         if (attr.isRenameable()) {
             item.setOptionalName(attr.getFileName().getOptional());
@@ -1292,10 +1484,12 @@ if (getSectorSize() <= 0) {
         return true;
     }
 
+    /** DISK BASIC用にフォーマットされているか */
     public boolean isFormatted() {
         return (pDisk != null && mFormatted);
     }
 
+    /** DISK BASIC用にフォーマットできるか */
     public boolean isFormattable() {
         errinfo.clear();
         boolean enable = (type != null);
@@ -1310,6 +1504,10 @@ if (getSectorSize() <= 0) {
         return enable;
     }
 
+    /// ディスクを論理フォーマット
+    ///
+    /// @param data 機種依存データ（ボリューム名など）
+    /// @return >0: ワーニング, 0: 正常, <0: エラーあり
     public int formatDisk(DiskBasicIdentifiedData data) throws IOException {
         errinfo.clear();
         if (pDisk == null) {
@@ -1375,7 +1573,7 @@ if (getSectorSize() <= 0) {
     }
 
     /** カレントディレクトリを返す */
-    public <T extends DirectoryT>DiskBasicDirItem<T> getCurrentDirectory() {
+    public <T extends DirectoryT> DiskBasicDirItem<T> getCurrentDirectory() {
         return dir.getCurrentItem();
     }
 
@@ -1661,8 +1859,9 @@ if (getSectorSize() <= 0) {
 
     /**
      * グループ番号からトラック番号、サイド番号、セクタ番号を計算してリストに入れる
-     *
+     * <p>
      * 管理エリアがあれば飛ばす、開始グループ番号のオフセット分を引く などの機種依存を考慮
+     *
      * @param groupNum   グループ番号
      * @param nextGroup  次のグループ番号
      * @param sectorSize セクタサイズ
@@ -1706,8 +1905,9 @@ if (getSectorSize() <= 0) {
 
     /**
      * グループ番号からトラック、サイド、セクタの各番号を計算(グループ計算用)
-     *
+     * <p>
      * 管理エリアがあれば飛ばす、開始グループ番号のオフセット分を引く などの機種依存を考慮
+     *
      * @param groupNum    グループ番号
      * @param trackStart  [out] トラック番号
      * @param sideStart   [out] サイド番号
@@ -1730,8 +1930,9 @@ if (getSectorSize() <= 0) {
 
     /**
      * セクタ位置(トラック0,サイド0,セクタ1を0とした通し番号)からトラック、サイド、セクタの各番号を計算(グループ計算用)
-     *
+     * <p>
      * 管理エリアがあれば飛ばす、開始グループ番号のオフセット分を引く などの機種依存を考慮
+     *
      * @param sectorPos セクタ位置(トラック0,サイド0のセクタを0とした位置)
      * @param trackNum  [out] トラック番号
      * @param sideNum   [out] サイド番号
@@ -1748,8 +1949,9 @@ if (getSectorSize() <= 0) {
     /**
      * セクタ位置(トラック0,セクタ1を0とした通し番号)からトラック、セクタの各番号を計算(グループ計算用)
      * サイド番号はトラック番号に変換、トラック番号はサイド数の倍数となる
-     *
+     * <p>
      * 管理エリアがあれば飛ばす、開始グループ番号のオフセット分を引く などの機種依存を考慮
+     *
      * @param sectorPos セクタ位置(トラック0のセクタ1を0とした位置)
      * @param trackNum  [out] トラック番号
      * @param sectorNum [out] セクタ番号(サイド1のときは+トラック数となる)
@@ -1762,8 +1964,9 @@ if (getSectorSize() <= 0) {
 
     /**
      * トラック、サイド、セクタの各番号からセクタ位置(トラック0,サイド0,セクタ1を0とした通し番号)を計算(グループ計算用)
-     *
+     * <p>
      * 管理エリアがあれば飛ばす、開始グループ番号のオフセット分を引く などの機種依存を考慮
+     *
      * @param trackNum  トラック番号
      * @param sideNum   サイド番号
      * @param sectorNum セクタ番号
@@ -1784,6 +1987,7 @@ if (getSectorSize() <= 0) {
     /// サイド番号はトラック番号に変換、トラック番号はサイド数の倍数となる
     ///
     /// 管理エリアがあれば飛ばす、開始グループ番号のオフセット分を引く などの機種依存を考慮
+    ///
     /// @param trackNum  トラック番号
     /// @param sectorNum セクタ番号(サイド1のときは+トラック数)
     /// @return セクタ位置(トラック0のセクタ1を0とした位置)
@@ -1832,8 +2036,9 @@ if (getSectorSize() <= 0) {
 
     /**
      * セクタ位置(トラック0,サイド0,セクタ1を0とした通し番号)からトラックを返す
-     *
+     * <p>
      * セクタ位置は、機種によらずトラック0,サイド0,セクタ1を0とした通し番号
+     *
      * @param sectorPos セクタ位置(トラック0,サイド0,セクタ1を0とした通し番号)
      * @param sectorNum [out] セクタ番号
      * @param divNum    [out] 分割番号
@@ -1849,8 +2054,9 @@ if (getSectorSize() <= 0) {
 
     /**
      * セクタ位置(トラック0,サイド0,セクタ1を0とした通し番号)からセクタを返す
-     *
+     * <p>
      * セクタ位置は、機種によらずトラック0,サイド0,セクタ1を0とした通し番号
+     *
      * @param sectorPos セクタ位置(トラック0,サイド0,セクタ1を0とした通し番号)
      * @param trackNum  [out] トラック番号
      * @param sideNum   [out] サイド番号
@@ -1875,8 +2081,9 @@ if (getSectorSize() <= 0) {
 
     /**
      * セクタ位置(トラック0,サイド0,セクタ1を0とした通し番号)からセクタを返す
-     *
+     * <p>
      * セクタ位置は、機種によらずトラック0,サイド0,セクタ1を0とした通し番号
+     *
      * @param sectorPos セクタ位置(トラック0,サイド0,セクタ1を0とした通し番号)
      * @param divNum    [out] 分割番号
      * @param divNums   [out] 分割数
@@ -1904,38 +2111,47 @@ if (getSectorSize() <= 0) {
         codes.setMap(name);
     }
 
+    /// 現在のキャラクターコードの文字体系を返す
     public String getCharCode() {
         return charCode;
     }
 
+    /// キャラクターコードの文字体系
     public CharCodes getCharCodes() {
         return codes;
     }
 
+    /// DISK使用可能か
     public boolean canUse() {
         return (pDisk != null);
     }
 
+    /// DISKイメージを返す
     public DiskImageDisk getDisk() {
         return pDisk;
     }
 
+    /// 選択中のサイドを設定
     public void setSelectedSide(int val) {
         selectedSide = val;
     }
 
+    /// 選択中のサイドを返す
     public int getSelectedSide() {
         return selectedSide;
     }
 
+    /// FATクラス
     public DiskBasicFat getFat() {
         return fat;
     }
 
+    /// DIRクラス
     public <T extends DirectoryT> DiskBasicDir<T> getDir() {
         return dir;
     }
 
+    /// TYPEクラス
     public <T extends DirectoryT> DiskBasicType<T> getType() {
         return type;
     }
@@ -1967,21 +2183,15 @@ if (getSectorSize() <= 0) {
         return orderUint32(val);
     }
 
-    private void memInvert(byte[] data, int len) {
-        for (int i = 0; i < len; i++) {
-            data[i] = (byte) (data[i] ^ 0xff);
-        }
-    }
-
     /** 必要ならデータを反転する */
     public void invertMem(byte[] data, int len) {
-        if (isDataInverted()) memInvert(data, len);
+        if (isDataInverted()) Common.mem_invert(data, len);
     }
 
     /** 必要ならデータを反転する */
     public void invertMem(byte[] src, int len, byte[] dst) {
         System.arraycopy(src, 0, dst, 0, len);
-        if (isDataInverted()) memInvert(dst, len);
+        if (isDataInverted()) Common.mem_invert(dst, len);
     }
 
     /** エンディアンを考慮した値を返す */

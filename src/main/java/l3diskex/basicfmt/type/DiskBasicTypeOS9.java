@@ -9,12 +9,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import l3diskex.Utils;
-import l3diskex.basicfmt.BasicCommon.DirectoryOs9;
-import l3diskex.basicfmt.BasicCommon.DirectoryOs9Fd;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
-import l3diskex.basicfmt.BasicCommon.Os9Date;
-import l3diskex.basicfmt.BasicCommon.Os9Lsn;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasic.DiskBasicIdentifiedData;
 import l3diskex.basicfmt.DiskBasicDir;
@@ -23,10 +19,14 @@ import l3diskex.basicfmt.DiskBasicError;
 import l3diskex.basicfmt.DiskBasicFat;
 import l3diskex.basicfmt.DiskBasicType;
 import l3diskex.basicfmt.diritem.DiskBasicDirItemOS9;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemOS9.DirectoryOs9;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemOS9.DirectoryOs9Fd;
 import l3diskex.basicfmt.diritem.DiskBasicDirItemOS9.DiskBasicDirItemOS9FD;
 import l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability;
 import l3diskex.basicfmt.DiskBasicFat.DiskBasicBitMLMap;
 import l3diskex.basicfmt.DiskBasicParam.DiskBasicFormat;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemOS9.Os9Date;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemOS9.Os9Lsn;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskImage.DiskImageTrack;
 import vavi.util.serdes.Element;
@@ -430,8 +430,8 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
      *
      * @param start_sector 開始セクタ番号
      * @param end_sector   終了セクタ番号
-     * @param group_items  [out]      セクタリスト
-     * @param dir_item     [in,out]      ルートディレクトリアイテム
+     * @param group_items  [out] セクタリスト
+     * @param dir_item     [in,out] ルートディレクトリアイテム
      */
     @Override
     public boolean assignRootDirectory(int start_sector, int end_sector, DiskBasicGroups group_items, DiskBasicDirItem<DirectoryOs9> dir_item) throws IOException {
@@ -457,7 +457,7 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
      *
      * @param start_sector ディレクトリ開始セクタ番号
      * @param end_sector   ディレクトリ終了セクタ番号
-     * @param group_items  [out]   セクタリスト
+     * @param group_items  [out] セクタリスト
      */
     @Override
     public boolean calcGroupsOnRootDirectory(int start_sector, int end_sector, DiskBasicGroups group_items) throws IOException {
@@ -702,10 +702,10 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
      * データサイズ分のグループを確保する
      *
      * @param fileunit_num ファイル番号
-     * @param item         [in,out]        ディレクトリアイテム
+     * @param item         [in,out] ディレクトリアイテム
      * @param data_size    確保するデータサイズ（バイト）
      * @param flags        新規か追加か
-     * @param group_items  [out]     確保したセクタリスト
+     * @param group_items  [out] 確保したセクタリスト
      * @return >0:正常 -1:空きなし(開始グループ設定前) -2:空きなし(開始グループ設定後)
      */
     @Override

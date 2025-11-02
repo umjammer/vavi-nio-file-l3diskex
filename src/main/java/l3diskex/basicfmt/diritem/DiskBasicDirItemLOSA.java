@@ -7,19 +7,53 @@ package l3diskex.basicfmt.diritem;
 import java.io.IOException;
 import java.util.ResourceBundle;
 
-import l3diskex.basicfmt.BasicCommon.DirectoryLosa;
+import l3diskex.basicfmt.BasicCommon.DirectoryT;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
+import vavi.util.serdes.Element;
+import vavi.util.serdes.Serdes;
 
 
 /// ディレクトリ１アイテム L-os Angeles (MS-DOS compatible)
 public class DiskBasicDirItemLOSA extends DiskBasicDirItemMSDOS {
 
     private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
+
+    /**
+     * ディレクトリエントリ L-os Angeles (MS-DOS compatible) (32bytes)
+     */
+    @Serdes(bigEndian = false)
+    public static class DirectoryLosa implements DirectoryT {
+
+        @Element(sequence = 1)
+        public byte[] name = new byte[8];
+        @Element(sequence = 1)
+        public byte[] ext = new byte[3];
+        @Element(sequence = 1)
+        public byte type;
+        @Element(sequence = 1)
+        public byte[] startAddr = new byte[4];
+        @Element(sequence = 1)
+        public byte binaryType;
+        @Element(sequence = 1)
+        public byte[] execAddr = new byte[4];
+        @Element(sequence = 1)
+        public byte reserved;
+        @Element(sequence = 1)
+        public short wtime;
+        @Element(sequence = 1)
+        public short wdate;
+        @Element(sequence = 1)
+        public short startGroup;
+        @Element(sequence = 1)
+        public int fileSize;
+
+        public static final int SIZE = 32;
+    }
 
     public static final int FILE_TYPE_LOSA_BINARY = 0xa0;
 

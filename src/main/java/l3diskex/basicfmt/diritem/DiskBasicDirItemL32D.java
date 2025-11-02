@@ -7,13 +7,16 @@ package l3diskex.basicfmt.diritem;
 import java.io.IOException;
 
 import l3diskex.Parambase.MyAttribute;
-import l3diskex.basicfmt.BasicCommon.DirectoryL32d;
+import l3diskex.basicfmt.BasicCommon.DirectoryT;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
 import l3diskex.basicfmt.DiskBasic;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemL32D.DirectoryL32d;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
+import vavi.util.serdes.Element;
+import vavi.util.serdes.Serdes;
 
 import static l3diskex.Parambase.MyAttributes.findType;
 import static l3diskex.Parambase.MyAttributes.findUpperCase;
@@ -25,6 +28,31 @@ import static l3diskex.Parambase.MyAttributes.findUpperCase;
  * 1-item directory for L3/S1 BASIC double‑density 2D/2HD
  */
 public class DiskBasicDirItemL32D extends DiskBasicDirItemFAT8<DirectoryL32d> {
+
+    /**
+     * ディレクトリエントリ L3,S1 ５インチ,８インチ(倍密度)
+     */
+    @Serdes
+    public static class DirectoryL32d implements DirectoryT {
+
+        @Element(sequence = 1)
+        public byte[] name = new byte[8];
+        @Element(sequence = 2)
+        public byte[] ext = new byte[3];
+        @Element(sequence = 3)
+        public byte type;
+        @Element(sequence = 4)
+        public byte type2;
+        @Element(sequence = 5)
+        public byte startGroup;
+        @Element(sequence = 6)
+        public short endBytes; // used size of end cluster (big endian)
+
+        @Element(sequence = 7)
+        public byte[] reserved = new byte[16]; // char reserved[16]
+
+        public static final int SIZE = 32;
+    }
 
     /** Directory data */
     private final DiskBasicDirData<DirectoryL32d> m_data = new DiskBasicDirData<>();

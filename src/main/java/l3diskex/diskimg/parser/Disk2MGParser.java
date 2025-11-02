@@ -7,6 +7,7 @@ package l3diskex.diskimg.parser;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -14,7 +15,6 @@ import l3diskex.diskimg.DiskImage.DiskImageDisk;
 import l3diskex.diskimg.DiskImage.DiskImageFile;
 import l3diskex.diskimg.DiskParam;
 import l3diskex.diskimg.DiskParam.DiskParticular;
-import l3diskex.diskimg.DiskParam.DiskParticulars;
 import l3diskex.diskimg.DiskResult;
 import l3diskex.diskimg.FileParam.DiskTypeHint;
 import vavi.io.SeekableDataInputStream;
@@ -154,8 +154,8 @@ public class Disk2MGParser extends DiskPlainParser {
         int tracks_per_side = 1;
         int sectors_per_track = 1;
         int sector_size = 256;
-        DiskParticulars sd = new DiskParticulars();
-        DiskParticulars pt = new DiskParticulars();
+        List<DiskParticular> sd = new ArrayList<>();
+        List<DiskParticular> pt = new ArrayList<>();
 
         if (data_size <= 143360) {
             sides_per_disk = 1;

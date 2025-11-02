@@ -155,7 +155,7 @@ logger.log(Level.INFO, "categories: " + categories.size());
      * カテゴリ番号に一致するタイプ名リストを検索
      *
      * @param n_category_index カテゴリ番号
-     * @param n_type_names     [out]      タイプ名リスト
+     * @param n_type_names     [out] タイプ名リスト
      * @return リストの数
      */
     public int findTypeNames(int n_category_index, List<String> n_type_names) {

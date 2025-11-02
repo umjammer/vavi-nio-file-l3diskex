@@ -6,18 +6,46 @@ package l3diskex.basicfmt.diritem;
 
 import java.io.IOException;
 
-import l3diskex.basicfmt.BasicCommon.DirectoryHu68k;
+import l3diskex.basicfmt.BasicCommon.DirectoryT;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
+import vavi.util.serdes.Element;
+import vavi.util.serdes.Serdes;
 
 
 /**
  * Directory item for Human68k.
  */
 public class DiskBasicDirItemHU68K extends DiskBasicDirItemMSDOS {
+
+    /**
+     * ディレクトリエントリ Human68K (MS-DOS compatible) (32bytes)
+     */
+    @Serdes
+    public static class DirectoryHu68k implements DirectoryT {
+
+        @Element(sequence = 1)
+        public byte[] name = new byte[8];
+        @Element(sequence = 2)
+        public byte[] ext = new byte[3];
+        @Element(sequence = 3)
+        public byte type;
+        @Element(sequence = 4)
+        public byte[] name2 = new byte[10];
+        @Element(sequence = 5)
+        public short wtime;
+        @Element(sequence = 6)
+        public short wdate;
+        @Element(sequence = 7)
+        public short startGroup;
+        @Element(sequence = 8)
+        public int fileSize;
+
+        public static final int SIZE = 32;
+    }
 
     public DiskBasicDirItemHU68K(DiskBasic basic) {
         super(basic);

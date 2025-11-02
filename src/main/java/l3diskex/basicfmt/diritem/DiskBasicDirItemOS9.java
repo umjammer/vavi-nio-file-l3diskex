@@ -16,19 +16,17 @@ import java.util.ResourceBundle;
 
 import l3diskex.Parambase.MyAttribute;
 import l3diskex.Utils;
-import l3diskex.basicfmt.BasicCommon.DirectoryOs9;
-import l3diskex.basicfmt.BasicCommon.DirectoryOs9Fd;
+import l3diskex.basicfmt.BasicCommon.DirectoryT;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
-import l3diskex.basicfmt.BasicCommon.Os9Cdate;
-import l3diskex.basicfmt.BasicCommon.Os9Date;
-import l3diskex.basicfmt.BasicCommon.Os9Lsn;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasicDirItem;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemOS9.DirectoryOs9;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
+import vavi.util.serdes.Element;
 import vavi.util.serdes.Serdes;
 
 import static l3diskex.Config.gConfig;
@@ -44,6 +42,128 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_NONSHARE_MASK
 public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
 
     private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
+
+    /**
+     * OS-9 LSN
+     */
+    @Serdes
+    public static class Os9Lsn {
+
+        @Element(sequence = 1)
+        public byte h; // byte
+        @Element(sequence = 2)
+        public byte m; // byte
+        @Element(sequence = 3)
+        public byte l; // byte
+
+        public int getOs9Lsn() {
+            return (((h & 0xff) << 16) | ((m & 0xff) << 8) | (l & 0xff));
+        }
+
+        public void setOs9Lsn(int val) {
+            h = (byte) ((val & 0xff0000) >> 16);
+            m = (byte) ((val & 0xff00) >> 8);
+            l = (byte) (val & 0xff);
+        }
+    }
+
+    /**
+     * OS-9 Segment
+     */
+    @Serdes
+    public static class Os9Segment {
+
+        @Element(sequence = 1)
+        public Os9Lsn lsn = new Os9Lsn();
+        @Element(sequence = 2)
+        public short siz;
+    }
+
+    /**
+     * OS-9 Date Format
+     */
+    @Serdes
+    public static class Os9Date {
+
+        @Element(sequence = 1)
+        public byte yy;
+        @Element(sequence = 2)
+        public byte mm;
+        @Element(sequence = 3)
+        public byte dd;
+        @Element(sequence = 4)
+        public byte hh;
+        @Element(sequence = 5)
+        public byte mi;
+
+        public Os9Cdate toCdate() {
+            Os9Cdate cdate = new Os9Cdate();
+            cdate.yy = this.yy;
+            cdate.mm = this.mm;
+            cdate.dd = this.dd;
+            return cdate;
+        }
+    }
+
+    /**
+     * OS-9 Created Date
+     */
+    @Serdes
+    public static class Os9Cdate {
+
+        @Element(sequence = 1)
+        public byte yy; // byte
+        @Element(sequence = 2)
+        public byte mm; // byte
+        @Element(sequence = 3)
+        public byte dd; // byte
+    }
+
+    /**
+     * ディレクトリエントリ OS-9 (32bytes)
+     */
+    @Serdes
+    public static class DirectoryOs9 implements DirectoryT {
+
+        @Element(sequence = 1)
+        public byte[] deNam = new byte[28];
+        @Element(sequence = 2)
+        public byte deReserved; // byte
+        @Element(sequence = 3)
+        public Os9Lsn deLsn = new Os9Lsn(); // link to FD
+
+        public static final int SIZE = 32;
+    }
+
+    /**
+     * OS-9 File Descriptor
+     */
+    @Serdes
+    public static class DirectoryOs9Fd implements DirectoryT {
+
+        @Element(sequence = 1)
+        public byte fdAtt; // 1 attr
+        @Element(sequence = 2)
+        public short fdOwn; // 2 owner id
+        @Element(sequence = 3)
+        public Os9Date fdDat = new Os9Date(); // 5 date
+        @Element(sequence = 4)
+        public byte fdLnk; // 1 link count
+        @Element(sequence = 5)
+        public int fdSiz; // 4 in bytes
+        @Element(sequence = 6)
+        public Os9Cdate fdDcr = new Os9Cdate(); // 3 created date
+        @Element(sequence = 7)
+        public Os9Segment[] fdSeg = new Os9Segment[48]; // 5*48=240
+
+        public DirectoryOs9Fd() {
+            for (int i = 0; i < 48; i++) {
+                fdSeg[i] = new Os9Segment();
+            }
+        }
+
+        public static final int SIZE = 256;
+    }
 
     private static final int TYPE_NAME_OS9_DIRECTORY = 0;
     private static final int TYPE_NAME_OS9_NONSHARE = 1;

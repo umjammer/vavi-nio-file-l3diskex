@@ -18,17 +18,18 @@ import java.util.ResourceBundle;
 
 import l3diskex.Utils;
 import l3diskex.basicfmt.BasicCommon.DirectoryT;
-import l3diskex.basicfmt.BasicCommon.DirectoryXdos;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasicDirItem;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemXDOS.DirectoryXdos;
 import l3diskex.basicfmt.diritem.DiskBasicDirItemXDOS.DiskBasicDirItemXDOSChain;
 import l3diskex.basicfmt.diritem.DiskBasicDirItemXDOS.XdosChainT;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
+import vavi.util.serdes.Element;
 import vavi.util.serdes.Serdes;
 
 import static l3diskex.Config.gConfig;
@@ -47,6 +48,49 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_SYSTEM_MASK;
 public class DiskBasicDirItemXDOS extends DiskBasicDirItemXDOSBase<DirectoryXdos> {
 
     private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
+
+    /**
+     * X-DOSセグメント情報
+     */
+    @Serdes(bigEndian = false)
+    public static class XdosSeg {
+
+        @Element(sequence = 1)
+        public byte track;
+        @Element(sequence = 2)
+        public byte sector;
+        @Element(sequence = 3)
+        public byte size;
+    }
+
+    /**
+     * ディレクトリエントリ X-DOS X1 (32bytes)
+     */
+    @Serdes(bigEndian = false)
+    public static class DirectoryXdos implements DirectoryT {
+
+        @Element(sequence = 1)
+        public short ftype; // big endien
+        @Element(sequence = 1)
+        public byte[] name = new byte[16];
+        @Element(sequence = 1)
+        public short loadAddr;
+        @Element(sequence = 1)
+        public short fileSize;
+        @Element(sequence = 1)
+        public short execAddr;
+        @Element(sequence = 1)
+        public short date;
+        @Element(sequence = 1)
+        public short time;
+        @Element(sequence = 1)
+        public byte attr; // アトリビュート
+        @Element(sequence = 1)
+        public XdosSeg start = new XdosSeg();
+
+        public static final int SIZE = 32;
+    }
+
 
     public static class XdosSubTypeT {
 

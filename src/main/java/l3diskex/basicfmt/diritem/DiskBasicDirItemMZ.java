@@ -19,15 +19,18 @@ import java.util.ResourceBundle;
 import javax.swing.JWindow;
 
 import l3diskex.Utils;
-import l3diskex.basicfmt.BasicCommon.DirectoryMz;
+import l3diskex.basicfmt.BasicCommon.DirectoryT;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileName;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasicDirItem;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemMZ.DirectoryMz;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
+import vavi.util.serdes.Element;
+import vavi.util.serdes.Serdes;
 
 import static l3diskex.Config.gConfig;
 import static l3diskex.Parambase.MyAttributes.findValue;
@@ -49,6 +52,34 @@ import static l3diskex.basicfmt.DiskBasicType.INVALID_GROUP_NUMBER;
 public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
 
     static final ResourceBundle rb = ResourceBundle.getBundle("messages");
+
+    /**
+     * ディレクトリエントリ MZ DISK BASIC
+     */
+    @Serdes(bigEndian = false)
+    public static class DirectoryMz implements DirectoryT {
+
+        @Element(sequence = 1)
+        public byte type;
+        @Element(sequence = 2)
+        public byte[] name = new byte[17]; // file name has $0D on the end of string
+        @Element(sequence = 3)
+        public byte type2;
+        @Element(sequence = 4)
+        public byte reserved;
+        @Element(sequence = 5)
+        public short fileSize;
+        @Element(sequence = 6)
+        public short loadAddr;
+        @Element(sequence = 7)
+        public short execAddr;
+        @Element(sequence = 8)
+        public byte[] dateTime = new byte[4];
+        @Element(sequence = 9)
+        public short startSector;
+
+        public static final int SIZE = 32;
+    }
 
     /// MZ S-BASIC 属性
     static final int FILETYPE_MZ_OBJ = 1;

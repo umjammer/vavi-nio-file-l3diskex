@@ -10,8 +10,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
 
-import l3diskex.basicfmt.BasicCommon.ApledosPtr;
-import l3diskex.basicfmt.BasicCommon.DirectoryApledos;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasic.DiskBasicIdentifiedData;
@@ -21,6 +19,8 @@ import l3diskex.basicfmt.DiskBasicError;
 import l3diskex.basicfmt.DiskBasicFat;
 import l3diskex.basicfmt.DiskBasicType;
 import l3diskex.basicfmt.diritem.DiskBasicDirItemAppleDOS;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemAppleDOS.ApledosPtr;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemAppleDOS.DirectoryApledos;
 import l3diskex.basicfmt.diritem.DiskBasicDirItemAppleDOS.apledos_chain_t;
 import l3diskex.basicfmt.DiskBasicParam.DiskBasicFormat;
 import l3diskex.diskimg.DiskImage.DiskImageSector;

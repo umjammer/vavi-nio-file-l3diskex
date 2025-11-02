@@ -16,16 +16,17 @@ import java.util.Map;
 import java.util.ResourceBundle;
 
 import l3diskex.Utils;
-import l3diskex.basicfmt.BasicCommon.DirectoryFlex;
+import l3diskex.basicfmt.BasicCommon.DirectoryT;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
-import l3diskex.basicfmt.BasicCommon.FlexPtr;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasicDirItem;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemFLEX.DirectoryFlex;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
+import vavi.util.serdes.Element;
 import vavi.util.serdes.Serdes;
 
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_HIDDEN_MASK;
@@ -39,6 +40,58 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_WRITEONLY_MAS
 public class DiskBasicDirItemFLEX extends DiskBasicDirItem<DirectoryFlex> {
 
     private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
+
+    /**
+     * ディレクトリエントリ FLEX (24bytes)
+     */
+    @Serdes(bigEndian = false)
+    public static class DirectoryFlex implements DirectoryT {
+
+        @Element(sequence = 1)
+        public byte[] name = new byte[8];
+        @Element(sequence = 2)
+        public byte[] ext = new byte[3];
+        @Element(sequence = 3)
+        public byte type; // byte
+        @Element(sequence = 4)
+        public byte reserved; // byte
+        @Element(sequence = 5)
+        public byte startTrack; // byte
+        @Element(sequence = 6)
+        public byte startSector; // byte
+        @Element(sequence = 7)
+        public byte lastTrack; // byte
+        @Element(sequence = 8)
+        public byte lastSector; // byte
+        @Element(sequence = 9)
+        public short totalSectors; // wxUint16
+        @Element(sequence = 10)
+        public byte randomAccess; // byte
+        @Element(sequence = 11)
+        public byte reserved2; // byte
+        @Element(sequence = 12)
+        public byte month; // byte
+        @Element(sequence = 13)
+        public byte day; // byte
+        @Element(sequence = 14)
+        public byte year; // byte
+
+        public static final int SIZE = 24;
+    }
+
+    /**
+     * FLEX top of each sector
+     */
+    @Serdes
+    public static class FlexPtr {
+
+        @Element(sequence = 1)
+        public byte nextTrack; // byte
+        @Element(sequence = 2)
+        public byte nextSector; // byte
+        @Element(sequence = 3)
+        public short seqNum; // wxUint16
+    }
 
     static final int TYPE_NAME_FLEX_READ_ONLY = 0;
     static final int TYPE_NAME_FLEX_UNDELETE = 1;

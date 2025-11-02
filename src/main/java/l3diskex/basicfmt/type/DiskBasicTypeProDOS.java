@@ -10,7 +10,6 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
-import l3diskex.basicfmt.BasicCommon.DirectoryProdos;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
@@ -21,6 +20,7 @@ import l3diskex.basicfmt.DiskBasicDirItem;
 import l3diskex.basicfmt.DiskBasicError;
 import l3diskex.basicfmt.DiskBasicFat;
 import l3diskex.basicfmt.DiskBasicType;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemAppleDOS.DirectoryProdos;
 import l3diskex.basicfmt.diritem.DiskBasicDirItemProDOS;
 import l3diskex.basicfmt.diritem.DiskBasicDirItemProDOS.ProDOSDirPtrT;
 import l3diskex.basicfmt.DiskBasicFat.DiskBasicBitMLMap;
@@ -126,9 +126,7 @@ public class DiskBasicTypeProDOS extends DiskBasicType<DirectoryProdos> {
      * エリアをチェック
      *
      * @param is_formatting フォーマット中か
-     * @return 1.0       正常
-     * 0.0 - 1.0 警告あり
-     * <0.0      エラーあり
+     * @return 1.0: 正常, 0.0 - 1.0: 警告あり, <0.0: エラーあり
      */
     @Override
     public double checkFat(boolean is_formatting) {

@@ -16,14 +16,16 @@ import java.util.function.IntBinaryOperator;
 import java.util.function.IntFunction;
 
 import l3diskex.Utils;
-import l3diskex.basicfmt.BasicCommon.DirectoryMzFdos;
+import l3diskex.basicfmt.BasicCommon.DirectoryT;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasicDirItem;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemMZFDOS.DirectoryMzFdos;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
+import vavi.util.serdes.Element;
 import vavi.util.serdes.Serdes;
 
 import static l3diskex.Config.gConfig;
@@ -37,6 +39,58 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_SYSTEM_MASK;
 
 /// ディレクトリ１アイテム MZ Floppy DOS
 public class DiskBasicDirItemMZFDOS extends DiskBasicDirItemMZBase<DirectoryMzFdos> {
+
+    /**
+     * ディレクトリエントリ MZ Floppy DOS (64bytes)
+     */
+    @Serdes(bigEndian = false)
+    public static class DirectoryMzFdos implements DirectoryT {
+
+        @Element(sequence = 1)
+        public byte type;
+        // file name has $0D on the end of string
+        @Element(sequence = 2)
+        public byte[] name = new byte[17];
+        @Element(sequence = 3)
+        public short fileSize;
+        @Element(sequence = 4)
+        public short loadAddr;
+        @Element(sequence = 5)
+        public short execAddr;
+        @Element(sequence = 6)
+        public short groups;
+        // 0x30 0x53
+        @Element(sequence = 7)
+        public byte[] attr = new byte[2];
+        // 0x00 0x00
+        @Element(sequence = 8)
+        public byte[] password = new byte[2];
+        @Element(sequence = 9)
+        public short dummySector; // 0x01 0x02
+
+        @Element(sequence = 10)
+        public byte[] mmddyy = new byte[7];
+        @Element(sequence = 11)
+        public byte[] reserved2 = new byte[13];
+        @Element(sequence = 12)
+        public byte track;
+        @Element(sequence = 13)
+        public byte sector;
+        @Element(sequence = 14)
+        public byte[] reserved3 = new byte[5];
+        @Element(sequence = 15)
+        public byte seqNum;
+        @Element(sequence = 16)
+        public byte unknown1; // 0x9x - 0xax
+        @Element(sequence = 17)
+        public byte unknown2; // 0x15
+        @Element(sequence = 18)
+        public byte dataTrack;
+        @Element(sequence = 19)
+        public byte dataSector;
+
+        public static final int SIZE = 64;
+    }
 
     static final int TYPE_NAME_MZ_FDOS_UNKNOWN = 0;
     static final int TYPE_NAME_MZ_FDOS_OBJ = 1;

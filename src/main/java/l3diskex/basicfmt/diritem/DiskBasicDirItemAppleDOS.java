@@ -1,3 +1,7 @@
+///
+/// Copyright (c) Sasaji. All rights reserved.
+///
+
 package l3diskex.basicfmt.diritem;
 
 import java.io.ByteArrayInputStream;
@@ -10,16 +14,17 @@ import java.util.Map;
 import java.util.ResourceBundle;
 
 import l3diskex.Utils;
-import l3diskex.basicfmt.BasicCommon.ApledosPtr;
-import l3diskex.basicfmt.BasicCommon.DirectoryApledos;
+import l3diskex.basicfmt.BasicCommon.DirectoryT;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasicDirItem;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemAppleDOS.DirectoryApledos;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
+import vavi.util.serdes.Element;
 import vavi.util.serdes.Serdes;
 
 import static l3diskex.Config.gConfig;
@@ -39,6 +44,109 @@ import static l3diskex.basicfmt.diritem.DiskBasicDirItemAppleDOS.apledos_chain_t
 public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryApledos> {
 
     static final ResourceBundle rb = ResourceBundle.getBundle("message");
+
+    /**
+     * ディレクトリエントリ Apple DOS (35bytes)
+     */
+    @Serdes
+    public static class DirectoryApledos implements DirectoryT {
+
+        @Element(sequence = 1)
+        public byte track;
+        @Element(sequence = 2)
+        public byte sector;
+        @Element(sequence = 3)
+        public byte type;
+        @Element(sequence = 4)
+        public byte[] name = new byte[30];
+        @Element(sequence = 5)
+        public short sectorCount; // size (little endien)
+
+        public static final int SIZE = 35;
+    }
+
+    /**
+     * Apple DOS top of each sector
+     */
+    @Serdes
+    public static class ApledosPtr {
+
+        @Element(sequence = 1)
+        public byte reserved;
+        @Element(sequence = 2)
+        public byte nextTrack;
+        @Element(sequence = 3)
+        public byte nextSector;
+    }
+
+    /**
+     * ディレクトリエントリ Apple ProDOS (39bytes)
+     */
+    @Serdes
+    public static class DirectoryProdos implements DirectoryT {
+
+        @Element(sequence = 1)
+        public byte stypeAndNlen;
+        @Element(sequence = 2)
+        public byte[] name = new byte[15];
+        @Element(sequence = 3)
+        public byte fileType; // file only
+        @Element(sequence = 4)
+        public short keyPointer; // file only
+        @Element(sequence = 5)
+        public short blocksUsed; // file only
+        @Element(sequence = 6)
+        public byte[] eof = new byte[3]; // file only
+        @Element(sequence = 7)
+        public byte[] cdate = new byte[2];
+        @Element(sequence = 8)
+        public byte[] ctime = new byte[2];
+        @Element(sequence = 9)
+        public byte version; // byte
+        @Element(sequence = 10)
+        public byte minVersion; // byte
+        @Element(sequence = 11)
+        public byte access; // byte
+
+        // Union for the variant part
+        public ProdosAux aux = new ProdosAux();
+
+        public static class ProdosAux {
+
+            public V v = new V();
+            public Sv sv = new Sv();
+            public F f = new F();
+        }
+
+        public static class V {
+
+            public byte entryLen;
+            public byte entriesPerBlock;
+            public short fileCount;
+            public short bitmapPointer;
+            public short totalBlocks;
+        }
+
+        public static class Sv {
+
+            public byte entryLen;
+            public byte entriesPerBlock;
+            public short fileCount;
+            public short parentPointer;
+            public byte parentEntry;
+            public byte parentEntryLen;
+        }
+
+        public static class F {
+
+            public short auxType; // aux type
+            public byte[] mdate = new byte[2];
+            public byte[] mtime = new byte[2];
+            public short headerPointer;
+        }
+
+        public static final int SIZE = 39;
+    }
 
     /// Apple DOS属性名
     public static final Map<String, Object> gTypeNameAppleDOS = new LinkedHashMap<>() {{
@@ -79,14 +187,19 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryApledos>
 
         public static final int APLEDOS_TRACK_LIST_MAX = 122;
 
+        @Element(sequence = 1)
         public ApledosPtr next;
+        @Element(sequence = 2)
         byte[] reserved1 = new byte[2];
+        @Element(sequence = 3)
         short number;
+        @Element(sequence = 4)
         byte[] reserved2 = new byte[5];
         static class TrackList {
             byte track;
             byte sector;
         }
+        @Element(sequence = 5)
         TrackList[] list = new TrackList[APLEDOS_TRACK_LIST_MAX];
     }
 
@@ -107,7 +220,7 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryApledos>
             chain_ownmake = false;
         }
 
-        public void Clear() {
+        public void clear() {
             list.clear();
             chain_ownmake = false;
         }
@@ -163,7 +276,7 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryApledos>
 
         /** クリア */
         public void clear() {
-            chains.Clear();
+            chains.clear();
         }
 
         /** セクタ数を返す */
@@ -297,7 +410,7 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryApledos>
      * @param n_sector セクタ
      * @param n_secpos セクタ内のディレクトリエントリの位置
      * @param n_data   ディレクトリアイテム
-     * @param dataP
+     * @param dataP    データポインタ
      * @param n_next   [out] 次のセクタ
      */
     @Override
@@ -323,7 +436,7 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryApledos>
      * ファイル名を設定
      *
      * filename はデータビットが反転している場合あり
-     * @param filename [in,out]  ファイル名
+     * @param filename [in,out] ファイル名
      * @param size     バッファサイズ
      * @param length   長さ
      */
@@ -396,7 +509,7 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryApledos>
     /**
      * ディレクトリアイテムのチェック
      *
-     * @param last [in,out]  チェックを終了するか
+     * @param last [in,out] チェックを終了するか
      * @return チェックOK
      */
     @Override

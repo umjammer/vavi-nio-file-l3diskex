@@ -13,7 +13,6 @@ import java.util.Arrays;
 
 import l3diskex.Common;
 import l3diskex.Utils;
-import l3diskex.basicfmt.BasicCommon.DirectoryCdos;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasic.DiskBasicIdentifiedData;
@@ -22,6 +21,7 @@ import l3diskex.basicfmt.DiskBasicDirItem;
 import l3diskex.basicfmt.DiskBasicFat;
 import l3diskex.basicfmt.DiskBasicFat.DiskBasicFatBuffer;
 import l3diskex.basicfmt.DiskBasicParam.DiskBasicFormat;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemCDOS.DirectoryCdos;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import vavi.io.SeekableDataInputStream;
 import vavi.util.serdes.Element;

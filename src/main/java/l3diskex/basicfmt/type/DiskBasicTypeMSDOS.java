@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 
-import l3diskex.basicfmt.BasicCommon.DirectoryMsDos;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.DiskBasic;
@@ -20,6 +19,7 @@ import l3diskex.basicfmt.DiskBasicFat;
 import l3diskex.basicfmt.DiskBasicFat.DiskBasicFatArea;
 import l3diskex.basicfmt.DiskBasicParam;
 import l3diskex.basicfmt.DiskBasicParam.DiskBasicFormat;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemMSDOS.DirectoryMsDos;
 import l3diskex.diskimg.DiskImage.DiskImageDisk;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import vavi.util.serdes.Element;
@@ -32,11 +32,12 @@ import static l3diskex.basicfmt.DiskBasicTemplates.gDiskBasicTemplates;
 
 
 /**
- MS-DOSの処理
-
- DiskBasicParam 固有のパラメータ
- @li MediaID  メディアID
- @li IgnoreParameter  セクタ1のパラメータを無視するか
+ * MS-DOSの処理
+ * <p>
+ * DiskBasicParam 固有のパラメータ
+ *
+ * @li MediaID  メディアID
+ * @li IgnoreParameter  セクタ1のパラメータを無視するか
  */
 public class DiskBasicTypeMSDOS extends DiskBasicTypeFAT12<DirectoryMsDos> {
 

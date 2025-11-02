@@ -6,7 +6,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
 
-import l3diskex.basicfmt.BasicCommon.DirectoryMzFdos;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasic.DiskBasicIdentifiedData;
@@ -15,6 +14,7 @@ import l3diskex.basicfmt.DiskBasicDirItem;
 import l3diskex.basicfmt.DiskBasicError;
 import l3diskex.basicfmt.DiskBasicFat;
 import l3diskex.basicfmt.diritem.DiskBasicDirItemMZFDOS;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemMZFDOS.DirectoryMzFdos;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import vavi.util.serdes.Element;
 import vavi.util.serdes.Serdes;
@@ -160,7 +160,7 @@ public class DiskBasicTypeMZFDOS extends DiskBasicTypeMZBase<DirectoryMzFdos> {
      * データサイズ分のグループを確保する
      *
      * @param fileunit_num ファイル番号
-     * @param item         [in,out]        ディレクトリアイテム
+     * @param item         [in,out] ディレクトリアイテム
      * @param data_size    確保するデータサイズ（バイト）
      * @param flags        新規か追加か
      * @param group_items  [out] 確保したセクタリスト

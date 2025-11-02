@@ -9,14 +9,17 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.ResourceBundle;
 
-import l3diskex.basicfmt.BasicCommon.DirectoryFp;
+import l3diskex.basicfmt.BasicCommon.DirectoryT;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasicError;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemFP.DirectoryFp;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
+import vavi.util.serdes.Element;
+import vavi.util.serdes.Serdes;
 
 import static l3diskex.Config.gConfig;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_ASCII_MASK;
@@ -33,6 +36,40 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_READWRITE_MAS
 public class DiskBasicDirItemFP extends DiskBasicDirItemFAT8<DirectoryFp> {
 
     private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
+
+    /**
+     * ディレクトリエントリ C82-BASIC (32bytes)
+     */
+    @Serdes(bigEndian = false)
+    public static class DirectoryFp implements DirectoryT {
+
+        @Element(sequence = 1)
+        public byte type;
+        @Element(sequence = 2)
+        public byte[] name = new byte[8];
+        @Element(sequence = 3)
+        public byte[] ext = new byte[3];
+        @Element(sequence = 4)
+        public byte term;
+        @Element(sequence = 5)
+        public byte[] unknown = new byte[7];
+        @Element(sequence = 6)
+        public short loadAddr;
+        @Element(sequence = 7)
+        public short endAddr;
+        @Element(sequence = 8)
+        public short execAddr;
+        @Element(sequence = 9)
+        public short fileSize;
+        @Element(sequence = 10)
+        public byte startGroup;
+        @Element(sequence = 11)
+        public byte attr;
+        @Element(sequence = 12)
+        public byte[] reserved = new byte[2];
+
+        public static final int SIZE = 32;
+    }
 
     // Casio FP-1100 C82-BASIC file types
     public static final int FILETYPE_FP_BASIC = 0x10;	// BASIC
