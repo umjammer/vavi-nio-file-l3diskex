@@ -41,7 +41,7 @@ public class DiskBasicTypeFAT8<T extends DirectoryT> extends DiskBasicType<T> {
     @Override
     public int getGroupNumber(int num) {
         // 8bit FAT
-        return fat.getDiskBasicFatArea().getData8(0, num);
+        return fat.getDiskBasicFatArea().getData8(0, num) & 0xff;
     }
 
     /** FATエリアをチェック */
