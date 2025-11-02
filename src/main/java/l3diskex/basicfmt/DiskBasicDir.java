@@ -26,6 +26,7 @@ import l3diskex.basicfmt.diritem.DiskBasicDirItemLOSA;
 import l3diskex.basicfmt.diritem.DiskBasicDirItemM68FDOS;
 import l3diskex.basicfmt.diritem.DiskBasicDirItemMAGICAL;
 import l3diskex.basicfmt.diritem.DiskBasicDirItemMDOS;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemMSDOS;
 import l3diskex.basicfmt.diritem.DiskBasicDirItemMSDOS.DiskBasicDirItemVFAT;
 import l3diskex.basicfmt.diritem.DiskBasicDirItemMSX;
 import l3diskex.basicfmt.diritem.DiskBasicDirItemMZ;
@@ -156,7 +157,7 @@ public class DiskBasicDir<T extends DirectoryT> {
                 item = new DiskBasicDirItemLOSA(basic);
                 break;
             case FORMAT_TYPE_CDOS2:
-                item = new DiskBasicDirItemVFAT(basic); // Note: C++ uses DiskBasicDirItemMSDOS(basic)
+                item = new DiskBasicDirItemMSDOS(basic);
                 break;
             case FORMAT_TYPE_FALCOM:
                 item = new DiskBasicDirItemFalcom(basic);
