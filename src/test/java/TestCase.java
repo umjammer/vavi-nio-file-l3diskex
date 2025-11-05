@@ -23,6 +23,7 @@ import vavi.util.properties.annotation.PropsEntity;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIf;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -73,6 +74,7 @@ class TestCase {
     }
 
     @Test
+    @EnabledIf("localPropertiesExists")
     void test2() throws Exception {
 Debug.print("d88: " + d88 + ", " + Files.exists(Path.of(d88)));
         Common.init();
