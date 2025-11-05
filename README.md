@@ -7,6 +7,28 @@
 
 <img alt="logo" src="src/test/resources/logo.svg" width="120" />
 
+### Status
+
+| type    | parser |  status  | | |
+|---------|--------|:-------:|-|-|
+| d88     | D88    |          | | |
+| cpcdsk  | Dsk    |          | | |
+| fdi     | FDI    |          | | |
+| cqmimg  | CQM    |          | | |
+| teletd0 | TD0    |          | | |
+| difcdim | DIM    |          | | |
+| v98fdd  | VFD    |          | | |
+| imd     | IMD    |          | | |
+| dskstr  | STR    |          | | |
+| g64     | G64    |          | | |
+| 2mg     | 2MG    |          | | |
+| adc     | ADC    |          | | |
+| dmk     | Dmk    |          | | |
+| jv3     | JV3    |          | | |
+| hfe     | Hfe    |          | | |
+| plain   | Plain  |          | | |
+
+
 ## Install
 
 * [maven](https://jitpack.io/#umjammer/vavi-nio-file-l3diskex)
