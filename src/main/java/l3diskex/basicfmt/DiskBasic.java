@@ -776,7 +776,7 @@ public class DiskBasic extends DiskParam {
 
     /// 現在選択しているディスクのFATとルートディレクトリをアサイン
     ///
-    /// @return true / false エラーあり
+    /// @return true, false: エラーあり
     public boolean assignFatAndDirectory() throws IOException {
         boolean valid = (assignFat(false) >= 0.0);
         valid = valid && assignRootDirectory();
@@ -865,7 +865,7 @@ public class DiskBasic extends DiskParam {
      *
      * @param item    ディレクトリのアイテム
      * @param srcPath 比較するファイルのパス
-     * @return 0:差異なし 1:差異あり -1:エラー
+     * @return 0: 差異なし, 1:差異あり, -1: エラー
      */
     public int verifyFile(DiskBasicDirItem<?> item, String srcPath) {
         try (FileInputStream file = new FileInputStream(srcPath)) {
@@ -904,7 +904,7 @@ public class DiskBasic extends DiskParam {
      *
      * @param item    [in,out] ディレクトリアイテム
      * @param istream [in,out] ベリファイ時指定
-     * @return 0:差異なし 1:差異あり -1:エラー
+     * @return 0: 差異なし, 1: 差異あり, -1: エラー
      */
     public int verifyData(DiskBasicDirItem<?> item, InputStream istream) throws IOException {
         int sts = 0;
@@ -931,10 +931,10 @@ public class DiskBasic extends DiskParam {
      *
      * @param fileunitNum ファイル番号
      * @param item        [in,out] ディレクトリアイテム
-     * @param istream     [in,out] ベリファイ    時指定
-     * @param ostream     [in,out] エクスポー    ト時指定
+     * @param istream     [in,out] ベリファイ時指定
+     * @param ostream     [in,out] エクスポート時指定
      * @param outsize     [out] 実際に出力したサイズ(ostreamを指定した時のみ有効)
-     * @return 0:差異なし 1:差異あり -1:エラー
+     * @return 0: 差異なし, 1:差異あり, -1: エラー
      */
     public int accessUnitData(int fileunitNum, DiskBasicDirItem<?> item, InputStream istream, OutputStream ostream, int[] outsize) throws IOException {
         if (item == null) {
@@ -1035,7 +1035,7 @@ public class DiskBasic extends DiskParam {
      * @param targetItem  アイテム
      * @param excludeItem 検索対象から除くアイテム
      * @param nextItem    [out] 一致したアイテムの次位置にあるアイテム
-     * @return 0: なし,  1: あり 通常ファイル, -1: あり 上書き不可（ディレクトリ or ボリュームラベル）
+     * @return 0: なし, 1: あり 通常ファイル, -1: あり 上書き不可（ディレクトリ or ボリュームラベル）
      */
     public int isFileNameDuplicated(DiskBasicDirItem<?> dirItem, DiskBasicDirItem<?> targetItem, DiskBasicDirItem<?> excludeItem, DiskBasicDirItem[] nextItem) {
         DiskBasicDirItem<?> item = dir.findFile(dirItem, targetItem, isCompareCaseInsense(), excludeItem, nextItem);
@@ -1102,7 +1102,7 @@ public class DiskBasic extends DiskParam {
      * @param dirItem [in,out] セーブ先ディレクトリアイテム
      * @param pitem   [in,out] セーブ用のファイル名、属性を持っているディレクトリアイテム
      * @param nitem   [out] 確保したディレクトリアイテム
-     * @return false:エラーあり
+     * @return false: エラーあり
      */
     public <T extends DirectoryT> boolean saveFile(String srcPath, DiskBasicDirItem<T> dirItem, DiskBasicDirItem<T> pitem, DiskBasicDirItem<T>[] nitem) {
         if (!isWritableIntoDisk()) return false;
@@ -1122,7 +1122,7 @@ public class DiskBasic extends DiskParam {
      * @param dirItem [in,out] セーブ先ディレクトリアイテム
      * @param pitem   [in,out] セーブ用のファイル名、属性を持っているディレクトリアイテム
      * @param nitem   [out] 確保したディレクトリアイテム
-     * @return false:エラーあり
+     * @return false: エラーあり
      */
     public <T extends DirectoryT> boolean saveFile(byte[] buffer, DiskBasicDirItem<T> dirItem, DiskBasicDirItem<T> pitem, DiskBasicDirItem<T>[] nitem) throws IOException {
         if (!isWritableIntoDisk()) return false;
@@ -1138,7 +1138,7 @@ public class DiskBasic extends DiskParam {
      * @param dirItem [in,out] セーブ先ディレクトリアイテム
      * @param pitem   [in,out] セーブ用のファイル名、属性を持っている仮ディレクトリアイテム
      * @param nitem   [out] 確保したディレクトリアイテム
-     * @return false:エラーあり
+     * @return false: エラーあり
      */
     public <T extends DirectoryT> boolean saveFile(InputStream istream, DiskBasicDirItem<T> dirItem, DiskBasicDirItem<T> pitem, DiskBasicDirItem<T>[] nitem) throws IOException {
         DiskBasicDirItem[] nextItemArr = {null};
@@ -1800,8 +1800,8 @@ public class DiskBasic extends DiskParam {
     ///
     /// @param sector セクタデータ
     /// @param secpos セクタ内の位置
-    /// @param data   ディレクトリデータのあるポインタ
-    /// @param dataP
+    /// @param data   ディレクトリデータ
+    /// @param dataP  ディレクトリデータのポインタ
     /// @return ディレクトリアイテム
     public <T extends DirectoryT> DiskBasicDirItem<T> createDirItem(DiskImageSector sector, int secpos, byte[] data, int dataP) throws IOException {
         return dir.newItem(sector, secpos, data, dataP);

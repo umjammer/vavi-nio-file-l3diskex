@@ -74,7 +74,7 @@ class TestCase {
 
     @Test
     void test2() throws Exception {
-Debug.print("d88: " + d88);
+Debug.print("d88: " + d88 + ", " + Files.exists(Path.of(d88)));
         Common.init();
 
         DiskImage diskImage = new DiskD88Image();
