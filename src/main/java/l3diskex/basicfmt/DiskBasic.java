@@ -24,7 +24,7 @@ import java.util.List;
 import l3diskex.Common;
 import l3diskex.ResultInfo;
 import l3diskex.Utils;
-import l3diskex.Utils.CharCodes;
+import l3diskex.CharCodes;
 import l3diskex.basicfmt.BasicCommon.DirectoryT;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileName;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFormatType;
@@ -783,7 +783,7 @@ public class DiskBasic extends DiskParam {
         return valid;
     }
 
-    /// 解析済みをクリア
+    /** 解析済みをクリア */
     public void clearParseAndAssign(boolean forcely) {
         mParsed = false;
         mAssigned = false;
@@ -792,17 +792,17 @@ public class DiskBasic extends DiskParam {
         dir.setCurrentAsRoot();
     }
 
-    /// 解析済みか
+    /** 解析済みか */
     public boolean isParsed() {
         return mParsed;
     }
 
-    /// アサイン済みか
+    /** アサイン済みか */
     public boolean isAssigned() {
         return mAssigned;
     }
 
-    /// 解析エラーを無視するか
+    /** 解析エラーを無視するか */
     public boolean isForcely() {
         return mForcely;
     }
@@ -1045,7 +1045,7 @@ public class DiskBasic extends DiskParam {
         return (item.isOverWritable() ? 1 : -1);
     }
 
-    /// 書き込みできるか
+    /** 書き込みできるか */
     public boolean isWritableIntoDisk() {
         errinfo.clear();
         if (pDisk == null) {
@@ -1301,7 +1301,7 @@ public class DiskBasic extends DiskParam {
         return (rc >= 0);
     }
 
-    /// ファイルを削除できるか
+    /** ファイルを削除できるか */
     public boolean isDeletableFiles() {
         errinfo.clear();
         if (type == null || !type.supportDeleting()) {
@@ -2111,47 +2111,47 @@ public class DiskBasic extends DiskParam {
         codes.setMap(name);
     }
 
-    /// 現在のキャラクターコードの文字体系を返す
+    /** 現在のキャラクターコードの文字体系を返す */
     public String getCharCode() {
         return charCode;
     }
 
-    /// キャラクターコードの文字体系
+    /** キャラクターコードの文字体系 */
     public CharCodes getCharCodes() {
         return codes;
     }
 
-    /// DISK使用可能か
+    /** DISK使用可能か */
     public boolean canUse() {
         return (pDisk != null);
     }
 
-    /// DISKイメージを返す
+    /** DISKイメージを返す */
     public DiskImageDisk getDisk() {
         return pDisk;
     }
 
-    /// 選択中のサイドを設定
+    /** 選択中のサイドを設定 */
     public void setSelectedSide(int val) {
         selectedSide = val;
     }
 
-    /// 選択中のサイドを返す
+    /** 選択中のサイドを返す */
     public int getSelectedSide() {
         return selectedSide;
     }
 
-    /// FATクラス
+    /** FATクラス */
     public DiskBasicFat getFat() {
         return fat;
     }
 
-    /// DIRクラス
+    /** DIRクラス */
     public <T extends DirectoryT> DiskBasicDir<T> getDir() {
         return dir;
     }
 
-    /// TYPEクラス
+    /** TYPEクラス */
     public <T extends DirectoryT> DiskBasicType<T> getType() {
         return type;
     }

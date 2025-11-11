@@ -29,26 +29,26 @@ import l3diskex.basicfmt.DiskBasicDirItem;
 import l3diskex.basicfmt.DiskBasicError;
 import l3diskex.basicfmt.DiskBasicFat;
 import l3diskex.basicfmt.DiskBasicParam;
+import l3diskex.basicfmt.DiskBasicParam.DiskBasicFormat;
 import l3diskex.basicfmt.DiskBasicType;
 import l3diskex.basicfmt.diritem.DiskBasicDirItemAmiga;
 import l3diskex.basicfmt.diritem.DiskBasicDirItemAmiga.AmigaBlockPre;
 import l3diskex.basicfmt.diritem.DiskBasicDirItemAmiga.AmigaFileDataPre;
-import l3diskex.basicfmt.DiskBasicParam.DiskBasicFormat;
 import l3diskex.basicfmt.diritem.DiskBasicDirItemAmiga.AmigaRootBlockPost;
 import l3diskex.basicfmt.diritem.DiskBasicDirItemAmiga.DirectoryAmiga;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import vavi.util.serdes.Element;
 import vavi.util.serdes.Serdes;
 
+import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_FREE;
+import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_SYSTEM;
+import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_USED;
+import static l3diskex.basicfmt.DiskBasicTemplates.gDiskBasicTemplates;
 import static l3diskex.basicfmt.diritem.DiskBasicDirItemAmiga.FILETYPE_MASK_AMIGA_DATA;
 import static l3diskex.basicfmt.diritem.DiskBasicDirItemAmiga.FILETYPE_MASK_AMIGA_HEADER;
 import static l3diskex.basicfmt.diritem.DiskBasicDirItemAmiga.FILETYPE_MASK_AMIGA_ROOT;
 import static l3diskex.basicfmt.diritem.DiskBasicDirItemAmiga.KEY_FAST_FILE_SYSTEM;
 import static l3diskex.basicfmt.diritem.DiskBasicDirItemAmiga.KEY_INTERNATIONAL;
-import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_FREE;
-import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_SYSTEM;
-import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_USED;
-import static l3diskex.basicfmt.DiskBasicTemplates.gDiskBasicTemplates;
 
 
 /**
@@ -1144,7 +1144,9 @@ logger.log(Level.TRACE, e.getMessage());
         int len = m_root.post.u.r.diskNameLen & 0xff;
         System.arraycopy(m_root.post.u.r.diskName, 0, name, 0, len);
 
-        String wname = new String(name, 0, len, basic.getCharCodes().charset());
+        StringBuilder sb = new StringBuilder();
+        basic.getCharCodes().convToString(name, 0, len, sb, -1);
+        String wname = sb.toString();
         data.setVolumeName(wname);
         data.setVolumeNameMaxLength(name.length);
 
@@ -1164,7 +1166,8 @@ logger.log(Level.TRACE, e.getMessage());
         DiskBasicFormat fmt = basic.getFormatType();
 
         if (fmt.hasVolumeName()) {
-            byte[] name = data.getVolumeName().getBytes(basic.getCharCodes().charset());
+            byte[] name = new byte[m_root.post.u.r.diskName.length + 1];
+            basic.getCharCodes().convToChars(data.getVolumeName(), name, name.length);
             System.arraycopy(name, 0, m_root.post.u.r.diskName, 0, name.length + 1);
             m_root.post.u.r.diskNameLen = (byte) (name.length & 0xff);
         }

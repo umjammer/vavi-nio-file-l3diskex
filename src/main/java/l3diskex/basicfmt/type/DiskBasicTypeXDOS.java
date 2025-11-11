@@ -516,8 +516,9 @@ public class DiskBasicTypeXDOS<T extends DirectoryXdos> extends DiskBasicType<T>
         // タイトル名 DIRエリアの最初
         DiskImageSector sector = basic.getSectorFromSectorPos(basic.diskBasicParam.getDirStartSector() - 1);
         if (sector != null) {
-            String dst = new String(sector.getSectorBuffer(), 0,
-                    VOLUME_NAME_LENGTH, basic.getCharCodes().charset());
+            StringBuilder sb = new StringBuilder();
+            basic.getCharCodes().convToString(sector.getSectorBuffer(), 0, VOLUME_NAME_LENGTH, sb, 0);
+            String dst = sb.toString();
             data.setVolumeName(dst);
             data.setVolumeNameMaxLength(VOLUME_NAME_LENGTH);
         }
@@ -531,9 +532,11 @@ public class DiskBasicTypeXDOS<T extends DirectoryXdos> extends DiskBasicType<T>
             DiskImageSector sector = basic.getSectorFromSectorPos(basic.diskBasicParam.getDirStartSector() - 1);
             if (sector != null) {
                 byte[] dst = new byte[VOLUME_NAME_LENGTH + 1];
-                byte[] src = data.getVolumeName().getBytes(basic.getCharCodes().charset());
-                System.arraycopy(src, 0, dst, 0, Math.min(src.length, VOLUME_NAME_LENGTH));
-                if (src.length > 0) {
+                int l = basic.getCharCodes().convToChars(data.getVolumeName(), dst, dst.length);
+                if (l > 0) {
+                    if (l > VOLUME_NAME_LENGTH) {
+                        l = VOLUME_NAME_LENGTH;
+                    }
                     sector.copy(dst, VOLUME_NAME_LENGTH);
                 }
             }

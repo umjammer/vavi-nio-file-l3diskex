@@ -509,7 +509,9 @@ public class DiskBasicTypeTFDOS extends DiskBasicTypeMZBase<DirectoryTfdos> {
         // volume label
         byte[] vol_name = new byte[12 + 1];
         basic.invertMem(f.volume_name, vol_name.length, vol_name);
-        String dst = new String(vol_name, 0, 12, basic.getCharCodes().charset());
+        StringBuilder sb = new StringBuilder();
+        basic.getCharCodes().convToString(vol_name, 0, 12, sb, -1);
+        String dst = sb.toString();
         data.setVolumeName(dst);
         // volume number
         data.setVolumeNumber(basic.invertUint8(f.volume_num) & 0xff);
@@ -529,8 +531,9 @@ public class DiskBasicTypeTFDOS extends DiskBasicTypeMZBase<DirectoryTfdos> {
 
         // volume label
         if (fmt.hasVolumeName()) {
-            byte[] dst = data.getVolumeName().getBytes(basic.getCharCodes().charset());
-            if (dst.length > 0) {
+            byte[] dst = new byte[f.volume_name.length + 1];
+            int l = basic.getCharCodes().convToChars(data.getVolumeName(), dst, dst.length);
+            if (l > 0) {
                 System.arraycopy(dst, 0, f.volume_name, 0, f.volume_name.length);
                 basic.invertMem(f.volume_name, f.volume_name.length);
             }

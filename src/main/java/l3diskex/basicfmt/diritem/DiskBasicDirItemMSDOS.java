@@ -970,7 +970,7 @@ public class DiskBasicDirItemMSDOS extends DiskBasicDirItem<DirectoryMs> {
             return true;
         }
 
-        /// アイテムの時間設定を無視できるか
+        /** アイテムの時間設定を無視できるか */
         @Override
         public int canIgnoreDateTime() {
             return DATETIME_CREATE_ACCESS;
@@ -1082,18 +1082,17 @@ public class DiskBasicDirItemMSDOS extends DiskBasicDirItem<DirectoryMs> {
                     return 0;
                 }
             } else {
-                dst = src.getBytes(basic.getCharCodes().charset());
-                return 0;
+                return basic.getCharCodes().convToChars(src, dst, len);
             }
         }
 
         /** バイト列を文字列に変換 文字コードは機種依存 */
-        public void convCharsToString(byte[] src, int len, String[] dst) {
+        public void convCharsToString(byte[] src, int len, StringBuilder dst) {
             if ((getFileType1() & FILETYPE_MASK_MS_LFN) == FILETYPE_MASK_MS_LFN) {
                 // ロングファイル名は常にUTF-16
-                dst[0] = new String(src, 0, len, StandardCharsets.UTF_16);
+                dst.append(new String(src, 0, len, StandardCharsets.UTF_16));
             } else {
-                dst[0] = new String(src, 0, len, basic.getCharCodes().charset());
+                basic.getCharCodes().convToString(src, 0, len, dst, -1);
             }
         }
 

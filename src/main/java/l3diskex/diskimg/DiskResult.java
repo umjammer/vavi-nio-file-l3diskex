@@ -5,6 +5,8 @@
 package l3diskex.diskimg;
 
 import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
+import java.util.Arrays;
 
 import l3diskex.ResultInfo;
 
@@ -94,9 +96,9 @@ public class DiskResult extends ResultInfo {
             /* ERRV_SHORT_SECTORS           */ "[Disk%d] Number of sector is less than %d. [track:%d side:%d] num of sector:%d",
             /* ERRV_SECTOR_SIZE_HEADER      */ "[Disk%d] Invalid sector size in header. sector size:%d",
             /* ERRV_SECTOR_SIZE_SECTOR      */ "[Disk%d] Invalid sector size in sector. id[C:%d H:%d R:%d N:%d] sector size:%d",
-            /* ERRV_DUPLICATE_TRACK         */ "[Disk%d] Duplicate track %d and side %d. Side number change to %d.",
-            /* ERRV_DUPLICATE_SECTOR        */ "[Disk%d] Duplicate sector %d. [track:%d side:%d]",
-            /* ERRV_NO_SECTOR               */ "[Disk%d] No found sector %d. [track:%d side:%d]",
+            /* ERRV_DUPLICATE_TRACK         */ "[Disk%d] Duplicate track %s and side %s. Side number change to %d.",
+            /* ERRV_DUPLICATE_SECTOR        */ "[Disk%d] Duplicate sector %d. [track:%s side:%s]",
+            /* ERRV_NO_SECTOR               */ "[Disk%d] No found sector %d. [track:%s side:%s]",
             /* ERRV_IGNORE_DATA             */ "[Disk%d] Deleted data found. This sector is ignored. id[C:%d H:%d R:%d]",
             /* ERRV_TOO_MANY_TRACKS         */ "[Disk%d] Too many tracks. Ignore tracks after %dth.",
             /* ERRV_UNSUPPORTED_TYPE        */ "[Disk%d] Data type %s is unsupported.",
@@ -111,8 +113,10 @@ public class DiskResult extends ResultInfo {
      */
     @Override
     public void setMessageV(int errorNumber, Object... args) {
-
+try {
         String msg;
+
+        args = wrapArrayToString(args);
 
         if (errorNumber <= 0) {
             return;
@@ -127,5 +131,30 @@ public class DiskResult extends ResultInfo {
 //logger.log(Level.TRACE, msg, new Exception("MESSAGE: " + msg));
             msgs.add(msg);
         }
+} catch (Exception e) {
+ logger.log(Level.ERROR, gDiskResultMsgs[errorNumber] + ", " + Arrays.toString(args));
+ logger.log(Level.ERROR, e.getMessage(), e);
+}
+    }
+
+    private static String anyArrayToString(Object array) {
+        Class<?> c = array.getClass();
+        if (!c.isArray()) return String.valueOf(array);
+
+        if (c == int[].class) return Arrays.toString((int[]) array);
+        if (c == long[].class) return Arrays.toString((long[]) array);
+        if (c == double[].class) return Arrays.toString((double[]) array);
+        if (c == float[].class) return Arrays.toString((float[]) array);
+        if (c == char[].class) return Arrays.toString((char[]) array);
+        if (c == byte[].class) return Arrays.toString((byte[]) array);
+        if (c == short[].class) return Arrays.toString((short[]) array);
+        if (c == boolean[].class) return Arrays.toString((boolean[]) array);
+
+        // Object[] (may contain nested arrays → deepToString to be safe)
+        return Arrays.deepToString((Object[]) array);
+    }
+
+    private static Object[] wrapArrayToString(Object... args) {
+        return Arrays.stream(args).map(o -> o.getClass().isArray() ? anyArrayToString(o) : o).toArray();
     }
 }

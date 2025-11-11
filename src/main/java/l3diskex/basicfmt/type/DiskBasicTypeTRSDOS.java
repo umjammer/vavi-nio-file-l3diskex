@@ -413,8 +413,9 @@ public abstract class DiskBasicTypeTRSDOS<T extends DirectoryT> extends DiskBasi
         Serdes.Util.deserialize(new ByteArrayInputStream(b), gat_sector);
 
         // volume name
-        String wname = new String(gat_sector.name, basic.getCharCodes().charset());
-        wname = wname.trim();
+        StringBuilder sb = new StringBuilder();
+        basic.getCharCodes().convToString(gat_sector.name, 0, gat_sector.name.length, sb, -1);
+        String wname = sb.toString().trim();
         data.setVolumeName(wname);
         data.setVolumeNameMaxLength(gat_sector.name.length);
         // volume date

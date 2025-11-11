@@ -217,12 +217,12 @@
 	<Map name="ShiftJIS" type="2">
 		<Description>Shift JIS</Description>
 		<Description lang="ja">シフトJIS</Description>
-		<FontEncoding>27</FontEncoding><!-- wxFONTENCODING_CP932 -->
+		<FontEncoding>CP932</FontEncoding>
 	</Map>
 
 	<Map name="ISO-8859-1" type="3">
 		<Description>ISO-8859-1</Description>
-		<FontEncoding>1</FontEncoding><!-- wxFONTENCODING_ISO8859_1 -->
+		<FontEncoding>ISO8859_1</FontEncoding>
 	</Map>
 
 	<Map name="Hankaku">

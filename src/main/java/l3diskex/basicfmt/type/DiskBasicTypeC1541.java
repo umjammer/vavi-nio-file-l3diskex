@@ -1079,7 +1079,9 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
 
         Common.rtrim(name, name.length, basic.diskBasicParam.getDirSpaceCode());
 
-        String wname = new String(name, 0, len, basic.getCharCodes().charset());
+        StringBuilder sb = new StringBuilder();
+        basic.getCharCodes().convToString(name, 0, len, sb, -1);
+        String wname = sb.toString();
         data.setVolumeName(wname);
         data.setVolumeNameMaxLength(len);
 
@@ -1098,7 +1100,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
         // volume name
         if (fmt.hasVolumeName()) {
             byte[] name = new byte[c1541_bam.getDiskNameSize() + 1];
-            System.arraycopy(data.getVolumeName().getBytes(basic.getCharCodes().charset()), 0, name, 0, Math.min(data.getVolumeName().length(), c1541_bam.getDiskNameSize()));
+            basic.getCharCodes().convToChars(data.getVolumeName(), name, name.length);
             Common.padding(name, name.length, basic.diskBasicParam.getDirSpaceCode());
             c1541_bam.setDiskName(name, c1541_bam.getDiskNameSize());
         }

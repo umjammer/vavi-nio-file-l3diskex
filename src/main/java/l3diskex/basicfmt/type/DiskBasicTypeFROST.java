@@ -497,8 +497,10 @@ public class DiskBasicTypeFROST extends DiskBasicTypeFAT8<DirectoryFrost> {
         if (sector != null) {
             byte[] buf = sector.getSectorBuffer();
             int offset = sector.getSectorSize() * div_num[0] / div_nums[0] + 0x140;
-            if (buf[offset] >= 0x20 && (buf[offset] & 0xFF) < 0xff) {
-                String dst = new String(buf, offset, 64, basic.getCharCodes().charset());
+            if (buf[offset] >= 0x20 && (buf[offset] & 0xff) < 0xff) {
+                StringBuilder sb = new StringBuilder();
+                basic.getCharCodes().convToString(buf, offset, 64, sb, 0);
+                String dst = sb.toString();
                 data.setVolumeName(dst);
             }
         }

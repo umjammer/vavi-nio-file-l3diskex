@@ -2182,7 +2182,9 @@ logger.log(Level.ERROR, e.getMessage(), e);
 
     /** バイト列を文字列に変換 文字コードは機種依存 */
     public String convCharsToString(byte[] src, int len) {
-        return new String(src, 0, len, basic.getCharCodes().charset());
+        StringBuilder sb = new StringBuilder();
+        basic.getCharCodes().convToString(src, 0, len, sb, -1);
+        return sb.toString();
     }
 
     /// ファイル属性をXMLで出力

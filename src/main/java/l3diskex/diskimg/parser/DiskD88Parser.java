@@ -362,7 +362,7 @@ logger.log(Level.TRACE, "stream_size: %d, disk_size: %d".formatted(stream_size, 
 
             // find the minimum value of the offset part
             // -> old d88 has a small offset part
-            int offset_start = -1; // C++ wxUint32(-1) is 0xFFFFFFFF
+            int offset_start = -1;
             for (int pos = 0; pos < (DISKD88_MAX_TRACKS - 16); pos++) {
                 int offset = disk_header.getOffset(pos);
                 if (offset_start == -1 || (offset < offset_start && offset > 0)) {

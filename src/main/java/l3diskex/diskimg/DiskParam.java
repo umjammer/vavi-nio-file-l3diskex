@@ -5,7 +5,9 @@ import java.io.IOException;
 import java.lang.System.Logger;
 import java.lang.System.Logger.Level;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.StringJoiner;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -24,6 +26,7 @@ public class DiskParam {
 
     public static DiskTemplates gDiskTemplates = new DiskTemplates();
 
+    /** トラック＆サイド＆セクタ番号を保持 */
     public static class SectorParam {
 
         protected int track_num;
@@ -68,7 +71,7 @@ public class DiskParam {
         /// @param n_side_num    サイド番号
         /// @param n_sector_num  セクタ番号
         /// @param n_sector_size セクタサイズ
-        /// セクタサイズが<0 の時 、 条件から除外する
+        /// セクタサイズが<0 の時、条件から除外する
         public boolean match(int n_track_num, int n_side_num, int n_sector_num, int n_sector_size) {
             return ((track_num < 0 || (track_num == n_track_num))
                     && (side_num < 0 || (side_num == n_side_num))
@@ -101,6 +104,7 @@ public class DiskParam {
         }
     }
 
+    /** トラック＆サイド＆セクタ番号を保持 */
     public static class TrackParam extends SectorParam {
 
         public static final int ID_IS_VALID = 0x8000;
@@ -113,7 +117,6 @@ public class DiskParam {
         // 単密度など特殊なトラックやセクタ情報を保持する
         //
         public TrackParam() {
-            super();
             this.num_of_tracks = 1;
             this.sectors_per_track = -1;
             this.id = new int[4];
@@ -160,35 +163,52 @@ public class DiskParam {
             }
         }
 
+        /// トラックの数を設定
         public void setNumberOfTracks(int val) {
             num_of_tracks = val;
         }
 
+        /// セクタの数を設定
         public void setSectorsPerTrack(int val) {
             sectors_per_track = val;
         }
 
+        /// セクタサイズを設定
         public void setSectorSize(int val) {
             sector_size = val;
         }
 
+        /// トラックの数を返す
         public int getNumberOfTracks() {
             return num_of_tracks;
         }
 
+        /// セクタの数を返す
         public int getSectorsPerTrack() {
             return sectors_per_track;
         }
 
+        /// セクタサイズを返す
         public int getSectorSize() {
             return sector_size;
         }
 
+        /// IDを返す
         public int[] getID() {
             return id;
         }
+
+        @Override
+        public String toString() {
+            return new StringJoiner(", ", TrackParam.class.getSimpleName() + "[", "]")
+                    .add("num_of_tracks=" + num_of_tracks)
+                    .add("sectors_per_track=" + sectors_per_track)
+                    .add("id=" + Arrays.toString(id))
+                    .toString();
+        }
     }
 
+    /** 単密度など特殊なトラックやセクタ情報を保持する */
     public static class DiskParticular extends TrackParam {
 
         private final List<TrackParam> excludes;
@@ -197,7 +217,6 @@ public class DiskParam {
         // 単密度など特殊なトラックやセクタ情報を保持する
         //
         public DiskParticular() {
-            super();
             this.excludes = new ArrayList<>();
         }
 
@@ -227,8 +246,7 @@ public class DiskParam {
         /// @param n_side_num  サイド番号
         public boolean findExclude(int n_track_num, int n_side_num) {
             TrackParam match = null;
-            for (int i = 0; i < excludes.size(); i++) {
-                TrackParam item = excludes.get(i);
+            for (TrackParam item : excludes) {
                 if (n_track_num != item.getTrackNumber()) continue;
                 if (n_side_num != item.getSideNumber()) continue;
                 match = item;
@@ -249,7 +267,7 @@ public class DiskParam {
 
             if (sectors == count) {
                 List<DiskParticular> newarr = new ArrayList<>();
-                DiskParticular sd = arr.get(0);
+                DiskParticular sd = arr.getFirst();
                 newarr.add(new DiskParticular(sd.getTrackNumber(), sd.getSideNumber(), -1, sd.getNumberOfTracks(), sd.getSectorsPerTrack(), sd.getSectorSize()));
                 arr.clear();
                 arr.addAll(newarr);
@@ -271,7 +289,7 @@ public class DiskParam {
             List<DiskParticular> newarr = new ArrayList<>();
             DiskParticular prev_sd;
 
-            prev_sd = arr.get(0);
+            prev_sd = arr.getFirst();
             // 同じトラック番号で全サイドが同じパラメータ(単密度)であればまとめる
             int side_count = 1;
             boolean all_sides = true;
@@ -300,7 +318,7 @@ public class DiskParam {
             newarr.clear();
             // 全トラックが同じパラメータ(単密度)であればまとめる
             if (all_sides && count >= tracks) {
-                DiskParticular sd = arr.get(0);
+                DiskParticular sd = arr.getFirst();
                 newarr.add(new DiskParticular(-1, -1, -1, sd.getNumberOfTracks(), sd.getSectorsPerTrack(), sd.getSectorSize()));
                 arr.clear();
                 arr.addAll(newarr);
@@ -314,9 +332,9 @@ public class DiskParam {
         /** セクタ/トラックのリスト内で最小値を返す */
         public static int getMinSectorsPerTrack(List<DiskParticular> list, int default_number) {
             int val = 0xffff;
-            for (int i = 0; i < list.size(); i++) {
-                if (list.get(i).getSectorsPerTrack() < val) {
-                    val = list.get(i).getSectorsPerTrack();
+            for (DiskParticular diskParticular : list) {
+                if (diskParticular.getSectorsPerTrack() < val) {
+                    val = diskParticular.getSectorsPerTrack();
                 }
             }
             if (default_number < val) {
@@ -328,9 +346,9 @@ public class DiskParam {
         /** セクタ/トラックのリスト内で最大値を返す */
         public static int getMaxSectorsPerTrack(List<DiskParticular> list, int default_number) {
             int val = 0;
-            for (int i = 0; i < list.size(); i++) {
-                if (list.get(i).getSectorsPerTrack() > val) {
-                    val = list.get(i).getSectorsPerTrack();
+            for (DiskParticular diskParticular : list) {
+                if (diskParticular.getSectorsPerTrack() > val) {
+                    val = diskParticular.getSectorsPerTrack();
                 }
             }
             if (default_number > val) {
@@ -345,11 +363,9 @@ public class DiskParam {
             if (list.size() != dst.size()) {
                 match = false;
             } else {
-                for (int di = 0; di < dst.size(); di++) {
+                for (DiskParticular ds : dst) {
                     boolean sm = false;
-                    for (int si = 0; si < list.size(); si++) {
-                        DiskParticular ss = list.get(si);
-                        DiskParticular ds = dst.get(di);
+                    for (DiskParticular ss : list) {
                         if (ss.equals(ds)) {
                             sm = true;
                             break;
@@ -363,9 +379,16 @@ public class DiskParam {
             }
             return match;
         }
+
+        @Override
+        public String toString() {
+            return new StringJoiner(", ", DiskParticular.class.getSimpleName() + "[", "]")
+                    .add("excludes=" + excludes)
+                    .toString();
+        }
     }
 
-    /// 各トラックのセクタ数を保持
+    /** 各トラックのセクタ数を保持 */
     public static class NumSectorsParam {
 
         protected int start_track_num;
@@ -390,32 +413,32 @@ public class DiskParam {
             this.sectors_per_track = n_sectors_per_track;
         }
 
-        /// 開始トラック番号を設定
+        /** 開始トラック番号を設定 */
         public void setStartTrackNumber(int val) {
             start_track_num = val;
         }
 
-        /// トラック数を設定
+        /** トラック数を設定 */
         public void setNumberOfTracks(int val) {
             num_of_tracks = val;
         }
 
-        /// セクタ数/トラックを設定
+        /** セクタ数/トラックを設定 */
         public void setSectorsPerTrack(int val) {
             sectors_per_track = val;
         }
 
-        /// 開始トラック番号を返す
+        /** 開始トラック番号を返す */
         public int getStartTrackNumber() {
             return start_track_num;
         }
 
-        /// トラック数を返す
+        /** トラック数を返す */
         public int getNumberOfTracks() {
             return num_of_tracks;
         }
 
-        /// セクタ数/トラックを返す
+        /** セクタ数/トラックを返す */
         public int getSectorsPerTrack() {
             return sectors_per_track;
         }
@@ -427,27 +450,27 @@ public class DiskParam {
         /** セクタ/トラックのリスト内の最小値を返す */
         public static int getMinSectorOfTracks(List<NumSectorsParam> list) {
             int val = 0xffff;
-            for (int i = 0; i < list.size(); i++) {
-                if (list.get(i).getSectorsPerTrack() < val) {
-                    val = list.get(i).getSectorsPerTrack();
+            for (NumSectorsParam numSectorsParam : list) {
+                if (numSectorsParam.getSectorsPerTrack() < val) {
+                    val = numSectorsParam.getSectorsPerTrack();
                 }
             }
             return val;
         }
 
-        /// リスト内でセクタ数の最大値を返す
+        /** リスト内でセクタ数の最大値を返す */
         public static int getMaxSectorOfTracks(List<NumSectorsParam> list) {
             int val = 0;
-            for (int i = 0; i < list.size(); i++) {
-                if (list.get(i).getSectorsPerTrack() > val) {
-                    val = list.get(i).getSectorsPerTrack();
+            for (NumSectorsParam numSectorsParam : list) {
+                if (numSectorsParam.getSectorsPerTrack() > val) {
+                    val = numSectorsParam.getSectorsPerTrack();
                 }
             }
             return val;
         }
     }
 
-    /// DISK BASIC 名前リストを保存
+    /** DISK BASIC 名前リストを保存 */
     public static class DiskParamName {
 
         private String name;
@@ -457,24 +480,32 @@ public class DiskParam {
             this.flags = 0;
         }
 
-        /// 名前を設定
+        /** 名前を設定 */
         public void setName(String val) {
             name = val;
         }
 
-        /// 名前を返す
+        /** 名前を返す */
         public String getName() {
             return name;
         }
 
-        /// フラグを設定
+        /** フラグを設定 */
         public void setFlags(int val) {
             flags = val;
         }
 
-        /// フラグを返す
+        /** フラグを返す */
         public int getFlags() {
             return flags;
+        }
+
+        @Override
+        public String toString() {
+            return new StringJoiner(", ", DiskParamName.class.getSimpleName() + "[", "]")
+                    .add("name='" + name + "'")
+                    .add("flags=" + flags)
+                    .toString();
         }
     }
 
@@ -494,12 +525,12 @@ public class DiskParam {
             this.secs.add(0);
         }
 
-        /// インターリーブ間隔を返す
+        /** インターリーブ間隔を返す */
         public int get() {
             return secs.getFirst();
         }
 
-        /// インターリーブマップを返す
+        /** インターリーブマップを返す */
         public int get(int idx) {
             if (idx < secs.size()) {
                 return secs.get(idx);
@@ -508,19 +539,19 @@ public class DiskParam {
             }
         }
 
-        /// インターリーブ間隔を設定
+        /** インターリーブ間隔を設定 */
         public void set(int val) {
             has_map = false;
             secs.set(0, val);
         }
 
-        /// インターリーブマップを設定
+        /** インターリーブマップを設定 */
         public void set(List<Integer> val) {
             has_map = true;
             secs = new ArrayList<>(val);
         }
 
-        /// 固有のマップを持っているか
+        /** 固有のマップを持っているか */
         public boolean hasMap() {
             return has_map;
         }
@@ -601,27 +632,29 @@ if (sector_size == 0) {
         this.description = src.description;
     }
 
-    /// 全パラメータを設定
-    ///
-    /// @param n_type_name             ディスク種類名 "2D" "2HD" など
-    /// @param n_basic_types           BASIC種類（DiskBasicParamとのマッチングにも使用）
-    /// @param n_reversible            裏返し可能 AB面あり（L3用3インチFDなど）
-    /// @param n_sides_per_disk        サイド数
-    /// @param n_tracks_per_side       トラック数
-    /// @param n_sectors_per_track     セクタ数
-    /// @param n_sector_size           セクタサイズ
-    /// @param n_numbering_sector      セクタ番号の付番方法(0:サイド毎、1:トラック毎)
-    /// @param n_disk_density          0x00:2D 0x10:2DD 0x20:2HD
-    /// @param n_interleave            セクタの間隔
-    /// @param n_track_number_base     開始トラック番号
-    /// @param n_side_number_base      開始サイド番号
-    /// @param n_sector_number_base    開始セクタ番号
-    /// @param n_variable_secs_per_trk セクタ数がトラックごとに異なるか
-    /// @param n_singles               単密度にするトラック
-    /// @param n_ptracks               特殊なトラックを定義 セクタ数がトラックごとに異なる場合
-    /// @param n_psectors              特殊なセクタを定義
-    /// @param n_density_name          密度情報（説明用）
-    /// @param n_desc                  説明
+    /**
+     * 全パラメータを設定
+     *
+     * @param n_type_name             ディスク種類名 "2D" "2HD" など
+     * @param n_basic_types           BASIC種類（DiskBasicParamとのマッチングにも使用）
+     * @param n_reversible            裏返し可能 AB面あり（L3用3インチFDなど）
+     * @param n_sides_per_disk        サイド数
+     * @param n_tracks_per_side       トラック数
+     * @param n_sectors_per_track     セクタ数
+     * @param n_sector_size           セクタサイズ
+     * @param n_numbering_sector      セクタ番号の付番方法(0:サイド毎、1:トラック毎)
+     * @param n_disk_density          0x00:2D 0x10:2DD 0x20:2HD
+     * @param n_interleave            セクタの間隔
+     * @param n_track_number_base     開始トラック番号
+     * @param n_side_number_base      開始サイド番号
+     * @param n_sector_number_base    開始セクタ番号
+     * @param n_variable_secs_per_trk セクタ数がトラックごとに異なるか
+     * @param n_singles               単密度にするトラック
+     * @param n_ptracks               特殊なトラックを定義 セクタ数がトラックごとに異なる場合
+     * @param n_psectors              特殊なセクタを定義
+     * @param n_density_name          密度情報（説明用）
+     * @param n_desc                  説明
+     */
     public void setDiskParam(String n_type_name, List<DiskParamName> n_basic_types, boolean n_reversible,
                              int n_sides_per_disk, int n_tracks_per_side, int n_sectors_per_track, int n_sector_size,
                              int n_numbering_sector, int n_disk_density, int n_interleave, int n_track_number_base,
@@ -877,8 +910,7 @@ if (sector_size == 0) {
      */
     public boolean findSingleDensity(int track_num, int side_num, int[] sectors_per_track, int[] sector_size) {
         boolean match = false;
-        for (int i = 0; i < singles.size(); i++) {
-            DiskParam.DiskParticular sd = singles.get(i);
+        for (DiskParticular sd : singles) {
             if (sd.match(track_num, side_num, -1, -1)) {
                 match = true;
                 if (sectors_per_track != null && sd.getSectorsPerTrack() > 0) {
@@ -902,8 +934,7 @@ if (sector_size == 0) {
     /// @return true/false
     public boolean findSingleDensity(int track_num, int side_num, int sector_num, int sector_size) {
         boolean match = false;
-        for (int i = 0; i < singles.size(); i++) {
-            DiskParticular sd = singles.get(i);
+        for (DiskParticular sd : singles) {
             if (sd.match(track_num, side_num, sector_num, sector_size)) {
                 match = true;
                 break;
@@ -922,24 +953,24 @@ if (sector_size == 0) {
     public int hasSingleDensity(int[] sectors_per_track /* = null */, int[] sector_size /* = null */) {
         int val = 0;
         DiskParticular sd = null;
-        for (int i = 0; i < singles.size(); i++) {
-            if (singles.get(i).getTrackNumber() < 0 && singles.get(i).getSideNumber() < 0) {
-                sd = singles.get(i);
+        for (DiskParticular single : singles) {
+            if (single.getTrackNumber() < 0 && single.getSideNumber() < 0) {
+                sd = single;
                 val = 1;
                 break;
-            } else if (singles.get(i).getTrackNumber() == 0 && singles.get(i).getSideNumber() < 0) {
-                sd = singles.get(i);
+            } else if (single.getTrackNumber() == 0 && single.getSideNumber() < 0) {
+                sd = single;
                 val = 3;
                 break;
-            } else if (singles.get(i).getTrackNumber() == 0 && singles.get(i).getSideNumber() == 0) {
-                sd = singles.get(i);
+            } else if (single.getTrackNumber() == 0 && single.getSideNumber() == 0) {
+                sd = single;
                 val = 2;
                 break;
             }
         }
         int max_tracks = getTracksPerSide() * getSidesPerDisk();
         if (max_tracks > 0 && max_tracks == singles.size()) {
-            sd = singles.get(0);
+            sd = singles.getFirst();
             val = 1;
         }
         if (val > 0) {
@@ -986,8 +1017,7 @@ if (sector_size == 0) {
     /// @param sector_size       セクタサイズ
     public boolean findParticularTrack(int track_num, int side_num, int[] sectors_per_track, int[] sector_size) {
         DiskParticular match = null;
-        for (int i = 0; i < ptracks.size(); i++) {
-            DiskParticular pt = ptracks.get(i);
+        for (DiskParticular pt : ptracks) {
             if (pt.getSectorsPerTrack() <= 0) continue;
             if (pt.getSectorNumber() >= 0) continue;
             if (track_num < pt.getTrackNumber() || (pt.getTrackNumber() + pt.getNumberOfTracks()) <= track_num)
@@ -1015,8 +1045,7 @@ if (sector_size == 0) {
     /// @param[out] sector_id   C,H,R,Nの入った配列を返す
     public boolean findParticularSector(int track_num, int side_num, int sector_num, int[] sector_size, int[][] sector_id) {
         DiskParticular match = null;
-        for (int i = 0; i < psectors.size(); i++) {
-            DiskParticular ps = psectors.get(i);
+        for (DiskParticular ps : psectors) {
             if (ps.getSectorSize() <= 0) continue;
             if (ps.getSectorsPerTrack() >= 0) continue;
             if (ps.getSectorNumber() >= 0 && ps.getSectorNumber() != sector_num) continue;
@@ -1041,8 +1070,7 @@ if (sector_size == 0) {
     /// @param flags     フラグ
     public DiskParamName findBasicType(String type_name, int flags) {
         DiskParamName match = null;
-        for (int i = 0; i < basic_types.size(); i++) {
-            DiskParamName item = basic_types.get(i);
+        for (DiskParamName item : basic_types) {
             if (item.getName().equals(type_name) && (flags < 0 || item.getFlags() == flags)) {
                 match = item;
                 break;
@@ -1096,217 +1124,217 @@ if (sector_size == 0) {
         return str.toString();
     }
 
-    /// ディスク種類名を設定 "2D" "2HD" など
+    /// ディスク種類名を設定 "2D" "2HD" など */
     public void setDiskTypeName(String str) {
         disk_type_name = str;
     }
 
-    /// BASIC種類を設定
+    /// BASIC種類を設定 */
     public void setBasicTypes(List<DiskParamName> arr) {
         basic_types = new ArrayList<>(arr);
     }
 
-    /// 裏返し可能 AB面ありかどうかを設定
+    /// 裏返し可能 AB面ありかどうかを設定 */
     public void setReversible(boolean val) {
         reversible = val;
     }
 
-    /// サイド数を設定
+    /** サイド数を設定 */
     public void setSidesPerDisk(int val) {
         sides_per_disk = val;
     }
 
-    /// トラック数を設定
+    /** トラック数を設定 */
     public void setTracksPerSide(int val) {
         tracks_per_side = val;
     }
 
-    /// セクタ数を設定
+    /** セクタ数を設定 */
     public void setSectorsPerTrack(int val) {
         sectors_per_track = val;
     }
 
-    /// セクタサイズを設定
+    /** セクタサイズを設定 */
     public void setSectorSize(int val) {
 if (val == 0) { logger.log(Level.WARNING, "srctor_size = 0", new Exception("srctor_size = 0")); }
         sector_size = val;
     }
 
-    /// セクタ番号の付番方法(0:サイド毎、1:トラック毎)を設定
+    /** セクタ番号の付番方法(0:サイド毎、1:トラック毎)を設定 */
     public void setNumberingSector(int val) {
         numbering_sector = val;
     }
 
-    /// 密度(0x00:2D 0x10:2DD 0x20:2HD)を設定
+    /** 密度(0x00:2D 0x10:2DD 0x20:2HD)を設定 */
     public void setParamDensity(int val) {
         disk_density = val;
     }
 
-    /// セクタの間隔を設定
+    /** セクタの間隔を設定 */
     public void setInterleave(int val) {
         interleave = val;
     }
 
-    /// 開始トラック番号を設定
+    /** 開始トラック番号を設定 */
     public void setTrackNumberBaseOnDisk(int val) {
         track_number_base = val;
     }
 
-    /// 開始サイド番号を設定
+    /** 開始サイド番号を設定 */
     public void setSideNumberBaseOnDisk(int val) {
         side_number_base = val;
     }
 
-    /// 開始セクタ番号を設定
+    /** 開始セクタ番号を設定 */
     public void setSectorNumberBaseOnDisk(int val) {
         sector_number_base = val;
     }
 
-    /// セクタ数がトラックごとに異なる
+    /** セクタ数がトラックごとに異なる */
     public void setVariableSectorsPerTrack(boolean val) {
         variable_secs_per_trk = val;
     }
 
-    /// 単密度にするトラックを設定
+    /** 単密度にするトラックを設定 */
     public void setSingles(List<DiskParticular> arr) {
         singles = new ArrayList<>();
         singles.addAll(arr);
     }
 
-    /// 特殊なトラックを設定
+    /** 特殊なトラックを設定 */
     public void setParticularTracks(List<DiskParticular> arr) {
         ptracks = new ArrayList<>();
         ptracks.addAll(arr);
     }
 
-    /// 特殊なセクタを設定
+    /** 特殊なセクタを設定 */
     public void setParticularSectors(List<DiskParticular> arr) {
         psectors = new ArrayList<>();
         psectors.addAll(arr);
     }
 
-    /// 密度情報（説明用）を設定
+    /** 密度情報（説明用）を設定 */
     public void setDensityName(String str) {
         density_name = str;
     }
 
-    /// 説明を設定
+    /** 説明を設定 */
     public void setDescription(String str) {
         description = str;
     }
 
-    /// 単密度にするトラックを追加
+    /** 単密度にするトラックを追加 */
     public void addSingleDensity(DiskParticular val) {
         singles.add(val);
     }
 
-    /// 特殊なトラックを追加
+    /** 特殊なトラックを追加 */
     public void addParticularTrack(DiskParticular val) {
         ptracks.add(val);
     }
 
-    /// 特殊なセクタを追加
+    /** 特殊なセクタを追加 */
     public void addParticularSector(DiskParticular val) {
         psectors.add(val);
     }
 
-    /// ディスク種類名を返す "2D" "2HD" など
+    /** ディスク種類名を返す "2D" "2HD" など */
     public String getDiskTypeName() {
         return disk_type_name;
     }
 
-    /// BASIC種類を返す
+    /** BASIC種類を返す */
     public List<DiskParamName> getBasicTypes() {
         return basic_types;
     }
 
-    /// 裏返し可能 AB面ありかどうかを返す
+    /** 裏返し可能 AB面ありかどうかを返す */
     public boolean isReversible() {
         return reversible;
     }
 
-    /// サイド数を返す
+    /** サイド数を返す */
     public int getSidesPerDisk() {
         return sides_per_disk;
     }
 
-    /// トラック数を返す
+    /** トラック数を返す */
     public int getTracksPerSide() {
         return tracks_per_side;
     }
 
-    /// セクタ数を返す
+    /** セクタ数を返す */
     public int getSectorsPerTrack() {
         return sectors_per_track;
     }
 
-    /// セクタサイズを返す
+    /** セクタサイズを返す */
     public int getSectorSize() {
 //logger.log(Level.INFO, "sector_size: " + sector_size);
         return sector_size;
     }
 
-    /// セクタ番号の付番方法(0:サイド毎、1:トラック毎)を返す
+    /** セクタ番号の付番方法(0:サイド毎、1:トラック毎)を返す */
     public int getNumberingSector() {
         return numbering_sector;
     }
 
-    /// 密度(0x00:2D 0x10:2DD 0x20:2HD)を返す
+    /** 密度(0x00:2D 0x10:2DD 0x20:2HD)を返す */
     public int getParamDensity() {
         return disk_density;
     }
 
-    /// セクタの間隔を返す
+    /** セクタの間隔を返す */
     public int getInterleave() {
         return interleave;
     }
 
-    /// 開始トラック番号を返す
+    /** 開始トラック番号を返す */
     public int getTrackNumberBaseOnDisk() {
         return track_number_base;
     }
 
-    /// 開始サイド番号を返す
+    /** 開始サイド番号を返す */
     public int getSideNumberBaseOnDisk() {
         return side_number_base;
     }
 
-    /// 開始セクタ番号を返す
+    /** 開始セクタ番号を返す */
     public int getSectorNumberBaseOnDisk() {
         return sector_number_base;
     }
 
-    /// セクタ数がトラックごとに異なる
+    /** セクタ数がトラックごとに異なる */
     public boolean isVariableSectorsPerTrack() {
         return variable_secs_per_trk;
     }
 
-    /// 単密度にするトラックを返す
+    /** 単密度にするトラックを返す */
     public List<DiskParticular> getSingles() {
         return singles;
     }
 
-    /// 特殊なトラックを返す
+    /** 特殊なトラックを返す */
     public List<DiskParticular> getParticularTracks() {
         return ptracks;
     }
 
-    /// 特殊なセクタを返す
+    /** 特殊なセクタを返す */
     public List<DiskParticular> getParticularSectors() {
         return psectors;
     }
 
-    /// 密度情報（説明用）を返す
+    /** 密度情報（説明用）を返す */
     public String getDensityName() {
         return density_name;
     }
 
-    /// 説明を返す
+    /** 説明を返す */
     public String getDescription() {
         return description;
     }
 
-    /// ディスクパラメータのテンプレートを提供する
+    /** ディスクパラメータのテンプレートを提供する */
     public static class DiskTemplates extends TemplatesBase {
 
         private final List<DiskParam> params;
@@ -1357,61 +1385,54 @@ logger.log(Level.ERROR, "no DiskTypes element found");
                     String[] desc = {""}, desc_locale = {""};
                     while (itemnode != null) {
                         String str = itemnode.getTextContent();
-                        if (itemnode.getNodeName().equals("Reversible")) {
-                            p.setReversible(Utils.toBool(str));
-                        } else if (itemnode.getNodeName().equals("SidesPerDisk")) {
-                            p.setSidesPerDisk(Utils.toInt(str));
-                        } else if (itemnode.getNodeName().equals("TracksPerSide")) {
-                            p.setTracksPerSide(Utils.toInt(str));
-                        } else if (itemnode.getNodeName().equals("SectorsPerTrack")) {
-                            p.setSectorsPerTrack(Utils.toInt(str));
-                        } else if (itemnode.getNodeName().equals("SectorSize")) {
-                            p.setSectorSize(Utils.toInt(str));
-                        } else if (itemnode.getNodeName().equals("NumberingSector")) {
-                            str = str.toLowerCase();
-                            if (str.equals("track")) {
-                                p.setNumberingSector(1);
+                        switch (itemnode.getNodeName()) {
+                            case "Reversible" -> p.setReversible(Utils.toBool(str));
+                            case "SidesPerDisk" -> p.setSidesPerDisk(Utils.toInt(str));
+                            case "TracksPerSide" -> p.setTracksPerSide(Utils.toInt(str));
+                            case "SectorsPerTrack" -> p.setSectorsPerTrack(Utils.toInt(str));
+                            case "SectorSize" -> p.setSectorSize(Utils.toInt(str));
+                            case "NumberingSector" -> {
+                                str = str.toLowerCase();
+                                if (str.equals("track")) {
+                                    p.setNumberingSector(1);
+                                }
                             }
-                        } else if (itemnode.getNodeName().equals("Density")) {
-                            p.setParamDensity(Utils.toInt(str));
-                        } else if (itemnode.getNodeName().equals("Interleave")) {
-                            p.setInterleave(Utils.toInt(str));
-                        } else if (itemnode.getNodeName().equals("TrackNumberBase")) {
-                            p.setTrackNumberBaseOnDisk(Utils.toInt(str));
-                        } else if (itemnode.getNodeName().equals("SideNumberBase")) {
-                            p.setSideNumberBaseOnDisk(Utils.toInt(str));
-                        } else if (itemnode.getNodeName().equals("SectorNumberBase")) {
-                            p.setSectorNumberBaseOnDisk(Utils.toInt(str));
-                        } else if (itemnode.getNodeName().equals("VariableSectorsPerTrack")) {
-                            p.setVariableSectorsPerTrack(Utils.toBool(str));
-                        } else if (itemnode.getNodeName().equals("DiskBasicTypes")) {
-                            List<DiskParamName> basic_types = new ArrayList<>();
-                            if (!loadDiskBasicTypes(itemnode, basic_types, errmsgs)) {
-                                return false;
+                            case "Density" -> p.setParamDensity(Utils.toInt(str));
+                            case "Interleave" -> p.setInterleave(Utils.toInt(str));
+                            case "TrackNumberBase" -> p.setTrackNumberBaseOnDisk(Utils.toInt(str));
+                            case "SideNumberBase" -> p.setSideNumberBaseOnDisk(Utils.toInt(str));
+                            case "SectorNumberBase" -> p.setSectorNumberBaseOnDisk(Utils.toInt(str));
+                            case "VariableSectorsPerTrack" -> p.setVariableSectorsPerTrack(Utils.toBool(str));
+                            case "DiskBasicTypes" -> {
+                                List<DiskParamName> basic_types = new ArrayList<>();
+                                if (!loadDiskBasicTypes(itemnode, basic_types, errmsgs)) {
+                                    return false;
+                                }
+                                p.setBasicTypes(basic_types);
                             }
-                            p.setBasicTypes(basic_types);
-                        } else if (itemnode.getNodeName().equals("SingleDensity")) {
-                            DiskParticular s = new DiskParticular();
-                            if (!loadSingleDensity(itemnode, s, errmsgs)) {
-                                return false;
+                            case "SingleDensity" -> {
+                                DiskParticular s = new DiskParticular();
+                                if (!loadSingleDensity(itemnode, s, errmsgs)) {
+                                    return false;
+                                }
+                                p.addSingleDensity(s);
                             }
-                            p.addSingleDensity(s);
-                        } else if (itemnode.getNodeName().equals("ParticularTrack")) {
-                            DiskParticular d = new DiskParticular();
-                            if (!loadParticularTrack(itemnode, d, errmsgs)) {
-                                return false;
+                            case "ParticularTrack" -> {
+                                DiskParticular d = new DiskParticular();
+                                if (!loadParticularTrack(itemnode, d, errmsgs)) {
+                                    return false;
+                                }
+                                p.addParticularTrack(d);
                             }
-                            p.addParticularTrack(d);
-                        } else if (itemnode.getNodeName().equals("ParticularSector")) {
-                            DiskParticular d = new DiskParticular();
-                            if (!loadParticularSector(itemnode, d, errmsgs)) {
-                                return false;
+                            case "ParticularSector" -> {
+                                DiskParticular d = new DiskParticular();
+                                if (!loadParticularSector(itemnode, d, errmsgs)) {
+                                    return false;
+                                }
+                                p.addParticularSector(d);
                             }
-                            p.addParticularSector(d);
-                        } else if (itemnode.getNodeName().equals("DensityName")) {
-                            loadDescription(itemnode, locale_name, den_name, den_name_locale);
-                        } else if (itemnode.getNodeName().equals("Description")) {
-                            loadDescription(itemnode, locale_name, desc, desc_locale);
+                            case "DensityName" -> loadDescription(itemnode, locale_name, den_name, den_name_locale);
+                            case "Description" -> loadDescription(itemnode, locale_name, desc, desc_locale);
                         }
                         itemnode = itemnode.getNextSibling();
                     }
@@ -1548,7 +1569,7 @@ logger.log(Level.INFO, "params: " + params.size());
             Node cnode = node.getFirstChild();
             while (cnode != null) {
                 if (cnode.getNodeName().equals("Exclude")) {
-                    DiskParam.TrackParam e = new TrackParam();
+                    DiskParam.TrackParam e = new DiskParam.TrackParam();
                     str = ((Element) cnode).getAttribute("track");
                     if (!str.isEmpty()) {
                         e.setTrackNumber(Utils.toInt(str));
@@ -1635,7 +1656,7 @@ logger.log(Level.INFO, "params: " + params.size());
             return match;
         }
 
-        /// 一致するテンプレートを返す
+        /** 一致するテンプレートを返す */
         public DiskParam find(DiskParam n_param) {
             DiskParam match = null;
             for (int i = 0; i < params.size(); i++) {
@@ -1648,7 +1669,7 @@ logger.log(Level.INFO, "params: " + params.size());
             return match;
         }
 
-        /// タイプ名に一致するテンプレートを返す
+        /** タイプ名に一致するテンプレートを返す */
         public DiskParam find(String n_type_name) {
             DiskParam match = null;
             for (int i = 0; i < params.size(); i++) {
@@ -1682,8 +1703,7 @@ logger.log(Level.INFO, "params: " + params.size());
                                     int n_numbering_sector, List<DiskParticular> n_singles, List<DiskParticular> n_ptracks) {
             DiskParam match_item = null;
             boolean m = false;
-            for (int i = 0; i < params.size(); i++) {
-                DiskParam item = params.get(i);
+            for (DiskParam item : params) {
                 m = item.match(n_sides_per_disk, n_tracks_per_side, n_sectors_per_track, n_sector_size, n_interleave,
                         n_track_number_base, n_side_number_base, n_sector_number_base, n_numbering_sector, n_singles, n_ptracks);
                 if (m) {
@@ -1713,15 +1733,36 @@ logger.log(Level.INFO, "params: " + params.size());
         public DiskParam find(int n_sides_per_disk, int n_tracks_per_side, int n_sectors_per_track, int n_sector_size,
                               int n_interleave, int n_track_number_base, int n_side_number_base, int n_sector_number_base,
                               int n_numbering_sector, List<DiskParticular> n_singles, List<DiskParticular> n_ptracks) {
+logger.log(Level.TRACE, new StringJoiner(", ", "", "")
+//                .add(n_disk_type_name)
+//                .add(n_reversible + "")
+                .add(n_sides_per_disk + "")
+                .add(n_tracks_per_side + "")
+                .add(n_sectors_per_track + "")
+                .add(n_sector_size + "")
+                .add(n_numbering_sector + "")
+//                .add(n_disk_density + "")
+                .add(n_interleave + "")
+                .add(n_track_number_base + "")
+                .add(n_side_number_base + "")
+                .add(n_sector_number_base + "")
+//                .add(n_variable_secs_per_trk + "")
+                .add("\"" + n_singles + "\"")
+                .add("\"" + n_ptracks + "\"")
+//                .add("\"" + n_psectors + "\"")
+//                .add("\"" + n_density_name + "\"")
+//                .add("\"" + n_description + "\"")
+//                .add("\"" + n_basic_types + "\"")
+                .toString());
             DiskParam match_item = findStrict(n_sides_per_disk, n_tracks_per_side, n_sectors_per_track, n_sector_size,
                     n_interleave, n_track_number_base, n_side_number_base, n_sector_number_base, n_numbering_sector, n_singles, n_ptracks);
             if (match_item == null) {
+logger.log(Level.TRACE, "no strict match");
                 boolean[] last = {false};
                 boolean m = false;
                 for (int num = 0; !last[0] && !m; num++) {
                     // パラメータが一致しないときは、引数に近いパラメータ
-                    for (int i = 0; i < params.size(); i++) {
-                        DiskParam item = params.get(i);
+                    for (DiskParam item : params) {
                         m = item.matchNear(num, n_sides_per_disk, n_tracks_per_side, n_sectors_per_track, n_sector_size,
                                 n_interleave, n_numbering_sector, n_singles, last);
                         if (last[0]) {
@@ -1750,8 +1791,7 @@ logger.log(Level.INFO, "params: " + params.size());
          */
         public int find(int n_sides_per_disk, int n_tracks_per_side, int n_sectors_per_track, int n_sector_size,
                         List<DiskParam> n_list, boolean n_separator) {
-            for (int i = 0; i < params.size(); i++) {
-                DiskParam item = params.get(i);
+            for (DiskParam item : params) {
                 if (item.match(n_sides_per_disk, n_tracks_per_side, n_sectors_per_track, n_sector_size)) {
                     // 重複してなければ追加
                     if (!n_list.contains(item)) {
@@ -1774,5 +1814,51 @@ logger.log(Level.INFO, "params: " + params.size());
         public int size() {
             return params.size();
         }
+    }
+
+    @Override
+    public String toString() {
+        return new StringJoiner(", ", DiskParam.class.getSimpleName() + "[", "]")
+                .add("disk_type_name='" + disk_type_name + "'")
+                .add("reversible=" + reversible)
+                .add("sides_per_disk=" + sides_per_disk)
+                .add("tracks_per_side=" + tracks_per_side)
+                .add("sectors_per_track=" + sectors_per_track)
+                .add("sector_size=" + sector_size)
+                .add("numbering_sector=" + numbering_sector)
+                .add("disk_density=" + disk_density)
+                .add("interleave=" + interleave)
+                .add("track_number_base=" + track_number_base)
+                .add("side_number_base=" + side_number_base)
+                .add("sector_number_base=" + sector_number_base)
+                .add("variable_secs_per_trk=" + variable_secs_per_trk)
+                .add("singles=" + singles)
+                .add("ptracks=" + ptracks)
+                .add("psectors=" + psectors)
+                .add("density_name='" + density_name + "'")
+                .add("description='" + description + "'")
+                .add("basic_types=" + basic_types)
+                .toString();
+//        return new StringJoiner(", ", "", "")
+//                .add(disk_type_name)
+//                .add(reversible + "")
+//                .add(sides_per_disk + "")
+//                .add(tracks_per_side + "")
+//                .add(sectors_per_track + "")
+//                .add(sector_size + "")
+//                .add(numbering_sector + "")
+//                .add(disk_density + "")
+//                .add(interleave + "")
+//                .add(track_number_base + "")
+//                .add(side_number_base + "")
+//                .add(sector_number_base + "")
+//                .add(variable_secs_per_trk + "")
+//                .add("\"" + singles + "\"")
+//                .add("\"" + ptracks + "\"")
+//                .add("\"" + psectors + "\"")
+//                .add("\"" + density_name + "\"")
+//                .add("\"" + description + "\"")
+//                .add("\"" + basic_types + "\"")
+//                .toString();
     }
 }

@@ -1243,11 +1243,10 @@ public abstract class DiskImage {
             List<DiskParticular> singles = new ArrayList<>();
 
             if (tracks != null) {
-                for (int ti = 0; ti < tracks.size(); ti++) {
-                    DiskImageTrack t = tracks.get(ti);
-
+                for (DiskImageTrack t : tracks) {
                     int trkNum = t.getTrackNumber();
                     int sidNum = t.getSideNumber();
+//logger.log(Level.TRACE, "trkNum: " + trkNum + ", sidNum: " + sidNum);
 
                     trackNumberMin = IntHashMapUtil.minValue(trackNumberMin, trkNum);
                     trackNumberMax = IntHashMapUtil.maxValue(trackNumberMax, trkNum);
@@ -1280,17 +1279,14 @@ public abstract class DiskImage {
                     List<DiskImageSector> sectors = t.getSectors();
                     if (sectors != null) {
                         List<DiskParticular> sis = new ArrayList<>();
-                        for (int si = 0; si < sectors.size(); si++) {
-                            DiskImageSector s = sectors.get(si);
+                        for (DiskImageSector s : sectors) {
                             if (s != null && s.isSingleDensity()) {
                                 DiskParticular sd = new DiskParticular(t.getTrackNumber(), t.getSideNumber(), s.getSectorNumber(), 1, s.getSectorsPerTrack(), s.getSectorSize());
                                 sis.add(sd);
                             }
                         }
                         DiskParticular.uniqueSectors(t.getSectorsPerTrack(), sis);
-                        for (int si = 0; si < sis.size(); si++) {
-                            singles.add(sis.get(si));
-                        }
+                        singles.addAll(sis);
                     }
                 }
             }
@@ -1298,6 +1294,12 @@ public abstract class DiskImage {
             interleaveMax = IntHashMapUtil.getMaxKeyOnMaxValue(interleaveMap);
 
             sidesPerDisk = sideNumberMax + 1 - sideNumberMin;
+            // normalize a parameter
+if (sidesPerDisk > 2) {
+ logger.log(Level.TRACE, "NORMALIZE: sidesPerDisk: 2 <- " + sidesPerDisk);
+ sidesPerDisk = Math.min(sidesPerDisk, 2);
+}
+logger.log(Level.TRACE, "sidesPerDisk: " + sidesPerDisk + ", sideNumberMax: " + sideNumberMax + ", sideNumberMin: " + sideNumberMin);
 
             if (tracks != null) {
                 int trackCount = (tracks.size() + sidesPerDisk - 1) / sidesPerDisk;
@@ -1312,8 +1314,8 @@ public abstract class DiskImage {
                     diskSingleType = true;
                     sideNumberMax++;
                     sidesPerDisk++;
-                    for (int ti = 0; ti < tracks.size(); ti++) {
-                        DiskImageTrack t = tracks.get(ti);
+logger.log(Level.TRACE, "sidesPerDisk: " + sidesPerDisk);
+                    for (DiskImageTrack t : tracks) {
                         if ((t.getOffsetPos() & 1) != 0) {
                             t.setSideNumber(1);
                         }
@@ -1327,7 +1329,7 @@ public abstract class DiskImage {
             sectorSize = sectorMaxSize;
             interleave = interleaveMax;
 
-            if (sidesPerDisk > 1 && sectorNumberMinSide1 != 0x7fffffff && sectorNumberMaxSide0 < sectorNumberMinSide1) {
+            if (sidesPerDisk > 1 && sectorNumberMinSide1 != 0x7fff_ffff && sectorNumberMaxSide0 < sectorNumberMinSide1) {
                 numberingSector = 1;
                 int secNumMaj = 0;
                 secNumMaj = IntHashMapUtil.getMaxKeyOnMaxValue(sectorNumbersMap[0]);
@@ -1343,8 +1345,7 @@ public abstract class DiskImage {
 
             List<DiskParticular> ptracks = new ArrayList<>();
             if (tracks != null) {
-                for (int ti = 0; ti < tracks.size(); ti++) {
-                    DiskImageTrack t = tracks.get(ti);
+                for (DiskImageTrack t : tracks) {
                     if (t == null) continue;
                     List<DiskImageSector> ss = t.getSectors();
                     if (ss == null) continue;
@@ -1374,6 +1375,7 @@ public abstract class DiskImage {
             allocDiskBasics();
             setOriginalParam(this);
 
+logger.log(Level.TRACE, "diskParam: " + diskParam);
             return diskParam;
         }
 
@@ -1386,8 +1388,7 @@ public abstract class DiskImage {
             }
 
             boolean rc = true;
-            for (int trackPos = 0; trackPos < tracks.size(); trackPos++) {
-                DiskImageTrack track = tracks.get(trackPos);
+            for (DiskImageTrack track : tracks) {
                 if (selectedSide >= 0) {
                     if (selectedSide != track.getSideNumber()) {
                         continue;
@@ -1399,8 +1400,7 @@ public abstract class DiskImage {
                     continue;
                 }
 
-                for (int secPos = 0; secPos < secs.size(); secPos++) {
-                    DiskImageSector sec = secs.get(secPos);
+                for (DiskImageSector sec : secs) {
                     if (sec != null) {
                         sec.fill((byte) 0, -1, 0);
                     }
@@ -1549,8 +1549,7 @@ public abstract class DiskImage {
         /** 変更済みをクリア */
         public void clearModify() {
             if (tracks != null) {
-                for (int trackNum = 0; trackNum < tracks.size(); trackNum++) {
-                    DiskImageTrack track = tracks.get(trackNum);
+                for (DiskImageTrack track : tracks) {
                     if (track == null) continue;
                     track.clearModify();
                 }
@@ -1562,8 +1561,7 @@ public abstract class DiskImage {
             boolean found = false;
             List<DiskImageTrack> tracks = getTracks();
             if (tracks != null) {
-                for (int num = 0; num < tracks.size(); num++) {
-                    DiskImageTrack trk = tracks.get(num);
+                for (DiskImageTrack trk : tracks) {
                     if (trk == null) continue;
                     if (sideNumber >= 0) {
                         if (sideNumber != trk.getSideNumber()) continue;

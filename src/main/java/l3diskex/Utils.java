@@ -1,6 +1,5 @@
 package l3diskex;
 
-import java.nio.charset.Charset;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -32,31 +31,6 @@ public final class Utils {
     private static void memInvert(byte[] data, int size) {
         for (int i = 0; i < size; i++) {
             data[i] = (byte) (data[i] ^ 0xFF);
-        }
-    }
-
-    /**
-     * Placeholder for the external CharCodes class.
-     */
-    @Deprecated
-    public static class CharCodes {
-
-        public void setMap(String char_code) { /* no-op */ }
-
-        public int findString(byte[] c, int len, StringBuilder cstr, char defaultChar) {
-            // Placeholder: Assume 1 byte per character for simplicity in Java conversion.
-            // This is a simplification of multi-byte character handling.
-            if (len >= 1) {
-                cstr.append((char) (c[0] & 0xFF));
-                return 1;
-            }
-            return 0;
-        }
-
-        public void convCtrlCodes(byte[] c, int len) { /* no-op */ }
-
-        public Charset charset() {
-            return Charset.defaultCharset(); // TODO
         }
     }
 
@@ -150,11 +124,6 @@ public final class Utils {
          * @return Data array at position.
          */
         public byte[] getData(int pos) {
-            // In Java, returning the array and relying on the caller to offset is common,
-            // but for C++ pointer semantics, the intent is an address offset.
-            // Since Java doesn't do pointer arithmetic, this method might be slightly misleading.
-            // It will return the array and the caller must use data[pos].
-            // To keep the signature, we return the array.
             return data;
         }
 
@@ -456,7 +425,7 @@ public final class Utils {
                 c[1] = pos + 1 == bufsize ? 0 : (byte) ((buffer[pos + 1] & 0xFF) ^ inv);
                 c[2] = 0;
 
-                int len = codes.findString(c, 2, cstr, '.');
+                int len = codes.findString(c, 2, cstr, (byte) '.');
                 str.append(cstr);
                 pos += len;
                 col += len;
@@ -533,7 +502,7 @@ public final class Utils {
                     continue;
                 }
 
-                int len = codes.findString(c, 2, cstr, '.');
+                int len = codes.findString(c, 2, cstr, (byte) '.');
                 str.append(cstr);
                 col += len;
                 pos += len;

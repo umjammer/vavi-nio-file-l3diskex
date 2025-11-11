@@ -146,9 +146,9 @@ public class Common {
         if (!gDiskBasicTemplates.load(res_path + "data/", locale_name, errmsgs)) {
             throw new IllegalStateException("Cannot load disk basic types data file. " + errmsgs);
         }
-//        if (!CharCodes.load(res_path + "data/", locale_name, errmsgs)) {
-//            throw new IllegalStateException("Cannot load char codes data file. " + errmsgs);
-//        }
+        if (!CharCodes.load(res_path + "data/", locale_name, errmsgs)) {
+            throw new IllegalStateException("Cannot load char codes data file. " + errmsgs);
+        }
         if (!gFileTypes.load(res_path + "data/", locale_name, errmsgs)) {
             throw new IllegalStateException("Cannot load file types data file. " + errmsgs);
         }
