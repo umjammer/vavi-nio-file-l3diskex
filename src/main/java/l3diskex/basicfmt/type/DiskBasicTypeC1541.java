@@ -684,19 +684,21 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
         byte[] buf = Arrays.copyOfRange(sector_buffer, 2, sector_size);
         int size = (sector_size - 2) < remain_size ? (sector_size - 2) : remain_size;
 
+        byte[] temp;
         if (ostream != null) {
             // 書き出し
-            temp.setData(buf, size, basic.isDataInverted());
-            ostream.write(temp.getData(), 0, temp.getSize());
+            temp = Arrays.copyOfRange(buf, 0, size);
+            if (basic.isDataInverted()) Common.mem_invert(temp, temp.length);
+            ostream.write(temp, 0, temp.length);
         }
 
         if (istream != null) {
             // 読み込んで比較
-            temp.setSize(size);
-            int readLen = istream.read(temp.getData(), 0, temp.getSize());
-            temp.invertData(basic.isDataInverted());
+            temp = new byte[size];
+            istream.readNBytes(temp, 0, temp.length);
+            if (basic.isDataInverted()) Common.mem_invert(temp, temp.length);
 
-            if (!Arrays.equals(temp.getData(), buf)) {
+            if (!Arrays.equals(temp, 0, temp.length, buf, 0, size)) {
                 // データが異なる
                 return -1;
             }

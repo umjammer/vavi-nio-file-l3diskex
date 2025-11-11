@@ -941,18 +941,20 @@ logger.log(Level.TRACE, e.getMessage());
             size = remain_size;
         }
 
+        byte[] temp;
         if (ostream != null) {
             // 書き出し
-            temp.setData(Arrays.copyOfRange(sector_buffer, bufferOffset, bufferOffset + size), size, basic.isDataInverted());
-            ostream.write(temp.getData(), 0, temp.getSize());
+            temp = Arrays.copyOfRange(sector_buffer, bufferOffset, bufferOffset + size);
+            if (basic.isDataInverted()) Common.mem_invert(temp, temp.length);
+            ostream.write(temp, 0, temp.length);
         }
         if (istream != null) {
             // 読み込んで比較
-            temp.setSize(size);
-            istream.readNBytes(temp.getData(), 0, temp.getSize());
-            temp.invertData(basic.isDataInverted());
+            temp = new byte[size];
+            istream.readNBytes(temp, 0, temp.length);
+            if (basic.isDataInverted()) Common.mem_invert(temp, temp.length);
 
-            if (!Arrays.equals(temp.getData(), 0, size, sector_buffer, bufferOffset, bufferOffset + size)) {
+            if (!Arrays.equals(temp, 0, size, sector_buffer, bufferOffset, bufferOffset + size)) {
                 // データが異なる
                 return -1;
             }

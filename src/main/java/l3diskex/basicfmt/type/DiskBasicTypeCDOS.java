@@ -288,19 +288,21 @@ public class DiskBasicTypeCDOS extends DiskBasicTypeMZBase<DirectoryCdos> {
     public int accessFile(int fileunit_num, DiskBasicDirItem<DirectoryCdos> item, InputStream istream, OutputStream ostream, byte[] sector_buffer, int sector_size, int remain_size, int sector_num, int sector_end) throws IOException {
         int size = remain_size < sector_size ? remain_size : sector_size;
 
+        byte[] temp;
         if (ostream != null) {
             // 書き出し
-            temp.setData(sector_buffer, size, basic.isDataInverted());
+            temp = Arrays.copyOfRange(sector_buffer, 0, size);
+            if (basic.isDataInverted()) Common.mem_invert(temp, temp.length);
 
-            ostream.write(temp.getData(), 0, temp.getSize());
+            ostream.write(temp, 0, temp.length);
         }
         if (istream != null) {
             // 読み込んで比較
-            temp.setSize(size);
-            istream.readNBytes(temp.getData(), 0, temp.getSize());
-            temp.invertData(basic.isDataInverted());
+            temp = new byte[size];
+            istream.readNBytes(temp, 0, temp.length);
+            if (basic.isDataInverted()) Common.mem_invert(temp, temp.length);
 
-            if (Arrays.compare(temp.getData(), sector_buffer) != 0) {
+            if (Arrays.compare(temp, sector_buffer) != 0) {
                 // データが異なる
                 return -1;
             }
@@ -325,10 +327,10 @@ public class DiskBasicTypeCDOS extends DiskBasicTypeMZBase<DirectoryCdos> {
             ((SeekableDataInputStream) istream).position(0);
         }
 
-        temp.setSize(TEMP_DATA_SIZE);
+        byte[] temp = new byte[TEMP_DATA_SIZE];
         while (osize > 0) {
-            int len = istream.readNBytes(temp.getData(), 0, temp.getSize());
-            ostream.write(temp.getData(), 0, len > osize ? osize : len);
+            int len = istream.readNBytes(temp, 0, temp.length);
+            ostream.write(temp, 0, len > osize ? osize : len);
             osize -= len;
         }
 
@@ -353,10 +355,10 @@ public class DiskBasicTypeCDOS extends DiskBasicTypeMZBase<DirectoryCdos> {
             ((SeekableDataInputStream) istream).position(0);
         }
 
-        temp.setSize(TEMP_DATA_SIZE);
+        byte[] temp = new byte[TEMP_DATA_SIZE];
         int len;
-        while ((len = istream.read(temp.getData(), 0, temp.getSize())) > 0) {
-            ostream.write(temp.getData(), 0, len);
+        while ((len = istream.read(temp, 0, temp.length)) > 0) {
+            ostream.write(temp, 0, len);
         }
 
         if (need_null_code) {
@@ -386,10 +388,10 @@ public class DiskBasicTypeCDOS extends DiskBasicTypeMZBase<DirectoryCdos> {
             // 残り少ない
             if (remain < 0) remain = 0;
             if (remain > 0) {
-                temp.setSize(remain);
-                istream.readNBytes(temp.getData(), 0, temp.getSize());
+                byte[] temp = new byte[remain];
+                istream.readNBytes(temp, 0, temp.length);
 
-                System.arraycopy(temp.getData(), 0, buffer, 0, temp.getSize());
+                System.arraycopy(temp, 0, buffer, 0, temp.length);
             }
             if (size > remain) {
                 // バッファの余りは0サプレス
@@ -398,10 +400,10 @@ public class DiskBasicTypeCDOS extends DiskBasicTypeMZBase<DirectoryCdos> {
             len = remain;
         } else {
             // 継続
-            temp.setSize(size);
-            istream.readNBytes(temp.getData(), 0, temp.getSize());
+            byte[] temp = new byte[size];
+            istream.readNBytes(temp, 0, temp.length);
 
-            System.arraycopy(temp.getData(), 0, buffer, 0, temp.getSize());
+            System.arraycopy(temp, 0, buffer, 0, temp.length);
 
             len = size;
         }

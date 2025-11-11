@@ -10,6 +10,7 @@ import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.List;
 
+import l3diskex.Common;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.DiskBasic;
@@ -468,18 +469,20 @@ public class DiskBasicTypeM68FDOS extends DiskBasicTypeMZBase<DirectoryM68fdos> 
 
         int size = remain_size < sector_size ? remain_size : sector_size;
 
+        byte[] temp;
         if (ostream != null) {
             // Write to output stream
-            temp.setData(sector_buffer, size, basic.isDataInverted());
-            ostream.write(temp.getData(), 0, size);
+            temp = Arrays.copyOfRange(sector_buffer, 0, size);
+            if (basic.isDataInverted()) Common.mem_invert(temp, temp.length);
+            ostream.write(temp, 0, size);
         }
         if (istream != null) {
             // Read from input stream and compare
-            temp.setSize(size);
-            istream.read(temp.getData(), 0, size);
-            temp.invertData(basic.isDataInverted());
+            temp = new byte[size];
+            istream.readNBytes(temp, 0, size);
+            if (basic.isDataInverted()) Common.mem_invert(temp, temp.length);
 
-            if (!Arrays.equals(temp.getData(), 0, size, sector_buffer, 0, size)) {
+            if (!Arrays.equals(temp, 0, temp.length, sector_buffer, 0, size)) {
                 // データが異なる
                 return -1;
             }

@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
 
+import l3diskex.Common;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasic.DiskBasicIdentifiedData;
@@ -279,14 +280,14 @@ public class DiskBasicTypeMZFDOS extends DiskBasicTypeMZBase<DirectoryMzFdos> {
      *
      * @param fileunit_num  ファイル番号
      * @param item          ディレクトリアイテム
-     * @param istream       [in,out] 入力ストリーム ベリファイ時に使用 データ読み出し時はnull
-     * @param ostream       [in,out] 出力先 データ読み出し時に使用 ベリファイ時はnull
+     * @param istream       [in,out] 入力ストリーム ベリファイ時に使用 データ読み出し時は null
+     * @param ostream       [in,out] 出力先 データ読み出し時に使用 ベリファイ時は null
      * @param sector_buffer セクタバッファ
      * @param sector_size   バッファサイズ
      * @param remain_size   残りサイズ
      * @param sector_num    セクタ番号
      * @param sector_end    最終セクタ番号
-     * @return >=0 : 処理したサイズ  -1:比較不一致  -2:セクタがおかしい
+     * @return >=0: 処理したサイズ, -1: 比較不一致, -2: セクタがおかしい
      */
     @Override
     public int accessFile(int fileunit_num, DiskBasicDirItem<DirectoryMzFdos> item, InputStream istream, OutputStream ostream, byte[] sector_buffer, int sector_size, int remain_size, int sector_num, int sector_end) throws IOException {
@@ -299,18 +300,20 @@ public class DiskBasicTypeMZFDOS extends DiskBasicTypeMZBase<DirectoryMzFdos> {
 
         int size = remain_size < sector_size ? remain_size : sector_size;
 
+        byte[] temp;
         if (ostream != null) {
-            temp.setData(sector_buffer, size, basic.isDataInverted());
+            temp = Arrays.copyOfRange(sector_buffer, 0, size);
+            if (basic.isDataInverted()) Common.mem_invert(temp, temp.length);
 
-            ostream.write(temp.getData(), 0, temp.getSize());
+            ostream.write(temp, 0, temp.length);
         }
         if (istream != null) {
             // 読み込んで比較
-            temp.setSize(size);
-            istream.read(temp.getData(), 0, temp.getSize());
-            temp.invertData(basic.isDataInverted());
+            temp = new byte[size];
+            istream.read(temp, 0, temp.length);
+            if (basic.isDataInverted()) Common.mem_invert(temp, temp.length);
 
-            if (!Arrays.equals(temp.getData(), 0, temp.getSize(), sector_buffer, 0, temp.getSize())) {
+            if (!Arrays.equals(temp, 0, temp.length, sector_buffer, 0, temp.length)) {
                 // データが異なる
                 return -1;
             }

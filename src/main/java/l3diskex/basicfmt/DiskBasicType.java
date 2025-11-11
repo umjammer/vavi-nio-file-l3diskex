@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import l3diskex.Common;
 import l3diskex.Utils;
 import l3diskex.basicfmt.BasicCommon.DirectoryT;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
@@ -43,12 +44,6 @@ public abstract class DiskBasicType<T extends DirectoryT> {
     public enum AllocateGroupFlags {
         ALLOCATE_GROUPS_NEW,
         ALLOCATE_GROUPS_APPEND
-    }
-
-    /** データの書き出しや読み込みで使用するテンポラリバッファ */
-    @Deprecated
-    public static class DiskBasicTempData extends Utils.TempData {
-
     }
 
     /**
@@ -437,8 +432,6 @@ public abstract class DiskBasicType<T extends DirectoryT> {
 
     /** 使用状況(FAT,グループ単位) */
     protected DiskBasicAvailability fatAvailability = new DiskBasicAvailability();
-    /** ファイルアクセス時のテンポラリバッファ */
-    protected DiskBasicTempData temp = new DiskBasicTempData();
 
     protected DiskBasicType() {
     }
@@ -1428,18 +1421,20 @@ public abstract class DiskBasicType<T extends DirectoryT> {
         }
 
         if (modifiedSize > 0) {
+            byte[] temp;
             if (ostream != null) {
                 // 書き出し
-                temp.setData(sectorBuffer, modifiedSize, basic.isDataInverted());
-                ostream.write(temp.getData(), 0, temp.getSize());
+                temp = Arrays.copyOfRange(sectorBuffer, 0, modifiedSize);
+                if (basic.isDataInverted()) Common.mem_invert(temp, temp.length);
+                ostream.write(temp, 0, temp.length);
             }
             if (istream != null) {
                 // 読み込んで比較
-                temp.setSize(modifiedSize);
-                istream.read(temp.getData(), 0, temp.getSize());
-                temp.invertData(basic.isDataInverted());
+                temp = new byte[modifiedSize];
+                istream.readNBytes(temp, 0, temp.length);
+                if (basic.isDataInverted()) Common.mem_invert(temp, temp.length);
 
-                if (!Arrays.equals(Arrays.copyOf(temp.getData(), temp.getSize()), Arrays.copyOf(sectorBuffer, temp.getSize()))) {
+                if (!Arrays.equals(Arrays.copyOf(temp, temp.length), Arrays.copyOf(sectorBuffer, temp.length))) {
                     // データが異なる
                     return -1;
                 }

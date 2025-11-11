@@ -11,6 +11,7 @@ import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.List;
 
+import l3diskex.Common;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasic.DiskBasicIdentifiedData;
@@ -243,20 +244,21 @@ public class DiskBasicTypeTFDOS extends DiskBasicTypeMZBase<DirectoryTfdos> {
     public int accessFile(int fileunit_num, DiskBasicDirItem<DirectoryTfdos> item, InputStream istream, OutputStream ostream, byte[] sector_buffer, int sector_size, int remain_size, int sector_num, int sector_end) throws IOException {
         int size = (remain_size < sector_size ? remain_size : sector_size);
 
+        byte[] temp;
         if (ostream != null) {
             // 書き出し
-            temp.setData(sector_buffer, size, basic.isDataInverted());
+            temp = Arrays.copyOfRange(sector_buffer, 0, size);
+            if (basic.isDataInverted()) Common.mem_invert(temp, temp.length);
 
-            ostream.write(temp.getData(), 0, temp.getSize());
+            ostream.write(temp, 0, temp.length);
         }
         if (istream != null) {
             // 読み込んで比較
-            temp.setSize(size);
-            istream.read(temp.getData(), 0, temp.getSize());
+            temp = new byte[size];
+            istream.readNBytes(temp, 0, temp.length);
+            if (basic.isDataInverted()) Common.mem_invert(temp, temp.length);
 
-            temp.invertData(basic.isDataInverted());
-
-            if (!Arrays.equals(temp.getData(), 0, temp.getSize(), sector_buffer, 0, temp.getSize())) {
+            if (!Arrays.equals(temp, 0, temp.length, sector_buffer, 0, size)) {
                 // データが異なる
                 return -1;
             }
@@ -285,13 +287,15 @@ public class DiskBasicTypeTFDOS extends DiskBasicTypeMZBase<DirectoryTfdos> {
         }
         if (is_base_compatible) {
             // BASEコンパチの場合、TABコード($14 -> $09)変換
-            temp.setSize(TEMP_DATA_SIZE);
+            byte[] temp = new byte[TEMP_DATA_SIZE];
             while (osize > 0) {
-                int len = istream.read(temp.getData(), 0, temp.getSize());
+                int len = istream.readNBytes(temp, 0, temp.length);
                 if (len <= 0) break;
                 // TABコード($14 -> $09)変換
-                temp.replace((byte) 0x14, (byte) 0x09);
-                ostream.write(temp.getData(), 0,  len > osize ? osize : len);
+                for (int pos = 0; pos < temp.length; pos++) {
+                    if (temp[pos] == 0x14) temp[pos] = 0x09;
+                }
+                ostream.write(temp, 0,  len > osize ? osize : len);
                 osize -= len;
             }
         } else {
@@ -314,13 +318,15 @@ public class DiskBasicTypeTFDOS extends DiskBasicTypeMZBase<DirectoryTfdos> {
 
         if (is_base_compatible) {
             // BASEコンパチの場合、TABコード($09 -> $14)変換
-            temp.setSize(TEMP_DATA_SIZE);
+            byte[] temp = new byte[TEMP_DATA_SIZE];
             while (osize > 0) {
-                int len = istream.read(temp.getData(), 0, temp.getSize());
+                int len = istream.read(temp, 0, temp.length);
                 if (len <= 0) break;
                 // TABコード($09 -> $14)変換
-                temp.replace((byte) 0x09, (byte) 0x14);
-                ostream.write(temp.getData(), 0,  len > osize ? osize : len);
+                for (int pos = 0; pos < temp.length; pos++) {
+                    if (temp[pos] == 0x09) temp[pos] = 0x14;
+                }
+                ostream.write(temp, 0,  len > osize ? osize : len);
                 osize -= len;
             }
             // 最後に$00を出力
@@ -461,10 +467,10 @@ public class DiskBasicTypeTFDOS extends DiskBasicTypeMZBase<DirectoryTfdos> {
                 // 残り少ない
                 if (remain < 0) remain = 0;
                 if (remain > 0) {
-                    temp.setSize(remain);
-                    istream.read(temp.getData(), 0, temp.getSize());
+                    byte[] temp = new byte[remain];
+                    istream.readNBytes(temp, 0, temp.length);
 
-                    memcpy(buffer, 0, temp.getData(), 0, temp.getSize());
+                    memcpy(buffer, 0, temp, 0, temp.length);
                 }
                 if (size > remain) {
                     // バッファの余りは0サプレス
@@ -473,10 +479,10 @@ public class DiskBasicTypeTFDOS extends DiskBasicTypeMZBase<DirectoryTfdos> {
                 len = remain;
             } else {
                 // 継続
-                temp.setSize(size);
-                istream.read(temp.getData(), 0, temp.getSize());
+                byte[] temp = new byte[size];
+                istream.readNBytes(temp, 0, temp.length);
 
-                memcpy(buffer, 0, temp.getData(), 0, temp.getSize());
+                memcpy(buffer, 0, temp, 0, temp.length);
 
                 len = size;
             }

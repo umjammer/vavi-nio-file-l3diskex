@@ -15,6 +15,7 @@ import java.nio.ShortBuffer;
 import java.util.Arrays;
 import java.util.List;
 
+import l3diskex.Common;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.DiskBasic;
@@ -613,19 +614,21 @@ public class DiskBasicTypeMZ extends DiskBasicTypeMZBase<DirectoryMz> {
 
         int size = remain_size < sector_size ? remain_size : sector_size;
 
+        byte[] temp;
         if (ostream != null) {
             // 書き出し
-            temp.setData(sector_buffer, size, basic.isDataInverted());
+            temp = Arrays.copyOfRange(sector_buffer, 0, size);
+            if (basic.isDataInverted()) Common.mem_invert(temp, temp.length);
 
-            ostream.write(temp.getData(), 0, temp.getSize());
+            ostream.write(temp, 0, temp.length);
         }
         if (istream != null) {
             // 読み込んで比較
-            temp.setSize(size);
-            int bytesRead = istream.read(temp.getData(), 0, temp.getSize());
-            temp.invertData(basic.isDataInverted());
+            temp = new byte[size];
+            int bytesRead = istream.read(temp, 0, temp.length);
+            if (basic.isDataInverted()) Common.mem_invert(temp, temp.length);
 
-            if (!Arrays.equals(temp.getData(), 0, temp.getSize(), sector_buffer, 0, temp.getSize())) {
+            if (!Arrays.equals(temp, 0, temp.length, sector_buffer, 0, size)) {
                 // データが異なる
                 return -1;
             }
