@@ -17,7 +17,7 @@ import java.util.ResourceBundle;
 
 import l3diskex.Parambase.MyAttribute;
 import l3diskex.Utils;
-import l3diskex.basicfmt.BasicCommon.DirectoryT;
+import l3diskex.basicfmt.BasicCommon.Directory;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
@@ -43,7 +43,7 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_SYSTEM_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_VOLUME_MASK;
 
 
-/// ディレクトリ１アイテム MS-DOS
+/** ディレクトリ１アイテム MS-DOS */
 public class DiskBasicDirItemMSDOS extends DiskBasicDirItem<DirectoryMs> {
 
     private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
@@ -52,7 +52,7 @@ public class DiskBasicDirItemMSDOS extends DiskBasicDirItem<DirectoryMs> {
      * ディレクトリエントリ MS-DOS FAT (32bytes)
      */
     @Serdes(bigEndian = false)
-    public static class DirectoryMsDos implements DirectoryT {
+    public static class DirectoryMsDos implements Directory {
 
         @Element(sequence = 1)
         public byte[] name = new byte[8];
@@ -61,21 +61,21 @@ public class DiskBasicDirItemMSDOS extends DiskBasicDirItem<DirectoryMs> {
         @Element(sequence = 3)
         public byte type;
         @Element(sequence = 4)
-        public byte ntres;
+        public byte ntRes;
         @Element(sequence = 5)
-        public byte ctimeTenth;
+        public byte cTimeTenth;
         @Element(sequence = 6)
-        public short ctime;
+        public short cTime;
         @Element(sequence = 7)
-        public short cdate;
+        public short cDate;
         @Element(sequence = 8)
-        public short adate;
+        public short aDate;
         @Element(sequence = 9)
         public short startGroupHi;
         @Element(sequence = 10)
-        public short wtime;
+        public short wTime;
         @Element(sequence = 11)
-        public short wdate;
+        public short wDate;
         @Element(sequence = 12)
         public short startGroup;
         @Element(sequence = 13)
@@ -88,7 +88,7 @@ public class DiskBasicDirItemMSDOS extends DiskBasicDirItem<DirectoryMs> {
      * ディレクトリエントリ MS-DOS LFN (32bytes)
      */
     @Serdes(bigEndian = false)
-    public static class DirectoryMsLfn implements DirectoryT {
+    public static class DirectoryMsLfn implements Directory {
 
         @Element(sequence = 1)
         public byte order;
@@ -99,7 +99,7 @@ public class DiskBasicDirItemMSDOS extends DiskBasicDirItem<DirectoryMs> {
         @Element(sequence = 4)
         public byte type2;
         @Element(sequence = 5)
-        public byte chksum;
+        public byte checksum;
         @Element(sequence = 6)
         public byte[] name2 = new byte[12];
         @Element(sequence = 7)
@@ -113,7 +113,7 @@ public class DiskBasicDirItemMSDOS extends DiskBasicDirItem<DirectoryMs> {
     /**
      * ディレクトリエントリ MS-DOS compatible (32bytes)
      */
-    public static class DirectoryMs implements DirectoryT {
+    public static class DirectoryMs implements Directory {
 
         public DirectoryMsDos msdos = new DirectoryMsDos();
         public DirectoryMsLfn mslfn = new DirectoryMsLfn();
@@ -143,7 +143,7 @@ public class DiskBasicDirItemMSDOS extends DiskBasicDirItem<DirectoryMs> {
     public static final int FILETYPE_MASK_MS_LFN = 0x0f; // long file name
 
     /// MS-DOS (MSX-DOS)
-    static final Map<String, Object> gTypeNameMS = new LinkedHashMap<>() {{
+    static final Map<String, Object> typeNameMS = new LinkedHashMap<>() {{
         put("Read Only", FILE_TYPE_READONLY_MASK.getValue());
         put("Hidden", FILE_TYPE_HIDDEN_MASK.getValue());
         put("Sys", FILE_TYPE_SYSTEM_MASK.getValue());
@@ -154,7 +154,7 @@ public class DiskBasicDirItemMSDOS extends DiskBasicDirItem<DirectoryMs> {
     }};
 
     /// MS-DOS (MSX-DOS)
-    static final Map<String, Object> gTypeNameMS_l = new LinkedHashMap<>() {{
+    static final Map<String, Object> typeNameMSl = new LinkedHashMap<>() {{
         put("Read Only", FILE_TYPE_READONLY_MASK.getValue());
         put("Hidden", FILE_TYPE_HIDDEN_MASK.getValue());
         put("System", FILE_TYPE_SYSTEM_MASK.getValue());
@@ -169,31 +169,32 @@ public class DiskBasicDirItemMSDOS extends DiskBasicDirItem<DirectoryMs> {
     //
 
     /** ディレクトリデータ */
-    protected DiskBasicDirData<DirectoryMs> m_data = new DiskBasicDirData<>();
+    protected DiskBasicDirData<DirectoryMs> data = new DiskBasicDirData<>();
 
     //
     public DiskBasicDirItemMSDOS(DiskBasic basic) {
         super(basic);
 
-        m_data.alloc(DirectoryMs.class);
+        data.alloc(DirectoryMs.class);
     }
 
     //
-    public DiskBasicDirItemMSDOS(DiskBasic basic, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP) {
-        super(basic, n_sector, n_secpos, n_data, dataP);
+    public DiskBasicDirItemMSDOS(DiskBasic basic, DiskImageSector sector, int secPos, byte[] data, int dataP) {
+        super(basic, sector, secPos, data, dataP);
 
-        m_data.attach(DirectoryMs.class, n_data, dataP);
+        this.data.attach(DirectoryMs.class, data, dataP);
     }
 
     //
-    public DiskBasicDirItemMSDOS(DiskBasic basic, int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP, SectorParam n_next, boolean[] n_unuse) throws IOException {
-        super(basic, n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next, n_unuse);
+    public DiskBasicDirItemMSDOS(DiskBasic basic, int num, DiskBasicGroupItem groupItem, DiskImageSector sector, int secPos,
+                                 byte[] data, int dataP, SectorParam next, boolean[] unuse) throws IOException {
+        super(basic, num, groupItem, sector, secPos, data, dataP, next, unuse);
 
         // MS-DOS
-        m_data.attach(DirectoryMs.class, n_data, dataP);
-        used(checkUsed(n_unuse[0]));
+        this.data.attach(DirectoryMs.class, data, dataP);
+        used(checkUsed(unuse[0]));
         visible((getFileType1() & FILETYPE_MASK_MS_LFN) != FILETYPE_MASK_MS_LFN);
-        n_unuse[0] = (n_unuse[0] || (m_data.data().msdos.name[0] == 0));
+        unuse[0] = (unuse[0] || (this.data.data().msdos.name[0] == 0));
 
         // グループ数を計算
         calcFileSize();
@@ -205,10 +206,11 @@ public class DiskBasicDirItemMSDOS extends DiskBasicDirItem<DirectoryMs> {
 
     /** アイテムへのポインタを設定 */
     @Override
-    public void setDataPtr(int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP, SectorParam n_next) throws IOException {
-        super.setDataPtr(n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next);
+    public void setData(int num, DiskBasicGroupItem groupItem, DiskImageSector sector, int sectorPos,
+                        byte[] data, int dataPos, SectorParam next) throws IOException {
+        super.setData(num, groupItem, sector, sectorPos, data, dataPos, next);
 
-        m_data.attach(DirectoryMs.class, n_data, dataP);
+        this.data.attach(DirectoryMs.class, data, dataPos);
     }
 
     /** ファイル名を格納する位置を返す */
@@ -217,13 +219,13 @@ public class DiskBasicDirItemMSDOS extends DiskBasicDirItem<DirectoryMs> {
         // MS-DOS
         int t1 = getFileType1();
         if (num == 0) {
-            size[0] = len[0] = m_data.data().msdos.name.length;
-            return m_data.data().msdos.name;
+            size[0] = len[0] = data.data().msdos.name.length;
+            return data.data().msdos.name;
         } else if (num == 1) {
             if ((t1 & FILETYPE_MASK_MS_VOLUME) != 0) {
                 // ボリュームラベルは拡張子もラベル名とする
-                size[0] = len[0] = m_data.data().msdos.ext.length;
-                return m_data.data().msdos.ext;
+                size[0] = len[0] = data.data().msdos.ext.length;
+                return data.data().msdos.ext;
             }
         }
         size[0] = len[0] = 0;
@@ -237,8 +239,8 @@ public class DiskBasicDirItemMSDOS extends DiskBasicDirItem<DirectoryMs> {
         len[0] = 0;
         // ボリュームラベルは拡張子なしにする
         if ((getFileType1() & FILETYPE_MASK_MS_VOLUME) == 0) {
-            len[0] = m_data.data().msdos.ext.length;
-            p = m_data.data().msdos.ext;
+            len[0] = data.data().msdos.ext.length;
+            p = data.data().msdos.ext;
         }
         return p;
     }
@@ -246,19 +248,19 @@ public class DiskBasicDirItemMSDOS extends DiskBasicDirItem<DirectoryMs> {
     /** 属性１を返す */
     @Override
     public int getFileType1() {
-        return m_data.data().msdos.type & 0xff;
+        return data.data().msdos.type & 0xff;
     }
 
     /** 属性１のセット */
     @Override
     public void setFileType1(int val) {
-        m_data.data().msdos.type = (byte) (val & 0xff);
+        data.data().msdos.type = (byte) (val & 0xff);
     }
 
     /** 使用しているアイテムか */
     @Override
     public boolean checkUsed(boolean unuse) {
-        return m_data.data().msdos.name[0] != 0 && (m_data.data().msdos.name[0] & 0xff) != 0xe5;
+        return data.data().msdos.name[0] != 0 && (data.data().msdos.name[0] & 0xff) != 0xe5;
     }
 
     /** ファイル名を設定 */
@@ -330,11 +332,11 @@ public class DiskBasicDirItemMSDOS extends DiskBasicDirItem<DirectoryMs> {
     }
 
     /** 属性の文字列を返す(ファイル一覧画面表示用) */
-    protected void getFileAttrStrSub(int ftype, StringBuilder attr) {
+    protected void getFileAttrStrSub(int fType, StringBuilder attr) {
         for (int i = 0; i <= TYPE_NAME_MS_ARCHIVE; i++) {
-            if ((ftype & (int) Utils.valueAt(gTypeNameMS, i)) != 0) {
+            if ((fType & (int) Utils.valueAt(typeNameMS, i)) != 0) {
                 if (!attr.isEmpty()) attr.append(", ");
-                attr.append(rb.getString(Utils.keyAt(gTypeNameMS, i)));
+                attr.append(rb.getString(Utils.keyAt(typeNameMS, i)));
             }
         }
     }
@@ -381,11 +383,11 @@ public class DiskBasicDirItemMSDOS extends DiskBasicDirItem<DirectoryMs> {
     /** ディレクトリアイテムのチェック */
     @Override
     public boolean check(boolean[] last) {
-        if (!m_data.isValid()) return false;
+        if (!data.isValid()) return false;
 
         boolean valid = true;
         // ファイルサイズが16MBを超えている
-        if (checkUsed(false) && m_data.data().msdos.fileSize > 0xff_ffff) {
+        if (checkUsed(false) && data.data().msdos.fileSize > 0xff_ffff) {
             valid = false;
         }
         return valid;
@@ -407,7 +409,7 @@ public class DiskBasicDirItemMSDOS extends DiskBasicDirItem<DirectoryMs> {
     @Override
     public boolean delete() {
         // 削除はエントリの先頭にコードを入れるだけ (0xe5)
-        m_data.fill(basic.invertUint8(basic.diskBasicParam.getDeleteCode()), 1);
+        data.fill(basic.invertUint8(basic.getDeleteCode()), 1);
         used(false);
         return true;
     }
@@ -450,8 +452,8 @@ public class DiskBasicDirItemMSDOS extends DiskBasicDirItem<DirectoryMs> {
 
     /** 属性を設定 */
     @Override
-    public void setFileAttr(DiskBasicFileType file_type) {
-        int ftype = file_type.getType();
+    public void setFileAttr(DiskBasicFileType fileType) {
+        int ftype = fileType.getType();
         if (ftype == -1) return;
 
         // MS-DOS
@@ -469,9 +471,9 @@ public class DiskBasicDirItemMSDOS extends DiskBasicDirItem<DirectoryMs> {
     @Override
     public String getFileAttrStr() {
         StringBuilder attr = new StringBuilder();
-        int ftype = getFileAttr().getType();
+        int fType = getFileAttr().getType();
         // MS-DOS
-        getFileAttrStrSub(ftype, attr);
+        getFileAttrStrSub(fType, attr);
         if (attr.isEmpty()) {
             attr.append("---");
         }
@@ -482,18 +484,20 @@ public class DiskBasicDirItemMSDOS extends DiskBasicDirItem<DirectoryMs> {
     @Override
     public void setFileSize(int val) {
         groups.setSize(val);
-        m_data.data().msdos.fileSize = val;
+        data.data().msdos.fileSize = val;
     }
 
     /** ファイルサイズを返す */
     @Override
     public int getFileSize() {
-        int val = m_data.data().msdos.fileSize;
+        int val = data.data().msdos.fileSize;
         return val;
     }
 
-    /// ディレクトリサイズをセット
-    /// MS-DOS directories have a size of 0 in the entry
+    /**
+     * ディレクトリサイズをセット
+     * MS-DOS directories have a size of 0 in the entry
+     */
     @Override
     public void setDirectorySize(int val) {
         setFileSize(0);
@@ -501,70 +505,70 @@ public class DiskBasicDirItemMSDOS extends DiskBasicDirItem<DirectoryMs> {
 
     /** ファイルサイズとグループ数を計算する */
     @Override
-    public void calcFileUnitSize(int fileunit_num) throws IOException {
+    public void calcFileUnitSize(int fileUnitNum) throws IOException {
         if (!isUsed()) return;
 
-        getUnitGroups(fileunit_num, groups);
+        getUnitGroups(fileUnitNum, groups);
     }
 
     /** 指定ディレクトリのすべてのグループを取得 */
     @Override
-    public void getUnitGroups(int fileunit_num, DiskBasicGroups group_items) throws IOException {
-        int calc_groups = 0;
-        int calc_file_size = getFileSize();
+    public void getUnitGroups(int fileUnitNum, DiskBasicGroups groupItems) throws IOException {
+        int calcGroups = 0;
+        int calcFileSize = getFileSize();
 
         // 12bit FAT
         boolean rc = true;
-        int group_num = getStartGroup(fileunit_num);
-        boolean working = group_num >= 2;
-        int remain = calc_file_size > 0 ? calc_file_size : 0x7ff_ffff;
-        int limit = basic.diskBasicParam.getFatEndGroup() + 1;
+        int groupNum = getStartGroup(fileUnitNum);
+        boolean working = groupNum >= 2;
+        int remain = calcFileSize > 0 ? calcFileSize : 0x7ff_ffff;
+        int limit = basic.getFatEndGroup() + 1;
         while (working) {
-            int next_group = type.getGroupNumber(group_num);
-            if (next_group == group_num) {
+            int nextGroup = type.getGroupNumber(groupNum);
+            if (nextGroup == groupNum) {
                 // 同じポジションならエラー
                 rc = false;
-            } else if (next_group >= 0xff8) {
+            } else if (nextGroup >= 0xff8) {
                 // 最終グループ
                 working = false;
-            } else if (next_group > basic.diskBasicParam.getFatEndGroup()) {
+            } else if (nextGroup > basic.getFatEndGroup()) {
                 // グループ番号がおかしい
                 rc = false;
             }
             if (rc) {
-                basic.getNumsFromGroup(group_num, next_group, basic.getSectorSize(), remain, group_items);
-                //int m_file_size = basic.getSectorSize() * basic.diskBasicParam.getSectorsPerGroup();
-                remain -= basic.getSectorSize() * basic.diskBasicParam.getSectorsPerGroup();
-                calc_groups++;
-                group_num = next_group;
+                basic.getNumsFromGroup(groupNum, nextGroup, basic.getSectorSize(), remain, groupItems);
+                //int fileSize = basic.getSectorSize() * basic.getSectorsPerGroup();
+                remain -= basic.getSectorSize() * basic.getSectorsPerGroup();
+                calcGroups++;
+                groupNum = nextGroup;
                 limit--;
             }
             working = working && rc && (limit >= 0);
         }
 
-        group_items.setNums(calc_groups);
+        groupItems.setNums(calcGroups);
         // 元のファイルサイズが０ならグループ数から計算したサイズを格納
-        group_items.setSize(calc_file_size > 0 ? calc_file_size : basic.getSectorSize() * basic.getSectorsPerGroup() * calc_groups);
-        group_items.setSizePerGroup(basic.getSectorSize() * basic.getSectorsPerGroup());
+        groupItems.setSize(calcFileSize > 0 ? calcFileSize : basic.getSectorSize() * basic.getSectorsPerGroup() * calcGroups);
+        groupItems.setSizePerGroup(basic.getSectorSize() * basic.getSectorsPerGroup());
 
         if (limit < 0) {
-            // too large or infinit loop
+            // too large or infinite loop
             rc = false;
         }
     }
 
     /** 最初のグループ番号をセット */
     @Override
-    public void setStartGroup(int fileunit_num, int val, int size) {
+    public void setStartGroup(int fileUnitNum, int val, int size) {
         // MS-DOS
-        m_data.data().msdos.startGroup = (short) val;
+        data.data().msdos.startGroup = (short) val;
     }
 
     /** 最初のグループ番号を返す */
     @Override
-    public int getStartGroup(int fileunit_num) {
+    public int getStartGroup(int fileUnitNum) {
         // MS-DOS
-        return m_data.data().msdos.startGroup & 0xffff;
+        return data.data().msdos.startGroup & 0xffff;
     }
 
     /** アイテムが更新日時を持っているか */
@@ -583,23 +587,27 @@ public class DiskBasicDirItemMSDOS extends DiskBasicDirItem<DirectoryMs> {
         return true;
     }
 
-    /// 更新日付を得る
-    ///
-    /// @return date
+    /**
+     * 更新日付を得る
+     *
+     * @return date
+     */
     @Override
     public LocalDate getFileModifyDate(LocalDateTime tm) {
         // MS-DOS
-        short wdate = m_data.data().msdos.wdate;
+        short wdate = data.data().msdos.wDate;
         return convDateToTm(wdate);
     }
 
-    /// 更新時間を得る
-    ///
-    /// @return time
+    /**
+     * 更新時間を得る
+     *
+     * @return time
+     */
     @Override
     public LocalTime getFileModifyTime(LocalDateTime tm) {
         // MS-DOS
-        short wtime = m_data.data().msdos.wtime;
+        short wtime = data.data().msdos.wTime;
         return convTimeToTm(wtime);
     }
 
@@ -624,7 +632,7 @@ public class DiskBasicDirItemMSDOS extends DiskBasicDirItem<DirectoryMs> {
     public void setFileModifyDate(LocalDateTime tm) {
         if (tm.getYear() >= 0 && tm.getMonth().ordinal() >= -1) {
             short wdate = convTmToDate(tm);
-            m_data.data().msdos.wdate = wdate;
+            data.data().msdos.wDate = wdate;
         }
     }
 
@@ -633,7 +641,7 @@ public class DiskBasicDirItemMSDOS extends DiskBasicDirItem<DirectoryMs> {
     public void setFileModifyTime(LocalDateTime tm) {
         if (tm.getHour() >= 0 && tm.getMinute() >= 0) {
             short wtime = convTmToTime(tm);
-            m_data.data().msdos.wtime = wtime;
+            data.data().msdos.wTime = wtime;
         }
     }
 
@@ -658,25 +666,25 @@ public class DiskBasicDirItemMSDOS extends DiskBasicDirItem<DirectoryMs> {
     /** ディレクトリアイテムのサイズ */
     @Override
     public int getDataSize() {
-        return m_data.getDataSize();
+        return data.getDataSize();
     }
 
     /** アイテムを返す */
     @Override
     public DirectoryMs getData() {
-        return m_data.data();
+        return data.data();
     }
 
     /** アイテムをコピー */
     @Override
     public boolean copyData(byte[] val) {
-        return m_data.copy(val, getDataSize());
+        return data.copy(val, getDataSize());
     }
 
     /** ディレクトリをクリア ファイル新規作成時 */
     @Override
     public void clearData() {
-        m_data.fill((byte) 0, getDataSize(), basic.isDataInverted(), 0);
+        data.fill((byte) 0, getDataSize(), basic.isDataInverted(), 0);
     }
 
     /** ファイル名から属性を決定する */
@@ -690,26 +698,26 @@ public class DiskBasicDirItemMSDOS extends DiskBasicDirItem<DirectoryMs> {
     public boolean needCheckEofCode() {
         // テキストファイルかは拡張子で判断する
         boolean rc = false;
-        MyAttribute sa = findUpperCase(basic.diskBasicParam.getAttributesByExtension(), getFileExtPlainStr());
-        if (sa != null) {
-            rc = ((sa.getType() & FILE_TYPE_ASCII_MASK.getValue()) != 0);
+        MyAttribute attr = findUpperCase(basic.getAttributesByExtension(), getFileExtPlainStr());
+        if (attr != null) {
+            rc = ((attr.getType() & FILE_TYPE_ASCII_MASK.getValue()) != 0);
         }
         return rc;
     }
 
     /** セーブ時にファイルサイズを再計算する ファイルの終端コードが必要な場合など */
     @Override
-    public int recalcFileSizeOnSave(InputStream istream, int file_size) throws IOException {
+    public int recalcFileSizeOnSave(InputStream iStream, int fileSize) throws IOException {
         if (needCheckEofCode()) {
             // ファイル終端に終端文字があるか
-            int curr_pos = (int) ((SeekableDataInputStream) istream).position();
-            ((SeekableDataInputStream) istream).position(istream.available());
-            if (istream.read() != basic.diskBasicParam.getTextTerminateCode()) {
-                file_size++;
+            int curr_pos = (int) ((SeekableDataInputStream) iStream).position();
+            ((SeekableDataInputStream) iStream).position(iStream.available());
+            if (iStream.read() != basic.getTextTerminateCode()) {
+                fileSize++;
             }
-            ((SeekableDataInputStream) istream).position(curr_pos);
+            ((SeekableDataInputStream) iStream).position(curr_pos);
         }
-        return file_size;
+        return fileSize;
     }
 
     //
@@ -720,18 +728,18 @@ public class DiskBasicDirItemMSDOS extends DiskBasicDirItem<DirectoryMs> {
     @Override
     public void setInternalDataInAttrDialog(KeyValArray vals) {
         // Assume KeyValArray has Add methods for boolean, byte[], int
-        DirectoryMsDos msdos = m_data.data().msdos;
+        DirectoryMsDos msdos = data.data().msdos;
         vals.add("NAME", msdos.name, msdos.name.length);
         vals.add("EXT", msdos.ext, msdos.ext.length);
         vals.add("TYPE", msdos.type & 0xff);
-        vals.add("NTRES", msdos.ntres & 0xff);
-        vals.add("CTIME_TENTH", msdos.ctimeTenth & 0xff);
-        vals.add("CTIME", msdos.ctime & 0xffff);
-        vals.add("CDATE", msdos.cdate & 0xffff);
-        vals.add("ADATE", msdos.adate & 0xffff);
+        vals.add("NTRES", msdos.ntRes & 0xff);
+        vals.add("CTIME_TENTH", msdos.cTimeTenth & 0xff);
+        vals.add("CTIME", msdos.cTime & 0xffff);
+        vals.add("CDATE", msdos.cDate & 0xffff);
+        vals.add("ADATE", msdos.aDate & 0xffff);
         vals.add("START_GROUP_HI", msdos.startGroupHi & 0xffff);
-        vals.add("WTIME", msdos.wtime & 0xffff);
-        vals.add("WDATE", msdos.wdate & 0xffff);
+        vals.add("WTIME", msdos.wTime & 0xffff);
+        vals.add("WDATE", msdos.wDate & 0xffff);
         vals.add("START_GROUP", msdos.startGroup & 0xffff);
         vals.add("FILE_SIZE", msdos.fileSize);
     }
@@ -740,19 +748,20 @@ public class DiskBasicDirItemMSDOS extends DiskBasicDirItem<DirectoryMs> {
     ///
     ///
 
-    /// ディレクトリ１アイテム MS-DOS VFAT
+    /** ディレクトリ１アイテム MS-DOS VFAT */
     public static class DiskBasicDirItemVFAT extends DiskBasicDirItemMSDOS {
 
         public DiskBasicDirItemVFAT(DiskBasic basic) {
             super(basic);
         }
 
-        public DiskBasicDirItemVFAT(DiskBasic basic, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP) {
-            super(basic, n_sector, n_secpos, n_data, dataP);
+        public DiskBasicDirItemVFAT(DiskBasic basic, DiskImageSector sector, int secPos, byte[] data, int dataP) {
+            super(basic, sector, secPos, data, dataP);
         }
 
-        public DiskBasicDirItemVFAT(DiskBasic basic, int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP, SectorParam n_next, boolean[] n_unuse) throws IOException {
-            super(basic, n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next, n_unuse);
+        public DiskBasicDirItemVFAT(DiskBasic basic, int num, DiskBasicGroupItem groupItem, DiskImageSector sector, int secPos,
+                                    byte[] data, int dataP, SectorParam next, boolean[] unuse) throws IOException {
+            super(basic, num, groupItem, sector, secPos, data, dataP, next, unuse);
         }
 
         /** ファイル名を格納する位置を返す */
@@ -760,7 +769,7 @@ public class DiskBasicDirItemMSDOS extends DiskBasicDirItem<DirectoryMs> {
         protected byte[] getFileNamePos(int num, int[] size, int[] len) {
             // MS-DOS
             int t1 = getFileType1();
-            DirectoryMs data = m_data.data();
+            DirectoryMs data = this.data.data();
 
             if (num == 0) {
                 if ((t1 & FILETYPE_MASK_MS_LFN) == FILETYPE_MASK_MS_LFN) {
@@ -861,11 +870,11 @@ public class DiskBasicDirItemMSDOS extends DiskBasicDirItem<DirectoryMs> {
         /** ディレクトリアイテムのチェック */
         @Override
         public boolean check(boolean[] last) {
-            if (!m_data.isValid()) return false;
+            if (!data.isValid()) return false;
 
             boolean valid = true;
             // ファイルサイズが16MBを超えている
-            if (checkUsed(false) && (m_data.data().msdos.type & FILETYPE_MASK_MS_LFN) != FILETYPE_MASK_MS_LFN && m_data.data().msdos.fileSize > 0xff_ffff) {
+            if (checkUsed(false) && (data.data().msdos.type & FILETYPE_MASK_MS_LFN) != FILETYPE_MASK_MS_LFN && data.data().msdos.fileSize > 0xff_ffff) {
                 valid = false;
             }
             return valid;
@@ -907,12 +916,12 @@ public class DiskBasicDirItemMSDOS extends DiskBasicDirItem<DirectoryMs> {
 
         /** 属性を設定 */
         @Override
-        public void setFileAttr(DiskBasicFileType file_type) {
-            int ftype = file_type.getType();
-            if (ftype == -1) return;
+        public void setFileAttr(DiskBasicFileType fileType) {
+            int fType = fileType.getType();
+            if (fType == -1) return;
 
             // MS-DOS
-            setFileType1((ftype & 0xff00) >> 8);
+            setFileType1((fType & 0xff00) >> 8);
         }
 
         /** 属性を返す */
@@ -926,13 +935,13 @@ public class DiskBasicDirItemMSDOS extends DiskBasicDirItem<DirectoryMs> {
         @Override
         public String getFileAttrStr() {
             StringBuilder attr = new StringBuilder();
-            int ftype = getFileAttr().getType();
+            int fType = getFileAttr().getType();
             // MS-DOS
             if ((getFileAttr().getOrigin() & FILETYPE_MASK_MS_LFN) == FILETYPE_MASK_MS_LFN) {
                 if (!attr.isEmpty()) attr.append(", ");
-                attr.append(Utils.keyAt(gTypeNameMS, TYPE_NAME_MS_LFN)); // long file name
+                attr.append(Utils.keyAt(typeNameMS, TYPE_NAME_MS_LFN)); // long file name
             } else {
-                getFileAttrStrSub(ftype, attr);
+                getFileAttrStrSub(fType, attr);
             }
             if (attr.isEmpty()) {
                 attr.append("---");
@@ -942,16 +951,16 @@ public class DiskBasicDirItemMSDOS extends DiskBasicDirItem<DirectoryMs> {
 
         /** 最初のグループ番号をセット */
         @Override
-        public void setStartGroup(int fileunit_num, int val, int size) {
+        public void setStartGroup(int fileUnitNum, int val, int size) {
             // MS-DOS
-            m_data.data().msdos.startGroup = (short) val;
+            data.data().msdos.startGroup = (short) val;
         }
 
         /** 最初のグループ番号を返す */
         @Override
-        public int getStartGroup(int fileunit_num) {
+        public int getStartGroup(int fileUnitNum) {
             // MS-DOS
-            return m_data.data().msdos.startGroup & 0xffff;
+            return data.data().msdos.startGroup & 0xffff;
         }
 
         /** アイテムが作成日時を持っているか */
@@ -976,22 +985,26 @@ public class DiskBasicDirItemMSDOS extends DiskBasicDirItem<DirectoryMs> {
             return DATETIME_CREATE_ACCESS;
         }
 
-        /// 作成日付を返す
-        ///
-        /// @return data
+        /**
+         * 作成日付を返す
+         *
+         * @return data
+         */
         @Override
         public LocalDate getFileCreateDate(LocalDateTime tm) {
-            short cdate = m_data.data().msdos.cdate;
-            return convDateToTm(cdate);
+            short cDate = data.data().msdos.cDate;
+            return convDateToTm(cDate);
         }
 
-        /// 作成時間を得る
-        ///
-        /// @return time
+        /**
+         * 作成時間を得る
+         *
+         * @return time
+         */
         @Override
         public LocalTime getFileCreateTime(LocalDateTime tm) {
-            short ctime = m_data.data().msdos.ctime;
-            return convTimeToTm(ctime);
+            short cTime = data.data().msdos.cTime;
+            return convTimeToTm(cTime);
         }
 
         /** 作成日付を文字列で返す */
@@ -1015,7 +1028,7 @@ public class DiskBasicDirItemMSDOS extends DiskBasicDirItem<DirectoryMs> {
         public void setFileCreateDate(LocalDateTime tm) {
             if (tm.getYear() >= 0 && tm.getMonth().ordinal() >= -1) {
                 short cdate = convTmToDate(tm);
-                m_data.data().msdos.cdate = cdate;
+                data.data().msdos.cDate = cdate;
             }
         }
 
@@ -1024,7 +1037,7 @@ public class DiskBasicDirItemMSDOS extends DiskBasicDirItem<DirectoryMs> {
         public void setFileCreateTime(LocalDateTime tm) {
             if (tm.getHour() >= 0 && tm.getMinute() >= 0) {
                 short ctime = convTmToTime(tm);
-                m_data.data().msdos.ctime = ctime;
+                data.data().msdos.cTime = ctime;
             }
         }
 
@@ -1047,8 +1060,8 @@ public class DiskBasicDirItemMSDOS extends DiskBasicDirItem<DirectoryMs> {
         /** アクセス日付を返す */
         @Override
         public LocalDate getFileAccessDate() {
-            short adate = m_data.data().msdos.adate;
-            return convDateToTm(adate);
+            short aDate = data.data().msdos.aDate;
+            return convDateToTm(aDate);
         }
 
         /** アクセス日付を返す */
@@ -1064,7 +1077,7 @@ public class DiskBasicDirItemMSDOS extends DiskBasicDirItem<DirectoryMs> {
         public void setFileAccessDate(LocalDateTime tm) {
             if (tm.getYear() >= 0 && tm.getMonth().ordinal() >= -1) {
                 short adate = convTmToDate(tm);
-                m_data.data().msdos.adate = adate;
+                data.data().msdos.aDate = adate;
             }
         }
 
@@ -1111,12 +1124,12 @@ public class DiskBasicDirItemMSDOS extends DiskBasicDirItem<DirectoryMs> {
             int t1 = getFileType1();
             if ((t1 & FILETYPE_MASK_MS_LFN) == FILETYPE_MASK_MS_LFN) {
                 // int File Name entry
-                DirectoryMsLfn mslfn = m_data.data().mslfn;
+                DirectoryMsLfn mslfn = data.data().mslfn;
                 vals.add("ORDER", mslfn.order & 0xff);
                 vals.add("NAME", mslfn.name, mslfn.name.length);
                 vals.add("TYPE", mslfn.type & 0xff);
                 vals.add("TYPE2", mslfn.type2 & 0xff);
-                vals.add("CHKSUM", mslfn.chksum & 0xff);
+                vals.add("CHKSUM", mslfn.checksum & 0xff);
                 vals.add("NAME2", mslfn.name2, mslfn.name2.length);
                 vals.add("DUMMY_GROUP", mslfn.dummyGroup & 0xffff);
                 vals.add("NAME3", mslfn.name3, mslfn.name3.length);

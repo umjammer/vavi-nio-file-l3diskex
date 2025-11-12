@@ -14,20 +14,20 @@ import java.util.Map;
 import java.util.ResourceBundle;
 
 import l3diskex.Utils;
-import l3diskex.basicfmt.BasicCommon.DirectoryT;
+import l3diskex.basicfmt.BasicCommon.Directory;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasicDirItem;
-import l3diskex.basicfmt.diritem.DiskBasicDirItemAppleDOS.DirectoryApledos;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemAppleDOS.DirectoryAppleDos;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
 import vavi.util.serdes.Element;
 import vavi.util.serdes.Serdes;
 
-import static l3diskex.Config.gConfig;
+import static l3diskex.Config.config;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_ASCII_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_BASIC_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_BINARY_MASK;
@@ -35,21 +35,21 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_DATA_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_INTEGER_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_MACHINE_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_READONLY_MASK;
-import static l3diskex.basicfmt.diritem.DiskBasicDirItemAppleDOS.apledos_chain_t.APLEDOS_TRACK_LIST_MAX;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemAppleDOS.AppleDosChain.APLEDOS_TRACK_LIST_MAX;
 
 
-//
-// ディレクトリ１アイテム Apple DOS 3.x
-//
-public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryApledos> {
+/**
+ * ディレクトリ１アイテム Apple DOS 3.x
+ */
+public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryAppleDos> {
 
-    static final ResourceBundle rb = ResourceBundle.getBundle("message");
+    static final ResourceBundle rb = ResourceBundle.getBundle("messages");
 
     /**
      * ディレクトリエントリ Apple DOS (35bytes)
      */
     @Serdes
-    public static class DirectoryApledos implements DirectoryT {
+    public static class DirectoryAppleDos implements Directory {
 
         @Element(sequence = 1)
         public byte track;
@@ -69,7 +69,9 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryApledos>
      * Apple DOS top of each sector
      */
     @Serdes
-    public static class ApledosPtr {
+    public static class AppleDosPointer {
+
+        public static final int SIZE = 3;
 
         @Element(sequence = 1)
         public byte reserved;
@@ -77,16 +79,20 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryApledos>
         public byte nextTrack;
         @Element(sequence = 3)
         public byte nextSector;
+
+        public byte[] serialize() {
+            return new byte[]{reserved, nextTrack, nextSector};
+        }
     }
 
     /**
      * ディレクトリエントリ Apple ProDOS (39bytes)
      */
     @Serdes
-    public static class DirectoryProdos implements DirectoryT {
+    public static class DirectoryProDos implements Directory {
 
         @Element(sequence = 1)
-        public byte stypeAndNlen;
+        public byte sTypeAndNLen;
         @Element(sequence = 2)
         public byte[] name = new byte[15];
         @Element(sequence = 3)
@@ -98,9 +104,9 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryApledos>
         @Element(sequence = 6)
         public byte[] eof = new byte[3]; // file only
         @Element(sequence = 7)
-        public byte[] cdate = new byte[2];
+        public byte[] cDate = new byte[2];
         @Element(sequence = 8)
-        public byte[] ctime = new byte[2];
+        public byte[] cTime = new byte[2];
         @Element(sequence = 9)
         public byte version; // byte
         @Element(sequence = 10)
@@ -140,8 +146,8 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryApledos>
         public static class F {
 
             public short auxType; // aux type
-            public byte[] mdate = new byte[2];
-            public byte[] mtime = new byte[2];
+            public byte[] mDate = new byte[2];
+            public byte[] mTime = new byte[2];
             public short headerPointer;
         }
 
@@ -149,7 +155,7 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryApledos>
     }
 
     /// Apple DOS属性名
-    public static final Map<String, Object> gTypeNameAppleDOS = new LinkedHashMap<>() {{
+    public static final Map<String, Object> typeNameAppleDOS = new LinkedHashMap<>() {{
         put("Text", FILETYPE_MASK_APLEDOS_TEXT);
         put("Integer BASIC", FILETYPE_MASK_APLEDOS_IBASIC);
         put("Applesoft BASIC", FILETYPE_MASK_APLEDOS_ABASIC);
@@ -181,14 +187,14 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryApledos>
      * Apple DOS トラックセクタリスト情報 256bytes
      */
     @Serdes
-    public static class apledos_chain_t {
+    public static class AppleDosChain {
 
         private static final int SIZE = 256;
 
         public static final int APLEDOS_TRACK_LIST_MAX = 122;
 
         @Element(sequence = 1)
-        public ApledosPtr next;
+        public AppleDosPointer next;
         @Element(sequence = 2)
         byte[] reserved1 = new byte[2];
         @Element(sequence = 3)
@@ -204,58 +210,17 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryApledos>
     }
 
     //
-    // Apple DOS トラックセクタリストの各セクタ
-    //
-    static class AppleDOSChains {
-
-        List<apledos_chain_t> list = new ArrayList<>();
-
-        private boolean chain_ownmake;
-
-        //
-        // Apple DOS トラックセクタリストの各セクタ
-        //
-        public AppleDOSChains() {
-            super();
-            chain_ownmake = false;
-        }
-
-        public void clear() {
-            list.clear();
-            chain_ownmake = false;
-        }
-
-        public void alloc() {
-            if (chain_ownmake) {
-                list.clear();
-            }
-            apledos_chain_t newitem = new apledos_chain_t();
-            list.add(newitem);
-            chain_ownmake = true;
-        }
-
-        public apledos_chain_t get(int i) {
-            return list.get(i);
-        }
-
-        public int size() {
-            return list.size();
-        }
-    }
-
-    //
     // Apple DOS トラックセクタリスト
     //
-    static class DiskBasicDirItemAppleDOSChain {
+    static class DiskBasicDirItemAppleDosChain {
 
         private DiskBasic basic;
-        private final AppleDOSChains chains;
-        private apledos_chain_t chain;
+        private final List<AppleDosChain> chains;
+        private AppleDosChain chain;
         private DiskImageSector sector;
-        private boolean chain_ownmake;
 
-        public DiskBasicDirItemAppleDOSChain() {
-            chains = new AppleDOSChains();
+        public DiskBasicDirItemAppleDosChain() {
+            chains = new ArrayList<>();
             basic = null;
         }
 
@@ -265,13 +230,8 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryApledos>
         }
 
         /** ポインタをセット */
-        public void add(apledos_chain_t n_chain) {
-            chains.list.add(n_chain);
-        }
-
-        /** メモリ確保 */
-        public void alloc() {
-            chains.alloc();
+        public void add(AppleDosChain n_chain) {
+            chains.add(n_chain);
         }
 
         /** クリア */
@@ -286,13 +246,13 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryApledos>
 
         /** 有効か */
         public boolean isValid() {
-            return !chains.list.isEmpty();
+            return !chains.isEmpty();
         }
 
         /** トラック＆セクタを返す */
         public void getTrackAndSector(int idx, int[] track, int[] sector) {
             int max_idx = APLEDOS_TRACK_LIST_MAX;
-            for (apledos_chain_t item : chains.list) {
+            for (AppleDosChain item : chains) {
                 if (idx < max_idx) {
                     track[0] = item.list[idx].track & 0xff;
                     sector[0] = item.list[idx].sector & 0xFF;
@@ -307,7 +267,7 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryApledos>
         /** トラック＆セクタを設定 */
         public void setTrackAndSector(int idx, int track, int sector) {
             int max_idx = APLEDOS_TRACK_LIST_MAX;
-            for (apledos_chain_t item : chains.list) {
+            for (AppleDosChain item : chains) {
                 if (idx < max_idx) {
                     track -= basic.getTrackNumberBaseOnDisk();
                     sector -= basic.getSectorNumberBase();
@@ -321,15 +281,15 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryApledos>
 
         /** 次のセクタのあるセクタ番号を得る */
         public int getNext(int idx) {
-            apledos_chain_t item = chains.get(idx);
-            ApledosPtr next = item.next;
-            return (next.nextTrack & 0xFF) * basic.diskBasicParam.getSectorsPerTrackOnBasic() + (next.nextSector & 0xFF);
+            AppleDosChain item = chains.get(idx);
+            AppleDosPointer next = item.next;
+            return (next.nextTrack & 0xFF) * basic.getSectorsPerTrackOnBasic() + (next.nextSector & 0xFF);
         }
 
         /** 次のセクタのあるセクタ番号を設定 */
         public void setNext(int idx, int val) {
-            apledos_chain_t item = chains.get(idx);
-            ApledosPtr next = item.next;
+            AppleDosChain item = chains.get(idx);
+            AppleDosPointer next = item.next;
             next.nextTrack = (byte) ((val / basic.getSectorsPerTrackOnBasic()) & 0xFF);
             next.nextSector = (byte) ((val % basic.getSectorsPerTrackOnBasic()) & 0xFF);
             item.next = next;
@@ -341,42 +301,41 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryApledos>
     //
 
     /** ディレクトリデータ */
-    private final DiskBasicDirData<DirectoryApledos> m_data = new DiskBasicDirData<>();
+    private final DiskBasicDirData<DirectoryAppleDos> data = new DiskBasicDirData<>();
 
     /** ファイル内部で持っている開始アドレス */
-    private int m_start_address;
+    private int startAddress;
     /** ファイル内部で持っているサイズ */
-    private int m_data_length;
+    private int dataLength;
 
     /** トラック＆セクタリスト */
-    private final DiskBasicDirItemAppleDOSChain chain = new DiskBasicDirItemAppleDOSChain();
+    private final DiskBasicDirItemAppleDosChain chain = new DiskBasicDirItemAppleDosChain();
 
     public DiskBasicDirItemAppleDOS(DiskBasic basic) {
         super(basic);
 
-        m_start_address = -1;
-        m_data_length = -1;
+        startAddress = -1;
+        dataLength = -1;
 
-        m_data.alloc(DirectoryApledos.class);
-        chain.alloc();
+        data.alloc(DirectoryAppleDos.class);
     }
 
     public DiskBasicDirItemAppleDOS(DiskBasic basic, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP) throws IOException {
         super(basic, n_sector, n_secpos, n_data, dataP);
 
-        m_start_address = -1;
-        m_data_length = -1;
+        startAddress = -1;
+        dataLength = -1;
 
-        m_data.attach(DirectoryApledos.class, n_data, dataP);
+        data.attach(DirectoryAppleDos.class, n_data, dataP);
     }
 
     public DiskBasicDirItemAppleDOS(DiskBasic basic, int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP, SectorParam n_next, boolean[] n_unuse) throws IOException {
         super(basic, n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next, n_unuse);
 
-        m_start_address = -1;
-        m_data_length = -1;
+        startAddress = -1;
+        dataLength = -1;
 
-        m_data.attach(DirectoryApledos.class, n_data, dataP);
+        data.attach(DirectoryAppleDos.class, n_data, dataP);
 
         used(checkUsed(n_unuse[0]));
 
@@ -390,10 +349,10 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryApledos>
                 if (sector == null) break;
 
                 byte[] buf = sector.getSectorBuffer();
-                apledos_chain_t c = new apledos_chain_t();
+                AppleDosChain c = new AppleDosChain();
                 Serdes.Util.deserialize(new ByteArrayInputStream(buf), c);
                 chain.add(c);
-                ApledosPtr p = new ApledosPtr();
+                AppleDosPointer p = new AppleDosPointer();
                 Serdes.Util.deserialize(new ByteArrayInputStream(buf), p);
                 grp = type.getSectorPosFromNumS((p.nextTrack & 0xff) + basic.getTrackNumberBaseOnDisk(), (p.nextSector & 0xff) + basic.getSectorNumberBase());
             }
@@ -405,27 +364,27 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryApledos>
     /**
      * アイテムへのポインタを設定
      *
-     * @param n_num    通し番号
-     * @param n_gitem  トラック番号などのデータ
-     * @param n_sector セクタ
-     * @param n_secpos セクタ内のディレクトリエントリの位置
-     * @param n_data   ディレクトリアイテム
-     * @param dataP    データポインタ
-     * @param n_next   [out] 次のセクタ
+     * @param num    通し番号
+     * @param gItem  トラック番号などのデータ
+     * @param sector セクタ
+     * @param sectorPos セクタ内のディレクトリエントリの位置
+     * @param data   ディレクトリアイテム
+     * @param dataPos  データポインタ
+     * @param next   [out] 次のセクタ
      */
     @Override
-    public void setDataPtr(int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP, SectorParam n_next) throws IOException {
-        super.setDataPtr(n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next);
+    public void setData(int num, DiskBasicGroupItem gItem, DiskImageSector sector, int sectorPos, byte[] data, int dataPos, SectorParam next) throws IOException {
+        super.setData(num, gItem, sector, sectorPos, data, dataPos, next);
 
-        m_data.attach(DirectoryApledos.class, n_data, dataP);
+        this.data.attach(DirectoryAppleDos.class, data, dataPos);
     }
 
     /** ファイル名を格納する位置を返す */
     @Override
     protected byte[] getFileNamePos(int num, int[] size, int[] len) {
         if (num == 0) {
-            size[0] = len[0] = m_data.data().name.length;
-            return m_data.data().name;
+            size[0] = len[0] = data.data().name.length;
+            return data.data().name;
         } else {
             size[0] = len[0] = 0;
             return null;
@@ -482,19 +441,19 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryApledos>
     /** 属性１を返す */
     @Override
     public int getFileType1() {
-        return m_data.data().type & 0xff;
+        return data.data().type & 0xff;
     }
 
     /** 属性１を設定 */
     @Override
     public void setFileType1(int val) {
-        m_data.data().type = (byte) (val & 0xff);
+        data.data().type = (byte) (val & 0xff);
     }
 
     /** 使用しているアイテムか */
     @Override
     public boolean checkUsed(boolean unuse) {
-        return !(m_data.data().track == (byte) 0xff || (m_data.data().track == 0 && m_data.data().sector == 0));
+        return !(data.data().track == (byte) 0xff || (data.data().track == 0 && data.data().sector == 0));
     }
 
     /** 削除 */
@@ -514,16 +473,16 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryApledos>
      */
     @Override
     public boolean check(boolean[] last) {
-        if (!m_data.isValid()) return false;
+        if (!data.isValid()) return false;
 
         boolean valid = true;
 
-        if (m_data.data().track == 0 && m_data.data().sector == 0) {
+        if (data.data().track == 0 && data.data().sector == 0) {
             last[0] = true;
             return valid;
         }
         // 属性 3-6bitはゼロ
-        if ((m_data.data().type & 0x78) != 0) {
+        if ((data.data().type & 0x78) != 0) {
             valid = false;
         }
         return valid;
@@ -567,11 +526,11 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryApledos>
 
     /** 属性を設定 */
     @Override
-    public void setFileAttr(DiskBasicFileType file_type) {
-        int ftype = file_type.getType();
-        if (ftype == -1) return;
+    public void setFileAttr(DiskBasicFileType fileType) {
+        int fType = fileType.getType();
+        if (fType == -1) return;
 
-        int type1 = convToFileType1(ftype);
+        int type1 = convToFileType1(fType);
 
         setFileType1(type1);
     }
@@ -591,20 +550,20 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryApledos>
         int oval = getFileType1();
         if ((oval & FILETYPE_MASK_APLEDOS_IBASIC) != 0) {
             if (!str.isEmpty()) str += ", ";
-            str += rb.getString(Utils.keyAt(gTypeNameAppleDOS, TYPE_NAME_APLEDOS_IBASIC));
+            str += rb.getString(Utils.keyAt(typeNameAppleDOS, TYPE_NAME_APLEDOS_IBASIC));
         } else if ((oval & FILETYPE_MASK_APLEDOS_ABASIC) != 0) {
             if (!str.isEmpty()) str += ", ";
-            str += rb.getString(Utils.keyAt(gTypeNameAppleDOS, TYPE_NAME_APLEDOS_ABASIC));
+            str += rb.getString(Utils.keyAt(typeNameAppleDOS, TYPE_NAME_APLEDOS_ABASIC));
         } else if ((oval & FILETYPE_MASK_APLEDOS_BINARY) != 0) {
             if (!str.isEmpty()) str += ", ";
-            str += rb.getString(Utils.keyAt(gTypeNameAppleDOS, TYPE_NAME_APLEDOS_BINARY));
+            str += rb.getString(Utils.keyAt(typeNameAppleDOS, TYPE_NAME_APLEDOS_BINARY));
         } else {
             if (!str.isEmpty()) str += ", ";
-            str += rb.getString(Utils.keyAt(gTypeNameAppleDOS, TYPE_NAME_APLEDOS_TEXT));
+            str += rb.getString(Utils.keyAt(typeNameAppleDOS, TYPE_NAME_APLEDOS_TEXT));
         }
         if ((oval & FILETYPE_MASK_APLEDOS_READ_ONLY) != 0) {
             if (!str.isEmpty()) str += ", ";
-            str += rb.getString(Utils.keyAt(gTypeNameAppleDOS, TYPE_NAME_APLEDOS_READ_ONLY));
+            str += rb.getString(Utils.keyAt(typeNameAppleDOS, TYPE_NAME_APLEDOS_READ_ONLY));
         }
         return str;
     }
@@ -613,94 +572,94 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryApledos>
     @Override
     public void setFileSize(int val) {
         groups.setSize(val);
-        int sec_size = basic.getSectorSize();
-        val = (val + sec_size - 1) / sec_size;
+        int sectorSize = basic.getSectorSize();
+        val = (val + sectorSize - 1) / sectorSize;
         setSectorCount(val + chain.count());
     }
 
     /** ファイルサイズとグループ数を計算する */
     @Override
-    public void calcFileUnitSize(int fileunit_num) throws IOException {
+    public void calcFileUnitSize(int fileUnitNum) throws IOException {
         if (!isUsed()) return;
 
-        getUnitGroups(fileunit_num, groups);
+        getUnitGroups(fileUnitNum, groups);
     }
 
     /**
      * 指定ディレクトリのすべてのグループを取得
      *
-     * @param fileunit_num ファイル番号
-     * @param group_items  [out] グループリスト
+     * @param fileUnitNum ファイル番号
+     * @param groupItems  [out] グループリスト
      */
     @Override
-    public void getUnitGroups(int fileunit_num, DiskBasicGroups group_items) throws IOException {
+    public void getUnitGroups(int fileUnitNum, DiskBasicGroups groupItems) throws IOException {
         if (!chain.isValid()) return;
 
-        int calc_groups = 0;
-        int calc_file_size = 0;
+        int calcGroups = 0;
+        int calcFileSize = 0;
 
         for (int i = 0; ; i++) {
-            int[] track_num = {0};
-            int[] sector_num = {0};
-            chain.getTrackAndSector(i, track_num, sector_num);
-            if (track_num[0] == 0 && sector_num[0] == 0) {
+            int[] trackNum = {0};
+            int[] sectorNum = {0};
+            chain.getTrackAndSector(i, trackNum, sectorNum);
+            if (trackNum[0] == 0 && sectorNum[0] == 0) {
                 break;
             }
-            int group_num = type.getSectorPosFromNumS(track_num[0], sector_num[0]);
-            int[] side_num = {0};
-            type.getNumFromSectorPos(group_num, track_num, side_num, sector_num);
-            group_items.add(group_num, 0, track_num[0], side_num[0], sector_num[0], sector_num[0]);
-            calc_groups++;
-            calc_file_size += basic.getSectorSize();
-            if (calc_groups >= basic.getFatEndGroup()) {
+            int groupNum = type.getSectorPosFromNumS(trackNum[0], sectorNum[0]);
+            int[] sideNum = {0};
+            type.getNumFromSectorPos(groupNum, trackNum, sideNum, sectorNum);
+            groupItems.add(groupNum, 0, trackNum[0], sideNum[0], sectorNum[0], sectorNum[0]);
+            calcGroups++;
+            calcFileSize += basic.getSectorSize();
+            if (calcGroups >= basic.getFatEndGroup()) {
                 // too large block size
                 break;
             }
         }
-        calc_groups += chain.count();
-        if (getSectorCount() != calc_groups) {
-            calc_groups = getSectorCount();
-            calc_file_size = calc_groups * basic.getSectorSize();
+        calcGroups += chain.count();
+        if (getSectorCount() != calcGroups) {
+            calcGroups = getSectorCount();
+            calcFileSize = calcGroups * basic.getSectorSize();
         }
-        group_items.setNums(calc_groups);
-        group_items.setSize(calc_file_size);
-        group_items.setSizePerGroup(basic.getSectorSize());
+        groupItems.setNums(calcGroups);
+        groupItems.setSize(calcFileSize);
+        groupItems.setSizePerGroup(basic.getSectorSize());
 
         // 最終セクタの再計算
-        group_items.setSize(recalcFileSize(group_items, (int) group_items.getSize()));
+        groupItems.setSize(recalcFileSize(groupItems, (int) groupItems.getSize()));
 
         // ファイル内部のアドレスを得る
-        takeAddressesInFile(group_items);
+        takeAddressesInFile(groupItems);
     }
 
     /**
      * 最終セクタのサイズを計算してファイルサイズを返す
      *
-     * @param group_items   グループリスト
-     * @param occupied_size 占有サイズ
+     * @param groupItems   グループリスト
+     * @param occupiedSize 占有サイズ
      * @return 計算後のファイルサイズ
      */
     @Override
-    public int recalcFileSize(DiskBasicGroups group_items, int occupied_size) throws IOException {
-        if (group_items.size() == 0) return occupied_size;
+    public int recalcFileSize(DiskBasicGroups groupItems, int occupiedSize) throws IOException {
+        if (groupItems.size() == 0) return occupiedSize;
 
-        DiskBasicGroupItem litem = group_items.last();
-        DiskImageSector sector = basic.getSector(litem.track, litem.side, litem.sectorEnd);
-        if (sector == null) return occupied_size;
+        DiskBasicGroupItem lastItem = groupItems.last();
+        DiskImageSector sector = basic.getSector(lastItem.track, lastItem.side, lastItem.sectorEnd);
+        if (sector == null) return occupiedSize;
 
-        int sector_size = sector.getSectorSize();
+        int sectorSize = sector.getSectorSize();
         byte[] buf = sector.getSectorBuffer();
-        int remain_size = type.calcDataSizeOnLastSector(this, null, null, buf, 0, sector_size, sector_size);
+        int remainSize = type.calcDataSizeOnLastSector(this, null, null, buf, 0, sectorSize, sectorSize);
 
-        occupied_size = occupied_size - sector_size + remain_size;
+        occupiedSize = occupiedSize - sectorSize + remainSize;
 
-        return occupied_size;
+        return occupiedSize;
     }
 
     /** ファイル内部のアドレスを取り出す */
     public void takeAddressesInFile(DiskBasicGroups groupItems) {
-        m_start_address = -1;
-        m_data_length = -1;
+        startAddress = -1;
+        dataLength = -1;
 
         if (groupItems.size() == 0) {
             return;
@@ -715,40 +674,40 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryApledos>
         if ((t1 & FILETYPE_MASK_APLEDOS_BINARY) != 0) {
             // バイナリ
             // 開始アドレス
-            m_start_address = sector.get16(0);
+            startAddress = sector.get16(0);
             // データサイズ
-            m_data_length = sector.get16(2);
+            dataLength = sector.get16(2);
             // 実際のサイズを設定
-            if (m_data_length + 5 <= groupItems.getSize()) groupItems.setSize(m_data_length + 5);
+            if (dataLength + 5 <= groupItems.getSize()) groupItems.setSize(dataLength + 5);
         } else if ((t1 & (FILETYPE_MASK_APLEDOS_IBASIC | FILETYPE_MASK_APLEDOS_ABASIC)) != 0) {
             // BASICファイルサイズ
             // データサイズ => 最終データ位置みたい
-            m_data_length = sector.get16(0);
+            dataLength = sector.get16(0);
             // 実際のサイズを設定
-            if (m_data_length + 3 <= groupItems.getSize()) groupItems.setSize(m_data_length + 3);
+            if (dataLength + 3 <= groupItems.getSize()) groupItems.setSize(dataLength + 3);
         }
     }
 
     /**
      * 最初のグループ番号を設定
      *
-     * @param fileunit_num ファイル番号 (未使用)
+     * @param fileUnitNum ファイル番号 (未使用)
      * @param val          グループ番号
      * @param size         ファイルサイズ (未使用)
      */
     @Override
-    public void setStartGroup(int fileunit_num, int val, int size) {
-        int[] track_num = {0};
-        int[] sector_num = {0};
-        type.getNumFromSectorPosS(val, track_num, sector_num);
-        m_data.data().track = (byte) ((track_num[0] - basic.getTrackNumberBaseOnDisk()) & 0xff);
-        m_data.data().sector = (byte) ((sector_num[0] - basic.getSectorNumberBase()) & 0xff);
+    public void setStartGroup(int fileUnitNum, int val, int size) {
+        int[] trackNum = {0};
+        int[] sectorNum = {0};
+        type.getNumFromSectorPosS(val, trackNum, sectorNum);
+        data.data().track = (byte) ((trackNum[0] - basic.getTrackNumberBaseOnDisk()) & 0xff);
+        data.data().sector = (byte) ((sectorNum[0] - basic.getSectorNumberBase()) & 0xff);
     }
 
     /** 最初のグループ番号を返す */
     @Override
-    public int getStartGroup(int fileunit_num) {
-        int val = type.getSectorPosFromNumS((m_data.data().track & 0xff) + basic.getTrackNumberBaseOnDisk(), (m_data.data().sector & 0xff) + basic.getSectorNumberBase());
+    public int getStartGroup(int fileUnitNum) {
+        int val = type.getSectorPosFromNumS((data.data().track & 0xff) + basic.getTrackNumberBaseOnDisk(), (data.data().sector & 0xff) + basic.getSectorNumberBase());
         return val;
     }
 
@@ -760,22 +719,22 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryApledos>
 
     /** 追加のグループ番号を得る(機種依存) */
     @Override
-    public void getExtraGroups(List<Integer> arr) {
-        int gnum = getExtraGroup();
+    public void getExtraGroups(List<Integer> result) {
+        int groupNum = getExtraGroup();
         for (int i = 0; i < chain.count(); i++) {
-            arr.add(gnum);
-            gnum = chain.getNext(i);
-            if (gnum == 0) break;
+            result.add(groupNum);
+            groupNum = chain.getNext(i);
+            if (groupNum == 0) break;
         }
     }
 
     /**
      * チェイン用のセクタをクリア(機種依存)
      *
-     * @param pitem コピー元のアイテム
+     * @param pItem コピー元のアイテム
      */
     @Override
-    public void clearChainSector(DiskBasicDirItem<DirectoryApledos> pitem) {
+    public void clearChainSector(DiskBasicDirItem<DirectoryAppleDos> pItem) {
         chain.clear();
         chain.setBasic(basic);
     }
@@ -783,19 +742,19 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryApledos>
     /**
      * チェイン用のセクタをセット
      *
-     * @param sector セクタ
-     * @param gnum   グループ番号
-     * @param data   セクタ内のバッファ
-     * @param pitem  コピー元のアイテム
+     * @param sector   セクタ
+     * @param groupNum グループ番号
+     * @param data     セクタ内のバッファ
+     * @param pItem    コピー元のアイテム
      */
     @Override
-    public void setChainSector(DiskImageSector sector, int gnum, byte[] data, DiskBasicDirItem<DirectoryApledos> pitem) throws IOException {
-        apledos_chain_t c = new apledos_chain_t();
+    public void setChainSector(DiskImageSector sector, int groupNum, byte[] data, DiskBasicDirItem<DirectoryAppleDos> pItem) throws IOException {
+        AppleDosChain c = new AppleDosChain();
         Serdes.Util.deserialize(new ByteArrayInputStream(data), c);
         chain.add(c);
         if (chain.count() > 1) {
             int i = chain.count() - 2;
-            chain.setNext(i, gnum);
+            chain.setNext(i, groupNum);
         }
     }
 
@@ -807,15 +766,15 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryApledos>
      */
     @Override
     public void addChainGroupNumber(int idx, int val) {
-        int[] track_num = {0};
-        int[] sector_num = {0};
-        type.getNumFromSectorPosS(val, track_num, sector_num);
-        chain.setTrackAndSector(idx, track_num[0], sector_num[0]);
+        int[] trackNum = {0};
+        int[] sectorNum = {0};
+        type.getNumFromSectorPosS(val, trackNum, sectorNum);
+        chain.setTrackAndSector(idx, trackNum[0], sectorNum[0]);
     }
 
     /** セクタカウントをセット(機種依存) */
     public void setSectorCount(int val) {
-        m_data.data().sectorCount = (short) val; // be
+        data.data().sectorCount = (short) val; // be
     }
 
     /**
@@ -824,7 +783,7 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryApledos>
      * セクタカウントはトラックセクタリストで占有しているセクタ数も含んでいる
      */
     public int getSectorCount() {
-        return m_data.data().sectorCount & 0xffff; // be
+        return data.data().sectorCount & 0xffff; // be
     }
 
     /** ファイルの終端コードをチェックする必要があるか */
@@ -836,45 +795,45 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryApledos>
     /**
      * セーブ時にファイルサイズを再計算する ファイルの終端コードが必要な場合
      *
-     * @param istream   入力ストリーム
-     * @param file_size ファイルサイズ
+     * @param iStream  入力ストリーム
+     * @param fileSize ファイルサイズ
      * @return 再計算後のファイルサイズ
      */
     @Override
-    public int recalcFileSizeOnSave(InputStream istream, int file_size) {
+    public int recalcFileSizeOnSave(InputStream iStream, int fileSize) throws IOException {
         if (needCheckEofCode()) {
             // ファイルの最終が終端記号で終わっているかを調べる
             // ただし、ファイルサイズがセクタサイズで割り切れるなら終端記号は不要
-            if ((file_size % basic.getSectorSize()) != 0) {
-                file_size = checkEofCode(istream, file_size);
-                file_size--;
+            if ((fileSize % basic.getSectorSize()) != 0) {
+                fileSize = checkEofCode(iStream, fileSize);
+                fileSize--;
             }
         }
-        return file_size;
+        return fileSize;
     }
 
     /** ディレクトリアイテムのサイズ */
     @Override
     public int getDataSize() {
-        return m_data.getDataSize();
+        return data.getDataSize();
     }
 
     /** アイテムを返す */
     @Override
-    public DirectoryApledos getData() {
-        return m_data.data();
+    public DirectoryAppleDos getData() {
+        return data.data();
     }
 
     /** アイテムをコピー */
     @Override
     public boolean copyData(byte[] val) {
-        return m_data.copy(val, getDataSize());
+        return data.copy(val, getDataSize());
     }
 
     /** ディレクトリをクリア */
     @Override
     public void clearData() {
-        m_data.fill(basic.diskBasicParam.getDeleteCode(), getDataSize());
+        data.fill(basic.getDeleteCode(), getDataSize());
     }
 
     /**
@@ -885,7 +844,7 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryApledos>
      */
     @Override
     public boolean preImportDataFile(String[] filename) {
-        if (gConfig.isDecideAttrImport()) {
+        if (config.isDecideAttrImport()) {
             trimExtensionByExtensionAttr(filename);
         }
         filename[0] = remakeFileNameAndExtStr(filename[0]);
@@ -900,22 +859,22 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryApledos>
 
     /** 最初のトラック番号をセット */
     public void setStartTrack(byte val) {
-        m_data.data().track = val;
+        data.data().track = val;
     }
 
     /** 最初のセクタ番号をセット */
     public void setStartSector(byte val) {
-        m_data.data().sector = val;
+        data.data().sector = val;
     }
 
     /** 最初のトラック番号を返す */
     public byte getStartTrack() {
-        return m_data.data().track;
+        return data.data().track;
     }
 
     /** 最初のセクタ番号を返す */
     public byte getStartSector() {
-        return m_data.data().sector;
+        return data.data().sector;
     }
 
     /** アイテムがアドレスを持っているか */
@@ -939,13 +898,13 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryApledos>
     /** 開始アドレスを返す */
     @Override
     public int getStartAddress() {
-        return m_start_address;
+        return startAddress;
     }
 
     /** 終了アドレスを返す */
     @Override
     public int getEndAddress() {
-        return (m_start_address >= 0 && m_data_length > 0) ? m_start_address + m_data_length - 1 : -1;
+        return (startAddress >= 0 && dataLength > 0) ? startAddress + dataLength - 1 : -1;
     }
 
     //
@@ -959,10 +918,10 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryApledos>
      */
     @Override
     public void setInternalDataInAttrDialog(KeyValArray vals) {
-        vals.add("TRACK", m_data.data().track);
-        vals.add("SECTOR", m_data.data().sector);
-        vals.add("TYPE", m_data.data().type);
-        vals.add("NAME", m_data.data().name, m_data.data().name.length);
-        vals.add("SECTOR_COUNT", m_data.data().sectorCount);
+        vals.add("TRACK", data.data().track);
+        vals.add("SECTOR", data.data().sector);
+        vals.add("TYPE", data.data().type);
+        vals.add("NAME", data.data().name, data.data().name.length);
+        vals.add("SECTOR_COUNT", data.data().sectorCount);
     }
 }

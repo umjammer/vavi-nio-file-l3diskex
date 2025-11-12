@@ -62,7 +62,7 @@ public class DiskResult extends ResultInfo {
     public static final int ERRV_END = ERRV_UNSUPPORTED_TYPE + 1;
 
     /** Messages corresponding to the error codes above. */
-    private static final String[] gDiskResultMsgs = new String[] {
+    private static final String[] gDiskResultMessages = {
             /* ERR_NONE                     */ "",
             /* ERR_CANNOT_OPEN              */ "Cannot open file.",
             /* ERR_CANNOT_SAVE              */ "Cannot save file.",
@@ -108,31 +108,31 @@ public class DiskResult extends ResultInfo {
     /**
      * Formats and stores an error message.
      *
-     * @param errorNumber the error code (index into {@code gDiskResultMsgs})
+     * @param errorNumber the error code (index into {@code gDiskResultMessages})
      * @param args        arguments used for {@link String#format}
      */
     @Override
     public void setMessageV(int errorNumber, Object... args) {
 try {
-        String msg;
+        String message;
 
         args = wrapArrayToString(args);
 
         if (errorNumber <= 0) {
             return;
         } else if (errorNumber < ERRV_START) {
-            msg = gDiskResultMsgs[errorNumber];
+            message = gDiskResultMessages[errorNumber];
         } else if (errorNumber < ERRV_END) {
-            msg = String.format(gDiskResultMsgs[errorNumber], args);
+            message = String.format(gDiskResultMessages[errorNumber], args);
         } else {
-            msg = String.format(gDiskResultMsgs[ERRV_END], errorNumber);
+            message = String.format(gDiskResultMessages[ERRV_END], errorNumber);
         }
-        if (!msg.isEmpty()) {
-//logger.log(Level.TRACE, msg, new Exception("MESSAGE: " + msg));
-            msgs.add(msg);
+        if (!message.isEmpty()) {
+//logger.log(Level.TRACE, message, new Exception("MESSAGE: " + message));
+            messages.add(message);
         }
 } catch (Exception e) {
- logger.log(Level.ERROR, gDiskResultMsgs[errorNumber] + ", " + Arrays.toString(args));
+ logger.log(Level.ERROR, gDiskResultMessages[errorNumber] + ", " + Arrays.toString(args));
  logger.log(Level.ERROR, e.getMessage(), e);
 }
     }

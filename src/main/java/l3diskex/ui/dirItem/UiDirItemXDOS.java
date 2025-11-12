@@ -15,15 +15,15 @@ import javax.swing.JComboBox;
 import l3diskex.Utils;
 import l3diskex.basicfmt.DiskBasicDirItem.DiskBasicDirItemAttr;
 import l3diskex.basicfmt.diritem.DiskBasicDirItemXDOS;
-import l3diskex.basicfmt.diritem.DiskBasicDirItemXDOS.XdosSubTypeT;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemXDOS.XDosSubType;
 import l3diskex.basicfmt.DiskBasicError;
 import l3diskex.ui.IntNameBox;
 import l3diskex.ui.UiDirItem;
 
 import static l3diskex.basicfmt.diritem.DiskBasicDirItemXDOS.convStrToUserFileType;
-import static l3diskex.basicfmt.diritem.DiskBasicDirItemXDOS.gTypeNameXDOS1;
-import static l3diskex.basicfmt.diritem.DiskBasicDirItemXDOS.gTypeNameXDOS2;
-import static l3diskex.basicfmt.diritem.DiskBasicDirItemXDOS.xdosSubTypes;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemXDOS.typeNameXDOS1;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemXDOS.typeNameXDOS2;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemXDOS.xDosSubTypes;
 
 
 /**
@@ -52,7 +52,7 @@ public class UiDirItemXDOS extends UiDirItem {
         if (fidx >= 0) {
             if (fidx < 8) {
                 int sidx = comSType.getSelection();
-                XdosSubTypeT[] stypes = xdosSubTypes[fidx + 1];
+                XDosSubType[] stypes = xDosSubTypes[fidx + 1];
 
                 typ1 = ((fidx + 1) << 8);
                 typ1 |= getSubTypeInAttrDialog(parent, stypes, sidx, comSType);
@@ -67,7 +67,7 @@ public class UiDirItemXDOS extends UiDirItem {
 
     protected int getFileType2InAttrDialog(IntNameBox parent) {
         int typ2 = 0;
-        for (int idx = 0; gTypeNameXDOS2[idx] != null; idx++) {
+        for (int idx = 0; typeNameXDOS2[idx] != null; idx++) {
             JComboBox chk = (JComboBox) parent.getComponent(53 + idx);
             typ2 |= (chk.getValue() ? (0x80 >> idx) : 0);
         }
@@ -85,8 +85,8 @@ public class UiDirItemXDOS extends UiDirItem {
 
         BoxLayout staFType = new BoxLayout(new StaticBox(parent, -1, "File Type"), VERTICAL);
         JComboBox comFType = new JComboBox(parent, 51);
-        for (int idx = 1; idx < gTypeNameXDOS1.size(); idx++) {
-            comFType.append(Utils.keyAt(gTypeNameXDOS1, idx));
+        for (int idx = 1; idx < typeNameXDOS1.size(); idx++) {
+            comFType.append(Utils.keyAt(typeNameXDOS1, idx));
         }
         int ftype = (t1 >> 8);
         if (1 <= ftype && ftype <= 8) {
@@ -102,8 +102,8 @@ public class UiDirItemXDOS extends UiDirItem {
         sizer.add(staFType, flags);
 
         BoxLayout staFAttr = new BoxLayout(new BoxLayout(parent, -1, "File Attributes"), VERTICAL);
-        for (int idx = 0; gTypeNameXDOS2[idx] != null; idx++) {
-            JCheckBox chk = new JCheckBox(parent, 53 + idx, gTypeNameXDOS2[idx]);
+        for (int idx = 0; typeNameXDOS2[idx] != null; idx++) {
+            JCheckBox chk = new JCheckBox(parent, 53 + idx, typeNameXDOS2[idx]);
             staFAttr.add(chk, flags);
             chk.setValue((t2 & (0x80 >> idx)) != 0);
         }
@@ -123,9 +123,9 @@ public class UiDirItemXDOS extends UiDirItem {
         int ftype = (typ1 >> 8);
         int stype = (typ1 & 0xff);
         int fidx = comFType.getSelection();
-        XdosSubTypeT[] stypes = null;
+        XDosSubType[] stypes = null;
         if (fidx >= 0) {
-            stypes = xdosSubTypes[fidx + 1];
+            stypes = xDosSubTypes[fidx + 1];
             if (fidx + 1 != ftype) {
                 stype = -1;
             }
@@ -142,7 +142,7 @@ public class UiDirItemXDOS extends UiDirItem {
         return true;
     }
 
-    private static void setSubTypeInAttrDialog(IntNameBox parent, XdosSubTypeT[] stypes, int stype, JComboBox comSType) {
+    private static void setSubTypeInAttrDialog(IntNameBox parent, XDosSubType[] stypes, int stype, JComboBox comSType) {
         if (stypes != null) {
             for (int idx = 0; stypes[idx].desc != null; idx++) {
                 for (int i = stypes[idx].start; i <= stypes[idx].end; i++) {
@@ -160,7 +160,7 @@ public class UiDirItemXDOS extends UiDirItem {
         }
     }
 
-    private static int getSubTypeInAttrDialog(IntNameBox parent, XdosSubTypeT[] stypes, int selIdx, JComboBox comSType) {
+    private static int getSubTypeInAttrDialog(IntNameBox parent, XDosSubType[] stypes, int selIdx, JComboBox comSType) {
         int stype = 0;
         if (stypes != null) {
             int row = 0;

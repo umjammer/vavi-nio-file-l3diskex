@@ -11,18 +11,18 @@ import java.util.Map;
 import java.util.ResourceBundle;
 
 import l3diskex.Utils;
-import l3diskex.basicfmt.BasicCommon.DirectoryT;
+import l3diskex.basicfmt.BasicCommon.Directory;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
 import l3diskex.basicfmt.DiskBasic;
-import l3diskex.basicfmt.diritem.DiskBasicDirItemTFDOS.DirectoryTfdos;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemTFDOS.DirectoryTfDos;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
 import vavi.util.serdes.Element;
 import vavi.util.serdes.Serdes;
 
-import static l3diskex.Config.gConfig;
+import static l3diskex.Config.config;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_ASCII_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_BASIC_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_BINARY_MASK;
@@ -37,7 +37,7 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_READONLY_MASK
 
  {@link #externalAttr} 1: BASE互換, 2: BASE互換かを自動判定
  */
-public class DiskBasicDirItemTFDOS extends DiskBasicDirItemMZBase<DirectoryTfdos> {
+public class DiskBasicDirItemTFDOS extends DiskBasicDirItemMZBase<DirectoryTfDos> {
 
     private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
 
@@ -45,7 +45,7 @@ public class DiskBasicDirItemTFDOS extends DiskBasicDirItemMZBase<DirectoryTfdos
      * ディレクトリエントリ TF-DOS (16bytes)
      */
     @Serdes(bigEndian = false)
-    public static class DirectoryTfdos implements DirectoryT {
+    public static class DirectoryTfDos implements Directory {
 
         @Element(sequence = 1)
         public byte type; // byte
@@ -54,9 +54,9 @@ public class DiskBasicDirItemTFDOS extends DiskBasicDirItemMZBase<DirectoryTfdos
         @Element(sequence = 3)
         public short fileSize;
         @Element(sequence = 4)
-        public short loadAddr;
+        public short loadAddress;
         @Element(sequence = 5)
-        public short execAddr;
+        public short execAddress;
         @Element(sequence = 6)
         public byte track; // byte
 
@@ -64,7 +64,7 @@ public class DiskBasicDirItemTFDOS extends DiskBasicDirItemMZBase<DirectoryTfdos
     }
 
     /// TF-DOS属性名
-    public static final Map<String, Object> gTypeNameTFDOS = new HashMap<>() {{
+    public static final Map<String, Object> typeNameTfDos = new HashMap<>() {{
         put("???", 0);
         put("OBJ", FILETYPE_TFDOS_OBJ);
         put("TEX", FILETYPE_TFDOS_TEX);
@@ -102,48 +102,48 @@ public class DiskBasicDirItemTFDOS extends DiskBasicDirItemMZBase<DirectoryTfdos
     public static final int DATATYPE_TFDOS_READ_ONLY = 0x80;
 
     /** ディレクトリデータ */
-    private final DiskBasicDirData<DirectoryTfdos> m_data = new DiskBasicDirData<>();
+    private final DiskBasicDirData<DirectoryTfDos> data = new DiskBasicDirData<>();
 
     public DiskBasicDirItemTFDOS(DiskBasic basic) {
         super(basic);
 
-        m_data.alloc(DirectoryTfdos.class);
+        data.alloc(DirectoryTfDos.class);
         externalAttr = 2;	// TXTの時、BASE互換かを自動判定
     }
 
-    public DiskBasicDirItemTFDOS(DiskBasic basic, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP) {
-        super(basic, n_sector, n_secpos, n_data, dataP);
+    public DiskBasicDirItemTFDOS(DiskBasic basic, DiskImageSector sector, int secPos, byte[] data, int dataP) {
+        super(basic, sector, secPos, data, dataP);
 
-        m_data.attach(DirectoryTfdos.class, n_data, dataP);
+        this.data.attach(DirectoryTfDos.class, data, dataP);
         externalAttr = 2;	// TXTの時、BASE互換かを自動判定
     }
 
-    public DiskBasicDirItemTFDOS(DiskBasic basic, int n_num, DiskBasicGroupItem n_gitem,
-                                 DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP,
-                                 SectorParam n_next, boolean[] n_unuse) throws IOException {
-        super(basic, n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next, n_unuse);
+    public DiskBasicDirItemTFDOS(DiskBasic basic, int num, DiskBasicGroupItem groupItem,
+                                 DiskImageSector sector, int secPos, byte[] data, int dataP,
+                                 SectorParam next, boolean[] unuse) throws IOException {
+        super(basic, num, groupItem, sector, secPos, data, dataP, next, unuse);
 
-        m_data.attach(DirectoryTfdos.class, n_data, dataP);
+        this.data.attach(DirectoryTfDos.class, data, dataP);
         externalAttr = 2;	// TXTの時、BASE互換かを自動判定
 
-        used(checkUsed(n_unuse[0]));
+        used(checkUsed(unuse[0]));
 
         calcFileSize();
     }
 
     @Override
-    public void setDataPtr(int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector,
-                           int n_secpos, byte[] n_data, int dataP, SectorParam n_next) throws IOException {
-        super.setDataPtr(n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next);
+    public void setData(int num, DiskBasicGroupItem groupItem, DiskImageSector sector,
+                        int sectorPos, byte[] data, int dataPos, SectorParam next) throws IOException {
+        super.setData(num, groupItem, sector, sectorPos, data, dataPos, next);
 
-        m_data.attach(DirectoryTfdos.class, n_data, dataP);
+        this.data.attach(DirectoryTfDos.class, data, dataPos);
     }
 
     @Override
     protected byte[] getFileNamePos(int num, int[] size, int[] len) {
         if (num == 0) {
-            size[0] = len[0] = m_data.data().name.length;
-            return m_data.data().name;
+            size[0] = len[0] = data.data().name.length;
+            return data.data().name;
         } else {
             size[0] = len[0] = 0;
             return null;
@@ -152,12 +152,12 @@ public class DiskBasicDirItemTFDOS extends DiskBasicDirItemMZBase<DirectoryTfdos
 
     @Override
     public int getFileType1() {
-        return basic.invertUint8(m_data.data().type); // invert
+        return basic.invertUint8(data.data().type); // invert
     }
 
     @Override
     protected void setFileType1(int val) {
-        m_data.data().type = basic.invertUint8((byte) val); // invert
+        data.data().type = basic.invertUint8((byte) val); // invert
     }
 
     @Override
@@ -167,7 +167,7 @@ public class DiskBasicDirItemTFDOS extends DiskBasicDirItemMZBase<DirectoryTfdos
 
     @Override
     public boolean check(boolean[] last) {
-        if (!m_data.isValid()) return false;
+        if (!data.isValid()) return false;
 
         boolean valid = true;
         int t = getFileType1();
@@ -179,37 +179,37 @@ public class DiskBasicDirItemTFDOS extends DiskBasicDirItemMZBase<DirectoryTfdos
 
     @Override
     public boolean delete() {
-        m_data.fill(basic.invertUint8(basic.diskBasicParam.getDeleteCode()), 1);
+        data.fill(basic.invertUint8(basic.getDeleteCode()), 1);
         used(false);
         return true;
     }
 
     @Override
-    public void setFileAttr(DiskBasicFileType file_type) {
-        int ftype = file_type.getType();
-        if (ftype == -1) return;
+    public void setFileAttr(DiskBasicFileType fileType) {
+        int fType = fileType.getType();
+        if (fType == -1) return;
 
-        int t1 = file_type.getOrigin();
+        int t1 = fileType.getOrigin();
         int val = 0;
-        if (file_type.getFormat() == basic.getFormatTypeNumber()) {
+        if (fileType.getFormat() == basic.getFormatTypeNumber()) {
             // 同じOSの場合は元の属性をそのままセット
             val = t1;
         } else {
             // 別OSからの場合、近い属性をセット
-            if ((ftype & FILE_TYPE_BINARY_MASK.getValue()) != 0) {
-                if ((ftype & FILE_TYPE_BASIC_MASK.getValue()) != 0) val = FILETYPE_TFDOS_CMD;
-                else if ((ftype & FILE_TYPE_MACHINE_MASK.getValue()) != 0) val = FILETYPE_TFDOS_SYS;
+            if ((fType & FILE_TYPE_BINARY_MASK.getValue()) != 0) {
+                if ((fType & FILE_TYPE_BASIC_MASK.getValue()) != 0) val = FILETYPE_TFDOS_CMD;
+                else if ((fType & FILE_TYPE_MACHINE_MASK.getValue()) != 0) val = FILETYPE_TFDOS_SYS;
                 else val = FILETYPE_TFDOS_OBJ;
-            } else if ((ftype & FILE_TYPE_DATA_MASK.getValue()) != 0) {
+            } else if ((fType & FILE_TYPE_DATA_MASK.getValue()) != 0) {
                 val = FILETYPE_TFDOS_DAT;
-            } else if ((ftype & FILE_TYPE_ASCII_MASK.getValue()) != 0) {
+            } else if ((fType & FILE_TYPE_ASCII_MASK.getValue()) != 0) {
                 val = FILETYPE_TFDOS_TEX;
             }
 
-            if ((ftype & FILE_TYPE_READONLY_MASK.getValue()) != 0) {
+            if ((fType & FILE_TYPE_READONLY_MASK.getValue()) != 0) {
                 val |= DATATYPE_TFDOS_READ_ONLY;
             }
-            if ((ftype & FILE_TYPE_HIDDEN_MASK.getValue()) != 0) {
+            if ((fType & FILE_TYPE_HIDDEN_MASK.getValue()) != 0) {
                 val |= DATATYPE_TFDOS_HIDDEN;
             }
         }
@@ -252,87 +252,87 @@ public class DiskBasicDirItemTFDOS extends DiskBasicDirItemMZBase<DirectoryTfdos
     @Override
     public String getFileAttrStr() {
         int t1 = getFileType1();
-        String attr = rb.getString(Utils.keyAt(gTypeNameTFDOS, convFileType1Pos(t1)));
+        String attr = rb.getString(Utils.keyAt(typeNameTfDos, convFileType1Pos(t1)));
 
         if ((t1 & DATATYPE_TFDOS_READ_ONLY) != 0) {
             attr += ", ";
-            attr += rb.getString(Utils.keyAt(gTypeNameTFDOS, TYPE_NAME_TFDOS_READ_ONLY));
+            attr += rb.getString(Utils.keyAt(typeNameTfDos, TYPE_NAME_TFDOS_READ_ONLY));
         }
         if ((t1 & DATATYPE_TFDOS_HIDDEN) != 0) {
             attr += ", ";
-            attr += rb.getString(Utils.keyAt(gTypeNameTFDOS, TYPE_NAME_TFDOS_HIDDEN));
+            attr += rb.getString(Utils.keyAt(typeNameTfDos, TYPE_NAME_TFDOS_HIDDEN));
         }
         return attr;
     }
 
     @Override
     protected void setFileSizeBase(int val) {
-        m_data.data().fileSize = basic.invertAndOrderUint16((short) val); // invert
+        data.data().fileSize = basic.invertAndOrderUint16((short) val); // invert
     }
 
     @Override
     protected int getFileSizeBase() {
-        return basic.invertAndOrderUint16(m_data.data().fileSize); // invert
+        return basic.invertAndOrderUint16(data.data().fileSize); // invert
     }
 
     @Override
     public int getStartAddress() {
-        return basic.invertAndOrderUint16(m_data.data().loadAddr); // invert
+        return basic.invertAndOrderUint16(data.data().loadAddress); // invert
     }
 
     @Override
     public int getExecuteAddress() {
-        return basic.invertAndOrderUint16(m_data.data().execAddr); // invert
+        return basic.invertAndOrderUint16(data.data().execAddress); // invert
     }
 
     @Override
     public void setStartAddress(int val) {
-        m_data.data().loadAddr = basic.invertAndOrderUint16((short) val); // invert
+        data.data().loadAddress = basic.invertAndOrderUint16((short) val); // invert
     }
 
     @Override
     public void setExecuteAddress(int val) {
-        m_data.data().execAddr = basic.invertAndOrderUint16((short) val); // invert
+        data.data().execAddress = basic.invertAndOrderUint16((short) val); // invert
     }
 
     @Override
     public int getDataSize() {
-        return m_data.getDataSize();
+        return data.getDataSize();
     }
 
     @Override
-    public DirectoryTfdos getData() {
-        return m_data.data();
+    public DirectoryTfDos getData() {
+        return data.data();
     }
 
     @Override
     public boolean copyData(byte[] val) {
-        return m_data.copy(val, getDataSize());
+        return data.copy(val, getDataSize());
     }
 
     @Override
     public void clearData() {
-        m_data.fill((byte) 0, getDataSize());
-        Arrays.fill(m_data.data().name, (byte) 0x0d);
-        basic.invertMem(m_data.getRawData(), getDataSize()); // invert
+        data.fill((byte) 0, getDataSize());
+        Arrays.fill(data.data().name, (byte) 0x0d);
+        basic.invertMemory(data.getRawData(), getDataSize()); // invert
     }
 
     @Override
-    public void setStartGroup(int fileunit_num, int val, int size) {
-        m_data.data().track = basic.invertUint8((byte) (val & 0xff)); // invert
+    public void setStartGroup(int fileUnitNum, int val, int size) {
+        data.data().track = basic.invertUint8((byte) (val & 0xff)); // invert
     }
 
     @Override
-    public int getStartGroup(int fileunit_num) {
-        return basic.invertUint8(m_data.data().track); // invert
+    public int getStartGroup(int fileUnitNum) {
+        return basic.invertUint8(data.data().track); // invert
     }
 
     @Override
     public boolean preExportDataFile(String[] filename) {
-        if (!gConfig.isAddExtensionExport()) return true;
+        if (!config.isAddExtensionExport()) return true;
 
         String[] ext = new String[1];
-        if (getFileAttrName(convFileType1Pos(getFileType1()), gTypeNameTFDOS, ext)) {
+        if (getFileAttrName(convFileType1Pos(getFileType1()), typeNameTfDos, ext)) {
             filename[0] += ".";
             if (Utils.isUpperString(filename[0])) {
                 filename[0] += ext[0].toUpperCase();
@@ -345,8 +345,8 @@ public class DiskBasicDirItemTFDOS extends DiskBasicDirItemMZBase<DirectoryTfdos
 
     @Override
     public boolean preImportDataFile(String[] filename) {
-        if (gConfig.isDecideAttrImport()) {
-            isContainAttrByExtension(filename[0], gTypeNameTFDOS, TYPE_NAME_TFDOS_OBJ, TYPE_NAME_TFDOS_DBB, filename, null, null);
+        if (config.isDecideAttrImport()) {
+            isContainAttrByExtension(filename[0], typeNameTfDos, TYPE_NAME_TFDOS_OBJ, TYPE_NAME_TFDOS_DBB, filename, null, null);
         }
         filename[0] = remakeFileNameAndExtStr(filename[0]);
         return true;
@@ -355,7 +355,7 @@ public class DiskBasicDirItemTFDOS extends DiskBasicDirItemMZBase<DirectoryTfdos
     @Override
     public int convOriginalTypeFromFileName(String filename) {
         int[] t1 = {0};
-        if (!isContainAttrByExtension(filename, gTypeNameTFDOS, TYPE_NAME_TFDOS_OBJ, TYPE_NAME_TFDOS_DBB, null, t1, null)) {
+        if (!isContainAttrByExtension(filename, typeNameTfDos, TYPE_NAME_TFDOS_OBJ, TYPE_NAME_TFDOS_DBB, null, t1, null)) {
             t1[0] = FILETYPE_TFDOS_TEX;
         }
         return t1[0];
@@ -387,11 +387,11 @@ public class DiskBasicDirItemTFDOS extends DiskBasicDirItemMZBase<DirectoryTfdos
     public void setInternalDataInAttrDialog(KeyValArray vals) {
         vals.add("inverted", basic.isDataInverted());
 
-        vals.add("TYPE", m_data.data().type, basic.isDataInverted());
-        vals.add("NAME", m_data.data().name, m_data.data().name.length, basic.isDataInverted());
-        vals.add("FILE_SIZE", m_data.data().fileSize, basic.isBigEndian(), basic.isDataInverted());
-        vals.add("LOAD_ADDR", m_data.data().loadAddr, basic.isBigEndian(), basic.isDataInverted());
-        vals.add("EXEC_ADDR", m_data.data().execAddr, basic.isBigEndian(), basic.isDataInverted());
-        vals.add("TRACK", m_data.data().track, basic.isDataInverted());
+        vals.add("TYPE", data.data().type, basic.isDataInverted());
+        vals.add("NAME", data.data().name, data.data().name.length, basic.isDataInverted());
+        vals.add("FILE_SIZE", data.data().fileSize, basic.isBigEndian(), basic.isDataInverted());
+        vals.add("LOAD_ADDR", data.data().loadAddress, basic.isBigEndian(), basic.isDataInverted());
+        vals.add("EXEC_ADDR", data.data().execAddress, basic.isBigEndian(), basic.isDataInverted());
+        vals.add("TRACK", data.data().track, basic.isDataInverted());
     }
 }

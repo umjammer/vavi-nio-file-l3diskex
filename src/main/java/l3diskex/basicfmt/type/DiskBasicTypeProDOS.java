@@ -20,9 +20,9 @@ import l3diskex.basicfmt.DiskBasicDirItem;
 import l3diskex.basicfmt.DiskBasicError;
 import l3diskex.basicfmt.DiskBasicFat;
 import l3diskex.basicfmt.DiskBasicType;
-import l3diskex.basicfmt.diritem.DiskBasicDirItemAppleDOS.DirectoryProdos;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemAppleDOS.DirectoryProDos;
 import l3diskex.basicfmt.diritem.DiskBasicDirItemProDOS;
-import l3diskex.basicfmt.diritem.DiskBasicDirItemProDOS.ProDOSDirPtrT;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemProDOS.ProDOSDirPointer;
 import l3diskex.basicfmt.DiskBasicFat.DiskBasicBitMLMap;
 import l3diskex.basicfmt.DiskBasicParam.DiskBasicFormat;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
@@ -45,22 +45,22 @@ import static l3diskex.basicfmt.DiskBasicType.AllocateGroupFlags.ALLOCATE_GROUPS
 
 
 /**
- * Apple ProDOS 8 / 16 の処理
+ * Apple ProDos 8 / 16 の処理
  */
-public class DiskBasicTypeProDOS extends DiskBasicType<DirectoryProdos> {
+public class DiskBasicTypeProDOS extends DiskBasicType<DirectoryProDos> {
 
     private static final Logger logger = System.getLogger(DiskBasicTypeProDOS.class.getName());
 
     /**
-     * Apple ProDOS ビットマップ
+     * Apple ProDos ビットマップ
      */
-    static class ProDOSBitmap extends DiskBasicBitMLMap {
+    static class ProDosBitmap extends DiskBasicBitMLMap {
 
-        int m_group_num;
+        int groupNum;
 
-        public ProDOSBitmap() {
+        public ProDosBitmap() {
             super();
-            m_group_num = INVALID_GROUP_NUMBER;
+            groupNum = INVALID_GROUP_NUMBER;
         }
 
         /**
@@ -76,19 +76,19 @@ public class DiskBasicTypeProDOS extends DiskBasicType<DirectoryProdos> {
         /**
          * 指定位置のビットを変更する
          *
-         * @param group_num 位置
-         * @param use       セットする場合true
+         * @param groupNum 位置
+         * @param use      セットする場合 {@code true}
          */
         @Override
-        public void modify(int group_num, boolean use) {
-            super.modify(group_num, !use); // 逆転
+        public void modify(int groupNum, boolean use) {
+            super.modify(groupNum, !use); // 逆転
         }
 
         /**
          * 指定位置が空いているか
          *
          * @param group_num 位置
-         * @return 空いている場合 true
+         * @return 空いている場合 {@code true}
          */
         public boolean isFree(int group_num) {
             return super.isSet(group_num); // 逆転
@@ -97,53 +97,53 @@ public class DiskBasicTypeProDOS extends DiskBasicType<DirectoryProdos> {
 
         /** ブロック番号をセット */
         void setMyGroupNumber(int group_num) {
-            m_group_num = group_num;
+            this.groupNum = group_num;
         }
 
         /** ブロック番号を得る */
         int getMyGroupNumber() {
-            return m_group_num;
+            return groupNum;
         }
     }
 
-    private final DiskBasicSectorSkew sector_skew = new DiskBasicSectorSkew();
-    private final ProDOSBitmap bitmap = new ProDOSBitmap();
-    private DirectoryProdos volume;
-    private final DiskBasicSectorPosTrans sector_map = new DiskBasicSectorPosTrans();
+    private final DiskBasicSectorSkew sectorSkew = new DiskBasicSectorSkew();
+    private final ProDosBitmap bitmap = new ProDosBitmap();
+    private DirectoryProDos volume;
+    private final DiskBasicSectorPosTrans sectorMap = new DiskBasicSectorPosTrans();
 
-    public DiskBasicTypeProDOS(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryProdos> dir) {
+    public DiskBasicTypeProDOS(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryProDos> dir) {
         super(basic, fat, dir);
         this.volume = null;
 
         // ProDOS 8のときは、セクタ→ブロックマップを作成
-        if (basic.diskBasicParam.getTracksPerSideOnBasic() <= 40) {
+        if (basic.getTracksPerSideOnBasic() <= 40) {
             // ProDOS 8
-            sector_skew.create(basic, basic.getSectorsPerTrackOnBasic());
+            sectorSkew.create(basic, basic.getSectorsPerTrackOnBasic());
         }
     }
 
     /**
      * エリアをチェック
      *
-     * @param is_formatting フォーマット中か
+     * @param isFormatting フォーマット中か
      * @return 1.0: 正常, 0.0 - 1.0: 警告あり, <0.0: エラーあり
      */
     @Override
-    public double checkFat(boolean is_formatting) {
+    public double checkFat(boolean isFormatting) {
         double valid_ratio = 1.0;
 
         // ビットマップ
-        int group_num = bitmap.getMyGroupNumber();
-        int st_pos = getStartSectorFromGroup(group_num);
-        int ed_pos = getEndSectorFromGroup(group_num, INVALID_GROUP_NUMBER, st_pos, 0, 0);
-        for (int sec = st_pos; sec <= ed_pos; sec++) {
-            DiskImageSector sector = basic.getSectorFromSectorPos(sec);
+        int groupNum = bitmap.getMyGroupNumber();
+        int startPos = getStartSectorFromGroup(groupNum);
+        int endPos = getEndSectorFromGroup(groupNum, INVALID_GROUP_NUMBER, startPos, 0, 0);
+        for (int s = startPos; s <= endPos; s++) {
+            DiskImageSector sector = basic.getSectorFromSectorPos(s);
             if (sector == null) {
                 return -1.0;
             }
             bitmap.addBitmap(sector);
         }
-        basic.diskBasicParam.setSectorsPerFat(bitmap.size());
+        basic.setSectorsPerFat(bitmap.size());
 
         return valid_ratio;
     }
@@ -151,68 +151,68 @@ public class DiskBasicTypeProDOS extends DiskBasicType<DirectoryProdos> {
     /**
      * ディスクから各パラメータを取得＆必要なパラメータを計算
      *
-     * @param is_formatting フォーマット中か
+     * @param isFormatting フォーマット中か
      * @return 1.0: 正常, 0.0 ~ 1.0: 警告あり, <0.0: エラーあり
      */
     @Override
-    public double parseParamOnDisk(boolean is_formatting) throws IOException {
-        if (is_formatting) return 0;
+    public double parseParamOnDisk(boolean isFormatting) throws IOException {
+        if (isFormatting) return 0;
 
-        double valid_ratio = 1.0;
+        double validRatio = 1.0;
 
         // 可変数セクタなのでトラックごとのセクタ数を集計
-        sector_map.create(basic);
+        sectorMap.create(basic);
 
         // セクタ数の合計
-        int calc_total_blocks = sector_map.getTotalSectors() / basic.diskBasicParam.getSectorsPerGroup();
-        basic.diskBasicParam.setFatEndGroup(calc_total_blocks - 1);
+        int calcTotalBlocks = sectorMap.getTotalSectors() / basic.getSectorsPerGroup();
+        basic.setFatEndGroup(calcTotalBlocks - 1);
 
         // ボリュームディレクトリ
-        DiskImageSector sector = basic.getSectorFromGroup(basic.diskBasicParam.getDirStartSector() / basic.diskBasicParam.getSectorsPerGroup());
+        DiskImageSector sector = basic.getSectorFromGroup(basic.getDirStartSector() / basic.getSectorsPerGroup());
         if (sector == null) {
             return -1.0;
         }
         byte[] b = sector.getSectorBuffer(4);
-        DirectoryProdos vol = new DirectoryProdos();
+        DirectoryProDos vol = new DirectoryProDos();
         Serdes.Util.deserialize(new ByteArrayInputStream(b), vol);
-        if ((vol.aux.v.entryLen & 0xff) != DirectoryProdos.SIZE) {
+        if ((vol.aux.v.entryLen & 0xff) != DirectoryProDos.SIZE) {
             return -1.0;
         }
 
-        int stor_total_blocks = vol.aux.v.totalBlocks & 0xffff;
+        int storeTotalBlocks = vol.aux.v.totalBlocks & 0xffff;
 
-        if (stor_total_blocks > calc_total_blocks) {
-            valid_ratio -= 0.5;
+        if (storeTotalBlocks > calcTotalBlocks) {
+            validRatio -= 0.5;
         }
 
-        basic.diskBasicParam.setFatEndGroup(stor_total_blocks - 1);
+        basic.setFatEndGroup(storeTotalBlocks - 1);
 
         bitmap.setMyGroupNumber(vol.aux.v.bitmapPointer & 0xffff);
 
         this.volume = vol; // Store reference
 
-        return valid_ratio;
+        return validRatio;
     }
 
     /**
      * Allocation Mapの開始位置を得る（ダイアログ用）
      */
     @Override
-    public void getStartNumOnFat(int[] track_num, int[] side_num, int[] sector_num) {
-        int group_num = bitmap.getMyGroupNumber();
-        int st_pos = getStartSectorFromGroup(group_num);
-        getNumFromSectorPos(st_pos, track_num, side_num, sector_num, null, null);
+    public void getStartNumOnFat(int[] trackNum, int[] sideNum, int[] sectorNum) {
+        int groupNum = bitmap.getMyGroupNumber();
+        int startPos = getStartSectorFromGroup(groupNum);
+        getNumFromSectorPos(startPos, trackNum, sideNum, sectorNum, null, null);
     }
 
     /**
      * Allocation Mapの終了位置を得る（ダイアログ用）
      */
     @Override
-    public void getEndNumOnFat(int[] track_num, int[] side_num, int[] sector_num) {
-        int group_num = bitmap.getMyGroupNumber();
-        int st_pos = getStartSectorFromGroup(group_num);
-        int ed_pos = getEndSectorFromGroup(group_num, INVALID_GROUP_NUMBER, st_pos, 0, 0);
-        getNumFromSectorPos(ed_pos, track_num, side_num, sector_num, null, null);
+    public void getEndNumOnFat(int[] trackNum, int[] sideNum, int[] sectorNum) {
+        int groupNum = bitmap.getMyGroupNumber();
+        int startPos = getStartSectorFromGroup(groupNum);
+        int endPos = getEndSectorFromGroup(groupNum, INVALID_GROUP_NUMBER, startPos, 0, 0);
+        getNumFromSectorPos(endPos, trackNum, sideNum, sectorNum, null, null);
     }
 
     /**
@@ -227,56 +227,56 @@ public class DiskBasicTypeProDOS extends DiskBasicType<DirectoryProdos> {
      * ルートディレクトリをアサイン
      */
     @Override
-    public boolean assignRootDirectory(int start_sector, int end_sector, DiskBasicGroups group_items, DiskBasicDirItem<DirectoryProdos> dir_item) throws IOException {
-        boolean sts = super.assignRootDirectory(start_sector, end_sector, group_items, dir_item);
+    public boolean assignRootDirectory(int startSector, int endSector, DiskBasicGroups groupItems, DiskBasicDirItem<DirectoryProDos> dirItem) throws IOException {
+        boolean status = super.assignRootDirectory(startSector, endSector, groupItems, dirItem);
 
         // ボリュームヘッダの内容をコピーする
-        DiskBasicGroupItem gitem = group_items.get(0);
-        DiskImageSector sector = basic.getSector(gitem.track, gitem.side, gitem.sectorStart);
-        byte[] vol = sector.getSectorBuffer(4);
-        dir_item.copyData(vol);
+        DiskBasicGroupItem gItem = groupItems.get(0);
+        DiskImageSector sector = basic.getSector(gItem.track, gItem.side, gItem.sectorStart);
+        byte[] volume = sector.getSectorBuffer(4);
+        dirItem.copyData(volume);
         // ディレクトリ属性にしておく
-        dir_item.setFileAttr(FORMAT_TYPE_UNKNOWN, FILE_TYPE_DIRECTORY_MASK.getValue(), 0);
+        dirItem.setFileAttr(FORMAT_TYPE_UNKNOWN, FILE_TYPE_DIRECTORY_MASK.getValue(), 0);
         // ブロック番号を設定
-        dir_item.setStartGroup(0, basic.diskBasicParam.getDirStartSector() / basic.getSectorsPerGroup());
+        dirItem.setStartGroup(0, basic.getDirStartSector() / basic.getSectorsPerGroup());
 
-        return sts;
+        return status;
     }
 
     /**
      * ルートディレクトリのセクタリストを計算
      */
     @Override
-    public boolean calcGroupsOnRootDirectory(int start_sector, int end_sector, DiskBasicGroups group_items) {
+    public boolean calcGroupsOnRootDirectory(int startSector, int endSector, DiskBasicGroups groupItems) throws IOException {
         boolean valid = true;
 
-        group_items.clear();
+        groupItems.clear();
 
         // ディレクトリのチェインをたどる
-        int dir_size = 0;
-        int limit = basic.diskBasicParam.getDirEndSector() - basic.diskBasicParam.getDirStartSector() + 1;
-        int[] trk_num = {0};
-        int[] sid_num = {0};
-        int sec_num = 1;
+        int dirSize = 0;
+        int limit = basic.getDirEndSector() - basic.getDirStartSector() + 1;
+        int[] trackNum = {0};
+        int[] sideNum = {0};
+        int sectorNum = 1;
 
         // 開始セクタ
-        int sector_pos = basic.diskBasicParam.getDirStartSector();
-        //	voldir.Empty();
+        int sectorPos = basic.getDirStartSector();
+        //volDir.Empty();
 
         while (valid && limit >= 0) {
-            ProDOSDirPtrT next = new ProDOSDirPtrT();
+            ProDOSDirPointer next = new ProDOSDirPointer();
             next.nextBlock = 0;
 
-            int group_num = sector_pos / basic.getSectorsPerGroup();
-            //		voldir.Add((int)group_num);
+            int groupNum = sectorPos / basic.getSectorsPerGroup();
+            //volDir.Add((int) groupNum);
 
             for (int ss = 0; ss < basic.getSectorsPerGroup(); ss++) {
-                DiskImageSector sector = basic.getSectorFromSectorPos(sector_pos, trk_num, sid_num);
+                DiskImageSector sector = basic.getSectorFromSectorPos(sectorPos, trackNum, sideNum);
                 if (sector == null) {
                     valid = false;
                     break;
                 }
-                sec_num = sector.getSectorNumber();
+                sectorNum = sector.getSectorNumber();
                 byte[] buffer = sector.getSectorBuffer();
                 if (buffer == null) {
                     valid = false;
@@ -284,16 +284,13 @@ public class DiskBasicTypeProDOS extends DiskBasicType<DirectoryProdos> {
                 }
                 if (ss == 0) {
                     // 次のブロックへのポインタを保持
-                    // Placeholder for memcpy(&next, buffer, sizeof(ProDOSDirPtrT));
-                    // Assuming ProDOSDirPtrT is 4 bytes (2 wxUint16)
-                    next.nextBlock = (short) ((buffer[0] & 0xFF) | ((buffer[1] & 0xFF) << 8)); // Assuming little-endian for direct read
-                    next.prevBlock = (short) ((buffer[2] & 0xFF) | ((buffer[3] & 0xFF) << 8));
+                    Serdes.Util.deserialize(new ByteArrayInputStream(buffer), next);
                 }
 
-                group_items.add(group_num, 0, trk_num[0], sid_num[0], sec_num, sec_num);
+                groupItems.add(groupNum, 0, trackNum[0], sideNum[0], sectorNum, sectorNum);
 
-                dir_size += sector.getSectorSize();
-                sector_pos++;
+                dirSize += sector.getSectorSize();
+                sectorPos++;
             }
 
             if (!valid) break;
@@ -303,11 +300,11 @@ public class DiskBasicTypeProDOS extends DiskBasicType<DirectoryProdos> {
                 break;
             }
 
-            sector_pos = next.nextBlock * basic.getSectorsPerGroup();
+            sectorPos = next.nextBlock * basic.getSectorsPerGroup();
 
             limit--;
         }
-        group_items.setSize(dir_size);
+        groupItems.setSize(dirSize);
 
         if (limit < 0) {
             valid = false;
@@ -320,19 +317,19 @@ public class DiskBasicTypeProDOS extends DiskBasicType<DirectoryProdos> {
      * ディレクトリエリアのサイズに達したらアサイン終了するか
      */
     @Override
-    public int finishAssigningDirectory(int[] pos, int[] size, int[] size_remain) {
+    public int finishAssigningDirectory(int[] pos, int[] size, int[] sizeRemain) {
         // サイズに達したら以降は未使用とする
-        int blk_size = basic.getSectorSize() * basic.getSectorsPerGroup();
-        return ((size_remain[0] % blk_size) < DirectoryProdos.SIZE ? -1 : 0);
+        int blockSize = basic.getSectorSize() * basic.getSectorsPerGroup();
+        return ((sizeRemain[0] % blockSize) < DirectoryProDos.SIZE ? -1 : 0);
     }
 
     /**
      * セクタをディレクトリとして初期化
      */
     @Override
-    public int initializeSectorsAsDirectory(DiskBasicGroups group_items, int[] file_size, int[] size_remain, DiskBasicError errinfo) {
-        file_size[0] = group_items.size() * basic.getSectorSize();
-        size_remain[0] = 0;
+    public int initializeSectorsAsDirectory(DiskBasicGroups groupItems, int[] fileSize, int[] sizeRemain, DiskBasicError errInfo) {
+        fileSize[0] = groupItems.size() * basic.getSectorSize();
+        sizeRemain[0] = 0;
 
         return 0;
     }
@@ -341,9 +338,9 @@ public class DiskBasicTypeProDOS extends DiskBasicType<DirectoryProdos> {
      * 使用可能なディスクサイズを得る
      */
     @Override
-    public void getUsableDiskSize(int[] disk_size, int[] group_size) {
-        group_size[0] = basic.getFatEndGroup() + 1;
-        disk_size[0] = group_size[0] * basic.getSectorSize() * basic.getSectorsPerGroup();
+    public void getUsableDiskSize(int[] diskSize, int[] groupSize) {
+        groupSize[0] = basic.getFatEndGroup() + 1;
+        diskSize[0] = groupSize[0] * basic.getSectorSize() * basic.getSectorsPerGroup();
     }
 
     /**
@@ -351,35 +348,36 @@ public class DiskBasicTypeProDOS extends DiskBasicType<DirectoryProdos> {
      */
     @Override
     public void calcDiskFreeSize(boolean wrote) {
-        //	int fsize = 0;
-        //	int grps = 0;
+        //int fSize = 0;
+        //int groups = 0;
 
         fatAvailability.clear();
 
         // BITMAP table
-        for (int grp = 0; grp <= basic.getFatEndGroup(); grp++) {
-            if (grp <= 2) {
+        for (int group = 0; group <= basic.getFatEndGroup(); group++) {
+            if (group <= 2) {
                 fatAvailability.add(FAT_AVAIL_SYSTEM, 0, 0);
-            } else if (grp == bitmap.getMyGroupNumber()) {
+            } else if (group == bitmap.getMyGroupNumber()) {
                 fatAvailability.add(FAT_AVAIL_SYSTEM, 0, 0);
-            } else if (bitmap.isFree(grp)) {
+            } else if (bitmap.isFree(group)) {
                 fatAvailability.add(FAT_AVAIL_FREE, basic.getSectorSize() * basic.getSectorsPerGroup(), 1);
             } else {
                 fatAvailability.add(FAT_AVAIL_USED, 0, 0);
             }
         }
         // Volume directory
-        DiskBasicDirItem<DirectoryProdos> root = dir.getRootItem();
+        DiskBasicDirItem<DirectoryProDos> root = dir.getRootItem();
         if (root != null) {
-            DiskBasicGroups root_groups = root.getGroups();
-            if (root_groups != null) {
-                for (int i = 0; i < root_groups.size(); i++) {
+            DiskBasicGroups rootGroups = root.getGroups();
+            if (rootGroups != null) {
+                for (int i = 0; i < rootGroups.size(); i++) {
                     fatAvailability.set(i, FAT_AVAIL_SYSTEM);
                 }
             }
         }
-        //	free_disk_size = (int)fsize;
-        //	free_groups = (int)grps;
+
+        //freeDiskSize = (int) fSize;
+        //freeGroups = (int) groups;
     }
 
     /**
@@ -410,7 +408,7 @@ public class DiskBasicTypeProDOS extends DiskBasicType<DirectoryProdos> {
      * 次のグループ番号を得る
      */
     @Override
-    public int getNextGroupNumber(int num, int sector_pos) {
+    public int getNextGroupNumber(int num, int sectorPos) {
         return INVALID_GROUP_NUMBER;
     }
 
@@ -419,23 +417,23 @@ public class DiskBasicTypeProDOS extends DiskBasicType<DirectoryProdos> {
      */
     @Override
     public int getEmptyGroupNumber() {
-        int new_num = INVALID_GROUP_NUMBER;
+        int newNum = INVALID_GROUP_NUMBER;
 
-        for (int grp = 3; grp <= basic.getFatEndGroup(); grp++) {
-            if (bitmap.isFree(grp)) {
-                new_num = grp;
+        for (int group = 3; group <= basic.getFatEndGroup(); group++) {
+            if (bitmap.isFree(group)) {
+                newNum = group;
                 break;
             }
         }
 
-        return new_num;
+        return newNum;
     }
 
     /**
      * 次の空き位置を返す
      */
     @Override
-    public int getNextEmptyGroupNumber(int curr_group) {
+    public int getNextEmptyGroupNumber(int currentGroup) {
         // 次の空き位置候補
         return getEmptyGroupNumber();
     }
@@ -444,9 +442,9 @@ public class DiskBasicTypeProDOS extends DiskBasicType<DirectoryProdos> {
      * ファイルをセーブする前の準備を行う
      */
     @Override
-    public boolean prepareToSaveFile(InputStream istream, int[] file_size, DiskBasicDirItem<DirectoryProdos> pitem, DiskBasicDirItem<DirectoryProdos> nitem, DiskBasicError errinfo) throws IOException {
+    public boolean prepareToSaveFile(InputStream iStream, int[] fileSize, DiskBasicDirItem<DirectoryProDos> pItem, DiskBasicDirItem<DirectoryProDos> nItem, DiskBasicError errInfo) throws IOException {
         // チェインセクタをクリア
-        nitem.clearChainSector(null);
+        nItem.clearChainSector(null);
 
         return true;
     }
@@ -454,15 +452,15 @@ public class DiskBasicTypeProDOS extends DiskBasicType<DirectoryProdos> {
     /**
      * チェインセクタを確保する
      */
-    private int allocChainSector(int idx, DiskBasicDirItem<DirectoryProdos> item) {
-        int gnum = getEmptyGroupNumber();
-        if (gnum == INVALID_GROUP_NUMBER) {
+    private int allocChainSector(int index, DiskBasicDirItem<DirectoryProDos> item) {
+        int groupNum = getEmptyGroupNumber();
+        if (groupNum == INVALID_GROUP_NUMBER) {
             return INVALID_GROUP_NUMBER;
         }
         // セクタ
-        int st_pos = getStartSectorFromGroup(gnum);
-        int ed_pos = getEndSectorFromGroup(gnum, INVALID_GROUP_NUMBER, st_pos, 0, 0);
-        for (int sec = st_pos; sec <= ed_pos; sec++) {
+        int startPos = getStartSectorFromGroup(groupNum);
+        int ebdPos = getEndSectorFromGroup(groupNum, INVALID_GROUP_NUMBER, startPos, 0, 0);
+        for (int sec = startPos; sec <= ebdPos; sec++) {
             DiskImageSector sector = basic.getSectorFromSectorPos(sec);
             if (sector == null) {
                 return INVALID_GROUP_NUMBER;
@@ -471,161 +469,161 @@ public class DiskBasicTypeProDOS extends DiskBasicType<DirectoryProdos> {
         }
 
         // チェイン情報にセクタをセット
-        item.setChainSector(gnum, st_pos, null, null);
+        item.setChainSector(groupNum, startPos, null, null);
 
         // 開始グループを設定
-        if (idx == 0) {
-            item.setStartGroup(0, gnum, 1);
+        if (index == 0) {
+            item.setStartGroup(0, groupNum, 1);
         }
         // セクタを予約
-        setGroupNumber(gnum, 1);
+        setGroupNumber(groupNum, 1);
 
-        return gnum;
+        return groupNum;
     }
 
     /**
      * データサイズ分のグループを確保する
      */
     @Override
-    public int allocateUnitGroups(int fileunit_num, DiskBasicDirItem<DirectoryProdos> item, int data_size, AllocateGroupFlags flags, DiskBasicGroups[] group_items) throws IOException {
+    public int allocateUnitGroups(int fileUnitNum, DiskBasicDirItem<DirectoryProDos> item, int dataSize, AllocateGroupFlags flags, DiskBasicGroups[] groupItems) throws IOException {
         //logger.log(Level.TRACE, "DiskBasicTypeProDOS::AllocateGroups {");
 
-        //int file_size = 0;
+        //int fileSize = 0;
         int groups = 0;
 
         int rc = 0;
-        int sec_size = basic.getSectorSize();
-        int block_size = sec_size * basic.getSectorsPerGroup();
-        int remain = data_size;
+        int sectorSize = basic.getSectorSize();
+        int blockSize = sectorSize * basic.getSectorsPerGroup();
+        int remain = dataSize;
         int limit = basic.getFatEndGroup() + 1;
-        int chain_idx = 0;
+        int chainIndex = 0;
 
         DiskBasicFileType attr = item.getFileAttr();
-        int stype = (attr.getOrigin() >> 16) & 0xff;
-        if (stype == FILETYPE_MASK_PRODOS_SUBDIR) {
+        int sType = (attr.getOrigin() >> 16) & 0xff;
+        if (sType == FILETYPE_MASK_PRODOS_SUBDIR) {
             // サブディレクトリ
             while (remain > 0 && limit >= 0) {
                 // 空きをさがす
-                int group_num = getEmptyGroupNumber();
-                if (group_num == INVALID_GROUP_NUMBER) {
+                int groupNum = getEmptyGroupNumber();
+                if (groupNum == INVALID_GROUP_NUMBER) {
                     // 空きなし
                     rc = groups > 0 ? -2 : -1;
                     return rc;
                 }
 
                 // 使用済みにする
-                basic.getNumsFromGroup(group_num, 0, sec_size, remain, group_items[0]);
-                setGroupNumber(group_num, 1);
+                basic.getNumsFromGroup(groupNum, 0, sectorSize, remain, groupItems[0]);
+                setGroupNumber(groupNum, 1);
 
-                if (chain_idx == 0 && flags != ALLOCATE_GROUPS_APPEND) {
-                    item.setStartGroup(0, group_num, 1);
+                if (chainIndex == 0 && flags != ALLOCATE_GROUPS_APPEND) {
+                    item.setStartGroup(0, groupNum, 1);
                 }
-                chain_idx++;
+                chainIndex++;
 
-                //file_size += block_size;
+                //file_size += blockSize;
                 groups++;
-                remain -= block_size;
+                remain -= blockSize;
                 limit--;
             }
             if (rc == 0 && flags == ALLOCATE_GROUPS_APPEND) {
                 // 追加のときはチェインをつなぐ
-                if (group_items[0].size() > 0) {
-                    rc = chainDirectoryGroups(item, group_items);
+                if (groupItems[0].size() > 0) {
+                    rc = chainDirectoryGroups(item, groupItems);
                 }
             }
-        } else if (stype == FILETYPE_MASK_PRODOS_SAPLING) {
+        } else if (sType == FILETYPE_MASK_PRODOS_SAPLING) {
             // 131Kバイト未満はインデックス１つ
             if (allocChainSector(0, item) == INVALID_GROUP_NUMBER) {
                 return -1;
             }
             while (remain > 0 && limit >= 0) {
                 // 空きをさがす
-                int group_num = getEmptyGroupNumber();
-                if (group_num == INVALID_GROUP_NUMBER) {
+                int groupNum = getEmptyGroupNumber();
+                if (groupNum == INVALID_GROUP_NUMBER) {
                     // 空きなし
                     rc = groups > 0 ? -2 : -1;
                     return rc;
                 }
 
                 // 使用済みにする
-                basic.getNumsFromGroup(group_num, 0, sec_size, remain, group_items[0]);
-                setGroupNumber(group_num, 1);
+                basic.getNumsFromGroup(groupNum, 0, sectorSize, remain, groupItems[0]);
+                setGroupNumber(groupNum, 1);
 
                 // チェインセクタも更新
-                item.addChainGroupNumber(chain_idx, group_num);
+                item.addChainGroupNumber(chainIndex, groupNum);
 
-                chain_idx++;
+                chainIndex++;
 
-                //			file_size += block_size;
+                //			file_size += blockSize;
                 groups++;
-                remain -= block_size;
+                remain -= blockSize;
                 limit--;
             }
-        } else if (stype == FILETYPE_MASK_PRODOS_TREE) {
+        } else if (sType == FILETYPE_MASK_PRODOS_TREE) {
             // 131Kバイト以上 ツリー
-            int chain_pidx = 0;
-            chain_idx = 256;
+            int chainPIndex = 0;
+            chainIndex = 256;
             // チェインセクタを確保
             if (allocChainSector(0, item) == INVALID_GROUP_NUMBER) {
                 return -1;
             }
-            chain_pidx++;
+            chainPIndex++;
             while (remain > 0 && limit >= 0) {
                 // チェインセクタを確保
-                if ((chain_idx % 256) == 0) {
-                    int cgnum = allocChainSector(chain_pidx, item);
-                    if (cgnum == INVALID_GROUP_NUMBER) {
+                if ((chainIndex % 256) == 0) {
+                    int chainGroupNum = allocChainSector(chainPIndex, item);
+                    if (chainGroupNum == INVALID_GROUP_NUMBER) {
                         return -1;
                     }
                     // ルートチェインセクタと結びつける
-                    item.addChainGroupNumber(chain_pidx, cgnum);
-                    chain_pidx++;
+                    item.addChainGroupNumber(chainPIndex, chainGroupNum);
+                    chainPIndex++;
                 }
                 // 空きをさがす
-                int group_num = getEmptyGroupNumber();
-                if (group_num == INVALID_GROUP_NUMBER) {
+                int groupNum = getEmptyGroupNumber();
+                if (groupNum == INVALID_GROUP_NUMBER) {
                     // 空きなし
                     rc = groups > 0 ? -2 : -1;
                     return rc;
                 }
 
                 // 使用済みにする
-                basic.getNumsFromGroup(group_num, 0, sec_size, remain, group_items[0]);
-                setGroupNumber(group_num, 1);
+                basic.getNumsFromGroup(groupNum, 0, sectorSize, remain, groupItems[0]);
+                setGroupNumber(groupNum, 1);
 
                 // チェインセクタも更新
-                item.addChainGroupNumber(chain_idx, group_num);
+                item.addChainGroupNumber(chainIndex, groupNum);
 
-                chain_idx++;
+                chainIndex++;
 
-                //			file_size += block_size;
+                //fileSize += blockSize;
                 groups++;
-                remain -= block_size;
+                remain -= blockSize;
                 limit--;
             }
         } else {
             //　512バイト以下
             while (remain > 0 && limit >= 0) {
                 // 空きをさがす
-                int group_num = getEmptyGroupNumber();
-                if (group_num == INVALID_GROUP_NUMBER) {
+                int groupNum = getEmptyGroupNumber();
+                if (groupNum == INVALID_GROUP_NUMBER) {
                     // 空きなし
                     rc = groups > 0 ? -2 : -1;
                     return rc;
                 }
 
                 // 使用済みにする
-                basic.getNumsFromGroup(group_num, 0, sec_size, remain, group_items[0]);
-                setGroupNumber(group_num, 1);
+                basic.getNumsFromGroup(groupNum, 0, sectorSize, remain, groupItems[0]);
+                setGroupNumber(groupNum, 1);
 
-                if (chain_idx == 0) {
-                    item.setStartGroup(0, group_num, 1);
+                if (chainIndex == 0) {
+                    item.setStartGroup(0, groupNum, 1);
                 }
-                chain_idx++;
+                chainIndex++;
 
-                //			file_size += block_size;
+                //fileSize += blockSize;
                 groups++;
-                remain -= block_size;
+                remain -= blockSize;
                 limit--;
             }
         }
@@ -644,33 +642,33 @@ public class DiskBasicTypeProDOS extends DiskBasicType<DirectoryProdos> {
      *
      * @return 0 正常
      */
-    public int chainDirectoryGroups(DiskBasicDirItem<DirectoryProdos> item, DiskBasicGroups[] group_items) throws IOException {
-        DiskBasicGroups orig_group_items = new DiskBasicGroups();
-        item.getAllGroups(orig_group_items);
-        orig_group_items.add(group_items[0]);
-        group_items[0] = orig_group_items;
+    public int chainDirectoryGroups(DiskBasicDirItem<DirectoryProDos> item, DiskBasicGroups[] groupItems) throws IOException {
+        DiskBasicGroups originalGroupItems = new DiskBasicGroups();
+        item.getAllGroups(originalGroupItems);
+        originalGroupItems.add(groupItems[0]);
+        groupItems[0] = originalGroupItems;
 
         // ディレクトリチェインを再作成
-        int group_num = INVALID_GROUP_NUMBER;
-        int prev_group_num = INVALID_GROUP_NUMBER;
-        ProDOSDirPtrT prev = null;
-        for (int i = 0; i < group_items[0].size(); i++) {
-            DiskBasicGroupItem gitem = group_items[0].get(i);
-            if (gitem.group != group_num) {
-                group_num = gitem.group;
-                DiskImageSector sector = basic.getSectorFromGroup(group_num);
-                ProDOSDirPtrT curr = new ProDOSDirPtrT();
+        int groupNum = INVALID_GROUP_NUMBER;
+        int prevGroupNum = INVALID_GROUP_NUMBER;
+        ProDOSDirPointer prev = null;
+        for (int i = 0; i < groupItems[0].size(); i++) {
+            DiskBasicGroupItem gitem = groupItems[0].get(i);
+            if (gitem.group != groupNum) {
+                groupNum = gitem.group;
+                DiskImageSector sector = basic.getSectorFromGroup(groupNum);
+                ProDOSDirPointer curr = new ProDOSDirPointer();
                 byte[] b = sector.getSectorBuffer();
                 Serdes.Util.deserialize(new ByteArrayInputStream(b), curr);
 
-                curr.prevBlock = prev_group_num != INVALID_GROUP_NUMBER ? (short) prev_group_num : 0;
+                curr.prevBlock = prevGroupNum != INVALID_GROUP_NUMBER ? (short) prevGroupNum : 0;
 
                 if (prev != null) {
-                    prev.nextBlock = (short) group_num;
+                    prev.nextBlock = (short) groupNum;
                 }
 
                 prev = curr;
-                prev_group_num = group_num;
+                prevGroupNum = groupNum;
             }
         }
 
@@ -683,164 +681,156 @@ public class DiskBasicTypeProDOS extends DiskBasicType<DirectoryProdos> {
     /**
      * ファイルの最終セクタのデータサイズを求める
      */
-    public int calcDataSizeOnLastSector(DiskBasicDirItem<DirectoryProdos> item, InputStream istream, OutputStream ostream, byte[] sector_buffer, int sector_size, int remain_size) {
-        return remain_size;
+    public int calcDataSizeOnLastSector(DiskBasicDirItem<DirectoryProDos> item, InputStream iStream, OutputStream oStream, byte[] sectorBuffer, int sectorSize, int remainSize) {
+        return remainSize;
     }
 
     /**
      * グループ番号からセクタ番号を得る
      */
     @Override
-    public int getStartSectorFromGroup(int group_num) {
-        return group_num * basic.getSectorsPerGroup();
+    public int getStartSectorFromGroup(int groupNum) {
+        return groupNum * basic.getSectorsPerGroup();
     }
 
     /**
      * グループ番号から最終セクタ番号を得る
      */
     @Override
-    public int getEndSectorFromGroup(int group_num, int next_group, int sector_start, int sector_size, int remain_size) {
-        return (group_num + 1) * basic.getSectorsPerGroup() - 1;
+    public int getEndSectorFromGroup(int groupNum, int nextGroup, int sectorStart, int sectorSize, int remainSize) {
+        return (groupNum + 1) * basic.getSectorsPerGroup() - 1;
     }
 
     /**
      * セクタ位置(トラック0,サイド0,セクタ1を0とした通し番号)からトラック、サイド、セクタの各番号を得る
      */
     @Override
-    public void getNumFromSectorPos(int sector_pos, int[] track_num, int[] side_num, int[] sector_num, int[] div_num /* = null */, int[] div_nums /* = null */) {
-        //int selected_side = basic.getSelectedSide();
-        int numbering_sector = basic.getNumberingSector();
-        int sides_per_disk = basic.getSidesPerDiskOnBasic();
-        int[] sectors_per_track = {sides_per_disk};
-        int[] tmp_track_num = new int[1];
-        int[] tmp_sector_num = new int[1];
+    public void getNumFromSectorPos(int sectorPos, int[] trackNum, int[] sideNum, int[] sectorNum, int[] divNum /* = null */, int[] numOfDivs /* = null */) {
+        //int selectedSide = basic.getSelectedSide();
+        int numberingSector = basic.getNumberingSector();
+        int sidesPerDisk = basic.getSidesPerDiskOnBasic();
+        int[] sectorsPerTrack = {sidesPerDisk};
 
         // セクタ位置がどのトラックにあるか
-        sector_map.getNumFromSectorPos(sector_pos, tmp_track_num, tmp_sector_num, sectors_per_track);
-        track_num[0] = tmp_track_num[0];
-        sector_num[0] = tmp_sector_num[0];
+        sectorMap.getNumFromSectorPos(sectorPos, trackNum, sectorNum, sectorsPerTrack);
 
-        //if (selected_side >= 0) {
+        //if (selectedSide >= 0) {
         //    // 1S
-        //	  track_num = sector_pos / sectors_per_track;
-        //	  side_num = selected_side;
+        //	  trackNum[0] = sectorPos / sectorsPerTrack;
+        //	  sideNum[0] = selected_side;
         //} else {
         //    // 2D, 2HD
-        //	  track_num = sector_pos / sectors_per_track / sides_per_disk;
-        //	  side_num = (sector_pos / sectors_per_track) % sides_per_disk;
+        //	  trackNum[0] = sectorPos / sectorsPerTrack / sidesPerDisk;
+        //	  sideNum[0] = (sectorPos / sectorsPerTrack) % sidesPerDisk;
         //}
-        //sector_num = (sector_pos % sectors_per_track);
+        //sectorNum[0] = (sectorPos % sectorsPerTrack);
 
         // サイド番号
-        side_num[0] = sector_num[0] * sides_per_disk / sectors_per_track[0];
+        sideNum[0] = sectorNum[0] * sidesPerDisk / sectorsPerTrack[0];
 
         // 連番でない場合
-        if (numbering_sector != 1) {
-            sector_num[0] = sector_num[0] % (sectors_per_track[0] / sides_per_disk);
+        if (numberingSector != 1) {
+            sectorNum[0] = sectorNum[0] % (sectorsPerTrack[0] / sidesPerDisk);
         }
 
         // マッピング
-        sector_num[0] = sector_skew.toPhysical(sector_num[0]);
+        sectorNum[0] = sectorSkew.toPhysical(sectorNum[0]);
 
         // サイド番号を逆転するか
-        side_num[0] = basic.getReversedSideNumber(side_num[0]);
+        sideNum[0] = basic.getReversedSideNumber(sideNum[0]);
 
-        track_num[0] += basic.getTrackNumberBaseOnDisk();
-        side_num[0] += basic.getSideNumberBaseOnDisk();
-        sector_num[0] += basic.getSectorNumberBase();
+        trackNum[0] += basic.getTrackNumberBaseOnDisk();
+        sideNum[0] += basic.getSideNumberBaseOnDisk();
+        sectorNum[0] += basic.getSectorNumberBase();
 
-        if (div_num != null) div_num[0] = 0;
-        if (div_nums != null) div_nums[0] = 1;
+        if (divNum != null) divNum[0] = 0;
+        if (numOfDivs != null) numOfDivs[0] = 1;
     }
 
     /**
      * 論理セクタ位置(トラック0,サイド0,セクタ1を0とした通し番号)からトラック、セクタの各番号を得る
      */
     @Override
-    public void getNumFromSectorPosS(int sector_pos, int[] track_num, int[] sector_num) {
-        int[] sectors_per_track = {1};
+    public void getNumFromSectorPosS(int sectorPos, int[] trackNum, int[] sectorNum) {
+        int[] sectorsPerTrack = {1};
 
-        int[] tmp_track_num = new int[1];
-        int[] tmp_sector_num = new int[1];
-        sector_map.getNumFromSectorPos(sector_pos, tmp_track_num, tmp_sector_num, sectors_per_track);
-        track_num[0] = tmp_track_num[0];
-        sector_num[0] = tmp_sector_num[0];
+        sectorMap.getNumFromSectorPos(sectorPos, trackNum, sectorNum, sectorsPerTrack);
 
         // マッピング
-        sector_num[0] = sector_skew.toPhysical(sector_num[0]);
+        sectorNum[0] = sectorSkew.toPhysical(sectorNum[0]);
 
-        track_num[0] += basic.getTrackNumberBaseOnDisk();
-        sector_num[0] += basic.getSectorNumberBase();
+        trackNum[0] += basic.getTrackNumberBaseOnDisk();
+        sectorNum[0] += basic.getSectorNumberBase();
     }
 
     /**
      * トラック、サイド、セクタの各番号からセクタ位置(トラック0,サイド0,セクタ1を0とした通し番号)を得る
      */
     @Override
-    public int getSectorPosFromNum(int track_num, int side_num, int sector_num, int div_num, int div_nums) {
-        //	int selected_side = basic->GetSelectedSide();
-        int sides_per_disk = basic.getSidesPerDiskOnBasic();
-        int numbering_sector = basic.getNumberingSector();
-        int[] sectors_per_track = {1};
-        //	int sector_pos;
+    public int getSectorPosFromNum(int trackNum, int sideNum, int sectorNum, int divNum, int numOfDivs) {
+        //int selectedSide = basic.getSelectedSide();
+        int sidesPerDisk = basic.getSidesPerDiskOnBasic();
+        int numberingSector = basic.getNumberingSector();
+        int[] sectorsPerTrack = {1};
+        //int sectorPos;
 
-        track_num -= basic.getTrackNumberBaseOnDisk();
-        side_num -= basic.getSideNumberBaseOnDisk();
-        sector_num -= basic.getSectorNumberBase();
+        trackNum -= basic.getTrackNumberBaseOnDisk();
+        sideNum -= basic.getSideNumberBaseOnDisk();
+        sectorNum -= basic.getSectorNumberBase();
 
         // マッピング
-        sector_num = sector_skew.toLogical(sector_num);
+        sectorNum = sectorSkew.toLogical(sectorNum);
 
         // サイド番号を逆転するか
-        side_num = basic.getReversedSideNumber(side_num);
+        sideNum = basic.getReversedSideNumber(sideNum);
 
-        int sector_pos = sector_map.getSectorPosFromNum(track_num, sector_num, sectors_per_track);
+        int sectorPos = sectorMap.getSectorPosFromNum(trackNum, sectorNum, sectorsPerTrack);
 
         // 連番でない場合
-        if (numbering_sector != 1) {
-            sector_pos += side_num * sectors_per_track[0] / sides_per_disk;
+        if (numberingSector != 1) {
+            sectorPos += sideNum * sectorsPerTrack[0] / sidesPerDisk;
         }
 
-        //	if (selected_side >= 0) {
-        //		// 1S
-        //		sector_pos = track_num * sectors_per_track + sector_num;
-        //	} else {
-        //		// 2D, 2HD
-        //		sector_pos = track_num * sectors_per_track * sides_per_disk;
-        //		sector_pos += (side_num % sides_per_disk) * sectors_per_track;
-        //		sector_pos += sector_num;
-        //	}
-        return sector_pos;
+        //if (selectedSide >= 0) {
+        //	  // 1S
+        //	  sectorPos = trackNum * sectorsPerTrack + sectorNum;
+        //} else {
+        //	  // 2D, 2HD
+        //	  sectorPos = trackNum * sectorsPerTrack * sidesPerDisk;
+        //	  sectorPos += (sideNum % sidesPerDisk) * sectorsPerTrack;
+        //	  sectorPos += sectorNum;
+        //}
+        return sectorPos;
     }
 
     /**
      * トラック、セクタの各番号からセクタ位置(トラック0,サイド0,セクタ1を0とした通し番号)を得る
      */
     @Override
-    public int getSectorPosFromNumS(int track_num, int sector_num) {
-        //	int selected_side = basic->GetSelectedSide();
-        //	int sectors_per_track = basic->GetSectorsPerTrackOnBasic();
-        //	int sides_per_disk = basic->GetSidesPerDiskOnBasic();
-        int sector_pos;
+    public int getSectorPosFromNumS(int trackNum, int sectorNum) {
+        //int selectedSide = basic.getSelectedSide();
+        //int sectorsPerTrack = basic.getSectorsPerTrackOnBasic();
+        //int sidesPerDisk = basic.getSidesPerDiskOnBasic();
+        int sectorPos;
 
-        int[] sectors_per_track = {1};
+        int[] sectorsPerTrack = {1};
 
-        track_num -= basic.getTrackNumberBaseOnDisk();
-        sector_num -= basic.getSectorNumberBase();
+        trackNum -= basic.getTrackNumberBaseOnDisk();
+        sectorNum -= basic.getSectorNumberBase();
 
         // マッピング
-        sector_num = sector_skew.toLogical(sector_num);
+        sectorNum = sectorSkew.toLogical(sectorNum);
 
-        sector_pos = sector_map.getSectorPosFromNum(track_num, sector_num, sectors_per_track);
+        sectorPos = sectorMap.getSectorPosFromNum(trackNum, sectorNum, sectorsPerTrack);
 
-        return sector_pos;
+        return sectorPos;
     }
 
     /**
      * ルートディレクトリか
      */
     @Override
-    public boolean isRootDirectory(int group_num) {
+    public boolean isRootDirectory(int groupNum) {
         return false;
     }
 
@@ -848,9 +838,9 @@ public class DiskBasicTypeProDOS extends DiskBasicType<DirectoryProdos> {
      * サブディレクトリを作成する前にディレクトリ名を編集する
      */
     @Override
-    public boolean renameOnMakingDirectory(String[] dir_name) {
+    public boolean renameOnMakingDirectory(String[] dirName) {
         // 名前が空は作成不可
-        if (dir_name[0].isEmpty()) {
+        if (dirName[0].isEmpty()) {
             return false;
         }
         return true;
@@ -860,27 +850,27 @@ public class DiskBasicTypeProDOS extends DiskBasicType<DirectoryProdos> {
      * サブディレクトリを作成した後の個別処理
      */
     @Override
-    public void additionalProcessOnMadeDirectory(DiskBasicDirItem<DirectoryProdos> item, DiskBasicGroups group_items, DiskBasicDirItem<DirectoryProdos> parent_item) throws IOException {
-        if (group_items.size() <= 0) return;
+    public void additionalProcessOnMadeDirectory(DiskBasicDirItem<DirectoryProDos> item, DiskBasicGroups groupItems, DiskBasicDirItem<DirectoryProDos> parentItem) throws IOException {
+        if (groupItems.size() <= 0) return;
 
         int block_size = basic.getSectorSize() * basic.getSectorsPerGroup();
 
-        DiskBasicDirItemProDOS ditem = (DiskBasicDirItemProDOS) item;
-        DiskBasicDirItemProDOS parent_ditem = (DiskBasicDirItemProDOS) parent_item;
+        DiskBasicDirItemProDOS dItem = (DiskBasicDirItemProDOS) item;
+        DiskBasicDirItemProDOS parentDItem = (DiskBasicDirItemProDOS) parentItem;
 
         // ディレクトリの最初のブロックをセット
-        item.setParentGroup(parent_item.getStartGroup(0));
+        item.setParentGroup(parentItem.getStartGroup(0));
         // バージョンはヘッダと合わせる
-        ditem.setVersion(parent_ditem.getVersion());
+        dItem.setVersion(parentDItem.getVersion());
 
         // サブボリュームヘッダのエントリを作成する
 
-        DiskBasicGroupItem gitem = group_items.get(0);
+        DiskBasicGroupItem gItem = groupItems.get(0);
 
-        DiskImageSector sector = basic.getSector(gitem.track, gitem.side, gitem.sectorStart);
+        DiskImageSector sector = basic.getSector(gItem.track, gItem.side, gItem.sectorStart);
 
         byte[] buf = sector.getSectorBuffer(4);
-        DiskBasicDirItem<DirectoryProdos> newitem = basic.createDirItem(sector, 0, buf, 0);
+        DiskBasicDirItem<DirectoryProDos> newitem = basic.createDirItem(sector, 0, buf, 0);
         DiskBasicDirItemProDOS newditem = (DiskBasicDirItemProDOS) newitem;
 
         newitem.copyData(item.getRawData());
@@ -888,31 +878,31 @@ public class DiskBasicTypeProDOS extends DiskBasicType<DirectoryProdos> {
         newitem.setStartGroup(0, 0);
         newitem.setFileSize(0);
         // バージョン
-        newditem.setVersion(parent_ditem.getVersion());
+        newditem.setVersion(parentDItem.getVersion());
 
         byte[] b = sector.getSectorBuffer(4);
-        DirectoryProdos vol = new DirectoryProdos();
+        DirectoryProDos vol = new DirectoryProDos();
         Serdes.Util.deserialize(new ByteArrayInputStream(b), vol);
 
         // エントリのサイズ
-        vol.aux.sv.entryLen = DirectoryProdos.SIZE;
+        vol.aux.sv.entryLen = DirectoryProDos.SIZE;
         // ブロック内のファイルエントリ数
-        vol.aux.sv.entriesPerBlock = (byte) ((block_size - 4) / DirectoryProdos.SIZE);
+        vol.aux.sv.entriesPerBlock = (byte) ((block_size - 4) / DirectoryProDos.SIZE);
         // ファイルエントリ数
         vol.aux.sv.fileCount = 0;
 
-        int parent_start_block = parent_item.getStartGroup(0);
-        int item_number = item.getNumber();
-        int parent_pointer = (item_number / (vol.aux.sv.entriesPerBlock & 0xff)) + parent_start_block;
-        int parent_entry = item_number % (vol.aux.sv.entriesPerBlock & 0xff);
+        int parentStartBlock = parentItem.getStartGroup(0);
+        int itemNumber = item.getNumber();
+        int parentPointer = (itemNumber / (vol.aux.sv.entriesPerBlock & 0xff)) + parentStartBlock;
+        int parentEntry = itemNumber % (vol.aux.sv.entriesPerBlock & 0xff);
 
         // 親のブロック番号
-        vol.aux.sv.parentPointer = (short) parent_pointer;
+        vol.aux.sv.parentPointer = (short) parentPointer;
         // 親エントリ
-        vol.aux.sv.parentEntry = (byte) parent_entry;
+        vol.aux.sv.parentEntry = (byte) parentEntry;
 
         // 親エントリのサイズ
-        vol.aux.sv.parentEntryLen = DirectoryProdos.SIZE;
+        vol.aux.sv.parentEntryLen = DirectoryProDos.SIZE;
     }
 
 //    /** フォーマット時セクタデータを指定コードで埋める */
@@ -926,10 +916,10 @@ public class DiskBasicTypeProDOS extends DiskBasicType<DirectoryProdos> {
         DiskImageSector sector;
 
         // ボリュームディレクトリをクリア
-        int st_pos = basic.diskBasicParam.getDirStartSector();
-        int ed_pos = (basic.diskBasicParam.getDirEndSector() / basic.diskBasicParam.getSectorsPerGroup() + 1) * basic.diskBasicParam.getSectorsPerGroup() - 1;
-        for (int sec = st_pos; sec <= ed_pos; sec++) {
-            sector = basic.getSectorFromSectorPos(sec);
+        int startPos = basic.getDirStartSector();
+        int endPos = (basic.getDirEndSector() / basic.getSectorsPerGroup() + 1) * basic.getSectorsPerGroup() - 1;
+        for (int s = startPos; s <= endPos; s++) {
+            sector = basic.getSectorFromSectorPos(s);
             if (sector == null) {
                 // Why?
                 return false;
@@ -938,12 +928,12 @@ public class DiskBasicTypeProDOS extends DiskBasicType<DirectoryProdos> {
         }
 
         // ボリュームディレクトリのチェインを作成
-        int st_blk = st_pos / basic.getSectorsPerGroup();
-        int ed_blk = ed_pos / basic.getSectorsPerGroup();
-        //voldir.empty();
-        for (int blk = st_blk; blk <= ed_blk; blk++) {
-            sector = basic.getSectorFromGroup(blk);
-            ProDOSDirPtrT p = new ProDOSDirPtrT();
+        int startBlock = startPos / basic.getSectorsPerGroup();
+        int endBlock = endPos / basic.getSectorsPerGroup();
+        //volDir.empty();
+        for (int block = startBlock; block <= endBlock; block++) {
+            sector = basic.getSectorFromGroup(block);
+            ProDOSDirPointer p = new ProDOSDirPointer();
             byte[] b = sector.getSectorBuffer();
             try {
                 Serdes.Util.deserialize(new ByteArrayInputStream(b), p);
@@ -952,52 +942,51 @@ logger.log(Level.ERROR, e.getMessage(), e);
                 // Why?
                 return false;
             }
-            int next_block = (blk != ed_blk ? blk + 1 : 0);
-            int prev_block = (blk != st_blk ? blk - 1 : 0);
-            p.nextBlock = (short) next_block;
-            p.prevBlock = (short) prev_block;
-            //voldir.add(blk);
+            int nextBlock = (block != endBlock ? block + 1 : 0);
+            int prevBlock = (block != startBlock ? block - 1 : 0);
+            p.nextBlock = (short) nextBlock;
+            p.prevBlock = (short) prevBlock;
+            //volDir.add(block);
         }
 
-        int block_size = basic.getSectorSize() * basic.getSectorsPerGroup();
+        int blockSize = basic.getSectorSize() * basic.getSectorsPerGroup();
 
         // ボリュームヘッダを作成
-        sector = basic.getSectorFromGroup(st_blk);
-        DirectoryProdos vol = new DirectoryProdos();
+        sector = basic.getSectorFromGroup(startBlock);
+        DirectoryProDos vol = new DirectoryProDos();
         byte[] b = sector.getSectorBuffer(4);
         Serdes.Util.deserialize(new ByteArrayInputStream(b), vol);
         // 属性
-        vol.stypeAndNlen = (byte) (FILETYPE_MASK_PRODOS_VOLUME << 4);
+        vol.sTypeAndNLen = (byte) (FILETYPE_MASK_PRODOS_VOLUME << 4);
         // 日時
         LocalDateTime tm = LocalDateTime.now();
-        DiskBasicDirItemProDOS.convDateFromTm(tm, vol.cdate);
-        DiskBasicDirItemProDOS.convTimeFromTm(tm, vol.ctime);
+        DiskBasicDirItemProDOS.convDateFromTm(tm, vol.cDate);
+        DiskBasicDirItemProDOS.convTimeFromTm(tm, vol.cTime);
         // アクセス
         vol.access = (byte) (FILETYPE_MASK_PRODOS_ACCESS_ALL & ~FILETYPE_MASK_PRODOS_CHANGE);
         // エントリのサイズ
-        vol.aux.v.entryLen = (byte) DirectoryProdos.SIZE;
+        vol.aux.v.entryLen = (byte) DirectoryProDos.SIZE;
         // ブロック内のファイルエントリ数
-        vol.aux.v.entriesPerBlock = (byte) ((block_size - 4) / DirectoryProdos.SIZE);
+        vol.aux.v.entriesPerBlock = (byte) ((blockSize - 4) / DirectoryProDos.SIZE);
         // ファイルエントリ数
         vol.aux.v.fileCount = 0;
         // ビットマップポインタ
-        int bitmap_pointer = 6;
-        vol.aux.v.bitmapPointer = (short) bitmap_pointer;
+        int bitmapPointer = 6;
+        vol.aux.v.bitmapPointer = (short) bitmapPointer;
         // トータルブロック数
-        int total_blocks = (basic.getSidesPerDisk() * basic.getTracksPerSideOnBasic() * basic.getSectorsPerTrackOnBasic() / basic.diskBasicParam.getSectorsPerGroup());
-        vol.aux.v.totalBlocks = (short) total_blocks;
+        int totalBlocks = (basic.getSidesPerDisk() * basic.getTracksPerSideOnBasic() * basic.getSectorsPerTrackOnBasic() / basic.getSectorsPerGroup());
+        vol.aux.v.totalBlocks = (short) totalBlocks;
 
         this.volume = vol;
 
-        basic.diskBasicParam.setFatEndGroup(total_blocks - 1);
+        basic.setFatEndGroup(totalBlocks - 1);
 
         // ビットマップポインタを設定
         bitmap.list.clear();
-        int bm_ptr = bitmap_pointer;
-        st_pos = getStartSectorFromGroup(bm_ptr);
-        ed_pos = getEndSectorFromGroup(bm_ptr, INVALID_GROUP_NUMBER, st_pos, 0, 0);
-        for (int sec = st_pos; sec <= ed_pos; sec++) {
-            sector = basic.getSectorFromSectorPos(sec);
+        startPos = getStartSectorFromGroup(bitmapPointer);
+        endPos = getEndSectorFromGroup(bitmapPointer, INVALID_GROUP_NUMBER, startPos, 0, 0);
+        for (int s = startPos; s <= endPos; s++) {
+            sector = basic.getSectorFromSectorPos(s);
             if (sector == null) {
                 // Why?
                 return false;
@@ -1005,11 +994,11 @@ logger.log(Level.ERROR, e.getMessage(), e);
             sector.fill((byte) 0);
             bitmap.addBitmap(sector);
         }
-        bitmap.setMyGroupNumber(bm_ptr);
-        for (int blk = ed_blk + 1; blk < total_blocks; blk++) {
-            bitmap.modify(blk, false);
+        bitmap.setMyGroupNumber(bitmapPointer);
+        for (int block = endBlock + 1; block < totalBlocks; block++) {
+            bitmap.modify(block, false);
         }
-        bitmap.modify(bm_ptr, true);
+        bitmap.modify(bitmapPointer, true);
 
         // volume name
         setIdentifiedData(data);
@@ -1021,13 +1010,13 @@ logger.log(Level.ERROR, e.getMessage(), e);
      * データの書き込み処理
      */
     @Override
-    public int writeFile(DiskBasicDirItem<DirectoryProdos> item, InputStream istream, byte[] buffer, int size, int remain, int sector_num, int group_num, int next_group, int sector_end, int seq_num) throws IOException {
+    public int writeFile(DiskBasicDirItem<DirectoryProDos> item, InputStream iStream, byte[] buffer, int size, int remain, int sectorNum, int groupNum, int nextGroup, int sectorEnd, int seqNum) throws IOException {
         int len = 0;
         if (remain <= size) {
             // 残り少ない
             if (remain < 0) remain = 0;
             if (remain > 0) {
-                istream.read(buffer, 0, remain);
+                iStream.readNBytes(buffer, 0, remain);
             }
             if (size > remain) {
                 // バッファの余りは0サプレス
@@ -1036,7 +1025,7 @@ logger.log(Level.ERROR, e.getMessage(), e);
             len = remain;
         } else {
             // 継続
-            istream.read(buffer, 0, size);
+            iStream.readNBytes(buffer, 0, size);
             len = size;
         }
 
@@ -1047,21 +1036,21 @@ logger.log(Level.ERROR, e.getMessage(), e);
      * データの書き込み終了後の処理
      */
     @Override
-    public void additionalProcessOnSavedFile(DiskBasicDirItem<DirectoryProdos> item) {
-        DiskBasicDirItemProDOS ditem = (DiskBasicDirItemProDOS) item;
+    public void additionalProcessOnSavedFile(DiskBasicDirItem<DirectoryProDos> item) {
+        DiskBasicDirItemProDOS dItem = (DiskBasicDirItemProDOS) item;
 
         // ディレクトリのヘッダにあるファイル数を＋１する
-        DiskBasicDirItem<DirectoryProdos> parent = item.getParent();
+        DiskBasicDirItem<DirectoryProDos> parent = item.getParent();
         if (parent == null) {
             // Why?
             return;
         }
-        List<DiskBasicDirItem<DirectoryProdos>> children = parent.getChildren();
+        List<DiskBasicDirItem<DirectoryProDos>> children = parent.getChildren();
         if (children == null) {
             // Why?
             return;
         }
-        DiskBasicDirItemProDOS vol = (DiskBasicDirItemProDOS) children.get(0);
+        DiskBasicDirItemProDOS vol = (DiskBasicDirItemProDOS) children.getFirst();
         if (vol == null) {
             // Why?
             return;
@@ -1070,38 +1059,38 @@ logger.log(Level.ERROR, e.getMessage(), e);
         // ディレクトリの最初のブロックをセット
         item.setParentGroup(parent.getStartGroup(0));
         // バージョンはヘッダと合わせる
-        ditem.setVersion(vol.getVersion());
+        dItem.setVersion(vol.getVersion());
     }
 
     /**
      * FAT領域を削除する
      */
     @Override
-    public void deleteGroupNumber(int group_num) {
+    public void deleteGroupNumber(int groupNum) {
         // 未使用にする
-        setGroupNumber(group_num, 0);
+        setGroupNumber(groupNum, 0);
     }
 
     /**
      * ファイル削除後の処理
      */
     @Override
-    public boolean additionalProcessOnDeletedFile(DiskBasicDirItem<DirectoryProdos> item) throws IOException {
+    public boolean additionalProcessOnDeletedFile(DiskBasicDirItem<DirectoryProDos> item) throws IOException {
         // チェインセクタを未使用にする
         item.clearChainSector(null);
 
         // ディレクトリのヘッダにあるファイル数を－１する
-        DiskBasicDirItem<DirectoryProdos> parent = item.getParent();
+        DiskBasicDirItem<DirectoryProDos> parent = item.getParent();
         if (parent == null) {
             // Why?
             return true;
         }
-        List<DiskBasicDirItem<DirectoryProdos>> children = parent.getChildren();
+        List<DiskBasicDirItem<DirectoryProDos>> children = parent.getChildren();
         if (children == null) {
             // Why?
             return true;
         }
-        DiskBasicDirItemProDOS vol = (DiskBasicDirItemProDOS) children.get(0);
+        DiskBasicDirItemProDOS vol = (DiskBasicDirItemProDOS) children.getFirst();
         if (vol == null) {
             // Why?
             return true;
@@ -1118,9 +1107,9 @@ logger.log(Level.ERROR, e.getMessage(), e);
     public void getIdentifiedData(DiskBasicIdentifiedData data) {
         // volume name
         if (volume != null) {
-            int len = (volume.stypeAndNlen & 0xf);
-            String volname = new String(volume.name, 0, len);
-            data.setVolumeName(volname);
+            int len = (volume.sTypeAndNLen & 0xf);
+            String volumeName = new String(volume.name, 0, len);
+            data.setVolumeName(volumeName);
             data.setVolumeNameMaxLength(volume.name.length);
         }
     }
@@ -1130,17 +1119,17 @@ logger.log(Level.ERROR, e.getMessage(), e);
      */
     @Override
     public void setIdentifiedData(DiskBasicIdentifiedData data) {
-        DiskBasicFormat fmt = basic.getFormatType();
+        DiskBasicFormat format = basic.getFormatType();
 
         // volume name
-        if (volume != null && fmt.hasVolumeName()) {
-            byte[] volname = data.getVolumeName().getBytes();
+        if (volume != null && format.hasVolumeName()) {
+            byte[] volumeName = data.getVolumeName().getBytes();
             int len = volume.name.length;
-            if (len > volname.length) len = volname.length;
+            if (len > volumeName.length) len = volumeName.length;
 
-            System.arraycopy(volname, 0, volume.name, 0, len);
+            System.arraycopy(volumeName, 0, volume.name, 0, len);
 
-            volume.stypeAndNlen = (byte) ((len & 0xf) | (volume.stypeAndNlen & 0xf0));
+            volume.sTypeAndNLen = (byte) ((len & 0xf) | (volume.sTypeAndNLen & 0xf0));
         }
     }
 }

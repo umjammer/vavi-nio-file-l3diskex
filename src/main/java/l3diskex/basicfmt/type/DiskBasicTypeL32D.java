@@ -23,17 +23,17 @@ public class DiskBasicTypeL32D extends DiskBasicTypeFAT8<DirectoryL32d> {
     /**
      * ディスクから各パラメータを取得＆必要なパラメータを計算
      *
-     * @param is_formatting フォーマット中か
+     * @param isFormatting フォーマット中か
      * @return 1.0: 正常, 0.0~1.0: 警告あり, <0.0: エラーあり
      */
     @Override
-    public double parseParamOnDisk(boolean is_formatting) {
-        if (basic.diskBasicParam.getFatEndGroup() == 0) {
-            int end_group = basic.diskBasicParam.getTracksPerSideOnBasic() * basic.diskBasicParam.getSidesPerDiskOnBasic() * basic.diskBasicParam.getSectorsPerTrackOnBasic();
+    public double parseParamOnDisk(boolean isFormatting) {
+        if (basic.getFatEndGroup() == 0) {
+            int endGroup = basic.getTracksPerSideOnBasic() * basic.getSidesPerDiskOnBasic() * basic.getSectorsPerTrackOnBasic();
             // トラック０と管理トラック分を引く
-            end_group -= basic.diskBasicParam.getSidesPerDiskOnBasic() * basic.diskBasicParam.getSectorsPerTrackOnBasic() * (basic.diskBasicParam.getManagedTrackNumber() == 0 ? 1 : 2);
-            end_group /= basic.diskBasicParam.getSectorsPerGroup();
-            basic.diskBasicParam.setFatEndGroup(end_group - 1);
+            endGroup -= basic.getSidesPerDiskOnBasic() * basic.getSectorsPerTrackOnBasic() * (basic.getManagedTrackNumber() == 0 ? 1 : 2);
+            endGroup /= basic.getSectorsPerGroup();
+            basic.setFatEndGroup(endGroup - 1);
         }
         return 1.0;
     }
@@ -41,22 +41,22 @@ public class DiskBasicTypeL32D extends DiskBasicTypeFAT8<DirectoryL32d> {
     /**
      * FATエリアをチェック
      *
-     * @param is_formatting フォーマット中か
+     * @param isFormatting フォーマット中か
      * @return 1.0 正常, 0.0‑1.0 警告あり, <0.0 エラーあり
      */
     @Override
-    public double checkFat(boolean is_formatting) {
-        double valid_ratio = super.checkFat(is_formatting);
-        if (valid_ratio >= 0.0) {
+    public double checkFat(boolean isFormatting) {
+        double validRatio = super.checkFat(isFormatting);
+        if (validRatio >= 0.0) {
             // FAT先頭エリアのチェック
-            DiskImageSector sector = basic.getManagedSector(basic.diskBasicParam.getFatStartSector() - 1);
+            DiskImageSector sector = basic.getManagedSector(basic.getFatStartSector() - 1);
             if (sector == null) {
-                valid_ratio = -1.0;
+                validRatio = -1.0;
             } else if (!(sector.get(0) == 0 || sector.get(0) == (byte) 0xff)) {
-                valid_ratio = -1.0;
+                validRatio = -1.0;
             }
         }
-        return valid_ratio;
+        return validRatio;
     }
 
     /**
@@ -66,36 +66,36 @@ public class DiskBasicTypeL32D extends DiskBasicTypeFAT8<DirectoryL32d> {
      */
     @Override
     public int getEmptyGroupNumber() {
-        int new_num = INVALID_GROUP_NUMBER;
+        int newNum = INVALID_GROUP_NUMBER;
         // 管理エリアに近い位置から検索
 
         // トラック当たりのグループ数
-        int grps_per_trk = basic.diskBasicParam.getSectorsPerTrackOnBasic() * 2 / basic.diskBasicParam.getSectorsPerGroup();
+        int groupsPerTrack = basic.getSectorsPerTrackOnBasic() * 2 / basic.getSectorsPerGroup();
 
         // 最大グループ数
-        int max_group = basic.diskBasicParam.getFatEndGroup() + 1 - managedStartGroup;
-        if (max_group < managedStartGroup) max_group = managedStartGroup;
-        max_group = max_group * 2 - 1;
+        int maxGroup = basic.getFatEndGroup() + 1 - managedStartGroup;
+        if (maxGroup < managedStartGroup) maxGroup = managedStartGroup;
+        maxGroup = maxGroup * 2 - 1;
 
-        for (int i = 0; i <= max_group; i++) {
-            int i2 = i / grps_per_trk;
-            int i4 = i / grps_per_trk / 2;
+        for (int i = 0; i <= maxGroup; i++) {
+            int i2 = i / groupsPerTrack;
+            int i4 = i / groupsPerTrack / 2;
             int num;
             if ((i2 & 1) == 0) {
-                num = managedStartGroup - ((i4 + 1) * grps_per_trk) + (i % grps_per_trk);
+                num = managedStartGroup - ((i4 + 1) * groupsPerTrack) + (i % groupsPerTrack);
             } else {
-                num = managedStartGroup + (i4 * grps_per_trk) + (i % grps_per_trk);
+                num = managedStartGroup + (i4 * groupsPerTrack) + (i % groupsPerTrack);
             }
-            if (basic.diskBasicParam.getFatEndGroup() < num) {
+            if (basic.getFatEndGroup() < num) {
                 continue;
             }
-            int gnum = getGroupNumber(num);
-            if (gnum == basic.diskBasicParam.getGroupUnusedCode()) {
-                new_num = num;
+            int groupNum = getGroupNumber(num);
+            if (groupNum == basic.getGroupUnusedCode()) {
+                newNum = num;
                 break;
             }
         }
-        return new_num;
+        return newNum;
     }
 
     /**
@@ -105,14 +105,14 @@ public class DiskBasicTypeL32D extends DiskBasicTypeFAT8<DirectoryL32d> {
      */
     @Override
     public int calcManagedStartGroup() {
-        int trk = basic.diskBasicParam.getManagedTrackNumber();
-        int sid = basic.diskBasicParam.getFatSideNumber();
-        int sides = basic.diskBasicParam.getSidesPerDiskOnBasic();
-        int secs_per_grp = basic.diskBasicParam.getSectorsPerGroup();
-        int secs_per_trk = basic.diskBasicParam.getSectorsPerTrackOnBasic();
+        int track = basic.getManagedTrackNumber();
+        int side = basic.getFatSideNumber();
+        int sides = basic.getSidesPerDiskOnBasic();
+        int sectorsPerGroup = basic.getSectorsPerGroup();
+        int sectorsPerTrack = basic.getSectorsPerTrackOnBasic();
         // トラック1から開始するので-1する
-        trk--;
-        managedStartGroup = (trk * sides + sid) * secs_per_trk / secs_per_grp;
+        track--;
+        managedStartGroup = (track * sides + side) * sectorsPerTrack / sectorsPerGroup;
         return managedStartGroup;
     }
 
@@ -123,7 +123,7 @@ public class DiskBasicTypeL32D extends DiskBasicTypeFAT8<DirectoryL32d> {
      */
     @Override
     public int calcSkippedTrack() {
-        return basic.diskBasicParam.getManagedTrackNumber();
+        return basic.getManagedTrackNumber();
     }
 
     /**
@@ -134,28 +134,28 @@ public class DiskBasicTypeL32D extends DiskBasicTypeFAT8<DirectoryL32d> {
     @Override
     public int calcDataStartSectorPos() {
         // トラック0を除く
-        return basic.diskBasicParam.getSectorsPerTrackOnBasic() * basic.diskBasicParam.getSidesPerDiskOnBasic();
+        return basic.getSectorsPerTrackOnBasic() * basic.getSidesPerDiskOnBasic();
     }
 
     /**
      * グループ確保時に最後のグループ番号を計算する
      *
-     * @param group_num   現在のグループ番号
-     * @param size_remain 残りのデータサイズ（参照渡しを配列で実装）
+     * @param groupNum   現在のグループ番号
+     * @param sizeRemain 残りのデータサイズ（参照渡しを配列で実装）
      * @return 最後のグループ番号
      */
     @Override
-    public int calcLastGroupNumber(int group_num, int[] size_remain) {
-        if ((size_remain[0] % basic.getSectorSize()) == 0) {
+    public int calcLastGroupNumber(int groupNum, int[] sizeRemain) {
+        if ((sizeRemain[0] % basic.getSectorSize()) == 0) {
             // サイズがセクタ境界になる場合はサイズを+1する。→次のセクタも確保させる
-            size_remain[0]++;
+            sizeRemain[0]++;
         }
-        if (size_remain[0] > (basic.diskBasicParam.getSectorsPerGroup() * basic.getSectorSize())) {
+        if (sizeRemain[0] > (basic.getSectorsPerGroup() * basic.getSectorSize())) {
             // 次のグループが必要
-            return group_num;
+            return groupNum;
         } else {
             // ここが最終グループ
-            return super.calcLastGroupNumber(group_num, size_remain);
+            return super.calcLastGroupNumber(groupNum, sizeRemain);
         }
     }
 }

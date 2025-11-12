@@ -164,9 +164,7 @@ public class UICListCtrl extends JList {
     public void insertListColumns() {
         int columnCount = columns.size();
 
-        for (int idx = 0; idx < indexes.size(); idx++) {
-            indexes.set(idx, -1);
-        }
+        indexes.replaceAll(ignored -> -1);
 
         List<MyCListColumn> arr = new ArrayList<>(columns);
         arr.sort((c1, c2) -> {
@@ -246,8 +244,8 @@ class MyCListRow {
 
     public int getImage() {
         int image = -1;
-        for (int idx = 0; idx < values.size(); idx++) {
-            int i = values.get(idx).getImage();
+        for (MyCListValue value : values) {
+            int i = value.getImage();
             if (i >= 0) {
                 image = i;
                 break;
@@ -298,13 +296,10 @@ class MyCListRows extends ArrayList<MyCListRow> {
         fnSortCallBack = callback;
         MyCListRows.sortData = sortData;
 
-        Collections.sort(this, new Comparator<MyCListRow>() {
-            @Override
-            public int compare(MyCListRow item1, MyCListRow item2) {
-                int i1 = item1.getData();
-                int i2 = item2.getData();
-                return fnSortCallBack.compare(i1, i2, sortData);
-            }
+        this.sort((item1, item2) -> {
+            int i1 = item1.getData();
+            int i2 = item2.getData();
+            return fnSortCallBack.compare(i1, i2, sortData);
         });
 
         return true;

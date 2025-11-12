@@ -45,31 +45,31 @@ public class CharCodes {
 
         public String str;
         public byte[] code = new byte[4];
-        public int code_len;
+        public int codeLen;
 
         public CharCode() {
             Arrays.fill(code, (byte) 0);
-            code_len = 0;
+            codeLen = 0;
         }
 
         /**
          * Register character
          *
-         * @param newstr  character (string)
-         * @param newcode character code (hex string)
+         * @param newStr  character (string)
+         * @param newCode character code (hex string)
          */
-        public CharCode(String newstr, String newcode) {
-            long lcode;
+        public CharCode(String newStr, String newCode) {
+            long lCode;
 
             Arrays.fill(code, (byte) 0);
 
-            str = newstr;
-            code_len = newcode.length() / 2;
-            if (code_len >= code.length) code_len = code.length - 1;
-            for (int i = 0; i < code_len; i++) {
+            str = newStr;
+            codeLen = newCode.length() / 2;
+            if (codeLen >= code.length) codeLen = code.length - 1;
+            for (int i = 0; i < codeLen; i++) {
                 try {
-                    lcode = Long.parseLong(newcode.substring(i * 2, i * 2 + 2), 16);
-                    code[i] = (byte) (lcode & 0xff);
+                    lCode = Long.parseLong(newCode.substring(i * 2, i * 2 + 2), 16);
+                    code[i] = (byte) (lCode & 0xff);
                 } catch (NumberFormatException e) {
                     code[i] = 0;
                 }
@@ -106,12 +106,12 @@ public class CharCodes {
         /**
          * Register map information
          *
-         * @param n_name Map name
-         * @param n_type Map type
+         * @param name Map name
+         * @param type Map type
          */
-        public CharCodeMap(String n_name, int n_type) {
-            name = n_name;
-            type = n_type;
+        public CharCodeMap(String name, int type) {
+            this.name = name;
+            this.type = type;
             font_encoding = StandardCharsets.UTF_8.name();
         }
 
@@ -144,7 +144,7 @@ public class CharCodes {
         }
 
         /** Sets the map description */
-        public void setDescription(final String val) {
+        public void setDescription(String val) {
             description = val;
         }
 
@@ -169,8 +169,8 @@ public class CharCodes {
 
             for (CharCode itm : list) {
                 boolean codeMatch = true;
-                if (itm.code_len > remain) continue;
-                for (int k = 0; k < itm.code_len; k++) {
+                if (itm.codeLen > remain) continue;
+                for (int k = 0; k < itm.codeLen; k++) {
                     if (itm.code[k] != src[offset + k]) {
                         codeMatch = false;
                         break;
@@ -179,7 +179,7 @@ public class CharCodes {
 
                 if (codeMatch) {
                     dst.append(itm.str);
-                    len = itm.code_len;
+                    len = itm.codeLen;
                     match = true;
                     break;
                 }
@@ -209,9 +209,9 @@ public class CharCodes {
             for (CharCode itm : list) {
                 if (itm.str.equals(src)) {
                     if (dst != null) {
-                        System.arraycopy(itm.code, 0, dst, pos[0], itm.code_len);
+                        System.arraycopy(itm.code, 0, dst, pos[0], itm.codeLen);
                     }
-                    pos[0] += itm.code_len;
+                    pos[0] += itm.codeLen;
                     match = true;
                     break;
                 }
@@ -229,9 +229,9 @@ public class CharCodes {
             return match;
         }
 
-        /*
-         * CharCodeMaps
-         */
+        //
+        // CharCodeMaps
+        //
 
         /**
          * Returns the map at the specified position
@@ -247,7 +247,7 @@ public class CharCodes {
          *
          * @param name Map name
          */
-        public static CharCodeMap findMap(List<CharCodeMap> list, final String name) {
+        public static CharCodeMap findMap(List<CharCodeMap> list, String name) {
             CharCodeMap match = null;
             for (CharCodeMap item : list) {
                 if (name.equals(item.getName())) {
@@ -552,7 +552,7 @@ logger.log(Level.ERROR, e.getMessage(), e);
          * @return Converted byte count
          */
         @Override
-        public int findString(final byte[] src, int offset, int remain, StringBuilder dst, byte unknownChar) {
+        public int findString(byte[] src, int offset, int remain, StringBuilder dst, byte unknownChar) {
             //bool match = false;
             int len = 0;
 
@@ -608,7 +608,7 @@ logger.log(Level.ERROR, e.getMessage(), e);
         private String name;
         private List<String> item_names;
 
-        public CharCodeChoice(String n_name, final List<String> n_item_names) {
+        public CharCodeChoice(String n_name, List<String> n_item_names) {
             name = n_name;
             item_names = n_item_names;
         }
@@ -769,22 +769,26 @@ logger.log(Level.ERROR, e.getMessage(), e);
 
                 Node mitem = item.getFirstChild();
                 while (mitem != null) {
-                    if (mitem.getNodeName().equals("Char")) {
-                        String codestr = ((Element) mitem).getAttribute("code");
-                        String str = mitem.getTextContent();
-                        CharCodes.CharCode p = new CharCode(str, codestr);
-                        map.getList().add(p);
-                    } else if (mitem.getNodeName().equals("FontEncoding")) {
-                        String str = mitem.getTextContent();
-                        map.setFontEncoding(str);
-                    } else if (mitem.getNodeName().equals("Description")) {
-                        if (!((Element) mitem).getAttribute("lang").isEmpty()) {
-                            String lang = ((Element) mitem).getAttribute("lang");
-                            if (locale_name.contains(lang)) {
-                                desc_locale = mitem.getTextContent();
+                    switch (mitem.getNodeName()) {
+                        case "Char" -> {
+                            String codestr = ((Element) mitem).getAttribute("code");
+                            String str = mitem.getTextContent();
+                            CharCode p = new CharCode(str, codestr);
+                            map.getList().add(p);
+                        }
+                        case "FontEncoding" -> {
+                            String str = mitem.getTextContent();
+                            map.setFontEncoding(str);
+                        }
+                        case "Description" -> {
+                            if (!((Element) mitem).getAttribute("lang").isEmpty()) {
+                                String lang = ((Element) mitem).getAttribute("lang");
+                                if (locale_name.contains(lang)) {
+                                    desc_locale = mitem.getTextContent();
+                                }
+                            } else {
+                                desc = mitem.getTextContent();
                             }
-                        } else {
-                            desc = mitem.getTextContent();
                         }
                     }
                     mitem = mitem.getNextSibling();
@@ -818,7 +822,7 @@ logger.log(Level.TRACE, "charCodeMaps: " + gCharCodeMaps.size());
      * @param errmsgs     [out] Error messages
      * @return true / false
      */
-    private static boolean loadChoices(Node item, final String locale_name, StringBuilder errmsgs) {
+    private static boolean loadChoices(Node item, String locale_name, StringBuilder errmsgs) {
         item = item.getFirstChild();
         while (item != null) {
             if (item.getNodeName().equals("Choice")) {
@@ -902,7 +906,7 @@ logger.log(Level.TRACE, "charCodeChoices: " + gCharCodeChoices.size());
      * @param src       Character code sequence
      * @param len       src byte count
      * @param dst       [out] String
-     * @param term_code Termination code -1 for all bytes
+     * @param term_code Termination code, -1: for all bytes
      */
     public void convToString(byte[] src, int offset, int len, StringBuilder dst, int term_code) {
         for (int i = 0; i < len; ) {
@@ -952,11 +956,11 @@ logger.log(Level.TRACE, "charCodeChoices: " + gCharCodeChoices.size());
      * @param src         Character code (1-2 bytes)
      * @param len         src byte count
      * @param dst         [out] String
-     * @param unknownchar Character to replace with if conversion is not possible
+     * @param unknownChar Character to replace with if conversion is not possible
      * @return Converted byte count
      */
-    public int findString(byte[] src, int len, StringBuilder dst, byte unknownchar) {
-        return cache.findString(src, 0, len, dst, unknownchar);
+    public int findString(byte[] src, int len, StringBuilder dst, byte unknownChar) {
+        return cache.findString(src, 0, len, dst, unknownChar);
     }
 
     /**

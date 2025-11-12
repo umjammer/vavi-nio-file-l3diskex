@@ -26,7 +26,7 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_RANDOM_MASK;
  * <p>
  * DiskBasicParam
  *
- * @li ReservedGroups Group 予約済みにするグループ（クラスタ）番号
+ * <li>ReservedGroups Group 予約済みにするグループ（クラスタ）番号</li>
  */
 public class DiskBasicTypeFP extends DiskBasicTypeN88 {
 
@@ -47,25 +47,25 @@ public class DiskBasicTypeFP extends DiskBasicTypeN88 {
         DiskImageSector sector = null;
 
         // FAT area
-        sector = basic.getManagedSector(basic.diskBasicParam.getFatStartSector() - 1);
+        sector = basic.getManagedSector(basic.getFatStartSector() - 1);
         if (sector == null) return false;
-        sector.fill(basic.diskBasicParam.getFillCodeOnFAT(), basic.diskBasicParam.getFatEndGroup() + 1, 1);
+        sector.fill(basic.getFillCodeOnFAT(), basic.getFatEndGroup() + 1, 1);
         // FAT先頭
-        sector.fill((byte) (basic.diskBasicParam.getFatEndGroup() + 1), 1, 0);
+        sector.fill((byte) (basic.getFatEndGroup() + 1), 1, 0);
 
         // DIR area
-        int staSec = basic.diskBasicParam.getDirStartSector();
-        int endSec = basic.diskBasicParam.getDirEndSector();
+        int staSec = basic.getDirStartSector();
+        int endSec = basic.getDirEndSector();
         for (int sec = staSec; sec <= endSec; sec++) {
             sector = basic.getManagedSector(sec - 1);
             if (sector == null) return false;
-            sector.fill(basic.diskBasicParam.getFillCodeOnDir());
+            sector.fill(basic.getFillCodeOnDir());
         }
 
         // system used group reservation
-        List<Integer> grps = basic.diskBasicParam.getReservedGroups();
-        for (int i = 0; i < grps.size(); i++) {
-            setGroupNumber(grps.get(i), basic.diskBasicParam.getGroupSystemCode());
+        List<Integer> grps = basic.getReservedGroups();
+        for (Integer grp : grps) {
+            setGroupNumber(grp, basic.getGroupSystemCode());
         }
 
         return true;
@@ -73,13 +73,13 @@ public class DiskBasicTypeFP extends DiskBasicTypeN88 {
 
     /** ファイルの最終セクタのデータサイズを求める */
     @Override
-    public int calcDataSizeOnLastSector(DiskBasicDirItem<DirectoryN88> item, InputStream istream,
-                                        OutputStream ostream, byte[] sectorBuffer,
+    public int calcDataSizeOnLastSector(DiskBasicDirItem<DirectoryN88> item, InputStream iStream,
+                                        OutputStream oStream, byte[] sectorBuffer,
                                         int sectorOffset, int sectorSize, int remainSize) throws IOException {
         // ファイルサイズはセクタサイズ境界なので要計算
         if (item.needCheckEofCode()) {
             // アスキーファイルのとき終端コードの1つ前までを出力
-            byte eofCode = basic.invertUint8(basic.diskBasicParam.getTextTerminateCode());
+            byte eofCode = basic.invertUint8(basic.getTextTerminateCode());
             for (int len = 0; len < sectorSize; len++) {
                 if (sectorBuffer[len] == eofCode) {
                     sectorSize = len;
@@ -88,9 +88,9 @@ public class DiskBasicTypeFP extends DiskBasicTypeN88 {
             }
         } else {
             // 計算手段がないので残りサイズをそのまま返す
-            if (istream != null) {
+            if (iStream != null) {
                 // 比較時は、比較先のファイルサイズ
-                sectorSize = istream.available() % sectorSize; // TODO assume available as stream length
+                sectorSize = iStream.available() % sectorSize; // TODO assume available as stream length
             } else {
                 sectorSize = remainSize;
             }
@@ -100,7 +100,7 @@ public class DiskBasicTypeFP extends DiskBasicTypeN88 {
 
     /** データの書き込み処理 */
     @Override
-    public int writeFile(DiskBasicDirItem<DirectoryN88> item, InputStream istream, byte[] buffer,
+    public int writeFile(DiskBasicDirItem<DirectoryN88> item, InputStream iStream, byte[] buffer,
                          int size, int remain, int sectorNum, int groupNum,
                          int nextGroup, int sectorEnd, int seqNum) throws IOException {
         int len = 0;
@@ -109,11 +109,11 @@ public class DiskBasicTypeFP extends DiskBasicTypeN88 {
             if (remain < 0) remain = 0;
             int tmpRemain = remain;
             if (tmpRemain > 0) {
-                istream.read(buffer, 0, tmpRemain);
-                /* 最終は終端コードを入れる */
-                /* ただしランダムアクセスか、残りサイズが丁度セクタサイズなら入れない */
+                iStream.readNBytes(buffer, 0, tmpRemain);
+                // 最終は終端コードを入れる
+                // ただしランダムアクセスか、残りサイズが丁度セクタサイズなら入れない
                 if (item.getFileAttr().unmatchType(FILE_TYPE_RANDOM_MASK.getValue(), FILE_TYPE_RANDOM_MASK.getValue()) && size > tmpRemain) {
-                    buffer[tmpRemain] = basic.diskBasicParam.getTextTerminateCode();
+                    buffer[tmpRemain] = basic.getTextTerminateCode();
                     tmpRemain++;
                 }
             }
@@ -124,11 +124,11 @@ public class DiskBasicTypeFP extends DiskBasicTypeN88 {
             len = remain;
         } else {
             // 継続
-            istream.read(buffer, 0, size);
+            iStream.readNBytes(buffer, 0, size);
             len = size;
         }
         // 必要なら反転
-        basic.invertMem(buffer, size);
+        basic.invertMemory(buffer, size);
 
         return len;
     }

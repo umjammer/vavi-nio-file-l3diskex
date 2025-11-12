@@ -13,19 +13,19 @@ import java.util.Map;
 import java.util.ResourceBundle;
 
 import l3diskex.Utils;
-import l3diskex.basicfmt.BasicCommon.DirectoryT;
+import l3diskex.basicfmt.BasicCommon.Directory;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasicDirItem;
-import l3diskex.basicfmt.diritem.DiskBasicDirItemCDOS.DirectoryCdos;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemCDOS.DirectoryCDos;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
 import vavi.util.serdes.Element;
 import vavi.util.serdes.Serdes;
 
-import static l3diskex.Config.gConfig;
+import static l3diskex.Config.config;
 import static l3diskex.Parambase.MyAttributes.findValue;
 import static l3diskex.Parambase.MyAttributes.getTypeByValue;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_ASCII_MASK;
@@ -37,15 +37,13 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_SYSTEM_MASK;
 
 
 /// ディレクトリ１アイテム C-DOS
-public class DiskBasicDirItemCDOS extends DiskBasicDirItemMZBase<DirectoryCdos> {
+public class DiskBasicDirItemCDOS extends DiskBasicDirItemMZBase<DirectoryCDos> {
 
     private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
 
-    /**
-     * ディレクトリエントリ C-DOS (32bytes)
-     */
+    /** ディレクトリエントリ C-DOS (32bytes) */
     @Serdes(bigEndian = false)
-    public static class DirectoryCdos implements DirectoryT {
+    public static class DirectoryCDos implements Directory {
 
         @Element(sequence = 1)
         public byte type;
@@ -58,9 +56,9 @@ public class DiskBasicDirItemCDOS extends DiskBasicDirItemMZBase<DirectoryCdos> 
         @Element(sequence = 5)
         public short fileSize;
         @Element(sequence = 6)
-        public short loadAddr;
+        public short loadAddress;
         @Element(sequence = 7)
-        public short execAddr;
+        public short execAddress;
         @Element(sequence = 8)
         public byte yy;
         @Element(sequence = 9)
@@ -77,7 +75,7 @@ public class DiskBasicDirItemCDOS extends DiskBasicDirItemMZBase<DirectoryCdos> 
         public static final int SIZE = 32;
     }
 
-    /* type name enum */
+    // type name enum
     public static final int TYPE_NAME_CDOS_UNKNOWN = 0;
     public static final int TYPE_NAME_CDOS_OBJ = 1;
     public static final int TYPE_NAME_CDOS_TEX = 2;
@@ -86,7 +84,7 @@ public class DiskBasicDirItemCDOS extends DiskBasicDirItemMZBase<DirectoryCdos> 
     public static final int TYPE_NAME_CDOS_END = 5;
 
     /** 属性名 */
-    public static final Map<String, Object> gTypeNameCDOS = new LinkedHashMap<>() {{
+    public static final Map<String, Object> typeNameCDOS = new LinkedHashMap<>() {{
         put("???", TYPE_NAME_CDOS_UNKNOWN);
         put("OBJECT", TYPE_NAME_CDOS_OBJ);
         put("TEXT", TYPE_NAME_CDOS_TEX);
@@ -94,12 +92,12 @@ public class DiskBasicDirItemCDOS extends DiskBasicDirItemMZBase<DirectoryCdos> 
         put("SYSTEM", TYPE_NAME_CDOS_SYS);
     }};
 
-    /* type name 2 array */
-    public static final String[] gTypeNameCDOS2 = {
+    /** type name 2 array */
+    public static final String[] typeNameCDOS2 = {
             /*rb.getString(*/"Write Protected"/*)*/,
     };
 
-    /* type name 2 enum constant */
+    /** type name 2 enum constant */
     public static final int TYPE_NAME_CDOS2_READ_ONLY = 0;
 
     /// C-DOS 属性
@@ -115,28 +113,28 @@ public class DiskBasicDirItemCDOS extends DiskBasicDirItemMZBase<DirectoryCdos> 
     //
     //
 
-    /* directory data */
-    private DiskBasicDirData<DirectoryCdos> m_data = new DiskBasicDirData<>();
+    /** directory data */
+    private final DiskBasicDirData<DirectoryCDos> data = new DiskBasicDirData<>();
 
     public DiskBasicDirItemCDOS(DiskBasic basic) {
         super(basic);
 
-        m_data.alloc(DirectoryCdos.class);
+        data.alloc(DirectoryCDos.class);
     }
 
-    public DiskBasicDirItemCDOS(DiskBasic basic, DiskImageSector sector, int secpos, byte[] data, int dataP) throws IOException {
-        super(basic, sector, secpos, data, dataP);
+    public DiskBasicDirItemCDOS(DiskBasic basic, DiskImageSector sector, int secPos, byte[] data, int dataP) throws IOException {
+        super(basic, sector, secPos, data, dataP);
 
-        m_data.attach(DirectoryCdos.class, data, dataP);
+        this.data.attach(DirectoryCDos.class, data, dataP);
     }
 
-    public DiskBasicDirItemCDOS(DiskBasic basic, int n_num, DiskBasicGroupItem gitem, DiskImageSector sector,
-                                int secpos, byte[] data, int dataP, SectorParam next, boolean[] n_unuse) throws IOException {
-        super(basic, n_num, gitem, sector, secpos, data, dataP, next, n_unuse);
+    public DiskBasicDirItemCDOS(DiskBasic basic, int num, DiskBasicGroupItem groupItem, DiskImageSector sector,
+                                int secPos, byte[] data, int dataP, SectorParam next, boolean[] unuse) throws IOException {
+        super(basic, num, groupItem, sector, secPos, data, dataP, next, unuse);
 
-        m_data.attach(DirectoryCdos.class, data, dataP);
+        this.data.attach(DirectoryCDos.class, data, dataP);
 
-        used(checkUsed(n_unuse[0]));
+        used(checkUsed(unuse[0]));
         if (getFileType1() == 0xfe) {
             // IPL部分は表示しない
             visible(false);
@@ -148,19 +146,21 @@ public class DiskBasicDirItemCDOS extends DiskBasicDirItemMZBase<DirectoryCdos> 
     /**
      * アイテムへのポインタを設定
      *
-     * @param n_num    通し番号
-     * @param gitem    トラック番号などのデータ
-     * @param sector   セクタ
-     * @param n_secpos セクタ内のディレクトリエントリの位置
-     * @param n_data   ディレクトリアイテム
-     * @param n_next   [out] 次のセクタ
+     * @param num       通し番号
+     * @param groupItem トラック番号などのデータ
+     * @param sector    セクタ
+     * @param sectorPos セクタ内のディレクトリエントリの位置
+     * @param data      ディレクトリアイテム
+     * @param next      [out] 次のセクタ
      */
     @Override
-    public void setDataPtr(int n_num, DiskBasicGroupItem gitem, DiskImageSector sector,
-                           int n_secpos, byte[] n_data, int dataP, SectorParam n_next) throws IOException {
-        super.setDataPtr(n_num, gitem, sector, n_secpos, n_data, dataP, n_next);
+    public void setData(int num, DiskBasicGroupItem groupItem,
+                        DiskImageSector sector, int sectorPos,
+                        byte[] data, int dataPos,
+                        SectorParam next) throws IOException {
+        super.setData(num, groupItem, sector, sectorPos, data, dataPos, next);
 
-        m_data.attach(DirectoryCdos.class, n_data, dataP);
+        this.data.attach(DirectoryCDos.class, data, dataPos);
     }
 
     /**
@@ -171,11 +171,11 @@ public class DiskBasicDirItemCDOS extends DiskBasicDirItemMZBase<DirectoryCdos> 
      */
     @Override
     public boolean check(boolean[] last) {
-        if (!m_data.isValid()) return false;
+        if (!data.isValid()) return false;
 
         boolean valid = true;
         int t = getFileType1();
-        if (num != 0 && (t & 0x70) != 0 && findValue(basic.diskBasicParam.getSpecialAttributes(), t) == null) {
+        if (num != 0 && (t & 0x70) != 0 && findValue(basic.getSpecialAttributes(), t) == null) {
             valid = false;
         }
         return valid;
@@ -185,9 +185,9 @@ public class DiskBasicDirItemCDOS extends DiskBasicDirItemMZBase<DirectoryCdos> 
     @Override
     protected byte[] getFileNamePos(int num, int[] size, int[] len) {
         if (num == 0) {
-            size[0] = m_data.data().name.length;
+            size[0] = data.data().name.length;
             len[0] = size[0] - 1;
-            return m_data.data().name;
+            return data.data().name;
         } else {
             size[0] = len[0] = 0;
             return null;
@@ -197,37 +197,37 @@ public class DiskBasicDirItemCDOS extends DiskBasicDirItemMZBase<DirectoryCdos> 
     /** 属性１を返す */
     @Override
     protected int getFileType1() {
-        return basic.invertUint8(m_data.data().type) & 0xff;
+        return basic.invertUint8(data.data().type) & 0xff;
     }
 
     /** 属性２を返す */
     @Override
     public int getFileType2() {
-        return basic.invertUint8(m_data.data().type2) & 0xff;
+        return basic.invertUint8(data.data().type2) & 0xff;
     }
 
     /** 属性３を返す */
     @Override
     protected int getFileType3() {
-        return basic.invertUint8(m_data.data().byteOrder) & 0xff;
+        return basic.invertUint8(data.data().byteOrder) & 0xff;
     }
 
     /** 属性１のセット */
     @Override
     protected void setFileType1(int val) {
-        m_data.data().type = basic.invertUint8((byte) val);
+        data.data().type = basic.invertUint8((byte) val);
     }
 
     /** 属性２のセット */
     @Override
     protected void setFileType2(int val) {
-        m_data.data().type2 = basic.invertUint8((byte) val);
+        data.data().type2 = basic.invertUint8((byte) val);
     }
 
     /** 属性３のセット */
     @Override
     protected void setFileType3(int val) {
-        m_data.data().byteOrder = basic.invertUint8((byte) val);
+        data.data().byteOrder = basic.invertUint8((byte) val);
     }
 
     /** 使用しているアイテムか */
@@ -237,47 +237,35 @@ public class DiskBasicDirItemCDOS extends DiskBasicDirItemMZBase<DirectoryCdos> 
     }
 
     /** 属性を変換 */
-    private int convToNativeType(int file_type) {
+    private int convToNativeType(int fileType) {
         int val = 0;
-        if ((file_type & FILE_TYPE_SYSTEM_MASK.getValue()) != 0) {
+        if ((fileType & FILE_TYPE_SYSTEM_MASK.getValue()) != 0) {
             val = FILETYPE_CDOS_SYS;
-        } else if ((file_type & FILE_TYPE_MACHINE_MASK.getValue()) != 0) {
+        } else if ((fileType & FILE_TYPE_MACHINE_MASK.getValue()) != 0) {
             val = FILETYPE_CDOS_CMD;
-        } else if ((file_type & FILE_TYPE_BINARY_MASK.getValue()) != 0) {
+        } else if ((fileType & FILE_TYPE_BINARY_MASK.getValue()) != 0) {
             val = FILETYPE_CDOS_OBJ;
-        } else if ((file_type & FILE_TYPE_ASCII_MASK.getValue()) != 0) {
+        } else if ((fileType & FILE_TYPE_ASCII_MASK.getValue()) != 0) {
             val = FILETYPE_CDOS_TEX;
         }
         return val;
     }
 
     /** 属性からリストの位置を返す(プロパティダイアログ用) */
-    private int convFileType1Pos(int native_type) {
-        int pos = TYPE_NAME_CDOS_UNKNOWN;
-        switch (native_type) {
-            case FILETYPE_CDOS_OBJ:
-                pos = TYPE_NAME_CDOS_OBJ;
-                break;
-            case FILETYPE_CDOS_TEX:
-                pos = TYPE_NAME_CDOS_TEX;
-                break;
-            case FILETYPE_CDOS_CMD:
-                pos = TYPE_NAME_CDOS_CMD;
-                break;
-            case FILETYPE_CDOS_SYS:
-                pos = TYPE_NAME_CDOS_SYS;
-                break;
-            default:
-                pos = native_type;
-                break;
-        }
-        return pos;
+    private int convFileType1Pos(int nativeType) {
+        return switch (nativeType) {
+            case FILETYPE_CDOS_OBJ -> TYPE_NAME_CDOS_OBJ;
+            case FILETYPE_CDOS_TEX -> TYPE_NAME_CDOS_TEX;
+            case FILETYPE_CDOS_CMD -> TYPE_NAME_CDOS_CMD;
+            case FILETYPE_CDOS_SYS -> TYPE_NAME_CDOS_SYS;
+            default -> nativeType;
+        };
     }
 
     /** 属性からリストの位置を返す(プロパティダイアログ用) */
-    private int convFileType2Pos(int native_type) {
+    private int convFileType2Pos(int nativeType) {
         int val = 0;
-        if ((native_type & DATATYPE_CDOS_READ_ONLY) != 0) {
+        if ((nativeType & DATATYPE_CDOS_READ_ONLY) != 0) {
             // write protect
             val |= FILE_TYPE_READONLY_MASK.getValue();
         }
@@ -286,64 +274,55 @@ public class DiskBasicDirItemCDOS extends DiskBasicDirItemMZBase<DirectoryCdos> 
 
     /** リストの位置から属性を返す(プロパティダイアログ用) */
     private int calcFileTypeFromPos(int pos) {
-        int val = 0;
-        switch (pos) {
-            case TYPE_NAME_CDOS_OBJ:
-                val = FILETYPE_CDOS_OBJ;
-                break;
-            case TYPE_NAME_CDOS_TEX:
-                val = FILETYPE_CDOS_TEX;
-                break;
-            case TYPE_NAME_CDOS_CMD:
-                val = FILETYPE_CDOS_CMD;
-                break;
-            case TYPE_NAME_CDOS_SYS:
-                val = FILETYPE_CDOS_SYS;
-                break;
-            default:
-                val = DiskBasicDirItem.calcSpecialOriginalTypeFromPos(basic, pos, TYPE_NAME_CDOS_END);
-                break;
-        }
-        return val;
+        return switch (pos) {
+            case TYPE_NAME_CDOS_OBJ -> FILETYPE_CDOS_OBJ;
+            case TYPE_NAME_CDOS_TEX -> FILETYPE_CDOS_TEX;
+            case TYPE_NAME_CDOS_CMD -> FILETYPE_CDOS_CMD;
+            case TYPE_NAME_CDOS_SYS -> FILETYPE_CDOS_SYS;
+            default -> DiskBasicDirItem.calcSpecialOriginalTypeFromPos(basic, pos, TYPE_NAME_CDOS_END);
+        };
     }
 
     /** データ内にファイルサイズをセット */
     @Override
     public void setFileSizeBase(int val) {
-        m_data.data().fileSize = basic.invertUint16((short) val);
+        data.data().fileSize = basic.invertUint16((short) val);
     }
 
     /** データ内のファイルサイズを返す */
     @Override
     public int getFileSizeBase() {
-        return basic.invertUint16(m_data.data().fileSize) & 0xffff;
+        return basic.invertUint16(data.data().fileSize) & 0xffff;
     }
 
-    /// 削除
-    /// @return true:OK
+    /**
+     * 削除
+     *
+     * @return true: OK
+     */
     @Override
     public boolean delete() {
         // 削除はエントリの先頭にコードを入れるだけ
-        m_data.fill(basic.invertUint8(basic.diskBasicParam.getDeleteCode()), 1);
+        data.fill(basic.invertUint8(basic.getDeleteCode()), 1);
         used(false);
         return true;
     }
 
     @Override
-    public void setFileAttr(DiskBasicFileType file_type) {
-        int ftype = file_type.getType();
-        if (ftype == -1) return;
+    public void setFileAttr(DiskBasicFileType fileType) {
+        int fType = fileType.getType();
+        if (fType == -1) return;
 
         int t1 = 0;
         int t2 = 0;
-        if (file_type.getFormat() == basic.getFormatTypeNumber()) {
+        if (fileType.getFormat() == basic.getFormatTypeNumber()) {
             // 同じフォーマット
-            t1 = file_type.getOrigin() & 0xff;
-            t2 = (file_type.getOrigin() >> 8) & 0xff;
+            t1 = fileType.getOrigin() & 0xff;
+            t2 = (fileType.getOrigin() >> 8) & 0xff;
         } else {
             // 異なるフォーマット
-            t1 = convToNativeType(ftype);
-            if ((ftype & FILE_TYPE_READONLY_MASK.getValue()) != 0) {
+            t1 = convToNativeType(fType);
+            if ((fType & FILE_TYPE_READONLY_MASK.getValue()) != 0) {
                 t2 |= DATATYPE_CDOS_READ_ONLY;
             }
         }
@@ -374,7 +353,7 @@ public class DiskBasicDirItemCDOS extends DiskBasicDirItemMZBase<DirectoryCdos> 
 
                 break;
             default:
-                val = getTypeByValue(basic.diskBasicParam.getSpecialAttributes(), t1);
+                val = getTypeByValue(basic.getSpecialAttributes(), t1);
                 break;
         }
         int t2 = getFileType2();
@@ -389,30 +368,30 @@ public class DiskBasicDirItemCDOS extends DiskBasicDirItemMZBase<DirectoryCdos> 
     @Override
     public String getFileAttrStr() {
         String[] attr = new String[1];
-        getFileAttrName(convFileType1Pos(getFileType1()), gTypeNameCDOS, attr, TYPE_NAME_CDOS_UNKNOWN);
+        getFileAttrName(convFileType1Pos(getFileType1()), typeNameCDOS, attr, TYPE_NAME_CDOS_UNKNOWN);
 
         int t2 = getFileType2();
         if ((t2 & DATATYPE_CDOS_READ_ONLY) != 0) {
             // write protect
             attr[0] += ", ";
-            attr[0] += rb.getString(gTypeNameCDOS2[TYPE_NAME_CDOS2_READ_ONLY]);
+            attr[0] += rb.getString(typeNameCDOS2[TYPE_NAME_CDOS2_READ_ONLY]);
         }
 
         return attr[0];
     }
 
     @Override
-    public void setStartGroup(int fileunit_num, int val, int size) {
+    public void setStartGroup(int fileUnitNum, int val, int size) {
         int track = (val >> 8) & 0xff;
         int sector = val & 0xff;
-        m_data.data().track = basic.invertUint8((byte) track);
-        m_data.data().sector = basic.invertUint8((byte) sector);
+        data.data().track = basic.invertUint8((byte) track);
+        data.data().sector = basic.invertUint8((byte) sector);
     }
 
     @Override
-    public int getStartGroup(int fileunit_num) {
-        int track = basic.invertUint8(m_data.data().track);
-        int sector = basic.invertUint8(m_data.data().sector);
+    public int getStartGroup(int fileUnitNum) {
+        int track = basic.invertUint8(data.data().track);
+        int sector = basic.invertUint8(data.data().sector);
         return ((track << 8) | sector);
     }
 
@@ -433,9 +412,9 @@ public class DiskBasicDirItemCDOS extends DiskBasicDirItemMZBase<DirectoryCdos> 
 
     @Override
     public LocalDate getFileCreateDate(LocalDateTime tm) {
-        int yy = basic.invertUint8(m_data.data().yy);
-        int mm = basic.invertUint8(m_data.data().mm);
-        int dd = basic.invertUint8(m_data.data().dd);
+        int yy = basic.invertUint8(data.data().yy);
+        int mm = basic.invertUint8(data.data().mm);
+        int dd = basic.invertUint8(data.data().dd);
         return LocalDate.of(yy, mm, dd);
     }
 
@@ -448,9 +427,9 @@ public class DiskBasicDirItemCDOS extends DiskBasicDirItemMZBase<DirectoryCdos> 
 
     @Override
     public void setFileCreateDate(LocalDateTime tm) {
-        m_data.data().yy = basic.invertUint8((byte) tm.getYear());
-        m_data.data().mm = basic.invertUint8((byte) tm.getMonth().ordinal());
-        m_data.data().dd = basic.invertUint8((byte) tm.getDayOfMonth());
+        data.data().yy = basic.invertUint8((byte) tm.getYear());
+        data.data().mm = basic.invertUint8((byte) tm.getMonth().ordinal());
+        data.data().dd = basic.invertUint8((byte) tm.getDayOfMonth());
     }
 
     @Override
@@ -460,54 +439,54 @@ public class DiskBasicDirItemCDOS extends DiskBasicDirItemMZBase<DirectoryCdos> 
 
     @Override
     public int getStartAddress() {
-        return basic.invertUint16(m_data.data().loadAddr) & 0xffff;
+        return basic.invertUint16(data.data().loadAddress) & 0xffff;
     }
 
     @Override
     public int getExecuteAddress() {
-        return basic.invertUint16(m_data.data().execAddr) & 0xffff;
+        return basic.invertUint16(data.data().execAddress) & 0xffff;
     }
 
     @Override
     public void setStartAddress(int val) {
-        m_data.data().loadAddr = basic.invertUint16((short) val);
+        data.data().loadAddress = basic.invertUint16((short) val);
     }
 
     @Override
     public void setExecuteAddress(int val) {
-        m_data.data().execAddr = basic.invertUint16((short) val);
+        data.data().execAddress = basic.invertUint16((short) val);
     }
 
     @Override
     public int getDataSize() {
-        return m_data.getDataSize();
+        return data.getDataSize();
     }
 
     @Override
-    public DirectoryCdos getData() {
-        return m_data.data();
+    public DirectoryCDos getData() {
+        return data.data();
     }
 
     @Override
     public boolean copyData(byte[] val) {
-        m_data.copy(val);
+        data.copy(val);
         return true;
     }
 
     @Override
     public void clearData() {
-        if (!m_data.isValid()) return;
-        m_data.fill(0);
-        Arrays.fill(m_data.data().name, 0, m_data.data().name.length, (byte) 0x0d);
-        basic.invertMem(m_data.getRawData(), getDataSize()); // invert
+        if (!data.isValid()) return;
+        data.fill(0);
+        Arrays.fill(data.data().name, 0, data.data().name.length, (byte) 0x0d);
+        basic.invertMemory(data.getRawData(), getDataSize()); // invert
     }
 
     @Override
     public boolean preExportDataFile(String[] filename) {
-        if (!gConfig.isAddExtensionExport()) return true;
+        if (!config.isAddExtensionExport()) return true;
 
         String[] ext = new String[1];
-        if (getFileAttrName(convFileType1Pos(getFileType1()), gTypeNameCDOS, ext)) {
+        if (getFileAttrName(convFileType1Pos(getFileType1()), typeNameCDOS, ext)) {
             filename[0] += ".";
             if (Utils.isUpperString(filename[0])) {
                 filename[0] += ext[0].toUpperCase();
@@ -520,8 +499,8 @@ public class DiskBasicDirItemCDOS extends DiskBasicDirItemMZBase<DirectoryCdos> 
 
     @Override
     public boolean preImportDataFile(String[] filename) {
-        if (gConfig.isDecideAttrImport()) {
-            isContainAttrByExtension(filename[0], gTypeNameCDOS, TYPE_NAME_CDOS_OBJ, TYPE_NAME_CDOS_SYS, filename, null, null);
+        if (config.isDecideAttrImport()) {
+            isContainAttrByExtension(filename[0], typeNameCDOS, TYPE_NAME_CDOS_OBJ, TYPE_NAME_CDOS_SYS, filename, null, null);
         }
         filename[0] = remakeFileNameAndExtStr(filename[0]);
         return true;
@@ -531,7 +510,7 @@ public class DiskBasicDirItemCDOS extends DiskBasicDirItemMZBase<DirectoryCdos> 
     public int convOriginalTypeFromFileName(String filename) {
         // 拡張子で属性を設定する
         int[] t1 = {0};
-        if (!isContainAttrByExtension(filename, gTypeNameCDOS, TYPE_NAME_CDOS_OBJ, TYPE_NAME_CDOS_SYS, null, t1, null)) {
+        if (!isContainAttrByExtension(filename, typeNameCDOS, TYPE_NAME_CDOS_OBJ, TYPE_NAME_CDOS_SYS, null, t1, null)) {
             t1[0] = TYPE_NAME_CDOS_TEX;
         }
         return t1[0];
@@ -540,15 +519,15 @@ public class DiskBasicDirItemCDOS extends DiskBasicDirItemMZBase<DirectoryCdos> 
     @Override
     public void setInternalDataInAttrDialog(KeyValArray vals) {
         vals.add("inverted", basic.isDataInverted());
-        vals.add("TYPE", m_data.data().type, basic.isDataInverted());
-        vals.add("NAME", m_data.data().name, m_data.data().name.length, basic.isDataInverted());
-        vals.add("TYPE2", m_data.data().type2, basic.isDataInverted());
-        vals.add("BYTE_ORDER", m_data.data().byteOrder, basic.isDataInverted());
-        vals.add("FILE_SIZE", m_data.data().fileSize, basic.isBigEndian(), basic.isDataInverted());
-        vals.add("LOAD_ADDR", m_data.data().loadAddr, basic.isBigEndian(), basic.isDataInverted());
-        vals.add("EXEC_ADDR", m_data.data().execAddr, basic.isBigEndian(), basic.isDataInverted());
-        vals.add("YEAR", m_data.data().yy, basic.isDataInverted());
-        vals.add("MONTH", m_data.data().mm, basic.isDataInverted());
-        vals.add("DAY", m_data.data().dd, basic.isDataInverted());
+        vals.add("TYPE", data.data().type, basic.isDataInverted());
+        vals.add("NAME", data.data().name, data.data().name.length, basic.isDataInverted());
+        vals.add("TYPE2", data.data().type2, basic.isDataInverted());
+        vals.add("BYTE_ORDER", data.data().byteOrder, basic.isDataInverted());
+        vals.add("FILE_SIZE", data.data().fileSize, basic.isBigEndian(), basic.isDataInverted());
+        vals.add("LOAD_ADDR", data.data().loadAddress, basic.isBigEndian(), basic.isDataInverted());
+        vals.add("EXEC_ADDR", data.data().execAddress, basic.isBigEndian(), basic.isDataInverted());
+        vals.add("YEAR", data.data().yy, basic.isDataInverted());
+        vals.add("MONTH", data.data().mm, basic.isDataInverted());
+        vals.add("DAY", data.data().dd, basic.isDataInverted());
     }
 }

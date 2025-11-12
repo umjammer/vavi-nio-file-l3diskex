@@ -19,10 +19,10 @@ import vavi.util.serdes.Serdes;
 import static l3diskex.diskimg.DiskParam.gDiskTemplates;
 
 
-/// FDIディスクパーサー
+/** FDIディスクパーサー */
 public class DiskFDIParser extends DiskPlainParser {
 
-    /// FDI形式ヘッダ
+    /** FDI形式ヘッダ */
     @Serdes
     public static class FdiDskHeader {
 
@@ -53,21 +53,21 @@ public class DiskFDIParser extends DiskPlainParser {
     }
 
     @Override
-    public int check(InputStream istream,
+    public int check(InputStream iStream,
                      List<DiskTypeHint> diskHints,
                      DiskParam diskParam,
                      List<DiskParam> diskParams,
                      DiskParam manualParam) throws IOException {
-        ((SeekableDataInputStream) istream).position(0);
+        ((SeekableDataInputStream) iStream).position(0);
 
-        int len = istream.available();
+        int len = iStream.available();
         if (len < FdiDskHeader.SIZE) {
             // too short
             result.setError(DiskResult.ERRV_DISK_TOO_SMALL, 0);
             return result.getValid();
         }
         FdiDskHeader header = new FdiDskHeader();
-        Serdes.Util.deserialize(istream, header);
+        Serdes.Util.deserialize(iStream, header);
         int sectorSize = header.sectorSize;
         if (sectorSize <= 0 || sectorSize > 4096) {
             // invalid
@@ -121,24 +121,24 @@ public class DiskFDIParser extends DiskPlainParser {
     }
 
     @Override
-    public int parse(InputStream istream, DiskParam diskParam) throws IOException {
+    public int parse(InputStream iStream, DiskParam diskParam) throws IOException {
         if (diskParam == null) {
             result.setError(DiskResult.ERRV_INVALID_DISK, 0);
             return result.getValid();
         }
 
-        ((SeekableDataInputStream) istream).position(0);
+        ((SeekableDataInputStream) iStream).position(0);
 
-        int len = istream.available();
+        int len = iStream.available();
         if (len < FdiDskHeader.SIZE) {
             result.setError(DiskResult.ERRV_DISK_TOO_SMALL, 0);
             return result.getValid();
         }
         FdiDskHeader header = new FdiDskHeader();
-        Serdes.Util.deserialize(istream, header);
+        Serdes.Util.deserialize(iStream, header);
 
-        ((SeekableDataInputStream) istream).position(0x1000);
+        ((SeekableDataInputStream) iStream).position(0x1000);
 
-        return super.parse(istream, diskParam);
+        return super.parse(iStream, diskParam);
     }
 }

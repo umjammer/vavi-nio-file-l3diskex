@@ -40,6 +40,7 @@ import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
 import l3diskex.Utils;
+import l3diskex.basicfmt.BasicCommon.Directory;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasic.DiskBasicIdentifiedData;
 import l3diskex.basicfmt.DiskBasicDirItem;
@@ -175,13 +176,10 @@ public class UiDiskList extends JTree {
         // Configure JTree properties
         setRootVisible(true);
         getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
-        addTreeSelectionListener(new TreeSelectionListener() {
-            @Override
-            public void valueChanged(TreeSelectionEvent e) {
-                DefaultMutableTreeNode node = (DefaultMutableTreeNode) getLastSelectedPathComponent();
-                if (node != null) {
-                    setDataOnItemNode(node, SetDataOnItemNodeFlags.NODE_SELECTED);
-                }
+        addTreeSelectionListener(e -> {
+            DefaultMutableTreeNode node = (DefaultMutableTreeNode) getLastSelectedPathComponent();
+            if (node != null) {
+                setDataOnItemNode(node, SetDataOnItemNodeFlags.NODE_SELECTED);
             }
         });
     }
@@ -520,8 +518,7 @@ public class UiDiskList extends JTree {
 
         Component[] items = popupMenu.getComponents();
         for (Component item : items) {
-            if (item instanceof JMenuItem) {
-                JMenuItem menuItem = (JMenuItem) item;
+            if (item instanceof JMenuItem menuItem) {
                 String text = menuItem.getText();
 
                 if (text.contains("Add Disk")) {
@@ -564,13 +561,8 @@ public class UiDiskList extends JTree {
         DragSource ds = new DragSource();
         ds.createDefaultDragGestureRecognizer(this,
                 DnDConstants.ACTION_COPY_OR_MOVE,
-                new DragGestureListener() {
-                    @Override
-                    public void dragGestureRecognized(DragGestureEvent dge) {
-                        ds.startDrag(dge, DragSource.DefaultCopyDrop, fileObj,
-                                new DragSourceAdapter());
-                    }
-                });
+                dge -> ds.startDrag(dge, DragSource.DefaultCopyDrop, fileObj,
+                        new DragSourceAdapter()));
 
         return true;
     }
@@ -604,9 +596,9 @@ public class UiDiskList extends JTree {
         int selCount = selectedItems.size();
         List<DiskBasicDirItem> dirItems = new ArrayList<>();
 
-        for (int i = 0; i < selCount; i++) {
+        for (TreePath selectedItem : selectedItems) {
             DefaultMutableTreeNode node = (DefaultMutableTreeNode)
-                    selectedItems.get(i).getLastPathComponent();
+                    selectedItem.getLastPathComponent();
             DiskPositionData data = (DiskPositionData) node.getUserObject();
             DiskBasicDirItem item = data.getDiskBasicDirItem();
             if (item != null) {
@@ -618,7 +610,7 @@ public class UiDiskList extends JTree {
 
         // Export files
         if (!dirItems.isEmpty()) {
-            DiskBasic basic = dirItems.get(0).getBasic();
+            DiskBasic basic = dirItems.getFirst().getBasic();
             if (basic != null) {
                 status = frame.exportDataFiles(basic, dirItems, dataDir, attrDir,
                         fileObj, 0);
@@ -663,7 +655,7 @@ public class UiDiskList extends JTree {
                 return false;
             }
             // Add as new disk if dropped on disk image
-            return frame.preAddDiskFile(paths.get(0));
+            return frame.preAddDiskFile(paths.getFirst());
         }
 
         DiskBasic dirBasic = dirItem.getBasic();
@@ -833,7 +825,7 @@ public class UiDiskList extends JTree {
         DiskBasic basic = disk.getDiskBasic(data.getSideNumber());
         if (basic == null) return;
 
-        DiskBasicDirItem rootItem = basic.getRootDirectory();
+        DiskBasicDirItem<Directory> rootItem = basic.getRootDirectory();
         data.setDiskBasicDirItem(rootItem);
         if (rootItem == null) return;
 
@@ -1097,8 +1089,8 @@ public class UiDiskList extends JTree {
 
         int selcount = selected_items.size();
         List<DiskBasicDirItem> dir_items = new ArrayList<>();
-        for (int i = 0; i < selcount; i++) {
-            UiDiskPositionData cd = (UiDiskPositionData) getItemData(selected_items.get(i));
+        for (UiDiskListItem selectedItem : selected_items) {
+            UiDiskPositionData cd = (UiDiskPositionData) getItemData(selectedItem);
             DiskBasicDirItem item = cd.getDiskBasicDirItem();
             if (item == null) {
                 continue;
@@ -1111,7 +1103,7 @@ public class UiDiskList extends JTree {
             if (dir_items.size() <= 0) {
                 break;
             }
-            DiskBasic basic = dir_items.get(0).getBasic();
+            DiskBasic basic = dir_items.getFirst().getBasic();
             if (basic == null) {
                 sts = -1;
                 break;
@@ -1151,7 +1143,7 @@ public class UiDiskList extends JTree {
             if (dir_included) {
                 return false;
             }
-            return frame.preAddDiskFile(paths.get(0));
+            return frame.preAddDiskFile(paths.getFirst());
         }
         DiskBasic dir_basic = dir_item.getBasic();
         if (dir_basic == null) {

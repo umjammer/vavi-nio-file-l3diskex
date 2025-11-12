@@ -13,7 +13,7 @@ import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
 
 
-/// ディレクトリ１アイテム L3 BASIC 単密度 1S
+/** ディレクトリ１アイテム L3 BASIC 単密度 1S */
 public class DiskBasicDirItemL31S extends DiskBasicDirItemFAT8F {
 
     /**
@@ -28,39 +28,39 @@ public class DiskBasicDirItemL31S extends DiskBasicDirItemFAT8F {
     /**
      * Construct with sector information and data buffer.
      *
-     * @param basic    The disk basic object.
-     * @param n_sector The sector containing the directory item.
-     * @param n_secpos Position of the sector within the image.
-     * @param n_data   Raw byte data of the directory entry.
+     * @param basic  The disk basic object.
+     * @param sector The sector containing the directory item.
+     * @param secPos Position of the sector within the image.
+     * @param data   Raw byte data of the directory entry.
      */
     public DiskBasicDirItemL31S(DiskBasic basic,
-                                DiskImageSector n_sector,
-                                int n_secpos,
-                                byte[] n_data, int dataP) {
-        super(basic, n_sector, n_secpos, n_data, dataP);
+                                DiskImageSector sector,
+                                int secPos,
+                                byte[] data, int dataP) {
+        super(basic, sector, secPos, data, dataP);
     }
 
     /**
      * Construct with full group information.
      *
-     * @param basic    The disk basic object.
-     * @param n_num    The item number.
-     * @param n_gitem  The group item describing the file chain.
-     * @param n_sector The sector containing the directory item.
-     * @param n_secpos Position of the sector within the image.
-     * @param n_data   Raw byte data of the directory entry.
-     * @param n_next   Parameter for the next sector (may be {@code null}).
-     * @param n_unuse  Flag indicating whether the item is unused.
+     * @param basic     The disk basic object.
+     * @param num       The item number.
+     * @param groupItem The group item describing the file chain.
+     * @param sector    The sector containing the directory item.
+     * @param secPos    Position of the sector within the image.
+     * @param data      Raw byte data of the directory entry.
+     * @param next      Parameter for the next sector (may be {@code null}).
+     * @param unuse     Flag indicating whether the item is unused.
      */
     public DiskBasicDirItemL31S(DiskBasic basic,
-                                int n_num,
-                                DiskBasicGroupItem n_gitem,
-                                DiskImageSector n_sector,
-                                int n_secpos,
-                                byte[] n_data,
+                                int num,
+                                DiskBasicGroupItem groupItem,
+                                DiskImageSector sector,
+                                int secPos,
+                                byte[] data,
                                 int dataP,
-                                SectorParam n_next,
-                                boolean[] n_unuse) throws IOException {
-        super(basic, n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next, n_unuse);
+                                SectorParam next,
+                                boolean[] unuse) throws IOException {
+        super(basic, num, groupItem, sector, secPos, data, dataP, next, unuse);
     }
 }

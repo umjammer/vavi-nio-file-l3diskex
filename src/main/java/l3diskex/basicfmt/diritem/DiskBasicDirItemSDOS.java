@@ -11,20 +11,20 @@ import java.util.ResourceBundle;
 
 import l3diskex.Parambase.MyAttribute;
 import l3diskex.Utils;
-import l3diskex.basicfmt.BasicCommon.DirectoryT;
+import l3diskex.basicfmt.BasicCommon.Directory;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasicDirItem;
-import l3diskex.basicfmt.diritem.DiskBasicDirItemSDOS.DirectorySdos;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemSDOS.DirectorySDos;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
 import vavi.util.serdes.Element;
 import vavi.util.serdes.Serdes;
 
-import static l3diskex.Config.gConfig;
+import static l3diskex.Config.config;
 import static l3diskex.Parambase.MyAttributes.findUpperCase;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_BASIC_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_BINARY_MASK;
@@ -35,7 +35,7 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_MACHINE_MASK;
 /**
  * ディレクトリ１アイテム S-DOS
  */
-public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySdos> {
+public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySDos> {
 
     private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
 
@@ -43,7 +43,7 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySdos> {
      * ディレクトリエントリ S-DOS (32bytes)
      */
     @Serdes(bigEndian = false)
-    public static class DirectorySdos implements DirectoryT {
+    public static class DirectorySDos implements Directory {
 
         @Element(sequence = 1)
         public byte[] name = new byte[22];
@@ -58,9 +58,9 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySdos> {
         @Element(sequence = 6)
         public byte restSize;
         @Element(sequence = 7)
-        public short loadAddr;
+        public short loadAddress;
         @Element(sequence = 8)
-        public short execAddr;
+        public short execAddress;
         @Element(sequence = 9)
         public byte reserved;
 
@@ -82,7 +82,7 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySdos> {
     public static final int FILETYPE_SDOS_UNKNOWN = 0xff;
 
     /// S-DOS 属性名
-    public static final Map<String, Object> gTypeNameSDOS_1 = new LinkedHashMap<>() {{
+    public static final Map<String, Object> typeNameSdos1 = new LinkedHashMap<>() {{
         put("BASIC (N)", FILETYPE_SDOS_BAS1);
         put("BASIC (n88)", FILETYPE_SDOS_BAS2);
         put("Binary", FILETYPE_SDOS_DAT);
@@ -91,32 +91,33 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySdos> {
     }};
 
     /** ディレクトリデータ */
-    private final DiskBasicDirData<DirectorySdos> m_data = new DiskBasicDirData<>();
+    private final DiskBasicDirData<DirectorySDos> data = new DiskBasicDirData<>();
 
     /** セクタ内部へのポインタ */
-    private final DirItemSectorBoundary m_sdata = new DirItemSectorBoundary();
+    private final DirItemSectorBoundary sectorData = new DirItemSectorBoundary();
 
     public DiskBasicDirItemSDOS(DiskBasic basic) throws IOException {
         super(basic);
 
-        m_data.alloc(DirectorySdos.class);
+        data.alloc(DirectorySDos.class);
         allocateItem(null);
     }
 
-    public DiskBasicDirItemSDOS(DiskBasic basic, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP) throws IOException {
-        super(basic, n_sector, n_secpos, n_data, dataP);
+    public DiskBasicDirItemSDOS(DiskBasic basic, DiskImageSector sector, int secPos, byte[] data, int dataP) throws IOException {
+        super(basic, sector, secPos, data, dataP);
 
-        m_data.attach(DirectorySdos.class, n_data, dataP);
+        this.data.attach(DirectorySDos.class, data, dataP);
         allocateItem(null);
     }
 
-    public DiskBasicDirItemSDOS(DiskBasic basic, int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP, SectorParam n_next, boolean[] n_unuse) throws IOException {
-        super(basic, n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next, n_unuse);
+    public DiskBasicDirItemSDOS(DiskBasic basic, int num, DiskBasicGroupItem groupItem, DiskImageSector sector, int secPos,
+                                byte[] data, int dataP, SectorParam next, boolean[] unuse) throws IOException {
+        super(basic, num, groupItem, sector, secPos, data, dataP, next, unuse);
 
-        m_data.attach(DirectorySdos.class, n_data, dataP);
-        allocateItem(n_next);
+        this.data.attach(DirectorySDos.class, data, dataP);
+        allocateItem(next);
 
-        used(checkUsed(n_unuse[0]));
+        used(checkUsed(unuse[0]));
 
         // ファイルサイズとグループ数を計算
         calcFileSize();
@@ -125,20 +126,21 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySdos> {
     /**
      * アイテムへのポインタを設定
      *
-     * @param n_num    通し番号
-     * @param n_gitem  トラック番号などのデータ
-     * @param n_sector セクタ
-     * @param n_secpos セクタ内のディレクトリエントリの位置
-     * @param n_data   ディレクトリアイテム
-     * @param dataP    offset of {@code n_data}
-     * @param n_next   次のセクタ
+     * @param num    通し番号
+     * @param groupItem  トラック番号などのデータ
+     * @param sector セクタ
+     * @param sectorPos セクタ内のディレクトリエントリの位置
+     * @param data   ディレクトリアイテム
+     * @param dataPos    offset of {@code n_data}
+     * @param next   次のセクタ
      */
     @Override
-    public void setDataPtr(int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP, SectorParam n_next) throws IOException {
-        super.setDataPtr(n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next);
+    public void setData(int num, DiskBasicGroupItem groupItem, DiskImageSector sector, int sectorPos,
+                        byte[] data, int dataPos, SectorParam next) throws IOException {
+        super.setData(num, groupItem, sector, sectorPos, data, dataPos, next);
 
-        m_data.attach(DirectorySdos.class, n_data, dataP);
-        allocateItem(n_next);
+        this.data.attach(DirectorySDos.class, data, dataPos);
+        allocateItem(next);
     }
 
     /**
@@ -148,17 +150,17 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySdos> {
      * @return true
      */
     private boolean allocateItem(SectorParam next) throws IOException {
-        m_sdata.clear();
-        boolean bound = m_sdata.set(basic, sector, position, m_data.getRawData(), getDataSize(), next);
+        sectorData.clear();
+        boolean bound = sectorData.set(basic, sector, position, data.getRawData(), getDataSize(), next);
 
         if (bound) {
             // セクタをまたぐ場合、dataは内部で確保する
-            m_data.alloc(DirectorySdos.class);
-            m_data.fill(0, DirectorySdos.SIZE);
+            data.alloc(DirectorySDos.class);
+            data.fill(0, DirectorySDos.SIZE);
         }
 
         // コピー
-        m_sdata.copyTo(m_data.getRawData());
+        sectorData.copyTo(data.getRawData());
 
         return true;
     }
@@ -174,8 +176,8 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySdos> {
     @Override
     protected byte[] getFileNamePos(int num, int[] size, int[] len) {
         if (num == 0) {
-            size[0] = len[0] = m_data.data().name.length;
-            return m_data.data().name;
+            size[0] = len[0] = data.data().name.length;
+            return data.data().name;
         } else {
             size[0] = len[0] = 0;
             return null;
@@ -189,7 +191,7 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySdos> {
      */
     @Override
     protected int getFileType1() {
-        return m_data.data().type & 0xff;
+        return data.data().type & 0xff;
     }
 
     /**
@@ -199,7 +201,7 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySdos> {
      */
     @Override
     protected void setFileType1(int val) {
-        m_data.data().type = (byte) (val & 0xff);
+        data.data().type = (byte) (val & 0xff);
     }
 
     /**
@@ -210,7 +212,7 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySdos> {
      */
     @Override
     public boolean checkUsed(boolean unuse) {
-        return (!unuse && this.m_data.data().name[0] != 0 && this.m_data.data().name[0] != (byte) 0xff);
+        return (!unuse && this.data.data().name[0] != 0 && this.data.data().name[0] != (byte) 0xff);
     }
 
     /**
@@ -229,13 +231,13 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySdos> {
      * ファイル名と拡張子を得る
      *
      * @param name ファイル名
-     * @param nlen ファイル名長さ
+     * @param nLen ファイル名長さ
      * @param ext  拡張子
-     * @param elen 拡張子長さ
+     * @param eLen 拡張子長さ
      */
     @Override
-    public void getNativeFileName(byte[] name, int[] nlen, byte[] ext, int[] elen) {
-        super.getNativeFileName(name, nlen, ext, elen);
+    public void getNativeFileName(byte[] name, int[] nLen, byte[] ext, int[] eLen) {
+        super.getNativeFileName(name, nLen, ext, eLen);
     }
 
     /**
@@ -246,10 +248,10 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySdos> {
      */
     @Override
     public boolean check(boolean[] last) {
-        if (!m_data.isValid()) return false;
+        if (!data.isValid()) return false;
 
         boolean valid = true;
-        if (m_data.data().name[0] == (byte) 0xff) {
+        if (data.data().name[0] == (byte) 0xff) {
             last[0] = true;
             return valid;
         }
@@ -263,7 +265,7 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySdos> {
      */
     @Override
     public boolean delete() {
-        m_data.data().name[0] = basic.diskBasicParam.getDeleteCode();
+        data.data().name[0] = basic.getDeleteCode();
         used(false);
         return true;
     }
@@ -271,24 +273,24 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySdos> {
     /**
      * 属性を設定
      *
-     * @param file_type ファイル属性
+     * @param fileType ファイル属性
      */
     @Override
-    public void setFileAttr(DiskBasicFileType file_type) {
-        int ftype = file_type.getType();
-        if (ftype == -1) return;
+    public void setFileAttr(DiskBasicFileType fileType) {
+        int fType = fileType.getType();
+        if (fType == -1) return;
 
         int t1 = 0;
-        if (file_type.getFormat() == basic.getFormatTypeNumber()) {
-            t1 = file_type.getOrigin();
+        if (fileType.getFormat() == basic.getFormatTypeNumber()) {
+            t1 = fileType.getOrigin();
         } else {
-            if ((ftype & FILE_TYPE_BASIC_MASK.getValue()) != 0) {
-                if (basic.diskBasicParam.getFormatSubTypeNumber() != 0) {
+            if ((fType & FILE_TYPE_BASIC_MASK.getValue()) != 0) {
+                if (basic.getFormatSubTypeNumber() != 0) {
                     t1 = FILETYPE_SDOS_BAS2;
                 } else {
                     t1 = FILETYPE_SDOS_BAS1;
                 }
-            } else if ((ftype & FILE_TYPE_MACHINE_MASK.getValue()) != 0) {
+            } else if ((fType & FILE_TYPE_MACHINE_MASK.getValue()) != 0) {
                 t1 = FILETYPE_SDOS_OBJ;
             } else {
                 t1 = FILETYPE_SDOS_DAT;
@@ -337,7 +339,7 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySdos> {
      */
     @Override
     public String getFileAttrStr() {
-        String attr = rb.getString(Utils.keyAt(gTypeNameSDOS_1, getFileType1Pos()));
+        String attr = rb.getString(Utils.keyAt(typeNameSdos1, getFileType1Pos()));
         return attr;
     }
 
@@ -350,8 +352,8 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySdos> {
     public void setFileSize(int val) {
         int size = val + basic.getSectorSize() - 1;
 
-        m_data.data().size = (byte) (size / basic.getSectorSize());
-        m_data.data().restSize = (byte) ((val - 1) % basic.getSectorSize());
+        data.data().size = (byte) (size / basic.getSectorSize());
+        data.data().restSize = (byte) ((val - 1) % basic.getSectorSize());
     }
 
     /**
@@ -362,12 +364,12 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySdos> {
     @Override
     public int getFileSize() {
         int size;
-        size = m_data.data().size & 0xff;
+        size = data.data().size & 0xff;
 
         if (size > 0) size--;
         size *= basic.getSectorSize();
 
-        size += m_data.data().restSize & 0xff;
+        size += data.data().restSize & 0xff;
 
         size++;
         return size;
@@ -381,89 +383,89 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySdos> {
     @Override
     public int getGroupSize() {
         int size;
-        size = m_data.data().size & 0xff;
+        size = data.data().size & 0xff;
         return size;
     }
 
     /**
      * ファイルサイズを計算
      *
-     * @param fileunit_num ファイル番号
+     * @param fileUnitNum ファイル番号
      */
     @Override
-    public void calcFileUnitSize(int fileunit_num) {
+    public void calcFileUnitSize(int fileUnitNum) {
         if (!isUsed()) return;
 
-        getUnitGroups(fileunit_num, groups);
+        getUnitGroups(fileUnitNum, groups);
     }
 
     /**
      * 指定ディレクトリのすべてのグループを取得
      *
-     * @param fileunit_num ファイル番号
-     * @param group_items  グループリスト
+     * @param fileUnitNum ファイル番号
+     * @param groupItems  グループリスト
      */
     @Override
-    public void getUnitGroups(int fileunit_num, DiskBasicGroups group_items) {
-        int calc_groups = 0;
-        int calc_file_size = getFileSize();
+    public void getUnitGroups(int fileUnitNum, DiskBasicGroups groupItems) {
+        int calcGroups = 0;
+        int calcFileSize = getFileSize();
 
-        int group_num = getStartGroup(fileunit_num);
-        int gsize = getGroupSize();
+        int groupNum = getStartGroup(fileUnitNum);
+        int groupSize = getGroupSize();
         int limit = basic.getFatEndGroup() + 1;
-        while (gsize > 0 && limit >= 0) {
-            addGroups(group_num, 0, group_items);
-            group_num++;
-            calc_groups++;
-            gsize--;
+        while (groupSize > 0 && limit >= 0) {
+            addGroups(groupNum, 0, groupItems);
+            groupNum++;
+            calcGroups++;
+            groupSize--;
             limit--;
         }
 
-        group_items.setNums(calc_groups);
-        group_items.setSize(calc_file_size);
-        group_items.setSizePerGroup(basic.getSectorSize());
+        groupItems.setNums(calcGroups);
+        groupItems.setSize(calcFileSize);
+        groupItems.setSizePerGroup(basic.getSectorSize());
     }
 
     /**
      * グループを追加する
      *
-     * @param group_num   グループ番号
-     * @param next_group  次のグループ番号
-     * @param group_items グループリスト
+     * @param groupNum   グループ番号
+     * @param nextGroup  次のグループ番号
+     * @param groupItems グループリスト
      */
-    private void addGroups(int group_num, int next_group, DiskBasicGroups group_items) {
-        int[] trk = {-1}, sid = {-1}, sec = {-1}, div = {0}, divs = {0};
-        basic.calcNumFromSectorPosForGroup(group_num, trk, sid, sec, div, divs);
-        group_items.add(group_num, next_group, trk[0], sid[0], sec[0], sec[0], div[0], divs[0]);
+    private void addGroups(int groupNum, int nextGroup, DiskBasicGroups groupItems) {
+        int[] track = {-1}, side = {-1}, sector = {-1}, div = {0}, divs = {0};
+        basic.calcNumFromSectorPosForGroup(groupNum, track, side, sector, div, divs);
+        groupItems.add(groupNum, nextGroup, track[0], side[0], sector[0], sector[0], div[0], divs[0]);
     }
 
     /**
      * 最初のグループ番号を設定
      *
-     * @param fileunit_num ファイル番号
+     * @param fileUnitNum ファイル番号
      * @param val          グループ番号
      * @param size         グループサイズ
      */
     @Override
-    public void setStartGroup(int fileunit_num, int val, int size) {
+    public void setStartGroup(int fileUnitNum, int val, int size) {
         int track = (val / basic.getSectorsPerTrackOnBasic()) & 0xff;
         int sector = ((val % basic.getSectorsPerTrackOnBasic()) + 1) & 0xff;
-        m_data.data().track = (byte) track;
-        m_data.data().sector = (byte) sector;
+        data.data().track = (byte) track;
+        data.data().sector = (byte) sector;
     }
 
     /**
      * 最初のグループ番号を返す
      *
-     * @param fileunit_num ファイル番号
+     * @param fileUnitNum ファイル番号
      * @return 最初のグループ番号
      */
     @Override
-    public int getStartGroup(int fileunit_num) {
+    public int getStartGroup(int fileUnitNum) {
         int track = 0;
         int sector = 0;
-        track = m_data.data().track & 0xff;
-        sector = m_data.data().sector & 0xff;
+        track = data.data().track & 0xff;
+        sector = data.data().sector & 0xff;
 
         return track * basic.getSectorsPerTrackOnBasic() + sector - 1;
     }
@@ -475,10 +477,10 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySdos> {
      */
     @Override
     public int getStartAddress() {
-        int addr;
-        addr = m_data.data().loadAddr & 0xffff;
+        int address;
+        address = data.data().loadAddress & 0xffff;
 
-        return basic.orderUint16((short) addr);
+        return basic.orderUint16((short) address);
     }
 
     /**
@@ -488,10 +490,10 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySdos> {
      */
     @Override
     public int getExecuteAddress() {
-        int addr;
-        addr = m_data.data().execAddr & 0xffff;
+        int address;
+        address = data.data().execAddress & 0xffff;
 
-        return basic.orderUint16((short) addr);
+        return basic.orderUint16((short) address);
     }
 
     /**
@@ -501,8 +503,8 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySdos> {
      */
     @Override
     public void setStartAddress(int val) {
-        int addr = basic.orderUint16((short) val);
-        m_data.data().loadAddr = (short) addr;
+        int address = basic.orderUint16((short) val);
+        data.data().loadAddress = (short) address;
     }
 
     /**
@@ -512,20 +514,20 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySdos> {
      */
     @Override
     public void setExecuteAddress(int val) {
-        int addr = basic.orderUint16((short) val);
-        m_data.data().execAddr = (short) addr;
+        int address = basic.orderUint16((short) val);
+        data.data().execAddress = (short) address;
     }
 
     /**
      * 次のアイテムにENDマークを入れる
      *
-     * @param next_item 次のディレクトリアイテム
+     * @param nextItem 次のディレクトリアイテム
      */
     @Override
-    public void setEndMark(DiskBasicDirItem<?> next_item) throws IOException {
-        if (next_item == null) return;
+    public void setEndMark(DiskBasicDirItem<?> nextItem) throws IOException {
+        if (nextItem == null) return;
 
-        next_item.delete();
+        nextItem.delete();
     }
 
     /**
@@ -545,7 +547,7 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySdos> {
      */
     @Override
     public int getDataSize() {
-        return m_data.getDataSize();
+        return data.getDataSize();
     }
 
     /**
@@ -554,8 +556,8 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySdos> {
      * @return アイテムデータ
      */
     @Override
-    public DirectorySdos getData() {
-        return m_data.data();
+    public DirectorySDos getData() {
+        return data.data();
     }
 
     /**
@@ -566,8 +568,8 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySdos> {
      */
     @Override
     public boolean copyData(byte[] val) {
-        m_data.copy(val, getDataSize());
-        m_sdata.copyFrom(m_data.getRawData());
+        data.copy(val, getDataSize());
+        sectorData.copyFrom(data.getRawData());
         return true;
     }
 
@@ -576,7 +578,7 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySdos> {
      */
     @Override
     public void clearData() {
-        m_data.fill(basic.diskBasicParam.getFillCodeOnDir(), getDataSize());
+        data.fill(basic.getFillCodeOnDir(), getDataSize());
     }
 
     /**
@@ -584,7 +586,7 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySdos> {
      */
     private void setUnknownData() {
         byte val = (byte) 0xff;
-        m_data.data().reserved = val;
+        data.data().reserved = val;
     }
 
     /**
@@ -595,7 +597,7 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySdos> {
      */
     @Override
     public boolean preImportDataFile(String[] filename) {
-        if (gConfig.isDecideAttrImport()) {
+        if (config.isDecideAttrImport()) {
             trimExtensionByExtensionAttr(filename);
         }
         filename[0] = remakeFileNameAndExtStr(filename[0]);
@@ -612,11 +614,11 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySdos> {
     public int convOriginalTypeFromFileName(String filename) {
         int t1 = TYPE_NAME_SDOS_DAT;
         // 拡張子で属性を設定する
-        MyAttribute sa = findUpperCase(basic.diskBasicParam.getAttributesByExtension(), Utils.getExt(filename));
-        if (sa != null) {
-            int saType = sa.getType();
+        MyAttribute attr = findUpperCase(basic.getAttributesByExtension(), Utils.getExt(filename));
+        if (attr != null) {
+            int saType = attr.getType();
             if ((saType & (FILE_TYPE_BASIC_MASK.getValue() | FILE_TYPE_BINARY_MASK.getValue())) == (FILE_TYPE_BASIC_MASK.getValue() | FILE_TYPE_BINARY_MASK.getValue())) {
-                if (basic.diskBasicParam.getFormatSubTypeNumber() != 0) {
+                if (basic.getFormatSubTypeNumber() != 0) {
                     t1 = TYPE_NAME_SDOS_BAS2;
                 } else {
                     t1 = TYPE_NAME_SDOS_BAS1;
@@ -633,7 +635,7 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySdos> {
      */
     @Override
     public void setModify() {
-        m_sdata.copyFrom(m_data.getRawData());
+        sectorData.copyFrom(data.getRawData());
     }
 
     //
@@ -647,7 +649,7 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySdos> {
      */
     public int getFileType1Pos() {
         int t1 = getFileType1();
-        int pos = Utils.indexOf(gTypeNameSDOS_1, t1);
+        int pos = Utils.indexOf(typeNameSdos1, t1);
         if (pos < 0) {
             pos = TYPE_NAME_SDOS_UNKNOWN;
         }
@@ -670,14 +672,14 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySdos> {
      */
     @Override
     public void setInternalDataInAttrDialog(KeyValArray vals) {
-        vals.add("NAME", m_data.data().name, m_data.data().name.length);
-        vals.add("TYPE", m_data.data().type);
-        vals.add("TRACK", m_data.data().track);
-        vals.add("SECTOR", m_data.data().sector);
-        vals.add("SIZE", m_data.data().size);
-        vals.add("REST SIZE", m_data.data().restSize);
-        vals.add("LOAD ADDR", (byte) m_data.data().loadAddr, basic.isBigEndian());
-        vals.add("EXEC ADDR", (byte) m_data.data().execAddr, basic.isBigEndian());
-        vals.add("RESERVED", m_data.data().reserved);
+        vals.add("NAME", data.data().name, data.data().name.length);
+        vals.add("TYPE", data.data().type);
+        vals.add("TRACK", data.data().track);
+        vals.add("SECTOR", data.data().sector);
+        vals.add("SIZE", data.data().size);
+        vals.add("REST SIZE", data.data().restSize);
+        vals.add("LOAD ADDR", (byte) data.data().loadAddress, basic.isBigEndian());
+        vals.add("EXEC ADDR", (byte) data.data().execAddress, basic.isBigEndian());
+        vals.add("RESERVED", data.data().reserved);
     }
 }

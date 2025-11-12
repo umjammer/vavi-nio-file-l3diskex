@@ -10,20 +10,20 @@ import java.lang.System.Logger;
 
 import l3diskex.Parambase;
 import l3diskex.Utils;
-import l3diskex.basicfmt.BasicCommon.DirectoryT;
+import l3diskex.basicfmt.BasicCommon.Directory;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasicDirItem;
-import l3diskex.basicfmt.diritem.DiskBasicDirItemFAT8.DiskBasicDirItemFAT8F.DirectoryFat8f;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemFAT8.DiskBasicDirItemFAT8F.DirectoryFat8F;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
 import vavi.util.serdes.Element;
 import vavi.util.serdes.Serdes;
 
-import static l3diskex.Config.gConfig;
+import static l3diskex.Config.config;
 import static l3diskex.Parambase.MyAttributes.findUpperCase;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_ASCII_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_BASIC_MASK;
@@ -33,13 +33,13 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_MACHINE_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_RANDOM_MASK;
 
 
-/// ディレクトリ１アイテム FAT8ビット
-public abstract class DiskBasicDirItemFAT8<T extends DirectoryT> extends DiskBasicDirItem<T> {
+/** ディレクトリ１アイテム FAT8ビット */
+public abstract class DiskBasicDirItemFAT8<T extends Directory> extends DiskBasicDirItem<T> {
 
     private static final Logger logger = System.getLogger(DiskBasicDirItemFAT8.class.getName());
 
     /// L3/S1/F BASIC タイプ1 0...BASIC 1...DATA 2...MACHINE
-    public static final String[] G_TYPE_NAME_1 = {
+    public static final String[] TYPE_NAME_1 = {
             "BASIC",
             "Data",
             "Machine",
@@ -53,7 +53,7 @@ public abstract class DiskBasicDirItemFAT8<T extends DirectoryT> extends DiskBas
     static final int TYPE_NAME_1_UNKNOWN = 3;
 
     /// L3/S1/F BASIC タイプ2 0...Binary 1...Ascii 2...Random Access
-    public static final String[] G_TYPE_NAME_2 = {
+    public static final String[] TYPE_NAME_2 = {
             "Binary",
             "Ascii",
             "Random Access"
@@ -69,36 +69,37 @@ public abstract class DiskBasicDirItemFAT8<T extends DirectoryT> extends DiskBas
     //
 
     /** ファイル内部で持っている開始アドレス */
-    protected int m_start_address;
+    protected int startAddress;
     /** ファイル内部で持っている終了アドレス */
-    protected int m_end_address;
+    protected int endAddress;
     /** ファイル内部で持っている実行アドレス */
-    protected int m_exec_address;
+    protected int execAddress;
 
     public DiskBasicDirItemFAT8(DiskBasic basic) {
         super(basic);
 
-        m_start_address = -1;
-        m_end_address = -1;
-        m_exec_address = -1;
+        startAddress = -1;
+        endAddress = -1;
+        execAddress = -1;
     }
 
-    public DiskBasicDirItemFAT8(DiskBasic basic, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP) {
-        super(basic, n_sector, n_secpos, n_data, dataP);
+    public DiskBasicDirItemFAT8(DiskBasic basic, DiskImageSector sector, int secPos, byte[] data, int dataP) {
+        super(basic, sector, secPos, data, dataP);
 
-        m_start_address = -1;
-        m_end_address = -1;
-        m_exec_address = -1;
+        startAddress = -1;
+        endAddress = -1;
+        execAddress = -1;
     }
 
-    public DiskBasicDirItemFAT8(DiskBasic basic, int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP, SectorParam n_next, boolean[] n_unuse) {
-        super(basic, n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next, n_unuse);
+    public DiskBasicDirItemFAT8(DiskBasic basic, int num, DiskBasicGroupItem groupItem, DiskImageSector sector,
+                                int secPos, byte[] data, int dataP, SectorParam next, boolean[] unuse) {
+        super(basic, num, groupItem, sector, secPos, data, dataP, next, unuse);
 
-        m_start_address = -1;
-        m_end_address = -1;
-        m_exec_address = -1;
+        startAddress = -1;
+        endAddress = -1;
+        execAddress = -1;
 
-        used(super.checkUsed(n_unuse[0]));
+        used(super.checkUsed(unuse[0]));
     }
 
     // 属性からリストの位置を返す(プロパティダイアログ用)
@@ -121,9 +122,9 @@ public abstract class DiskBasicDirItemFAT8<T extends DirectoryT> extends DiskBas
     /** ファイル内部のアドレスを取り出す */
     protected void takeAddressesInFile() {
         if (groups.getSize() == 0 || getFileType1() != TYPE_NAME_1_MACHINE) {
-            m_start_address = -1;
-            m_end_address = -1;
-            m_exec_address = -1;
+            startAddress = -1;
+            endAddress = -1;
+            execAddress = -1;
             return;
         }
 
@@ -134,9 +135,9 @@ public abstract class DiskBasicDirItemFAT8<T extends DirectoryT> extends DiskBas
         boolean is_bigendian = basic.isBigEndian();
 
         // 開始アドレス
-        m_start_address = sector.get16(3, is_bigendian);
+        startAddress = sector.get16(3, is_bigendian);
         // 終了アドレス
-        m_end_address = (int) sector.get16(1, is_bigendian) + m_start_address - 1;
+        endAddress = (int) sector.get16(1, is_bigendian) + startAddress - 1;
 
         item = groups.last();
         sector = basic.getSector(item.track, item.side, item.sectorEnd);
@@ -144,14 +145,14 @@ public abstract class DiskBasicDirItemFAT8<T extends DirectoryT> extends DiskBas
         // 実行アドレス
         int remain_size = groups.getSize() % sector.getSectorSize();
         if (remain_size >= 2) {
-            m_exec_address = sector.get16(remain_size - 2, is_bigendian);
+            execAddress = sector.get16(remain_size - 2, is_bigendian);
         } else {
             DiskImageSector psector = basic.getSector(item.track, item.side, item.sectorEnd - 1);
             if (psector != null) {
                 if (remain_size >= 1) {
-                    m_exec_address = (sector.get(0) & 0xff) | ((psector.get(psector.getSectorSize() - 1) & 0xff) << 8);
+                    execAddress = (sector.get(0) & 0xff) | ((psector.get(psector.getSectorSize() - 1) & 0xff) << 8);
                 } else {
-                    m_exec_address = psector.get16(psector.getSectorSize() - 2, is_bigendian);
+                    execAddress = psector.get16(psector.getSectorSize() - 2, is_bigendian);
                 }
             }
         }
@@ -163,22 +164,22 @@ public abstract class DiskBasicDirItemFAT8<T extends DirectoryT> extends DiskBas
     }
 
     @Override
-    public void setFileAttr(DiskBasicFileType file_type) {
-        int ftype = file_type.getType();
-        if (ftype == -1) return;
+    public void setFileAttr(DiskBasicFileType fileType) {
+        int fType = fileType.getType();
+        if (fType == -1) return;
 
         setFileType1(
-                (ftype & FILE_TYPE_BASIC_MASK.getValue()) != 0 ? TYPE_NAME_1_BASIC : (
-                (ftype & FILE_TYPE_DATA_MASK.getValue()) != 0 ? TYPE_NAME_1_DATA : (
-                (ftype & FILE_TYPE_MACHINE_MASK.getValue()) != 0 ? TYPE_NAME_1_MACHINE : (
+                (fType & FILE_TYPE_BASIC_MASK.getValue()) != 0 ? TYPE_NAME_1_BASIC : (
+                (fType & FILE_TYPE_DATA_MASK.getValue()) != 0 ? TYPE_NAME_1_DATA : (
+                (fType & FILE_TYPE_MACHINE_MASK.getValue()) != 0 ? TYPE_NAME_1_MACHINE : (
                 0))));
 
         setFileType3(0);
-        if ((ftype & FILE_TYPE_BINARY_MASK.getValue()) != 0) {
+        if ((fType & FILE_TYPE_BINARY_MASK.getValue()) != 0) {
             setFileType2(0);
-        } else if ((ftype & FILE_TYPE_ASCII_MASK.getValue()) != 0) {
+        } else if ((fType & FILE_TYPE_ASCII_MASK.getValue()) != 0) {
             setFileType2(0xff);
-        } else if ((ftype & FILE_TYPE_RANDOM_MASK.getValue()) != 0) {
+        } else if ((fType & FILE_TYPE_RANDOM_MASK.getValue()) != 0) {
             setFileType2(0xff);
             setFileType3(0xff);
         }
@@ -197,77 +198,77 @@ public abstract class DiskBasicDirItemFAT8<T extends DirectoryT> extends DiskBas
     @Override
     public String getFileAttrStr() {
         String attr;
-        attr = G_TYPE_NAME_1[getFileType1Pos()];
+        attr = TYPE_NAME_1[getFileType1Pos()];
         attr += " - ";
-        attr += G_TYPE_NAME_2[getFileType2Pos()];
+        attr += TYPE_NAME_2[getFileType2Pos()];
         return attr;
     }
 
     @Override
-    public int recalcFileSize(DiskBasicGroups group_items, int occupied_size) throws IOException {
-        if (group_items.size() == 0) return occupied_size;
+    public int recalcFileSize(DiskBasicGroups groupItems, int occupiedSize) throws IOException {
+        if (groupItems.size() == 0) return occupiedSize;
 
-        DiskBasicGroupItem litem = group_items.last();
+        DiskBasicGroupItem litem = groupItems.last();
         DiskImageSector sector = basic.getSector(litem.track, litem.side, litem.sectorEnd);
-        if (sector == null) return occupied_size;
+        if (sector == null) return occupiedSize;
 
-        int sector_size = sector.getSectorSize();
-        int remain_size = ((occupied_size + sector_size - 1) % sector_size) + 1;
-        remain_size = type.calcDataSizeOnLastSector(this, null, null, sector.getSectorBuffer(), 0, sector_size, remain_size);
+        int sectorSize = sector.getSectorSize();
+        int remainSize = ((occupiedSize + sectorSize - 1) % sectorSize) + 1;
+        remainSize = type.calcDataSizeOnLastSector(this, null, null, sector.getSectorBuffer(), 0, sectorSize, remainSize);
 
-        occupied_size = occupied_size - sector_size + remain_size;
-        return occupied_size;
+        occupiedSize = occupiedSize - sectorSize + remainSize;
+        return occupiedSize;
     }
 
     @Override
-    public void calcFileUnitSize(int fileunit_num) throws IOException {
+    public void calcFileUnitSize(int fileUnitNum) throws IOException {
         if (!isUsed()) return;
 
-        getUnitGroups(fileunit_num, groups);
+        getUnitGroups(fileUnitNum, groups);
     }
 
     @Override
-    public void getUnitGroups(int fileunit_num, DiskBasicGroups group_items) throws IOException {
-        int calc_file_size = 0;
-        int calc_groups = 0;
+    public void getUnitGroups(int fileUnitNum, DiskBasicGroups groupItems) throws IOException {
+        int calcFileSize = 0;
+        int calcGroups = 0;
 
         // 8bit FAT
         boolean rc = true;
-        int group_num = getStartGroup(fileunit_num);
+        int groupNum = getStartGroup(fileUnitNum);
         boolean working = true;
         int limit = basic.getFatEndGroup() + 1;
 
         while (working) {
-            int next_group = type.getGroupNumber(group_num);
-            if (next_group == group_num) {
+            int nextGroup = type.getGroupNumber(groupNum);
+            if (nextGroup == groupNum) {
                 // 同じポジションならエラー
                 rc = false;
-            } else if (next_group >= basic.diskBasicParam.getGroupSystemCode()) {
+            } else if (nextGroup >= basic.getGroupSystemCode()) {
                 // システム領域はエラー(0xfe - )
                 rc = false;
-            } else if (next_group >= basic.diskBasicParam.getGroupFinalCode()) {
+            } else if (nextGroup >= basic.getGroupFinalCode()) {
                 // 最終グループ(0xc1 - )
-                basic.getNumsFromGroup(group_num, next_group, basic.getSectorSize(), 0, group_items);
-                calc_file_size += basic.getSectorSize() * (next_group - basic.diskBasicParam.getGroupFinalCode() + 1);
-                calc_groups++;
-                calc_file_size = recalcFileSize(group_items, calc_file_size);
+                basic.getNumsFromGroup(groupNum, nextGroup, basic.getSectorSize(), 0, groupItems);
+                calcFileSize += basic.getSectorSize() * (nextGroup - basic.getGroupFinalCode() + 1);
+                calcGroups++;
+                calcFileSize = recalcFileSize(groupItems, calcFileSize);
                 working = false;
-            } else if (next_group > basic.getFatEndGroup()) {
+            } else if (nextGroup > basic.getFatEndGroup()) {
                 // グループ番号がおかしい
                 rc = false;
             } else {
-                basic.getNumsFromGroup(group_num, next_group, basic.getSectorSize(), 0, group_items);
-                calc_file_size += basic.getSectorSize() * basic.getSectorsPerGroup();
-                calc_groups++;
-                group_num = next_group;
+                basic.getNumsFromGroup(groupNum, nextGroup, basic.getSectorSize(), 0, groupItems);
+                calcFileSize += basic.getSectorSize() * basic.getSectorsPerGroup();
+                calcGroups++;
+                groupNum = nextGroup;
                 limit--;
             }
             working = working && rc && (limit >= 0);
         }
 
-        group_items.addNums(calc_groups);
-        group_items.addSize(calc_file_size);
-        group_items.setSizePerGroup(basic.getSectorSize() * basic.getSectorsPerGroup());
+        groupItems.addNums(calcGroups);
+        groupItems.addSize(calcFileSize);
+        groupItems.setSizePerGroup(basic.getSectorSize() * basic.getSectorsPerGroup());
 
         if (limit < 0) {
             // too large or infinit loop
@@ -291,24 +292,24 @@ public abstract class DiskBasicDirItemFAT8<T extends DirectoryT> extends DiskBas
 
     @Override
     public int getStartAddress() {
-        return m_start_address;
+        return startAddress;
     }
 
     @Override
     public int getEndAddress() {
-        return m_end_address;
+        return endAddress;
     }
 
     @Override
     public int getExecuteAddress() {
-        return m_exec_address;
+        return execAddress;
     }
 
     @Override
     public int convFileTypeFromFileName(String filename) {
         int ftype = 0;
         // 拡張子で属性を設定する
-        Parambase.MyAttribute sa = findUpperCase(basic.diskBasicParam.getAttributesByExtension(), Utils.getExt(filename));
+        Parambase.MyAttribute sa = findUpperCase(basic.getAttributesByExtension(), Utils.getExt(filename));
         if (sa != null) {
             ftype = sa.getType();
         }
@@ -320,13 +321,13 @@ public abstract class DiskBasicDirItemFAT8<T extends DirectoryT> extends DiskBas
     //
 
     /// ディレクトリ１アイテム FAT8ビット(F-BASIC, L3 1S)
-    public static class DiskBasicDirItemFAT8F extends DiskBasicDirItemFAT8<DirectoryFat8f> {
+    public static abstract class DiskBasicDirItemFAT8F extends DiskBasicDirItemFAT8<DirectoryFat8F> {
 
         /**
          * ディレクトリエントリ L3 ３インチ(単密度) / F-BASIC 倍密度
          */
         @Serdes(bigEndian = false)
-        public static class DirectoryFat8f implements DirectoryT {
+        public static class DirectoryFat8F implements Directory {
             @Element(sequence = 1)
             public byte[] name = new byte[8];
             @Element(sequence = 2)
@@ -347,44 +348,46 @@ public abstract class DiskBasicDirItemFAT8<T extends DirectoryT> extends DiskBas
         }
 
         /** ディレクトリデータ */
-        protected DiskBasicDirData<DirectoryFat8f> m_data = new DiskBasicDirData<>();
+        protected DiskBasicDirData<DirectoryFat8F> data = new DiskBasicDirData<>();
 
         public DiskBasicDirItemFAT8F(DiskBasic basic) {
             super(basic);
 
-            m_data.alloc(DirectoryFat8f.class);
+            data.alloc(DirectoryFat8F.class);
         }
 
-        public DiskBasicDirItemFAT8F(DiskBasic basic, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP) {
-            super(basic, n_sector, n_secpos, n_data, dataP);
+        public DiskBasicDirItemFAT8F(DiskBasic basic, DiskImageSector sector, int secPos, byte[] data, int dataP) {
+            super(basic, sector, secPos, data, dataP);
 
-            m_data.attach(DirectoryFat8f.class, n_data, dataP);
+            this.data.attach(DirectoryFat8F.class, data, dataP);
         }
 
-        public DiskBasicDirItemFAT8F(DiskBasic basic, int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP, SectorParam n_next, boolean[] n_unuse) throws IOException {
-            super(basic, n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next, n_unuse);
+        public DiskBasicDirItemFAT8F(DiskBasic basic, int num, DiskBasicGroupItem gropItem, DiskImageSector sector,
+                                     int secPos, byte[] data, int dataP, SectorParam next, boolean[] unuse) throws IOException {
+            super(basic, num, gropItem, sector, secPos, data, dataP, next, unuse);
 
-            m_data.attach(DirectoryFat8f.class, n_data, dataP);
+            this.data.attach(DirectoryFat8F.class, data, dataP);
 
-            used(checkUsed(n_unuse[0]));
+            used(checkUsed(unuse[0]));
 
             // ファイルサイズとグループ数を計算
             calcFileSize();
         }
 
         @Override
-        public void setDataPtr(int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP, SectorParam n_next) throws IOException {
-            super.setDataPtr(n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next);
+        public void setData(int n_num, DiskBasicGroupItem gItem, DiskImageSector sector, int sectorPos,
+                            byte[] data, int dataPos, SectorParam next) throws IOException {
+            super.setData(n_num, gItem, sector, sectorPos, data, dataPos, next);
 
-            m_data.attach(DirectoryFat8f.class, n_data, dataP);
+            this.data.attach(DirectoryFat8F.class, data, dataPos);
         }
 
         @Override
         public boolean check(boolean[] last) {
-            if (!m_data.isValid()) return false;
+            if (!data.isValid()) return false;
 
             boolean valid = true;
-            DirectoryFat8f p = m_data.data();
+            DirectoryFat8F p = data.data();
             if (p.name[0] == (byte) 0xff) {
                 last[0] = true;
                 return valid;
@@ -400,13 +403,13 @@ public abstract class DiskBasicDirItemFAT8<T extends DirectoryT> extends DiskBas
 
         @Override
         public boolean checkUsed(boolean unuse) {
-            return m_data.data().name[0] != 0 && (m_data.data().name[0] & 0xFF) != 0xff;
+            return data.data().name[0] != 0 && (data.data().name[0] & 0xFF) != 0xff;
         }
 
         @Override
         public boolean delete() {
             // 削除はエントリの先頭にコードを入れるだけ
-            m_data.fill(basic.invertUint8(basic.diskBasicParam.getDeleteCode()), 1);
+            data.fill(basic.invertUint8(basic.getDeleteCode()), 1);
             used(false);
             return true;
         }
@@ -415,8 +418,8 @@ public abstract class DiskBasicDirItemFAT8<T extends DirectoryT> extends DiskBas
         protected byte[] getFileNamePos(int num, int[] size, int[] len) {
             // 8chars
             if (num == 0) {
-                size[0] = len[0] = m_data.data().name.length;
-                return m_data.data().name;
+                size[0] = len[0] = data.data().name.length;
+                return data.data().name;
             } else {
                 size[0] = len[0] = 0;
                 return null;
@@ -425,42 +428,42 @@ public abstract class DiskBasicDirItemFAT8<T extends DirectoryT> extends DiskBas
 
         @Override
         protected int getFileType1() {
-            return m_data.data().type & 0xff;
+            return data.data().type & 0xff;
         }
 
         @Override
         public int getFileType2() {
-            return m_data.data().type2 & 0xff;
+            return data.data().type2 & 0xff;
         }
 
         @Override
         protected int getFileType3() {
-            return m_data.data().type3 & 0xff;
+            return data.data().type3 & 0xff;
         }
 
         @Override
         protected void setFileType1(int val) {
-            m_data.data().type = (byte) (val & 0xff);
+            data.data().type = (byte) (val & 0xff);
         }
 
         @Override
         protected void setFileType2(int val) {
-            m_data.data().type2 = (byte) (val & 0xff);
+            data.data().type2 = (byte) (val & 0xff);
         }
 
         @Override
         protected void setFileType3(int val) {
-            m_data.data().type3 = (byte) (val & 0xff);
+            data.data().type3 = (byte) (val & 0xff);
         }
 
         @Override
-        public void setStartGroup(int fileunit_num, int val, int size) {
-            m_data.data().startGroup = (byte) (val & 0xff);
+        public void setStartGroup(int fileUnitNum, int val, int size) {
+            data.data().startGroup = (byte) (val & 0xff);
         }
 
         @Override
-        public int getStartGroup(int fileunit_num) {
-            return m_data.data().startGroup & 0xff;
+        public int getStartGroup(int fileUnitNum) {
+            return data.data().startGroup & 0xff;
         }
 
         @Override
@@ -470,27 +473,27 @@ public abstract class DiskBasicDirItemFAT8<T extends DirectoryT> extends DiskBas
 
         @Override
         public int getDataSize() {
-            return m_data.getDataSize();
+            return data.getDataSize();
         }
 
         @Override
-        public DirectoryFat8f getData() {
-            return m_data.data();
+        public DirectoryFat8F getData() {
+            return data.data();
         }
 
         @Override
         public boolean copyData(byte[] val) {
-            return m_data.copy(val);
+            return data.copy(val);
         }
 
         @Override
         public void clearData() {
-            m_data.fill((byte) 0);
+            data.fill((byte) 0);
         }
 
         @Override
         public boolean preImportDataFile(String[] filename) {
-            if (gConfig.isDecideAttrImport()) {
+            if (config.isDecideAttrImport()) {
                 trimExtensionByExtensionAttr(filename);
             }
             filename[0] = remakeFileNameAndExtStr(filename[0]);
@@ -504,23 +507,23 @@ public abstract class DiskBasicDirItemFAT8<T extends DirectoryT> extends DiskBas
         }
 
         @Override
-        public int recalcFileSizeOnSave(InputStream istream, int file_size) {
+        public int recalcFileSizeOnSave(InputStream iStream, int fileSize) throws IOException {
             if (needCheckEofCode()) {
                 // ファイルの最終が終端記号で終わっているかを調べる
-                file_size = checkEofCode(istream, file_size);
+                fileSize = checkEofCode(iStream, fileSize);
             }
-            return file_size;
+            return fileSize;
         }
 
         @Override
         public void setInternalDataInAttrDialog(KeyValArray vals) {
-            vals.add("NAME", m_data.data().name, m_data.data().name.length);
-            vals.add("(EXT)", m_data.data().ext, m_data.data().ext.length);
-            vals.add("TYPE", m_data.data().type & 0xFF);
-            vals.add("TYPE2", m_data.data().type2 & 0xFF);
-            vals.add("TYPE3", m_data.data().type3 & 0xFF);
-            vals.add("START_GROUP", m_data.data().startGroup & 0xFF);
-            vals.add("RESERVED", m_data.data().reserved, m_data.data().reserved.length);
+            vals.add("NAME", data.data().name, data.data().name.length);
+            vals.add("(EXT)", data.data().ext, data.data().ext.length);
+            vals.add("TYPE", data.data().type & 0xFF);
+            vals.add("TYPE2", data.data().type2 & 0xFF);
+            vals.add("TYPE3", data.data().type3 & 0xFF);
+            vals.add("START_GROUP", data.data().startGroup & 0xFF);
+            vals.add("RESERVED", data.data().reserved, data.data().reserved.length);
         }
     }
 }

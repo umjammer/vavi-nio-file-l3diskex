@@ -9,6 +9,8 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 
 import l3diskex.Common;
 import l3diskex.basicfmt.DiskBasic;
@@ -49,7 +51,7 @@ class TestCase {
     String d88 = "src/test/resources/test.d88";
 
     @Property(name = "test.type")
-    String type = "d88";
+    String type = "";
 
     @BeforeEach
     void setup() throws Exception {
@@ -76,19 +78,27 @@ class TestCase {
     @Test
     @EnabledIf("localPropertiesExists")
     void test2() throws Exception {
-Debug.print("d88: " + d88 + ", " + Files.exists(Path.of(d88)));
+Debug.print("type: \"" + type + "\", file: " + d88 + ", " + Files.exists(Path.of(d88)));
         Common.init();
 
         DiskImage diskImage = new DiskD88Image();
 
         // Create empty disk parameters as hint
-        DiskParam paramHint = new DiskParam();
 
         // Try to open the disk image
-        int result = diskImage.open(d88, type, paramHint);
+        List<DiskParam> params = new ArrayList<>();
+        DiskParam manualParam = new DiskParam();
+        String[] type_ = {type};
+        int r1 = diskImage.check(d88, type_, params, manualParam);
+        type = type_[0];
+Debug.printf("check: %d, %s, %d, %s", r1, type, params.size(), manualParam);
 
         // Verify open was successful
-//        assertEquals(0, result, "Failed to open disk image: " + diskImage.getErrorMessage(-1));
+        assertEquals(0, r1, "Failed to check disk image: " + diskImage.getErrorMessage(-1));
+
+        // Try to open the disk image
+        int r2 = diskImage.open(d88, type, manualParam);
+Debug.printf("open: %d", r2);
 
         // Verify disk was loaded
         assertTrue(diskImage.countDisks() > 0, "No disks found in image");
@@ -109,8 +119,8 @@ Debug.println("sectorSize: " + disk.getSectorSize());
         DiskBasic diskBasic = disk.getDiskBasic(0);
 Debug.println(diskBasic.getDiskNumber());
 
-        result = diskBasic.parseBasic(disk, 0, null, false);
-        assert result == 0 : "diskBasic.parseBasic: " + diskBasic.getErrorMessage(result);
+        int r3 = diskBasic.parseBasic(disk, 0, null, false);
+        assert r3 == 0 : "diskBasic.parseBasic: " + diskBasic.getErrorMessage(r3);
 Debug.println("FORMAT: " + diskBasic.getFormatTypeNumber());
 
         // Assign FAT and directory

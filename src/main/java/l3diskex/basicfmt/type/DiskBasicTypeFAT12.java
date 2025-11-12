@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import l3diskex.basicfmt.BasicCommon.DirectoryT;
+import l3diskex.basicfmt.BasicCommon.Directory;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasicDir;
 import l3diskex.basicfmt.DiskBasicDirItem;
@@ -14,7 +14,7 @@ import l3diskex.basicfmt.DiskBasicFat;
 /**
  * FAT12の処理
  */
-public class DiskBasicTypeFAT12<T extends DirectoryT> extends DiskBasicTypeFATBase<T> {
+public class DiskBasicTypeFAT12<T extends Directory> extends DiskBasicTypeFATBase<T> {
 
     /** */
     public DiskBasicTypeFAT12(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<T> dir) {
@@ -47,15 +47,15 @@ public class DiskBasicTypeFAT12<T extends DirectoryT> extends DiskBasicTypeFATBa
     /*  Adjust remaining size for an EOF marker  */
     @Override
     public int calcDataSizeOnLastSector(DiskBasicDirItem<T> item,
-                                        InputStream istream, OutputStream ostream,
+                                        InputStream iStream, OutputStream oStream,
                                         byte[] sectorBuffer, int sectorOffset, int sectorSize,
                                         int remainSize) {
 
-        if (istream != null) {
+        if (iStream != null) {
             // ベリファイ時のみEOFが自動で付加されることがある
             if (item.needCheckEofCode()) {
                 // 終端コードの1つ前までを出力
-                byte eofCode = basic.diskBasicParam.getTextTerminateCode();
+                byte eofCode = basic.getTextTerminateCode();
                 int len = remainSize - 1;
                 if (sectorBuffer[len] == eofCode) {
                     remainSize = len;

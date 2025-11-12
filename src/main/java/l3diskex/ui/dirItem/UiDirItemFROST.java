@@ -20,7 +20,7 @@ import l3diskex.ui.IntNameBox;
 import l3diskex.ui.UiDirItem;
 
 import static l3diskex.basicfmt.diritem.DiskBasicDirItemFROST.FILETYPE_FROST_BAS;
-import static l3diskex.basicfmt.diritem.DiskBasicDirItemFROST.gTypeNameFROST_1;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemFROST.typeNameFROST1;
 
 
 /**
@@ -83,7 +83,7 @@ public class UiDirItemFROST extends UiDirItem {
         ArrayList<JRadioButton> buttons = new ArrayList<>();
 
         int i = 0;
-        for (Map.Entry<String, Object> e : gTypeNameFROST_1.entrySet()) {
+        for (Map.Entry<String, Object> e : typeNameFROST1.entrySet()) {
             JRadioButton button = new JRadioButton(e.getKey());
             button.setActionCommand(String.valueOf(e.getValue())); // Store index as action command
             buttonGroup.add(button);
@@ -110,10 +110,10 @@ public class UiDirItemFROST extends UiDirItem {
         int t1 = -1;
 
         // Iterate through the registered radio buttons to find the selected one
-        for (Object i : gTypeNameFROST_1.values()) {
+        for (Object i : typeNameFROST1.values()) {
             JRadioButton button = (JRadioButton) parent.getComponent(IDC_RADIO_TYPE1 + (int) i);
             if (button != null && button.isSelected()) {
-                // Assuming action command is the index 'i', which corresponds to the position in gTypeNameFROST_1
+                // Assuming action command is the index 'i', which corresponds to the position in typeNameFROST1
                 // and the value is the FILETYPE_FROST_... constant
                 t1 = (int) i;
                 break;

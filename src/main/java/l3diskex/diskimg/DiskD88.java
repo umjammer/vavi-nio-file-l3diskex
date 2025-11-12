@@ -74,7 +74,7 @@ public class DiskD88 {
         public D88SectorId id = new D88SectorId();
         /** sector numbers per track */
         @Element(sequence = 2)
-        public short secnums;
+        public short numOfSectors;
         /** 0x00:double density 0x40:single density */
         @Element(sequence = 3)
         byte density;
@@ -99,18 +99,18 @@ public class DiskD88 {
 
         /** disk name */
         @Element(sequence = 1)
-        public byte[] diskname = new byte[17];
+        public byte[] diskName = new byte[17];
         @Element(sequence = 2)
         byte[] reserved1 = new byte[9];
         /** 0x10 write protected */
         @Element(sequence = 3)
-        byte write_protect;
+        byte writeProtect;
         /** disk density 00H: 2D, 10H: 2DD, 20H: 2HD */
         @Element(sequence = 4)
-        byte disk_density;
+        byte diskDensity;
         /** disk size */
         @Element(sequence = 5)
-        int disk_size;
+        int diskSize;
         /** track table */
         @Element(sequence = 6)
         public int[] offsets = new int[DISKD88_MAX_TRACKS];
@@ -118,11 +118,11 @@ public class DiskD88 {
         @Override
         public String toString() {
             return new StringJoiner(", ", D88Header.class.getSimpleName() + "[", "]")
-                    .add("diskname=" + Arrays.toString(diskname))
+                    .add("diskName=" + Arrays.toString(diskName))
                     .add("reserved1=" + Arrays.toString(reserved1))
-                    .add("write_protect=" + write_protect)
-                    .add("disk_density=" + disk_density)
-                    .add("disk_size=" + disk_size)
+                    .add("writeProtect=" + writeProtect)
+                    .add("diskDensity=" + diskDensity)
+                    .add("diskSize=" + diskSize)
                     .add("offsets=" + Arrays.toString(offsets))
                     .toString();
         }
@@ -132,10 +132,10 @@ public class DiskD88 {
     public static class DiskD88SectorHeader extends DiskImageSectorHeader {
 
         /** sector header */
-        private D88SectorHeader m_header;
+        private D88SectorHeader header;
 
         public DiskD88SectorHeader() {
-            m_header = null;
+            header = null;
         }
 
         @Override
@@ -144,7 +144,7 @@ public class DiskD88 {
         }
 
         public D88SectorHeader getHeader() {
-            return m_header;
+            return header;
         }
 
         public int getHeaderSize() {
@@ -152,184 +152,184 @@ public class DiskD88 {
         }
 
         public void alloc() {
-            if (m_header == null) {
-                m_header = new D88SectorHeader();
+            if (header == null) {
+                header = new D88SectorHeader();
             }
-            m_header.id.c = 0;
-            m_header.id.h = 0;
-            m_header.id.r = 0;
-            m_header.id.n = 0;
-            m_header.secnums = 0;
-            m_header.density = 0;
-            m_header.deleted = 0;
-            m_header.status = 0;
-            Arrays.fill(m_header.reserved, (byte) 0);
-            m_header.size = 0;
+            header.id.c = 0;
+            header.id.h = 0;
+            header.id.r = 0;
+            header.id.n = 0;
+            header.numOfSectors = 0;
+            header.density = 0;
+            header.deleted = 0;
+            header.status = 0;
+            Arrays.fill(header.reserved, (byte) 0);
+            header.size = 0;
         }
 
         public void free() {
-            m_header = null;
+            header = null;
         }
 
         public void newHeader(DiskImageSectorHeader src) {
-            if (m_header == null) {
-                m_header = new D88SectorHeader();
+            if (header == null) {
+                header = new D88SectorHeader();
             }
             if (src.getHeaderType() == DiskD88.HEADER_TYPE_D88) {
-                D88SectorHeader srcHeader = ((DiskD88SectorHeader) src).m_header;
-                m_header.id.c = srcHeader.id.c;
-                m_header.id.h = srcHeader.id.h;
-                m_header.id.r = srcHeader.id.r;
-                m_header.id.n = srcHeader.id.n;
-                m_header.secnums = srcHeader.secnums;
-                m_header.density = srcHeader.density;
-                m_header.deleted = srcHeader.deleted;
-                m_header.status = srcHeader.status;
-                System.arraycopy(srcHeader.reserved, 0, m_header.reserved, 0, 5);
-                m_header.size = srcHeader.size;
+                D88SectorHeader srcHeader = ((DiskD88SectorHeader) src).header;
+                header.id.c = srcHeader.id.c;
+                header.id.h = srcHeader.id.h;
+                header.id.r = srcHeader.id.r;
+                header.id.n = srcHeader.id.n;
+                header.numOfSectors = srcHeader.numOfSectors;
+                header.density = srcHeader.density;
+                header.deleted = srcHeader.deleted;
+                header.status = srcHeader.status;
+                System.arraycopy(srcHeader.reserved, 0, header.reserved, 0, 5);
+                header.size = srcHeader.size;
             }
         }
 
-        public void newHeader(int track_number, int side_number, int sector_number, int sector_size, int number_of_sector, boolean single_density, int status) {
+        public void newHeader(int trackNumber, int sideNumber, int sectorNumber, int sectorSize, int numOfSectors, boolean singleDensity, int status) {
             alloc();
-            m_header.id.c = (byte) track_number;
-            m_header.id.h = (byte) side_number;
-            m_header.id.r = (byte) sector_number;
-            m_header.size = (short) sector_size;
-            m_header.secnums = (short) number_of_sector;
-            m_header.density = (byte) (single_density ? 0x40 : 0);
-            m_header.status = (byte) status;
+            header.id.c = (byte) trackNumber;
+            header.id.h = (byte) sideNumber;
+            header.id.r = (byte) sectorNumber;
+            header.size = (short) sectorSize;
+            header.numOfSectors = (short) numOfSectors;
+            header.density = (byte) (singleDensity ? 0x40 : 0);
+            header.status = (byte) status;
         }
 
         public void fill(byte data) {
-            if (m_header == null) return;
-            m_header.id.c = data;
-            m_header.id.h = data;
-            m_header.id.r = data;
-            m_header.id.n = data;
-            m_header.secnums = (short) ((data & 0xFF) | ((data & 0xFF) << 8));
-            m_header.density = data;
-            m_header.deleted = data;
-            m_header.status = data;
-            Arrays.fill(m_header.reserved, data);
-            m_header.size = (short) ((data & 0xFF) | ((data & 0xFF) << 8));
+            if (header == null) return;
+            header.id.c = data;
+            header.id.h = data;
+            header.id.r = data;
+            header.id.n = data;
+            header.numOfSectors = (short) ((data & 0xFF) | ((data & 0xFF) << 8));
+            header.density = data;
+            header.deleted = data;
+            header.status = data;
+            Arrays.fill(header.reserved, data);
+            header.size = (short) ((data & 0xFF) | ((data & 0xFF) << 8));
         }
 
         public void copy(DiskD88SectorHeader src) {
-            if (m_header == null || src.m_header == null) return;
-            m_header.id.c = src.m_header.id.c;
-            m_header.id.h = src.m_header.id.h;
-            m_header.id.r = src.m_header.id.r;
-            m_header.id.n = src.m_header.id.n;
-            m_header.secnums = src.m_header.secnums;
-            m_header.density = src.m_header.density;
-            m_header.deleted = src.m_header.deleted;
-            m_header.status = src.m_header.status;
-            System.arraycopy(src.m_header.reserved, 0, m_header.reserved, 0, 5);
-            m_header.size = src.m_header.size;
+            if (header == null || src.header == null) return;
+            header.id.c = src.header.id.c;
+            header.id.h = src.header.id.h;
+            header.id.r = src.header.id.r;
+            header.id.n = src.header.id.n;
+            header.numOfSectors = src.header.numOfSectors;
+            header.density = src.header.density;
+            header.deleted = src.header.deleted;
+            header.status = src.header.status;
+            System.arraycopy(src.header.reserved, 0, header.reserved, 0, 5);
+            header.size = src.header.size;
         }
 
         public boolean isSame(DiskD88SectorHeader src) {
-            if (m_header == null || src.m_header == null) return false;
-            return m_header.id.c == src.m_header.id.c &&
-                    m_header.id.h == src.m_header.id.h &&
-                    m_header.id.r == src.m_header.id.r &&
-                    m_header.id.n == src.m_header.id.n &&
-                    m_header.secnums == src.m_header.secnums &&
-                    m_header.density == src.m_header.density &&
-                    m_header.deleted == src.m_header.deleted &&
-                    m_header.status == src.m_header.status &&
-                    Arrays.equals(m_header.reserved, src.m_header.reserved) &&
-                    m_header.size == src.m_header.size;
+            if (header == null || src.header == null) return false;
+            return header.id.c == src.header.id.c &&
+                    header.id.h == src.header.id.h &&
+                    header.id.r == src.header.id.r &&
+                    header.id.n == src.header.id.n &&
+                    header.numOfSectors == src.header.numOfSectors &&
+                    header.density == src.header.density &&
+                    header.deleted == src.header.deleted &&
+                    header.status == src.header.status &&
+                    Arrays.equals(header.reserved, src.header.reserved) &&
+                    header.size == src.header.size;
         }
 
         public byte getIDC() {
-            return m_header != null ? m_header.id.c : 0;
+            return header != null ? header.id.c : 0;
         }
 
         public byte getIDH() {
-            return m_header != null ? m_header.id.h : 0;
+            return header != null ? header.id.h : 0;
         }
 
         public byte getIDR() {
-            return m_header != null ? m_header.id.r : 0;
+            return header != null ? header.id.r : 0;
         }
 
         public byte getIDN() {
-            return m_header != null ? m_header.id.n : 0;
+            return header != null ? header.id.n : 0;
         }
 
         public short getNumberOfSectors() {
-            return m_header != null ? m_header.secnums : 0;
+            return header != null ? header.numOfSectors : 0;
         }
 
         public byte getDensity() {
-            return m_header != null ? m_header.density : 0;
+            return header != null ? header.density : 0;
         }
 
         public byte getDeleted() {
-            return m_header != null ? m_header.deleted : 0;
+            return header != null ? header.deleted : 0;
         }
 
         public byte getStatus() {
-            return m_header != null ? m_header.status : 0;
+            return header != null ? header.status : 0;
         }
 
         public short getSize() {
-            return m_header != null ? m_header.size : 0;
+            return header != null ? header.size : 0;
         }
 
         public void setIDC(byte val) {
-            if (m_header != null) {
-                m_header.id.c = val;
+            if (header != null) {
+                header.id.c = val;
             }
         }
 
         public void setIDH(byte val) {
-            if (m_header != null) {
-                m_header.id.h = val;
+            if (header != null) {
+                header.id.h = val;
             }
         }
 
         public void setIDR(byte val) {
-            if (m_header != null) {
-                m_header.id.r = val;
+            if (header != null) {
+                header.id.r = val;
             }
         }
 
         public void setIDN(byte val) {
-            if (m_header != null) {
-                m_header.id.n = val;
+            if (header != null) {
+                header.id.n = val;
             }
         }
 
         public void setNumberOfSectors(short val) {
-            if (m_header != null) {
-                m_header.secnums = val;
+            if (header != null) {
+                header.numOfSectors = val;
             }
         }
 
         public void setDensity(byte val) {
-            if (m_header != null) {
-                m_header.density = val;
+            if (header != null) {
+                header.density = val;
             }
         }
 
         public void setDeleted(byte val) {
-            if (m_header != null) {
-                m_header.deleted = val;
+            if (header != null) {
+                header.deleted = val;
             }
         }
 
         public void setStatus(byte val) {
-            if (m_header != null) {
-                m_header.status = val;
+            if (header != null) {
+                header.status = val;
             }
         }
 
         public void setSize(short val) {
-            if (m_header != null) {
-                m_header.size = val;
+            if (header != null) {
+                header.size = val;
             }
         }
     }
@@ -338,52 +338,52 @@ public class DiskD88 {
     static class DiskD88Sector extends DiskImageSector {
 
         /** sector header */
-        private final DiskD88SectorHeader m_header = new DiskD88SectorHeader();
+        private final DiskD88SectorHeader header = new DiskD88SectorHeader();
         /** sector data */
         private byte[] data;
 
         /** pre-save header */
-        private final DiskD88SectorHeader m_header_origin = new DiskD88SectorHeader();
+        private final DiskD88SectorHeader headerOrigin = new DiskD88SectorHeader();
         /** pre-save data */
-        private byte[] data_origin;
+        private byte[] dataOrigin;
 
-        public DiskD88Sector(int n_num, DiskImageSectorHeader n_header, byte[] n_data) {
-            super(n_num);
-            m_header.newHeader(n_header);
-            data = n_data;
+        public DiskD88Sector(int num, DiskImageSectorHeader header, byte[] data) {
+            super(num);
+            this.header.newHeader(header);
+            this.data = data;
 
-            m_header_origin.newHeader(n_header);
-            data_origin = new byte[m_header.getSize() & 0xFFFF];
-            System.arraycopy(data, 0, data_origin, 0, m_header.getSize() & 0xFFFF);
+            headerOrigin.newHeader(header);
+            dataOrigin = new byte[this.header.getSize() & 0xffff];
+            System.arraycopy(this.data, 0, dataOrigin, 0, this.header.getSize() & 0xffff);
         }
 
-        public DiskD88Sector(int track_number, int side_number, int sector_number, int sector_size, int number_of_sector, boolean single_density, int status) {
-            super(sector_number);
-            m_header.newHeader(track_number, side_number, sector_number, sector_size, number_of_sector, single_density, status);
-            this.setSectorSize(sector_size);
+        public DiskD88Sector(int trackNumber, int sideNumber, int sectorNumber, int sectorSize, int numberOfSector, boolean singleDensity, int status) {
+            super(sectorNumber);
+            header.newHeader(trackNumber, sideNumber, sectorNumber, sectorSize, numberOfSector, singleDensity, status);
+            this.setSectorSize(sectorSize);
 
-            data = new byte[m_header.getSize() & 0xFFFF];
+            data = new byte[header.getSize() & 0xffff];
             Arrays.fill(data, (byte) 0);
 
-            m_header_origin.newHeader(m_header);
+            headerOrigin.newHeader(header);
 
-            data_origin = new byte[m_header.getSize() & 0xFFFF];
-            Arrays.fill(data_origin, (byte) 0);
+            dataOrigin = new byte[header.getSize() & 0xffff];
+            Arrays.fill(dataOrigin, (byte) 0);
         }
 
         @Override
-        public boolean replace(DiskImageSector src_sector) {
+        public boolean replace(DiskImageSector srcSector) {
             if (data == null) {
                 return false;
             }
-            byte[] src_data = src_sector.getSectorBuffer();
-            if (src_data == null) {
+            byte[] srcData = srcSector.getSectorBuffer();
+            if (srcData == null) {
                 return false;
             }
-            int sz = Math.min(src_sector.getSectorBufferSize(), getSectorBufferSize());
-            if (sz > 0) {
+            int size = Math.min(srcSector.getSectorBufferSize(), getSectorBufferSize());
+            if (size > 0) {
                 Arrays.fill(data, (byte) 0);
-                System.arraycopy(src_data, 0, data, 0, sz);
+                System.arraycopy(srcData, 0, data, 0, size);
             }
             return true;
         }
@@ -394,14 +394,14 @@ public class DiskD88 {
                 return false;
             }
             if (start < 0) {
-                start = (m_header.getSize() & 0xFFFF) + start;
+                start = (header.getSize() & 0xffff) + start;
             }
-            if (start < 0 || start >= (m_header.getSize() & 0xFFFF)) {
+            if (start < 0 || start >= (header.getSize() & 0xffff)) {
                 return false;
             }
 
-            if (len < 0) len = (m_header.getSize() & 0xFFFF) - start;
-            else if ((start + len) > (m_header.getSize() & 0xFFFF)) len = (m_header.getSize() & 0xFFFF) - start;
+            if (len < 0) len = (header.getSize() & 0xffff) - start;
+            else if ((start + len) > (header.getSize() & 0xffff)) len = (header.getSize() & 0xffff) - start;
             Arrays.fill(data, start, start + len, code);
             return true;
         }
@@ -412,13 +412,13 @@ public class DiskD88 {
                 return false;
             }
             if (start < 0) {
-                start = (m_header.getSize() & 0xFFFF) + start;
+                start = (header.getSize() & 0xffff) + start;
             }
-            if (len < 0 || start < 0 || start >= (m_header.getSize() & 0xFFFF)) {
+            if (len < 0 || start < 0 || start >= (header.getSize() & 0xffff)) {
                 return false;
             }
 
-            if ((start + len) > (m_header.getSize() & 0xFFFF)) len = (m_header.getSize() & 0xFFFF) - start;
+            if ((start + len) > (header.getSize() & 0xffff)) len = (header.getSize() & 0xffff) - start;
             System.arraycopy(buf, 0, data, start, len);
             return true;
         }
@@ -457,17 +457,17 @@ public class DiskD88 {
         }
 
         @Override
-        public short get16(int pos, boolean big_endian) {
+        public short get16(int pos, boolean bigEndian) {
             if (data == null) {
                 return 0;
             }
             if (pos < 0) {
                 pos += getSectorSize();
             }
-            if (big_endian) {
-                return (short) (((data[pos] & 0xFF) << 8) | (data[pos + 1] & 0xFF));
+            if (bigEndian) {
+                return (short) (((data[pos] & 0xff) << 8) | (data[pos + 1] & 0xff));
             } else {
-                return (short) (((data[pos + 1] & 0xFF) << 8) | (data[pos] & 0xFF));
+                return (short) (((data[pos + 1] & 0xff) << 8) | (data[pos] & 0xff));
             }
         }
 
@@ -477,20 +477,20 @@ public class DiskD88 {
             if (data == null) {
                 return diff;
             }
-            if (size != (m_header.getSize() & 0xFFFF)) {
-                diff = (m_header.getSize() & 0xFFFF) - size;
+            if (size != (header.getSize() & 0xffff)) {
+                diff = (header.getSize() & 0xffff) - size;
 
                 byte[] newdata = new byte[size];
                 Arrays.fill(newdata, (byte) 0);
-                System.arraycopy(data, 0, newdata, 0, Math.min(size, m_header.getSize() & 0xFFFF));
+                System.arraycopy(data, 0, newdata, 0, Math.min(size, header.getSize() & 0xffff));
                 data = newdata;
 
                 newdata = new byte[size];
                 Arrays.fill(newdata, (byte) 0);
-                System.arraycopy(data_origin, 0, newdata, 0, Math.min(size, m_header.getSize() & 0xFFFF));
-                data_origin = newdata;
+                System.arraycopy(dataOrigin, 0, newdata, 0, Math.min(size, header.getSize() & 0xffff));
+                dataOrigin = newdata;
 
-                m_header.setSize((short) size);
+                header.setSize((short) size);
                 setSectorSize(size);
             }
             return diff;
@@ -505,10 +505,10 @@ public class DiskD88 {
             if (data == null) {
                 return false;
             }
-            boolean mod = !m_header_origin.isSame(m_header);
-            if (!mod && data != null && data_origin != null) {
-                mod = !Arrays.equals(Arrays.copyOf(data_origin, m_header_origin.getSize() & 0xFFFF),
-                        Arrays.copyOf(data, m_header_origin.getSize() & 0xFFFF));
+            boolean mod = !headerOrigin.isSame(header);
+            if (!mod && data != null && dataOrigin != null) {
+                mod = !Arrays.equals(Arrays.copyOf(dataOrigin, headerOrigin.getSize() & 0xffff),
+                        Arrays.copyOf(data, headerOrigin.getSize() & 0xffff));
             }
             return mod;
         }
@@ -518,43 +518,43 @@ public class DiskD88 {
             if (data == null) {
                 return;
             }
-            m_header_origin.copy(m_header);
-            if (data != null && data_origin != null) {
-                System.arraycopy(data, 0, data_origin, 0, m_header_origin.getSize() & 0xFFFF);
+            headerOrigin.copy(header);
+            if (data != null && dataOrigin != null) {
+                System.arraycopy(data, 0, dataOrigin, 0, headerOrigin.getSize() & 0xffff);
             }
         }
 
         @Override
         public void setSectorNumber(int val) {
             super.setSectorNumber(val);
-            m_header.setIDR((byte) val);
+            header.setIDR((byte) val);
         }
 
         @Override
         public boolean isDeleted() {
-            return m_header.getDeleted() != 0;
+            return header.getDeleted() != 0;
         }
 
         @Override
         public void setDeletedMark(boolean val) {
-            m_header.setDeleted((byte) (val ? 0x10 : 0));
+            header.setDeleted((byte) (val ? 0x10 : 0));
         }
 
         @Override
-        public boolean isSameSector(int sector_number, int density, boolean deleted_mark) {
-            return sector_number == mNum &&
+        public boolean isSameSector(int sectorNumber, int density, boolean deletedMark) {
+            return sectorNumber == mNum &&
                     (density < 0 || (density == (isSingleDensity() ? 1 : 0))) &&
-                    deleted_mark == isDeleted();
+                    deletedMark == isDeleted();
         }
 
         @Override
         public int getHeaderSize() {
-            return m_header.getHeaderSize();
+            return header.getHeaderSize();
         }
 
         @Override
         public int getSectorSize() {
-            int sec = convIDNToSecSize(m_header.getIDN());
+            int sec = convIDNToSecSize(header.getIDN());
             if (sec <= 0) return 0;
             if (sec > getSectorBufferSize()) sec = getSectorBufferSize();
             return sec;
@@ -562,12 +562,12 @@ public class DiskD88 {
 
         @Override
         public void setSectorSize(int val) {
-            m_header.setIDN(convSecSizeToIDN(val));
+            header.setIDN(convSecSizeToIDN(val));
         }
 
         @Override
         public int getSectorBufferSize() {
-            return m_header.getSize() & 0xFFFF;
+            return header.getSize() & 0xffff;
         }
 
         @Override
@@ -582,7 +582,7 @@ public class DiskD88 {
 
         @Override
         public byte[] getSectorBuffer(int offset) {
-            return (data != null && offset < (m_header.getSize() & 0xFFFF)) ? Arrays.copyOfRange(data, offset, data.length) : null;
+            return (data != null && offset < (header.getSize() & 0xffff)) ? Arrays.copyOfRange(data, offset, data.length) : null;
         }
 
         @Override
@@ -592,72 +592,72 @@ public class DiskD88 {
 
         @Override
         public short getSectorsPerTrack() {
-            return m_header.getNumberOfSectors();
+            return header.getNumberOfSectors();
         }
 
         @Override
         public void setSectorsPerTrack(short val) {
-            m_header.setNumberOfSectors(val);
+            header.setNumberOfSectors(val);
         }
 
         @Override
         public byte getSectorStatus() {
-            return m_header.getStatus();
+            return header.getStatus();
         }
 
         @Override
         public void setSectorStatus(byte val) {
-            m_header.setStatus(val);
+            header.setStatus(val);
         }
 
         @Override
         public byte getIDC() {
-            return m_header.getIDC();
+            return header.getIDC();
         }
 
         @Override
         public byte getIDH() {
-            return m_header.getIDH();
+            return header.getIDH();
         }
 
         @Override
         public byte getIDR() {
-            return m_header.getIDR();
+            return header.getIDR();
         }
 
         @Override
         public byte getIDN() {
-            return m_header.getIDN();
+            return header.getIDN();
         }
 
         @Override
         public void setIDC(byte val) {
-            m_header.setIDC(val);
+            header.setIDC(val);
         }
 
         @Override
         public void setIDH(byte val) {
-            m_header.setIDH(val);
+            header.setIDH(val);
         }
 
         @Override
         public void setIDR(byte val) {
-            m_header.setIDR(val);
+            header.setIDR(val);
         }
 
         @Override
         public void setIDN(byte val) {
-            m_header.setIDN(val);
+            header.setIDN(val);
         }
 
         @Override
         public boolean isSingleDensity() {
-            return m_header.getDensity() == 0x40;
+            return header.getDensity() == 0x40;
         }
 
         @Override
         public void setSingleDensity(boolean val) {
-            m_header.setDensity((byte) (val ? 0x40 : 0));
+            header.setDensity((byte) (val ? 0x40 : 0));
         }
     }
 
@@ -668,28 +668,28 @@ public class DiskD88 {
             super(disk);
         }
 
-        public DiskD88Track(DiskImageDisk disk, int n_trk_num, int n_sid_num, int n_offset_pos, int n_interleave) {
-            super(disk, n_trk_num, n_sid_num, n_offset_pos, n_interleave);
+        public DiskD88Track(DiskImageDisk disk, int trackNum, int sideNum, int offsetPos, int interleave) {
+            super(disk, trackNum, sideNum, offsetPos, interleave);
         }
 
         @Override
-        public DiskImageSector newImageSector(int n_num, DiskImageSectorHeader n_header, byte[] n_data) {
-            return new DiskD88Sector(n_num, n_header, n_data);
+        public DiskImageSector newImageSector(int num, DiskImageSectorHeader header, byte[] data) {
+            return new DiskD88Sector(num, header, data);
         }
 
         @Override
-        public DiskImageSector newImageSector(int track_number, int side_number, int sector_number, int sector_size, int number_of_sector, boolean single_density, int status) {
-            return new DiskD88Sector(track_number, side_number, sector_number, sector_size, number_of_sector, single_density, status);
+        public DiskImageSector newImageSector(int trackNumber, int sideNumber, int sectorNumber, int sectorSize, int numberOfSector, boolean singleDensity, int status) {
+            return new DiskD88Sector(trackNumber, sideNumber, sectorNumber, sectorSize, numberOfSector, singleDensity, status);
         }
     }
 
     /** １ディスクのヘッダを渡すクラス */
     public static class DiskD88DiskHeader extends DiskImageDiskHeader {
 
-        private D88Header m_header;
+        private D88Header header;
 
         public DiskD88DiskHeader() {
-            m_header = null;
+            header = null;
         }
 
         @Override
@@ -698,7 +698,7 @@ public class DiskD88 {
         }
 
         public D88Header getHeader() {
-            return m_header;
+            return header;
         }
 
         public int getHeaderSize() {
@@ -706,74 +706,74 @@ public class DiskD88 {
         }
 
         public void alloc() {
-            if (m_header == null) {
-                m_header = new D88Header();
+            if (header == null) {
+                header = new D88Header();
             }
-            Arrays.fill(m_header.diskname, (byte) 0);
-            Arrays.fill(m_header.reserved1, (byte) 0);
-            m_header.write_protect = 0;
-            m_header.disk_density = 0;
-            m_header.disk_size = 0;
-            Arrays.fill(m_header.offsets, 0);
+            Arrays.fill(header.diskName, (byte) 0);
+            Arrays.fill(header.reserved1, (byte) 0);
+            header.writeProtect = 0;
+            header.diskDensity = 0;
+            header.diskSize = 0;
+            Arrays.fill(header.offsets, 0);
         }
 
         public void free() {
-            m_header = null;
+            header = null;
         }
 
         public void newHeader(DiskImageDiskHeader src) {
-            if (m_header == null) {
-                m_header = new D88Header();
+            if (header == null) {
+                header = new D88Header();
             }
             if (src.getHeaderType() == DiskD88.HEADER_TYPE_D88) {
-                D88Header srcHeader = ((DiskD88DiskHeader) src).m_header;
-                System.arraycopy(srcHeader.diskname, 0, m_header.diskname, 0, 17);
-                System.arraycopy(srcHeader.reserved1, 0, m_header.reserved1, 0, 9);
-                m_header.write_protect = srcHeader.write_protect;
-                m_header.disk_density = srcHeader.disk_density;
-                m_header.disk_size = srcHeader.disk_size;
-                System.arraycopy(srcHeader.offsets, 0, m_header.offsets, 0, DiskD88.DISKD88_MAX_TRACKS);
+                D88Header srcHeader = ((DiskD88DiskHeader) src).header;
+                System.arraycopy(srcHeader.diskName, 0, header.diskName, 0, 17);
+                System.arraycopy(srcHeader.reserved1, 0, header.reserved1, 0, 9);
+                header.writeProtect = srcHeader.writeProtect;
+                header.diskDensity = srcHeader.diskDensity;
+                header.diskSize = srcHeader.diskSize;
+                System.arraycopy(srcHeader.offsets, 0, header.offsets, 0, DiskD88.DISKD88_MAX_TRACKS);
             }
         }
 
         public void fill(byte data) {
-            if (m_header == null) return;
-            Arrays.fill(m_header.diskname, data);
-            Arrays.fill(m_header.reserved1, data);
-            m_header.write_protect = data;
-            m_header.disk_density = data;
-            m_header.disk_size = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).put(data).put(data).put(data).put(data).getInt(0);
-            Arrays.fill(m_header.offsets, ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).put(data).put(data).put(data).put(data).getInt(0));
+            if (header == null) return;
+            Arrays.fill(header.diskName, data);
+            Arrays.fill(header.reserved1, data);
+            header.writeProtect = data;
+            header.diskDensity = data;
+            header.diskSize = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).put(data).put(data).put(data).put(data).getInt(0);
+            Arrays.fill(header.offsets, ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).put(data).put(data).put(data).put(data).getInt(0));
         }
 
         public void copy(DiskD88DiskHeader src) {
-            if (m_header == null || src.m_header == null) return;
-            System.arraycopy(src.m_header.diskname, 0, m_header.diskname, 0, 17);
-            System.arraycopy(src.m_header.reserved1, 0, m_header.reserved1, 0, 9);
-            m_header.write_protect = src.m_header.write_protect;
-            m_header.disk_density = src.m_header.disk_density;
-            m_header.disk_size = src.m_header.disk_size;
-            System.arraycopy(src.m_header.offsets, 0, m_header.offsets, 0, DiskD88.DISKD88_MAX_TRACKS);
+            if (header == null || src.header == null) return;
+            System.arraycopy(src.header.diskName, 0, header.diskName, 0, 17);
+            System.arraycopy(src.header.reserved1, 0, header.reserved1, 0, 9);
+            header.writeProtect = src.header.writeProtect;
+            header.diskDensity = src.header.diskDensity;
+            header.diskSize = src.header.diskSize;
+            System.arraycopy(src.header.offsets, 0, header.offsets, 0, DiskD88.DISKD88_MAX_TRACKS);
         }
 
         public void clearOffsets() {
-            if (m_header == null) return;
-            Arrays.fill(m_header.offsets, 0);
+            if (header == null) return;
+            Arrays.fill(header.offsets, 0);
         }
 
         public boolean isSame(DiskD88DiskHeader src) {
-            if (m_header == null || src.m_header == null) return false;
-            return Arrays.equals(m_header.diskname, src.m_header.diskname) &&
-                    Arrays.equals(m_header.reserved1, src.m_header.reserved1) &&
-                    m_header.write_protect == src.m_header.write_protect &&
-                    m_header.disk_density == src.m_header.disk_density &&
-                    m_header.disk_size == src.m_header.disk_size &&
-                    Arrays.equals(m_header.offsets, src.m_header.offsets);
+            if (header == null || src.header == null) return false;
+            return Arrays.equals(header.diskName, src.header.diskName) &&
+                    Arrays.equals(header.reserved1, src.header.reserved1) &&
+                    header.writeProtect == src.header.writeProtect &&
+                    header.diskDensity == src.header.diskDensity &&
+                    header.diskSize == src.header.diskSize &&
+                    Arrays.equals(header.offsets, src.header.offsets);
         }
 
         @Override
         public String getName(boolean real) {
-            String name = m_header != null ? new String(m_header.diskname).trim() : "";
+            String name = header != null ? new String(header.diskName).trim() : "";
             if (!real && name.isEmpty()) {
                 name = "(no name)";
             }
@@ -782,25 +782,25 @@ public class DiskD88 {
 
         @Override
         public boolean isWriteProtected() {
-            return m_header != null && m_header.write_protect != 0;
+            return header != null && header.writeProtect != 0;
         }
 
         public byte getDensity() {
-            return m_header != null ? m_header.disk_density : 0;
+            return header != null ? header.diskDensity : 0;
         }
 
         public int getDiskSize() {
-            if (m_header == null) return 0;
-            return m_header.disk_size;
+            if (header == null) return 0;
+            return header.diskSize;
         }
 
         public int getOffset(int num) {
-            if (m_header == null || num < 0 || num >= DiskD88.DISKD88_MAX_TRACKS) return 0;
-            return m_header.offsets[num];
+            if (header == null || num < 0 || num >= DiskD88.DISKD88_MAX_TRACKS) return 0;
+            return header.offsets[num];
         }
 
         public void setName(String val) {
-            if (m_header == null) return;
+            if (header == null) return;
 
             String name = val;
             if (name.equals("(no name)")) {
@@ -809,36 +809,36 @@ public class DiskD88 {
 
             byte[] nameBytes = name.getBytes();
             int len = Math.min(nameBytes.length, 16);
-            System.arraycopy(nameBytes, 0, m_header.diskname, 0, len);
+            System.arraycopy(nameBytes, 0, header.diskName, 0, len);
             if (len < 17) {
-                m_header.diskname[len] = 0;
+                header.diskName[len] = 0;
             }
         }
 
         public void setName(byte[] buf, int len) {
-            if (m_header == null) return;
+            if (header == null) return;
 
             if (len > 16) len = 16;
-            System.arraycopy(buf, 0, m_header.diskname, 0, len);
+            System.arraycopy(buf, 0, header.diskName, 0, len);
             if (len < 16) len++;
-            m_header.diskname[len] = 0;
+            header.diskName[len] = 0;
         }
 
         public void setWriteProtect(boolean val) {
-            if (m_header != null) m_header.write_protect = (byte) (val ? 0x10 : 0);
+            if (header != null) header.writeProtect = (byte) (val ? 0x10 : 0);
         }
 
         public void setDensity(byte val) {
-            if (m_header != null) m_header.disk_density = val;
+            if (header != null) header.diskDensity = val;
         }
 
         public void setDiskSize(int val) {
-            if (m_header != null) m_header.disk_size = val;
+            if (header != null) header.diskSize = val;
         }
 
         public void setOffset(int num, int val) {
             if (num < 0 || num >= DiskD88.DISKD88_MAX_TRACKS) return;
-            if (m_header != null) m_header.offsets[num] = val;
+            if (header != null) header.offsets[num] = val;
         }
     }
 
@@ -846,40 +846,40 @@ public class DiskD88 {
     public static class DiskD88Disk extends DiskImageDisk {
 
         /** disk header */
-        private final DiskD88DiskHeader m_header = new DiskD88DiskHeader();
-        private final DiskD88DiskHeader m_header_origin = new DiskD88DiskHeader();
+        private final DiskD88DiskHeader header = new DiskD88DiskHeader();
+        private final DiskD88DiskHeader headerOrigin = new DiskD88DiskHeader();
 
         /** 変更したか */
-        private boolean m_modified;
+        private boolean modified;
 
-        private final int m_offset_start;
+        private final int offsetStart;
 
         public DiskD88Disk(DiskImageFile file, int n_num) {
             super(file, n_num);
-            m_header.alloc();
-            m_offset_start = m_header.getHeaderSize();
-            m_header_origin.alloc();
-            m_modified = false;
+            header.alloc();
+            offsetStart = header.getHeaderSize();
+            headerOrigin.alloc();
+            modified = false;
         }
 
-        public DiskD88Disk(DiskImageFile file, int n_num, DiskParam n_param, String n_diskname, boolean n_write_protect) {
-            super(file, n_num, n_param, n_diskname, n_write_protect);
-            m_header.alloc();
-            m_offset_start = m_header.getHeaderSize();
-            m_header_origin.alloc();
-            m_header_origin.fill((byte) 0xff);
-            m_header.setName(n_diskname);
-            m_header.setDensity((byte) n_param.getParamDensity());
-            m_header.setWriteProtect(n_write_protect);
-            m_modified = true;
+        public DiskD88Disk(DiskImageFile file, int num, DiskParam param, String diskName, boolean writeProtect) {
+            super(file, num, param, diskName, writeProtect);
+            header.alloc();
+            offsetStart = header.getHeaderSize();
+            headerOrigin.alloc();
+            headerOrigin.fill((byte) 0xff);
+            header.setName(diskName);
+            header.setDensity((byte) param.getParamDensity());
+            header.setWriteProtect(writeProtect);
+            modified = true;
         }
 
-        public DiskD88Disk(DiskImageFile file, int n_num, DiskImageDiskHeader n_header) {
-            super(file, n_num, n_header);
-            m_header.newHeader(n_header);
-            m_offset_start = m_header.getHeaderSize();
-            m_header_origin.newHeader(n_header);
-            m_modified = false;
+        public DiskD88Disk(DiskImageFile file, int num, DiskImageDiskHeader header) {
+            super(file, num, header);
+            this.header.newHeader(header);
+            offsetStart = this.header.getHeaderSize();
+            headerOrigin.newHeader(header);
+            modified = false;
         }
 
         @Override
@@ -888,107 +888,107 @@ public class DiskD88 {
         }
 
         @Override
-        public DiskImageTrack newImageTrack(int n_trk_num, int n_sid_num, int n_offset_pos, int n_interleave) {
-            return new DiskD88Track(this, n_trk_num, n_sid_num, n_offset_pos, n_interleave);
+        public DiskImageTrack newImageTrack(int trackNum, int sideNum, int offsetPos, int interleave) {
+            return new DiskD88Track(this, trackNum, sideNum, offsetPos, interleave);
         }
 
         @Override
         public void setModify() {
-            m_modified = !m_header_origin.isSame(m_header);
+            modified = !headerOrigin.isSame(header);
         }
 
         @Override
         public void clearModify() {
             super.clearModify();
-            m_header_origin.copy(m_header);
-            m_modified = false;
+            headerOrigin.copy(header);
+            modified = false;
         }
 
         @Override
         public boolean isModified() {
-            if (!m_modified) {
-                m_modified = super.isModified();
+            if (!modified) {
+                modified = super.isModified();
             }
-            return m_modified;
+            return modified;
         }
 
         @Override
         public String getName(boolean real) {
-            return m_header.getName(real);
+            return header.getName(real);
         }
 
         @Override
         public void setName(String val) {
-            m_header.setName(val);
+            header.setName(val);
         }
 
         @Override
         public void setName(byte[] buf, int len) {
-            m_header.setName(buf, len);
+            header.setName(buf, len);
         }
 
         @Override
         public boolean isWriteProtected() {
-            return m_header.isWriteProtected();
+            return header.isWriteProtected();
         }
 
         @Override
         public void setWriteProtect(boolean val) {
-            m_header.setWriteProtect(val);
+            header.setWriteProtect(val);
         }
 
         @Override
         public String getDensityText() {
-            byte num = m_header.getDensity();
+            byte num = header.getDensity();
             int match = parent.getImage().findDensity(num & 0xFF);
             return match >= 0 ? DiskD88.gDiskDensity[match].name : "";
         }
 
         @Override
         public int getDensity() {
-            return m_header.getDensity() & 0xFF;
+            return header.getDensity() & 0xFF;
         }
 
         @Override
         public void setDensity(int val) {
-            m_header.setDensity((byte) val);
+            header.setDensity((byte) val);
         }
 
         @Override
         public int getSize() {
-            return m_header.getDiskSize();
+            return header.getDiskSize();
         }
 
         @Override
         public void setSize(int val) {
-            m_header.setDiskSize(val);
+            header.setDiskSize(val);
         }
 
         @Override
         public int getSizeWithoutHeader() {
-            int size = m_header.getDiskSize();
-            if (size >= m_offset_start) size -= m_offset_start;
+            int size = header.getDiskSize();
+            if (size >= offsetStart) size -= offsetStart;
             return size;
         }
 
         @Override
         public void setSizeWithoutHeader(int val) {
-            m_header.setDiskSize(val + m_offset_start);
+            header.setDiskSize(val + offsetStart);
         }
 
         @Override
         public int getOffset(int num) {
-            return m_header.getOffset(num);
+            return header.getOffset(num);
         }
 
         @Override
         public void setOffset(int num, int offset) {
-            m_header.setOffset(num, offset);
+            header.setOffset(num, offset);
         }
 
         @Override
         public void setOffsetWithoutHeader(int num, int offset) {
-            m_header.setOffset(num, offset + m_offset_start);
+            header.setOffset(num, offset + offsetStart);
         }
     }
 
@@ -999,18 +999,18 @@ public class DiskD88 {
         }
 
         @Override
-        public DiskImageDisk newImageDisk(int n_num) {
-            return new DiskD88Disk(this, n_num);
+        public DiskImageDisk newImageDisk(int num) {
+            return new DiskD88Disk(this, num);
         }
 
         @Override
-        public DiskImageDisk newImageDisk(int n_num, DiskParam n_param, String n_diskname, boolean n_write_protect) {
-            return new DiskD88Disk(this, n_num, n_param, n_diskname, n_write_protect);
+        public DiskImageDisk newImageDisk(int num, DiskParam param, String diskName, boolean writeProtect) {
+            return new DiskD88Disk(this, num, param, diskName, writeProtect);
         }
 
         @Override
-        public DiskImageDisk newImageDisk(int n_num, DiskImageDiskHeader n_header) {
-            return new DiskD88Disk(this, n_num, n_header);
+        public DiskImageDisk newImageDisk(int num, DiskImageDiskHeader header) {
+            return new DiskD88Disk(this, num, header);
         }
     }
 
@@ -1025,11 +1025,11 @@ public class DiskD88 {
             return new DiskD88File(this);
         }
 
-        public int getDensityNames(ArrayList<String> arr) {
+        public int getDensityNames(ArrayList<String> result) {
             for (int i = 0; DiskD88.gDiskDensity[i].name != null; i++) {
-                arr.add(DiskD88.gDiskDensity[i].name);
+                result.add(DiskD88.gDiskDensity[i].name);
             }
-            return arr.size();
+            return result.size();
         }
 
         @Override
@@ -1045,10 +1045,10 @@ public class DiskD88 {
         }
 
         @Override
-        public int findDensityByIndex(int idx) {
+        public int findDensityByIndex(int index) {
             int match = -1;
             for (int i = 0; DiskD88.gDiskDensity[i].name != null; i++) {
-                if (i == idx) {
+                if (i == index) {
                     match = i;
                     break;
                 }
@@ -1057,8 +1057,8 @@ public class DiskD88 {
         }
 
         @Override
-        public byte getDensity(int idx) {
-            return DiskD88.gDiskDensity[idx].val;
+        public byte getDensity(int index) {
+            return DiskD88.gDiskDensity[index].val;
         }
     }
 }

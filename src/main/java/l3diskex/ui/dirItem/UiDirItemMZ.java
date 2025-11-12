@@ -21,7 +21,7 @@ import l3diskex.basicfmt.DiskBasicError;
 import l3diskex.ui.IntNameBox;
 import l3diskex.ui.UiDirItem;
 
-import static l3diskex.Config.gConfig;
+import static l3diskex.Config.config;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_MACHINE_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_READONLY_MASK;
 import static l3diskex.basicfmt.diritem.DiskBasicDirItemMZ.MZConstants.DATATYPE_MZ_READ_ONLY;
@@ -108,7 +108,7 @@ public class UiDirItemMZ extends UiDirItem {
     @Override
     public void initializeForAttrDialog(IntNameBox parent, int show_flags, int[] user_data) {
         LocalDateTime tm = dirItem.getFileCreateDateTime();
-        parent.IgnoreDateTime(gConfig.doesIgnoreDateTime() || tm.Ignorable());
+        parent.IgnoreDateTime(config.doesIgnoreDateTime() || tm.Ignorable());
     }
 
     @Override
@@ -144,33 +144,16 @@ public class UiDirItemMZ extends UiDirItem {
     }
 
     private int CalcFileTypeFromPos(int pos) {
-        int val = -1;
-        switch (pos) {
-            case TYPE_NAME_MZ_OBJ:
-                val = FILETYPE_MZ_OBJ;
-                break;
-            case TYPE_NAME_MZ_BTX:
-                val = FILETYPE_MZ_BTX;
-                break;
-            case TYPE_NAME_MZ_BSD:
-                val = FILETYPE_MZ_BSD;
-                break;
-            case TYPE_NAME_MZ_BRD:
-                val = FILETYPE_MZ_BRD;
-                break;
-            case TYPE_NAME_MZ_DIR:
-                val = FILETYPE_MZ_DIR;
-                break;
-            case TYPE_NAME_MZ_VOL:
-                val = FILETYPE_MZ_VOL;
-                break;
-            case TYPE_NAME_MZ_VOLSWAP:
-                val = FILETYPE_MZ_VOLSWAP;
-                break;
-            default:
-                val = dirItem.calcSpecialOriginalTypeFromPos(dirItem.getBasic(), pos, TYPE_NAME_MZ_END);
-                break;
-        }
+        int val = switch (pos) {
+            case TYPE_NAME_MZ_OBJ -> FILETYPE_MZ_OBJ;
+            case TYPE_NAME_MZ_BTX -> FILETYPE_MZ_BTX;
+            case TYPE_NAME_MZ_BSD -> FILETYPE_MZ_BSD;
+            case TYPE_NAME_MZ_BRD -> FILETYPE_MZ_BRD;
+            case TYPE_NAME_MZ_DIR -> FILETYPE_MZ_DIR;
+            case TYPE_NAME_MZ_VOL -> FILETYPE_MZ_VOL;
+            case TYPE_NAME_MZ_VOLSWAP -> FILETYPE_MZ_VOLSWAP;
+            default -> dirItem.calcSpecialOriginalTypeFromPos(dirItem.getBasic(), pos, TYPE_NAME_MZ_END);
+        };
         return val;
     }
 

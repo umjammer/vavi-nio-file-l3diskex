@@ -106,8 +106,8 @@ public class ConfigBox extends JDialog {
         JButton ok = new JButton("OK");
         JButton can = new JButton("Cancel");
 
-        ok.addActionListener(e -> onOK(e));
-        can.addActionListener(e -> onCancel(e));
+        ok.addActionListener(this::onOK);
+        can.addActionListener(this::onCancel);
 
         btnPane.add(ok);
         btnPane.add(can);

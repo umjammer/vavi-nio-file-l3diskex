@@ -22,7 +22,7 @@ import l3diskex.ui.UiDirItem;
 import static l3diskex.basicfmt.diritem.DiskBasicDirItemC1541.FILETYPE_MASK_C1541_REL;
 import static l3diskex.basicfmt.diritem.DiskBasicDirItemC1541.TYPE_NAME_C1541_DEL;
 import static l3diskex.basicfmt.diritem.DiskBasicDirItemC1541.TYPE_NAME_C1541_REL;
-import static l3diskex.basicfmt.diritem.DiskBasicDirItemC1541.gTypeNameC1541;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemC1541.typeNameC1541;
 import static l3diskex.ui.IntNameBox.INTNAME_NEW_FILE;
 
 
@@ -98,7 +98,7 @@ public class UiDirItemC1541 extends UiDirItem {
 
         List<String> types1 = new ArrayList<>();
         for (int i = TYPE_NAME_C1541_DEL; i <= TYPE_NAME_C1541_REL; i++) {
-            types1.add(Utils.keyAt(gTypeNameC1541, i)); // Mock of wxGetTranslation
+            types1.add(Utils.keyAt(typeNameC1541, i)); // Mock of wxGetTranslation
         }
         // Mocking UI creation
         // BoxLayout *staType1 = new BoxLayout(...);
@@ -130,7 +130,7 @@ public class UiDirItemC1541 extends UiDirItem {
             // IntNameBox::CreateFileSize(parent, IDC_TEXT_SIDESEC, "Size of Side Sector", 20, true, null, null, szrG, txtSideSecArr); // Mock call
             txtSideSec = (JTextField) txtSideSecArr[0]; // Assuming it's set by the mock call
 
-            int sid_size = dirItem.m_ss_groups.getSize();
+            int sid_size = dirItem.ssGroups.getSize();
             String sid_size_str = IntNameBox.convFileSize(sid_size);
             txtSideSec.setText(sid_size_str);
             txtSideSec.setEditable(false);
@@ -162,7 +162,7 @@ public class UiDirItemC1541 extends UiDirItem {
 
         int type1pos = comType1.getSelectedIndex();
 
-        ori = (int) Utils.valueAt(gTypeNameC1541, type1pos);
+        ori = (int) Utils.valueAt(typeNameC1541, type1pos);
 
         int rec_siz = Integer.parseInt(txtRecSize.getText());
 

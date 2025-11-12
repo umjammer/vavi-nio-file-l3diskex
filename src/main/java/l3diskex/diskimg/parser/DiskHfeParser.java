@@ -25,7 +25,9 @@ import vavi.util.serdes.Serdes;
 
 
 /**
- * HxC HFEディスクパーサー
+ * HxC HFE ディスクパーサー
+ *
+ * @see "https://hxc2001.com/floppy_drive_emulator/HFE-file-format.html"
  */
 public class DiskHfeParser extends DiskImageParser {
 
@@ -38,27 +40,27 @@ public class DiskHfeParser extends DiskImageParser {
 
         protected DiskImageDisk disk;
         protected DiskImageTrack track;
-        protected int track_size;
+        protected int trackSize;
         protected byte[] data;
-        protected int data_len;
-        protected int track_number;
-        protected int side_number;
-        protected int sector_nums;
-        protected int d88_offset_pos;
+        protected int dataLen;
+        protected int trackNumber;
+        protected int sideNumber;
+        protected int numOfSectors;
+        protected int d88OffsetPos;
         protected DiskResult result;
 
         protected static class CurrentIDs {
 
-            public byte C;
-            public byte H;
-            public byte R;
-            public byte N;
-            public short CRC; // wxUint16
+            public byte c;
+            public byte h;
+            public byte r;
+            public byte n;
+            public short crc;
         }
 
-        protected CurrentIDs curr_ids;
+        protected CurrentIDs currentIDs;
 
-        /// GAPをさがす
+        /** GAPをさがす */
         protected abstract boolean adjustGap();
 
         /** データを得る */
@@ -67,34 +69,34 @@ public class DiskHfeParser extends DiskImageParser {
         /**
          * セクタデータをセット
          *
-         * @param indata  [in,out] 解析対象データ
+         * @param inData  [in,out] 解析対象データ
          * @param single  single sided?
          * @param deleted Deleted mark?
          * @return セクタサイズ
          */
-        protected int setSectorData(byte[] indata, boolean single, boolean deleted) {
-            int track_num = curr_ids.C & 0xff;
-            int side_num = curr_ids.H & 0xff;
-            int sector_num = curr_ids.R & 0xff;
-            int sector_size_code = curr_ids.N & 0xff;
+        protected int setSectorData(byte[] inData, boolean single, boolean deleted) {
+            int trackNum = currentIDs.c & 0xff;
+            int sideNum = currentIDs.h & 0xff;
+            int sectorNum = currentIDs.r & 0xff;
+            int sectorSizeCode = currentIDs.n & 0xff;
 
-            if (sector_size_code > 7) {
+            if (sectorSizeCode > 7) {
                 // セクタサイズが大きすぎる
-                result.setError(DiskResult.ERRV_SECTOR_SIZE_SECTOR, 0, track_num, side_num, sector_num, sector_size_code, sector_size_code);
+                result.setError(DiskResult.ERRV_SECTOR_SIZE_SECTOR, 0, trackNum, sideNum, sectorNum, sectorSizeCode, sectorSizeCode);
                 return 0;
             }
 
-            int sector_size = (128 << sector_size_code);
+            int sectorSize = (128 << sectorSizeCode);
 
-            sector_nums++;
-            DiskImageSector sector = track.newImageSector(track_num, side_num, sector_num, sector_size, 1, false, 0);
+            numOfSectors++;
+            DiskImageSector sector = track.newImageSector(trackNum, sideNum, sectorNum, sectorSize, 1, false, 0);
             track.add(sector);
 
             byte[] buf = sector.getSectorBuffer();
-            int siz = sector.getSectorBufferSize();
+            int size = sector.getSectorBufferSize();
             int unit = getDecodeUnit();
-            for (int i = 0; i < siz; i++) {
-                buf[i] = decodeData(Arrays.copyOfRange(indata, i * unit, i * unit + unit));
+            for (int i = 0; i < size; i++) {
+                buf[i] = decodeData(Arrays.copyOfRange(inData, i * unit, i * unit + unit));
             }
 
             sector.setSingleDensity(single);
@@ -106,56 +108,56 @@ public class DiskHfeParser extends DiskImageParser {
         }
 
         /** データをデコード */
-        protected abstract byte decodeData(byte[] indata);
+        protected abstract byte decodeData(byte[] inData);
 
-        //
-        // Run-length limited(RLL)パーサ
-        //
+        /** Run-length limited(RLL)パーサ */
         public RunLengthLimitedParser() {
             disk = null;
             track = null;
-            track_size = 0;
+            trackSize = 0;
             data = null;
-            data_len = 0;
-            track_number = 0;
-            side_number = 0;
-            sector_nums = 0;
-            d88_offset_pos = 0;
+            dataLen = 0;
+            trackNumber = 0;
+            sideNumber = 0;
+            numOfSectors = 0;
+            d88OffsetPos = 0;
             result = null;
-            curr_ids = new CurrentIDs();
+            currentIDs = new CurrentIDs();
         }
 
         /**
-         * @param n_disk           [in,out] ディスク
-         * @param n_track_number   トラック番号
-         * @param n_side_number    サイド番号
-         * @param n_d88_offset_pos D88オフセット番号
-         * @param n_data           [in,out] 解析対象データ
-         * @param n_data_len       データサイズ
-         * @param n_result         [in,out] 解析エラー情報
+         * @param disk         [in,out] ディスク
+         * @param trackNumber  トラック番号
+         * @param sideNumber   サイド番号
+         * @param d88OffsetPos D88オフセット番号
+         * @param data         [in,out] 解析対象データ
+         * @param dataLen      データサイズ
+         * @param result       [in,out] 解析エラー情報
          */
-        public RunLengthLimitedParser(DiskImageDisk n_disk, int n_track_number, int n_side_number, int n_d88_offset_pos, byte[] n_data, int n_data_len, DiskResult n_result) {
-            disk = n_disk;
+        public RunLengthLimitedParser(DiskImageDisk disk, int trackNumber, int sideNumber, int d88OffsetPos, byte[] data, int dataLen, DiskResult result) {
+            this.disk = disk;
             track = null;
-            track_size = 0;
-            data = n_data;
-            data_len = n_data_len;
-            track_number = n_track_number;
-            side_number = n_side_number;
-            sector_nums = 0;
-            d88_offset_pos = n_d88_offset_pos;
-            result = n_result;
-            curr_ids = new CurrentIDs();
+            trackSize = 0;
+            this.data = data;
+            this.dataLen = dataLen;
+            this.trackNumber = trackNumber;
+            this.sideNumber = sideNumber;
+            numOfSectors = 0;
+            this.d88OffsetPos = d88OffsetPos;
+            this.result = result;
+            currentIDs = new CurrentIDs();
         }
 
-        /// データの解析
-        ///
-        /// @return D88形式でのトラックサイズ
+        /**
+         * データの解析
+         *
+         * @return D88形式でのトラックサイズ
+         */
         public int parse() {
-            track = disk.newImageTrack(track_number, side_number, d88_offset_pos, 1);
-            track_size = 0;
+            track = disk.newImageTrack(trackNumber, sideNumber, d88OffsetPos, 1);
+            trackSize = 0;
 
-            while (data_len > 0) {
+            while (dataLen > 0) {
                 if (!adjustGap()) {
                     break;
                 }
@@ -164,7 +166,7 @@ public class DiskHfeParser extends DiskImageParser {
                 }
             }
 
-            return track_size;
+            return trackSize;
         }
 
         public abstract int getDecodeUnit();
@@ -173,29 +175,29 @@ public class DiskHfeParser extends DiskImageParser {
             return track;
         }
 
-        public int getSectorNums() {
-            return sector_nums;
+        public int getNumOfSectors() {
+            return numOfSectors;
         }
 
         /**
          * バッファをシフト
          *
-         * @param data   [in,out] データ
-         * @param len    データ長さ
-         * @param sftcnt シフト数
+         * @param data       [in,out] データ
+         * @param len        データ長さ
+         * @param shiftCount シフト数
          * @return シフトした後のデータ数
          */
-        public static int shiftBytes(byte[] data, int len, int sftcnt) {
-            if (sftcnt <= 0) return len;
+        public static int shiftBytes(byte[] data, int len, int shiftCount) {
+            if (shiftCount <= 0) return len;
 
-            int endpos = len - sftcnt;
+            int endPos = len - shiftCount;
 
-            for (int i = 0; i < endpos; i++) {
-                data[i] = data[i + sftcnt];
+            for (int i = 0; i < endPos; i++) {
+                data[i] = data[i + shiftCount];
             }
-            data[endpos] = 0x00;
+            data[endPos] = 0x00;
 
-            len -= sftcnt;
+            len -= shiftCount;
 
             return len;
         }
@@ -203,30 +205,30 @@ public class DiskHfeParser extends DiskImageParser {
         /**
          * バッファをビットシフト
          *
-         * @param data   [in,out] データ
-         * @param len    データ長さ
-         * @param sftcnt シフト数
+         * @param data       [in,out] データ
+         * @param len        データ長さ
+         * @param shiftCount シフト数
          * @return シフトした後のデータ数
          */
-        public static int shiftBits(byte[] data, int len, int sftcnt) {
-            if (sftcnt <= 0) return len;
+        public static int shiftBits(byte[] data, int len, int shiftCount) {
+            if (shiftCount <= 0) return len;
 
-            int divn = (sftcnt >> 3);
-            int modn = (sftcnt & 7);
+            int div = (shiftCount >> 3);
+            int mod = (shiftCount & 7);
 
             // lshift bytes
-            if (divn > 0) {
-                len = shiftBytes(data, len, divn);
+            if (div > 0) {
+                len = shiftBytes(data, len, div);
             }
 
-            if (modn == 0) return len;
+            if (mod == 0) return len;
 
             // bit shift
             int carry = 0x00;
             for (int i = len - 1; i >= 0; i--) {
                 int currentByte = data[i] & 0xff;
-                int c = (currentByte << (8 - modn)) & 0xff;
-                data[i] = (byte) ((currentByte >>> modn) | carry);
+                int c = (currentByte << (8 - mod)) & 0xff;
+                data[i] = (byte) ((currentByte >>> mod) | carry);
                 carry = c;
             }
 
@@ -263,14 +265,14 @@ public class DiskHfeParser extends DiskImageParser {
         @Override
         protected boolean adjustGap() {
             boolean found = false;
-            int maxlen = data_len;
+            int maxLen = dataLen;
             byte[] buf = new byte[6];
             int pos = 0;
             // search GAP field
-            for (; pos < maxlen; pos++) {
+            for (; pos < maxLen; pos++) {
                 System.arraycopy(data, pos, buf, 0, 3);
-                int cnt = 0;
-                for (; cnt < 8; cnt++) {
+                int count = 0;
+                for (; count < 8; count++) {
                     if ((buf[0] & 0xff) == 0x49 && (buf[1] & 0xff) == 0x2a) {
                         found = true;
                         break;
@@ -280,21 +282,21 @@ public class DiskHfeParser extends DiskImageParser {
                     shiftBits(buf, 3, 1);
                 }
                 if (found) {
-                    data_len = shiftBits(data, data_len, pos * 8 + cnt);
+                    dataLen = shiftBits(data, dataLen, pos * 8 + count);
                     break;
                 }
             }
             if (!found) {
-                data_len = 0;
+                dataLen = 0;
                 return found;
             }
             // search the terminate of SYNC field
             found = false;
             pos = 0;
-            for (; pos < maxlen; pos++) {
+            for (; pos < maxLen; pos++) {
                 System.arraycopy(data, pos, buf, 0, 4);
-                int cnt = 0;
-                for (; cnt < 8; cnt++) {
+                int count = 0;
+                for (; count < 8; count++) {
                     boolean m1 = (buf[0] & 0xff) == 0x55 && (buf[1] & 0xff) == 0x55 && (buf[2] & 0xff) == 0x25;
                     boolean m2 = (buf[0] & 0xff) == 0x55 && (buf[1] & 0xff) == 0x55 && (buf[2] & 0xff) == 0xa5;
                     if (m1 || m2) {
@@ -306,20 +308,20 @@ public class DiskHfeParser extends DiskImageParser {
                     shiftBits(buf, 4, 1);
                 }
                 if (found) {
-                    if (cnt >= 4) {
-                        cnt -= 4;
+                    if (count >= 4) {
+                        count -= 4;
                     } else {
                         pos--;
-                        cnt += 4;
+                        count += 4;
                     }
                     if (pos >= 0) {
-                        data_len = shiftBits(data, data_len, pos * 8 + cnt);
+                        dataLen = shiftBits(data, dataLen, pos * 8 + count);
                     }
                     break;
                 }
             }
             if (!found) {
-                data_len = 0;
+                dataLen = 0;
             }
             return found;
         }
@@ -375,71 +377,73 @@ public class DiskHfeParser extends DiskImageParser {
         @Override
         protected boolean getData() {
             boolean found = false;
-            int maxlen = data_len;
+            int maxLen = dataLen;
             int pos = 0;
-            for (; pos < maxlen && !found; pos++) {
+            for (; pos < maxLen && !found; pos++) {
                 if (Arrays.equals(Arrays.copyOfRange(data, pos, pos + 10), cmpIdx)) {
                     // INDEX MARK
                     found = true;
-                    data_len = shiftBytes(data, data_len, pos + 10);
+                    dataLen = shiftBytes(data, dataLen, pos + 10);
                     break;
                 } else if (Arrays.equals(Arrays.copyOfRange(data, pos, pos + 10), cmpId)) {
                     // ID MARK
                     found = true;
                     // Get C,H,R,N,CRC
-                    curr_ids.C = decodeData(Arrays.copyOfRange(data, pos + 10, pos + 12));
-                    curr_ids.H = decodeData(Arrays.copyOfRange(data, pos + 12, pos + 14));
-                    curr_ids.R = decodeData(Arrays.copyOfRange(data, pos + 14, pos + 16));
-                    curr_ids.N = decodeData(Arrays.copyOfRange(data, pos + 16, pos + 18));
+                    currentIDs.c = decodeData(Arrays.copyOfRange(data, pos + 10, pos + 12));
+                    currentIDs.h = decodeData(Arrays.copyOfRange(data, pos + 12, pos + 14));
+                    currentIDs.r = decodeData(Arrays.copyOfRange(data, pos + 14, pos + 16));
+                    currentIDs.n = decodeData(Arrays.copyOfRange(data, pos + 16, pos + 18));
                     int crc_h = decodeData(Arrays.copyOfRange(data, pos + 18, pos + 20)) & 0xFF;
                     int crc_l = decodeData(Arrays.copyOfRange(data, pos + 20, pos + 22)) & 0xFF;
-                    curr_ids.CRC = (short) (crc_h * 256 + crc_l);
+                    currentIDs.crc = (short) (crc_h * 256 + crc_l);
 
-                    data_len = shiftBytes(data, data_len, pos + 22);
+                    dataLen = shiftBytes(data, dataLen, pos + 22);
                     break;
                 } else if (Arrays.equals(Arrays.copyOfRange(data, pos, pos + 10), cmpData)) {
                     // DATA MARK
                     found = true;
                     // Get Data
-                    int siz = setSectorData(Arrays.copyOfRange(data, pos + 10, data_len), false, false);
-                    track_size += siz;
+                    int size = setSectorData(Arrays.copyOfRange(data, pos + 10, dataLen), false, false);
+                    trackSize += size;
 
                     int unit = getDecodeUnit();
-                    data_len = shiftBytes(data, data_len, pos + ((siz + 2) * unit) + 10);
+                    dataLen = shiftBytes(data, dataLen, pos + ((size + 2) * unit) + 10);
                     break;
                 } else if (Arrays.equals(Arrays.copyOfRange(data, pos, pos + 10), cmpDelData)) {
                     // DELETED DATA MARK
                     found = true;
                     // Get Data
-                    int siz = setSectorData(Arrays.copyOfRange(data, pos + 10, data_len), false, true);
-                    track_size += siz;
+                    int size = setSectorData(Arrays.copyOfRange(data, pos + 10, dataLen), false, true);
+                    trackSize += size;
 
                     int unit = getDecodeUnit();
-                    data_len = shiftBytes(data, data_len, pos + ((siz + 2) * unit) + 10);
+                    dataLen = shiftBytes(data, dataLen, pos + ((size + 2) * unit) + 10);
                     break;
                 }
             }
             if (!found) {
-                data_len = 0;
+                dataLen = 0;
             }
             return found;
         }
 
-        /// データをデコード(MFM)
-        ///
-        /// @param indata 解析対象データ(2bytes)
-        /// @return デコード後のデータ
+        /**
+         * データをデコード(MFM)
+         *
+         * @param inData 解析対象データ(2bytes)
+         * @return デコード後のデータ
+         */
         @Override
-        protected byte decodeData(byte[] indata) {
-            byte outdata;
-            outdata = (byte) (((indata[0] & 0x80) >> 3) | ((indata[0] & 0x20)) | ((indata[0] & 0x08) << 3) | ((indata[0] & 0x02) << 6));
-            outdata |= (byte) (((indata[1] & 0x80) >> 7) | ((indata[1] & 0x20) >> 4) | ((indata[1] & 0x08) >> 1) | ((indata[1] & 0x02) << 2));
+        protected byte decodeData(byte[] inData) {
+            byte outData;
+            outData = (byte) (((inData[0] & 0x80) >> 3) | ((inData[0] & 0x20)) | ((inData[0] & 0x08) << 3) | ((inData[0] & 0x02) << 6));
+            outData |= (byte) (((inData[1] & 0x80) >> 7) | ((inData[1] & 0x20) >> 4) | ((inData[1] & 0x08) >> 1) | ((inData[1] & 0x02) << 2));
 
-            return outdata;
+            return outData;
         }
 
-        public FormatMFMParser(DiskImageDisk n_disk, int n_track_number, int n_side_number, int n_d88_offset_pos, byte[] n_data, int n_data_len, DiskResult n_result) {
-            super(n_disk, n_track_number, n_side_number, n_d88_offset_pos, n_data, n_data_len, n_result);
+        public FormatMFMParser(DiskImageDisk disk, int trackNumber, int sideNumber, int d88OffsetPos, byte[] data, int dataLen, DiskResult result) {
+            super(disk, trackNumber, sideNumber, d88OffsetPos, data, dataLen, result);
         }
 
         @Override
@@ -476,14 +480,14 @@ public class DiskHfeParser extends DiskImageParser {
         @Override
         protected boolean adjustGap() {
             boolean found = false;
-            int maxlen = data_len;
+            int maxLen = dataLen;
             byte[] buf = new byte[8];
             int pos = 0;
             // search GAP field
-            for (; pos < maxlen; pos++) {
+            for (; pos < maxLen; pos++) {
                 System.arraycopy(data, pos, buf, 0, 5);
-                int cnt = 0;
-                for (; cnt < 8; cnt++) {
+                int count = 0;
+                for (; count < 8; count++) {
                     if ((buf[0] & 0xff) == 0xaa && (buf[1] & 0xff) == 0xaa && (buf[2] & 0xff) == 0xaa && (buf[3] & 0xff) == 0xaa) {
                         found = true;
                         break;
@@ -493,21 +497,21 @@ public class DiskHfeParser extends DiskImageParser {
                     shiftBits(buf, 5, 1);
                 }
                 if (found) {
-                    data_len = shiftBits(data, data_len, pos * 8 + cnt);
+                    dataLen = shiftBits(data, dataLen, pos * 8 + count);
                     break;
                 }
             }
             if (!found) {
-                data_len = 0;
+                dataLen = 0;
                 return found;
             }
             // search the terminate of SYNC field
             found = false;
             pos = 0;
-            for (; pos < maxlen; pos++) {
+            for (; pos < maxLen; pos++) {
                 System.arraycopy(data, pos, buf, 0, 6);
-                int cnt = 0;
-                for (; cnt < 8; cnt++) {
+                int count = 0;
+                for (; count < 8; count++) {
                     if ((buf[0] & 0xff) == 0x22 && (buf[1] & 0xff) == 0x22 && (buf[2] & 0xff) == 0x22 && (buf[3] & 0xff) == 0x22 && (buf[4] & 0xff) == 0xa2) {
                         found = true;
                         break;
@@ -517,20 +521,20 @@ public class DiskHfeParser extends DiskImageParser {
                     shiftBits(buf, 6, 1);
                 }
                 if (found) {
-                    if (cnt >= 4) {
-                        cnt -= 4;
+                    if (count >= 4) {
+                        count -= 4;
                     } else {
                         pos--;
-                        cnt += 4;
+                        count += 4;
                     }
                     if (pos >= 0) {
-                        data_len = shiftBits(data, data_len, pos * 8 + cnt);
+                        dataLen = shiftBits(data, dataLen, pos * 8 + count);
                     }
                     break;
                 }
             }
             if (!found) {
-                data_len = 0;
+                dataLen = 0;
             }
             return found;
         }
@@ -573,69 +577,71 @@ public class DiskHfeParser extends DiskImageParser {
         @Override
         protected boolean getData() {
             boolean found = false;
-            int maxlen = data_len;
+            int maxLen = dataLen;
             int pos = 0;
-            for (; pos < maxlen && !found; pos++) {
+            for (; pos < maxLen && !found; pos++) {
                 if (Arrays.equals(Arrays.copyOfRange(data, pos, pos + 8), cmpIdx)) {
                     // INDEX MARK
                     found = true;
-                    data_len = shiftBytes(data, data_len, pos + 8);
+                    dataLen = shiftBytes(data, dataLen, pos + 8);
                     break;
                 } else if (Arrays.equals(Arrays.copyOfRange(data, pos, pos + 8), cmpId)) {
                     // ID MARK
                     found = true;
                     // Get C,H,R,N,CRC
-                    curr_ids.C = decodeData(Arrays.copyOfRange(data, pos + 8, pos + 12));
-                    curr_ids.H = decodeData(Arrays.copyOfRange(data, pos + 12, pos + 16));
-                    curr_ids.R = decodeData(Arrays.copyOfRange(data, pos + 16, pos + 20));
-                    curr_ids.N = decodeData(Arrays.copyOfRange(data, pos + 20, pos + 24));
-                    int crc_h = decodeData(Arrays.copyOfRange(data, pos + 24, pos + 28)) & 0xFF;
-                    int crc_l = decodeData(Arrays.copyOfRange(data, pos + 28, pos + 32)) & 0xFF;
-                    curr_ids.CRC = (short) (crc_h * 256 + crc_l);
+                    currentIDs.c = decodeData(Arrays.copyOfRange(data, pos + 8, pos + 12));
+                    currentIDs.h = decodeData(Arrays.copyOfRange(data, pos + 12, pos + 16));
+                    currentIDs.r = decodeData(Arrays.copyOfRange(data, pos + 16, pos + 20));
+                    currentIDs.n = decodeData(Arrays.copyOfRange(data, pos + 20, pos + 24));
+                    int crcH = decodeData(Arrays.copyOfRange(data, pos + 24, pos + 28)) & 0xFF;
+                    int crcL = decodeData(Arrays.copyOfRange(data, pos + 28, pos + 32)) & 0xFF;
+                    currentIDs.crc = (short) (crcH * 256 + crcL);
 
-                    data_len = shiftBytes(data, data_len, pos + 32);
+                    dataLen = shiftBytes(data, dataLen, pos + 32);
                     break;
                 } else if (Arrays.equals(Arrays.copyOfRange(data, pos, pos + 8), cmpData)) {
                     // DATA MARK
                     found = true;
                     // Get Data
-                    int siz = setSectorData(Arrays.copyOfRange(data, pos + 8, data_len), true, false);
-                    track_size += siz;
+                    int size = setSectorData(Arrays.copyOfRange(data, pos + 8, dataLen), true, false);
+                    trackSize += size;
 
                     int unit = getDecodeUnit();
-                    data_len = shiftBytes(data, data_len, pos + ((siz + 2) * unit) + 8);
+                    dataLen = shiftBytes(data, dataLen, pos + ((size + 2) * unit) + 8);
                     break;
                 } else if (Arrays.equals(Arrays.copyOfRange(data, pos, pos + 8), cmpDelData)) {
                     // DELETED DATA MARK
                     found = true;
                     // Get Data
-                    int siz = setSectorData(Arrays.copyOfRange(data, pos + 8, data_len), true, true);
-                    track_size += siz;
+                    int size = setSectorData(Arrays.copyOfRange(data, pos + 8, dataLen), true, true);
+                    trackSize += size;
 
                     int unit = getDecodeUnit();
-                    data_len = shiftBytes(data, data_len, pos + ((siz + 2) * unit) + 8);
+                    dataLen = shiftBytes(data, dataLen, pos + ((size + 2) * unit) + 8);
                     break;
                 }
             }
             if (!found) {
-                data_len = 0;
+                dataLen = 0;
             }
             return found;
         }
 
-        /// データをデコード(FM)
-        ///
-        /// @param indata 解析対象データ(4bytes)
-        /// @return デコード後のデータ
+        /**
+         * データをデコード(FM)
+         *
+         * @param inData 解析対象データ(4bytes)
+         * @return デコード後のデータ
+         */
         @Override
-        protected byte decodeData(byte[] indata) {
-            byte outdata;
-            outdata = (byte) (((indata[0] & 0x80) >> 1) | ((indata[0] & 0x08) << 4));
-            outdata |= (byte) (((indata[1] & 0x80) >> 3) | ((indata[1] & 0x08) << 2));
-            outdata |= (byte) (((indata[2] & 0x80) >> 5) | ((indata[2] & 0x08)));
-            outdata |= (byte) (((indata[3] & 0x80) >> 7) | ((indata[3] & 0x08) >> 2));
+        protected byte decodeData(byte[] inData) {
+            byte outData;
+            outData = (byte) (((inData[0] & 0x80) >> 1) | ((inData[0] & 0x08) << 4));
+            outData |= (byte) (((inData[1] & 0x80) >> 3) | ((inData[1] & 0x08) << 2));
+            outData |= (byte) (((inData[2] & 0x80) >> 5) | ((inData[2] & 0x08)));
+            outData |= (byte) (((inData[3] & 0x80) >> 7) | ((inData[3] & 0x08) >> 2));
 
-            return outdata;
+            return outData;
         }
 
         /**
@@ -645,16 +651,16 @@ public class DiskHfeParser extends DiskImageParser {
          * first <- b0 <- b1 <- b2 <- ... <- b7 <- next byte b0 <- b1 ...
          * </pre>
          *
-         * @param n_disk           [in,out] ディスク
-         * @param n_track_number   トラック番号
-         * @param n_side_number    サイド番号
-         * @param n_d88_offset_pos D88オフセット番号
-         * @param n_data           [in,out] 解析対象データ
-         * @param n_data_len       データサイズ
-         * @param n_result         [in,out] 解析エラー情報
+         * @param disk         [in,out] ディスク
+         * @param trackNumber  トラック番号
+         * @param sideNumber   サイド番号
+         * @param d88OffsetPos D88オフセット番号
+         * @param data         [in,out] 解析対象データ
+         * @param dataLen      データサイズ
+         * @param result       [in,out] 解析エラー情報
          */
-        public FormatFMParser(DiskImageDisk n_disk, int n_track_number, int n_side_number, int n_d88_offset_pos, byte[] n_data, int n_data_len, DiskResult n_result) {
-            super(n_disk, n_track_number, n_side_number, n_d88_offset_pos, n_data, n_data_len, n_result);
+        public FormatFMParser(DiskImageDisk disk, int trackNumber, int sideNumber, int d88OffsetPos, byte[] data, int dataLen, DiskResult result) {
+            super(disk, trackNumber, sideNumber, d88OffsetPos, data, dataLen, result);
         }
 
         @Override
@@ -688,29 +694,29 @@ public class DiskHfeParser extends DiskImageParser {
         @Element(sequence = 5)
         public byte encoding;
         @Element(sequence = 6)
-        public short bit_rate;
+        public short bitRate;
         @Element(sequence = 7)
         public short rpm;
 
         @Element(sequence = 8)
-        public byte interface_mode;
+        public byte interfaceMode;
         @Element(sequence = 9)
         public byte dnu;
         // Offset of the track list LUT in block of 512bytes
         @Element(sequence = 10)
-        public short track_list_offset;
+        public short trackListOffset;
         @Element(sequence = 11)
-        public byte write_allowed;
+        public byte writeAllowed;
         @Element(sequence = 12)
-        public byte single_step;
+        public byte singleStep;
         @Element(sequence = 13)
-        public byte track0s0_encode_enable;
+        public byte track0S0EncodeEnable;
         @Element(sequence = 14)
-        public byte track0s0_encode;
+        public byte track0S0Encode;
         @Element(sequence = 15)
-        public byte track0s1_encode_enable;
+        public byte track0S1EncodeEnable;
         @Element(sequence = 16)
-        public byte track0s1_encode;
+        public byte track0S1Encode;
 
         @Element(sequence = 17)
         public byte[] reserved = new byte[486];
@@ -726,7 +732,7 @@ public class DiskHfeParser extends DiskImageParser {
         @Element(sequence = 1)
         public short offset;
         @Element(sequence = 2)
-        public short track_len;
+        public short trackLen;
 
         public static final int SIZE = 4;
     }
@@ -804,7 +810,7 @@ public class DiskHfeParser extends DiskImageParser {
                     ps = new FormatFMParser(disk, track_number, side, d88_offset_pos[0], buffers[side], track_blocks * 256, result);
                     d88_track_size = ps.parse();
                     track = ps.getTrack();
-                    sector_nums = ps.getSectorNums();
+                    sector_nums = ps.getNumOfSectors();
                 }
                 break;
                 default: {
@@ -812,7 +818,7 @@ public class DiskHfeParser extends DiskImageParser {
                     ps = new FormatMFMParser(disk, track_number, side, d88_offset_pos[0], buffers[side], track_blocks * 256, result);
                     d88_track_size = ps.parse();
                     track = ps.getTrack();
-                    sector_nums = ps.getSectorNums();
+                    sector_nums = ps.getNumOfSectors();
                 }
                 break;
             }
@@ -863,7 +869,7 @@ public class DiskHfeParser extends DiskImageParser {
         int[] d88_offset_pos = {0};
 
         // track list
-        int track_list_offset = (header.track_list_offset & 0xffff) * 512;
+        int track_list_offset = (header.trackListOffset & 0xffff) * 512;
         ((SeekableDataInputStream) istream).position(track_list_offset);
 
         len = istream.available();
@@ -878,13 +884,13 @@ public class DiskHfeParser extends DiskImageParser {
             byte[] encoding = new byte[2];
             encoding[0] = header.encoding;
             encoding[1] = header.encoding;
-            if (track_num == 0 && (header.track0s0_encode_enable & 0xff) == 0) encoding[0] = header.track0s0_encode;
-            if (track_num == 0 && (header.track0s1_encode_enable & 0xff) == 0) encoding[1] = header.track0s1_encode;
+            if (track_num == 0 && (header.track0S0EncodeEnable & 0xff) == 0) encoding[0] = header.track0S0Encode;
+            if (track_num == 0 && (header.track0S1EncodeEnable & 0xff) == 0) encoding[1] = header.track0S1Encode;
 
             d88_offset = parseTracks(istream
                     , track_num, sides
                     , (track_offset_list.at[track_num].offset & 0xffff) * 512
-                    , track_offset_list.at[track_num].track_len & 0xffff
+                    , track_offset_list.at[track_num].trackLen & 0xffff
                     , encoding
                     , d88_offset_pos, d88_offset, disk);
 
@@ -903,7 +909,7 @@ public class DiskHfeParser extends DiskImageParser {
             if (disk_param != null) {
                 disk.setDensity(disk_param.getParamDensity());
             }
-            disk.setWriteProtect((header.write_allowed & 0xFF) == 0);
+            disk.setWriteProtect((header.writeAllowed & 0xFF) == 0);
             disk.clearModify();
 
             file.add(disk, modFlags);
@@ -917,28 +923,28 @@ public class DiskHfeParser extends DiskImageParser {
     }
 
     @Override
-    public int check(InputStream istream, List<DiskTypeHint> disk_hints, DiskParam disk_param, List<DiskParam> disk_params, DiskParam manual_param) {
+    public int check(InputStream iStream, List<DiskTypeHint> disk_hints, DiskParam diskParam, List<DiskParam> diskParams, DiskParam manualParam) {
         return -1;
     }
 
     /**
      * HxC HFEファイルかどうかをチェック
      *
-     * @param istream 解析対象データ
+     * @param iStream 解析対象データ
      * @return 0: Ok, -1: NG
      */
     @Override
-    public int check(InputStream istream) throws IOException {
-        ((SeekableDataInputStream) istream).position(0);
+    public int check(InputStream iStream) throws IOException {
+        ((SeekableDataInputStream) iStream).position(0);
 
-        int len = istream.available();
+        int len = iStream.available();
         if (len < HFEHeader.SIZE) {
             // too short
             result.setError(DiskResult.ERRV_DISK_TOO_SMALL, 0);
             return result.getValid();
         }
         HFEHeader header = new HFEHeader();
-        Serdes.Util.deserialize(istream, header);
+        Serdes.Util.deserialize(iStream, header);
 
         // check signature
         String sig = new String(header.signature);
@@ -961,18 +967,18 @@ public class DiskHfeParser extends DiskImageParser {
         }
 
         // track list
-        int track_list_offset = (header.track_list_offset & 0xffff) * 512;
+        int track_list_offset = (header.trackListOffset & 0xffff) * 512;
 
-        ((SeekableDataInputStream) istream).position(track_list_offset);
+        ((SeekableDataInputStream) iStream).position(track_list_offset);
         for (int track = 0; track < (header.tracks & 0xff); track++) {
-            len = istream.available();
+            len = iStream.available();
             if (len < HFETrackOffset.SIZE) {
                 // too short
                 result.setError(DiskResult.ERRV_DISK_TOO_SMALL, 0);
                 return result.getValid();
             }
             HFETrackOffset track_offset = new HFETrackOffset();
-            Serdes.Util.deserialize(istream, track_offset);
+            Serdes.Util.deserialize(iStream, track_offset);
             if ((track_offset.offset & 0xffff) == 0xffff) {
                 // invalid
                 result.setError(DiskResult.ERRV_INVALID_DISK, 0);
@@ -987,8 +993,8 @@ public class DiskHfeParser extends DiskImageParser {
      * HxC HFEファイルを解析
      */
     @Override
-    public int parse(InputStream istream, DiskParam disk_param) throws IOException {
-        parseDisk(istream);
+    public int parse(InputStream iStream, DiskParam diskParam) throws IOException {
+        parseDisk(iStream);
         return result.getValid();
     }
 }

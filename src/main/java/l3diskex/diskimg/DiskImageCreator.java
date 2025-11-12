@@ -20,27 +20,26 @@ import l3diskex.diskimg.DiskParam.TrackParam;
 public class DiskImageCreator {
 
     /** ディスク名 */
-    private final String m_diskname;
+    private final String diskName;
     /** パラメータ */
-    private final DiskParam p_param;
+    private final DiskParam param;
     /** 書込保護フラグ */
-    private final boolean m_write_protect;
+    private final boolean writeProtect;
     /** ディスクイメージファイル */
-    private final DiskImageFile p_file;
+    private final DiskImageFile file;
     /** 実行結果 */
-    private final DiskResult p_result;
+    private final DiskResult result;
 
     //
     //
     //
-    public DiskImageCreator(String diskname, DiskParam param,
-                            boolean write_protect,
+    public DiskImageCreator(String diskName, DiskParam param, boolean writeProtect,
                             DiskImageFile file, DiskResult result) {
-        this.m_diskname = diskname;
-        this.p_param = param;
-        this.m_write_protect = write_protect;
-        this.p_file = file;
-        this.p_result = result;
+        this.diskName = diskName;
+        this.param = param;
+        this.writeProtect = writeProtect;
+        this.file = file;
+        this.result = result;
     }
 
     /**
@@ -60,7 +59,7 @@ public class DiskImageCreator {
         // 特殊なセクタにするか
         int[][] sectorId = new int[1][];
         int[] sectorSize_ = {sectorSize};
-        if (p_param.findParticularSector(trackNumber, sideNumber, sectorNumber, sectorSize_, sectorId)) {
+        if (param.findParticularSector(trackNumber, sideNumber, sectorNumber, sectorSize_, sectorId)) {
             if ((sectorId[0][1] & TrackParam.ID_IS_VALID) != 0) {
                 sideNumber = sectorId[0][1] & ~TrackParam.ID_IS_VALID;
             }
@@ -70,7 +69,7 @@ public class DiskImageCreator {
         }
 
         // 単密度にするか
-        boolean singleDensity = p_param.findSingleDensity(trackNumber, sideNumber, sectorNumber, sectorSize_[0]);
+        boolean singleDensity = param.findSingleDensity(trackNumber, sideNumber, sectorNumber, sectorSize_[0]);
 
         DiskImageSector sector = track.newImageSector(trackNumber, sideNumber, sectorNumber, sectorSize_[0], sectorsPerTrack, singleDensity, 0);
         track.add(sector);
@@ -91,38 +90,38 @@ public class DiskImageCreator {
     public int createTrack(int trackNumber, int sideNumber, int offsetPos, int offset, DiskImageDisk disk) {
 
         // トラック作成
-        DiskImageTrack track = disk.newImageTrack(trackNumber, sideNumber, offsetPos, p_param.getInterleave());
+        DiskImageTrack track = disk.newImageTrack(trackNumber, sideNumber, offsetPos, param.getInterleave());
 
-        int[] sectorMax = {p_param.getSectorsPerTrack()};
-        int[] sectorSize = {p_param.getSectorSize()};
+        int[] sectorMax = {param.getSectorsPerTrack()};
+        int[] sectorSize = {param.getSectorSize()};
 
         // 特殊なトラックにするか
-        p_param.findParticularTrack(trackNumber, sideNumber, sectorMax, sectorSize);
+        param.findParticularTrack(trackNumber, sideNumber, sectorMax, sectorSize);
         // トラック全体が単密度の場合セクタ数とサイズを得る
-        p_param.findSingleDensity(trackNumber, sideNumber, sectorMax, sectorSize);
+        param.findSingleDensity(trackNumber, sideNumber, sectorMax, sectorSize);
 
         // interleave の並び順を計算
         List<Integer> sectorNums = new ArrayList<>();
-        if (!DiskImageTrack.calcSectorNumbersForInterleave(p_param.getInterleave(), sectorMax[0], sectorNums, p_param.getSectorNumberBaseOnDisk())) {
-            p_result.setError(DiskResult.ERR_INTERLEAVE);
+        if (!DiskImageTrack.calcSectorNumbersForInterleave(param.getInterleave(), sectorMax[0], sectorNums, param.getSectorNumberBaseOnDisk())) {
+            result.setError(DiskResult.ERR_INTERLEAVE);
         }
 
         // create sectors
         int trackSize = 0;
-        for (int sectorPos = 0; sectorPos < sectorMax[0] && p_result.getValid() >= 0; sectorPos++) {
+        for (int sectorPos = 0; sectorPos < sectorMax[0] && result.getValid() >= 0; sectorPos++) {
             int sectorOffset = 0;
-            if (p_param.isReversible()) {
+            if (param.isReversible()) {
                 // 裏返しできる(AB面あり)場合
                 sideNumber = 0;
             }
-            if (p_param.getNumberingSector() == 1) {
+            if (param.getNumberingSector() == 1) {
                 // 連番にする場合
                 sectorOffset = sideNumber * sectorMax[0];
             }
             trackSize += createSector(trackNumber, sideNumber, sectorNums.get(sectorPos) + sectorOffset, sectorSize[0], sectorMax[0], track);
         }
 
-        if (p_result.getValid() >= 0) {
+        if (result.getValid() >= 0) {
             // トラックを追加
             track.setSize(trackSize);
             disk.add(track);
@@ -134,21 +133,21 @@ public class DiskImageCreator {
     /**
      * ディスクデータの作成
      * @param diskNumber ディスク番号
-     * @param modFlags   新規 or 追加？(DiskImageFile::MODIFY_NONE/MODIFY_ADD)
+     * @param modFlags   新規 or 追加？(DiskImageFile#MODIFY_NONE/MODIFY_ADD)
      * @return 作成したディスクサイズ
      */
     private int createDisk(int diskNumber, short modFlags) {
 
-        DiskImageDisk disk = p_file.newImageDisk(diskNumber, p_param, m_diskname, m_write_protect);
+        DiskImageDisk disk = file.newImageDisk(diskNumber, param, diskName, writeProtect);
 
         // create tracks
         int createSize = 0;
-        int trackNum = p_param.getTrackNumberBaseOnDisk();
-        int sideNum = p_param.getSideNumberBaseOnDisk();
-        int tracksPerSide = p_param.getTracksPerSide() + trackNum;
-        int sidesPerDisk = p_param.getSidesPerDisk() + sideNum;
+        int trackNum = param.getTrackNumberBaseOnDisk();
+        int sideNum = param.getSideNumberBaseOnDisk();
+        int tracksPerSide = param.getTracksPerSide() + trackNum;
+        int sidesPerDisk = param.getSidesPerDisk() + sideNum;
 
-        for (int pos = 0; p_result.getValid() >= 0; pos++) {
+        for (int pos = 0; result.getValid() >= 0; pos++) {
             disk.setOffsetWithoutHeader(pos, createSize);
             disk.setMaxTrackNumber(pos);
 
@@ -157,26 +156,26 @@ public class DiskImageCreator {
             sideNum++;
             if (sideNum >= sidesPerDisk) {
                 trackNum++;
-                sideNum = p_param.getSideNumberBaseOnDisk();
+                sideNum = param.getSideNumberBaseOnDisk();
             }
             if (trackNum >= tracksPerSide) {
                 break;
             }
         }
 
-        if (p_result.getValid() >= 0) {
+        if (result.getValid() >= 0) {
             // ディスクを追加
-            if (p_param.getBasicTypes().isEmpty()) {
+            if (param.getBasicTypes().isEmpty()) {
                 // パラメータが手動設定のときはそれらしいテンプレートをさがす
                 disk.calcMajorNumber();
             } else {
                 // テンプレートから設定
-                disk.setDiskParam(p_param);
+                disk.setDiskParam(param);
                 // DISKBASICの準備
                 disk.allocDiskBasics();
             }
             disk.setSizeWithoutHeader(createSize);
-            p_file.add(disk, modFlags);
+            file.add(disk, modFlags);
         }
 
         return createSize;
@@ -187,7 +186,7 @@ public class DiskImageCreator {
      */
     public int create() {
         createDisk(0, DiskImageFile.MODIFY_NONE);
-        return p_result.getValid();
+        return result.getValid();
     }
 
     /**
@@ -195,13 +194,13 @@ public class DiskImageCreator {
      */
     public int add() {
         int diskNumber = 0;
-        List<DiskImageDisk> disks = p_file.getDisks();
+        List<DiskImageDisk> disks = file.getDisks();
         if (disks != null) {
             diskNumber = disks.size();
         }
 
         createDisk(diskNumber, DiskImageFile.MODIFY_ADD);
 
-        return p_result.getValid();
+        return result.getValid();
     }
 }

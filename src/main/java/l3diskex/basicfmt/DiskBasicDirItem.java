@@ -24,10 +24,13 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
+import l3diskex.Common;
 import l3diskex.Parambase.MyAttribute;
 import l3diskex.Utils;
-import l3diskex.basicfmt.BasicCommon.DirectoryT;
+import l3diskex.basicfmt.BasicCommon.Directory;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileName;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFormatType;
@@ -51,13 +54,13 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_VOLUME_MASK;
 import static l3diskex.basicfmt.DiskBasicType.INVALID_GROUP_NUMBER;
 
 
-/// ディレクトリ１アイテム (abstract)
-public abstract class DiskBasicDirItem<T extends DirectoryT> {
+/** ディレクトリ１アイテム */
+public abstract class DiskBasicDirItem<T extends Directory> {
 
     private static final Logger logger = System.getLogger(DiskBasicDirItem.class.getName());
 
     /** ディレクトリデータ */
-    protected static class DiskBasicDirData<TYPE extends DirectoryT> {
+    protected static class DiskBasicDirData<TYPE extends Directory> {
 
         private Class<TYPE> clazz;
         private TYPE data;
@@ -68,21 +71,25 @@ public abstract class DiskBasicDirItem<T extends DirectoryT> {
             data = null;
         }
 
-        /// メモリ確保
-        /// メモリの初期化は行わない
+        /**
+         * メモリ確保
+         * メモリの初期化は行わない
+         */
         public void alloc(Class<TYPE> clazz) {
             try {
                 this.clazz = clazz;
                 this.size = (int) clazz.getDeclaredField("SIZE").get(null);
                 this.raw = new byte[this.size];
             } catch (Exception e) {
-logger.log(Level.ERROR, e.getMessage(), e);
+                logger.log(Level.ERROR, e.getMessage(), e);
             }
         }
 
-        /// ポインタ割り当て
-        ///
-        /// @param data ポインタ
+        /**
+         * ポインタ割り当て
+         *
+         * @param data ポインタ
+         */
         public void attach(Class<TYPE> clazz, byte[] data, int offset) {
             if (this.raw == null) alloc(clazz);
             if (data != null) {
@@ -98,12 +105,14 @@ logger.log(Level.ERROR, e.getMessage(), e);
             return copy(srcData, len, false, 0);
         }
 
-        /// コピー
-        ///
-        /// @param srcData 元データ
-        /// @param len     データサイズ
-        /// @param invert  反転するか
-        /// @param start   コピー開始位置
+        /**
+         * コピー
+         *
+         * @param srcData 元データ
+         * @param len     データサイズ
+         * @param invert  反転するか
+         * @param start   コピー開始位置
+         */
         public boolean copy(byte[] srcData, int len, boolean invert, int start) {
             if (data == null) return false;
             System.arraycopy(srcData, start, raw, 0, len);
@@ -119,12 +128,14 @@ logger.log(Level.ERROR, e.getMessage(), e);
             return fill(ch, len, false, 0);
         }
 
-        /// 埋める
-        ///
-        /// @param ch     埋める文字
-        /// @param len    データサイズ
-        /// @param invert 反転するか
-        /// @param start  コピー開始位置
+        /**
+         * 埋める
+         *
+         * @param ch     埋める文字
+         * @param len    データサイズ
+         * @param invert 反転するか
+         * @param start  コピー開始位置
+         */
         public boolean fill(int ch, int len, boolean invert, int start /* = 0 */) {
             if (raw == null) return false;
             byte[] dst = raw;
@@ -134,10 +145,12 @@ logger.log(Level.ERROR, e.getMessage(), e);
             return true;
         }
 
-        /// 反転
-        ///
-        /// @param len   データサイズ
-        /// @param start コピー開始位置
+        /**
+         * 反転
+         *
+         * @param len   データサイズ
+         * @param start コピー開始位置
+         */
         public void invert(int len, int start) {
             byte[] arr = raw;
             if (len > arr.length) len = arr.length;
@@ -192,9 +205,9 @@ logger.log(Level.ERROR, e.getMessage(), e);
 
     /** 通し番号 */
     protected int num;
-    /** セクタ内の位置（バイト） */
+    /** セクタ内の位置 (バイト) */
     protected int position;
-    /** フラグ bit0:使用しているか bit1:リストに表示するか bit2:ツリーに表示するか */
+    /** フラグ bit0: 使用しているか, bit1: リストに表示するか, bit2: ツリーに表示するか */
     protected int flags;
     /** 占有グループ */
     protected DiskBasicGroups groups;
@@ -213,17 +226,16 @@ logger.log(Level.ERROR, e.getMessage(), e);
         position = 0;
         sector = null;
         externalAttr = 0;
-        flags = (VISIBLE_LIST | VISIBLE_TREE);
+        flags = VISIBLE_LIST | VISIBLE_TREE;
         groups = new DiskBasicGroups();
     }
 
-    public DiskBasicDirItem(DiskBasicDirItem<T> src) {
-        dup(src);
-    }
 
-    /// ディレクトリアイテムを作成 DATAは内部で確保
-    ///
-    /// @param basic DISK BASIC
+    /**
+     * ディレクトリアイテムを作成 DATAは内部で確保
+     *
+     * @param basic DISK BASIC
+     */
     public DiskBasicDirItem(DiskBasic basic) {
         this.basic = basic;
         this.type = basic.getType();
@@ -234,25 +246,27 @@ logger.log(Level.ERROR, e.getMessage(), e);
         position = 0;
         sector = null;
         externalAttr = 0;
-        flags = (VISIBLE_LIST | VISIBLE_TREE);
+        flags = VISIBLE_LIST | VISIBLE_TREE;
         groups = new DiskBasicGroups();
     }
 
-    /// ディレクトリアイテムを作成 DATAはディスクイメージをアサイン
-    ///
-    /// @param basic   DISK BASIC
-    /// @param nSector セクタ
-    /// @param nSecpos セクタ内の位置
-    /// @param nData   セクタ内のディレクトリエントリ
-    public DiskBasicDirItem(DiskBasic basic, DiskImageSector nSector, int nSecpos, byte[] nData, int dataP) {
+    /**
+     * ディレクトリアイテムを作成 DATAはディスクイメージをアサイン
+     *
+     * @param basic   DISK BASIC
+     * @param sector セクタ
+     * @param secPos セクタ内の位置
+     * @param data   セクタ内のディレクトリエントリ
+     */
+    public DiskBasicDirItem(DiskBasic basic, DiskImageSector sector, int secPos, byte[] data, int dataP) {
         this.basic = basic;
         this.type = basic.getType();
         parent = null;
         children = null;
         validDir = false;
         num = 0;
-        position = nSecpos;
-        sector = nSector;
+        position = secPos;
+        this.sector = sector;
         externalAttr = 0;
         flags = (VISIBLE_LIST | VISIBLE_TREE);
         groups = new DiskBasicGroups();
@@ -262,56 +276,35 @@ logger.log(Level.ERROR, e.getMessage(), e);
      * ディレクトリアイテムを作成 DATAはディスクイメージをアサイン
      *
      * @param basic   DISK BASIC
-     * @param nNum    通し番号
-     * @param nGitem  トラック番号などのデータ
-     * @param nSector セクタ
-     * @param nSecpos セクタ内のディレクトリエントリの位置
-     * @param nData   セクタ内のディレクトリエントリ
-     * @param nNext   次のセクタ
-     * @param nUnuse  [out] 未使用か
+     * @param num    通し番号
+     * @param gItem  トラック番号などのデータ
+     * @param sector セクタ
+     * @param secPos セクタ内のディレクトリエントリの位置
+     * @param data   セクタ内のディレクトリエントリ
+     * @param next   次のセクタ
+     * @param unuse  [out] 未使用か
      */
-    public DiskBasicDirItem(DiskBasic basic, int nNum, DiskBasicGroupItem nGitem, DiskImageSector nSector, int nSecpos, byte[] nData, int dataP, SectorParam nNext, boolean[] nUnuse) {
+    public DiskBasicDirItem(DiskBasic basic, int num, DiskBasicGroupItem gItem, DiskImageSector sector, int secPos, byte[] data, int dataP, SectorParam next, boolean[] unuse) {
         this.basic = basic;
         this.type = basic.getType();
         parent = null;
         children = null;
         validDir = false;
-        num = nNum;
-        position = nSecpos;
-        sector = nSector;
+        this.num = num;
+        position = secPos;
+        this.sector = sector;
         externalAttr = 0;
         flags = (VISIBLE_LIST | VISIBLE_TREE);
         groups = new DiskBasicGroups();
     }
 
-    /// 複製
-    /// データ部分は元がメモリを確保している場合、メモリを確保してコピー
-    /// 確保していない場合、ポインタをコピー
-    ///
-    /// @param src ソース
-    protected void dup(DiskBasicDirItem<T> src) {
-        this.basic = src.basic;
-        this.type = src.type;
-        this.parent = src.parent;
-        if (src.children != null) {
-            this.children = new ArrayList<>();
-            this.children = src.children;
-        } else {
-            this.children = null;
-        }
-        this.validDir = src.validDir;
-        this.num = src.num;
-        this.position = src.position;
-        this.groups = src.groups;
-        this.sector = src.sector;
-        this.externalAttr = src.externalAttr;
-        this.flags = src.flags;
-    }
-
-    public void setDataPtr(int nNum, DiskBasicGroupItem nGitem, DiskImageSector nSector, int nSecpos, byte[] nData, int dataP, SectorParam nNext /* = null */) throws IOException {
+    public void setData(int nNum, DiskBasicGroupItem gItem,
+                        DiskImageSector sector, int sectorPos,
+                        byte[] data, int dataPos,
+                        SectorParam next /* = null */) throws IOException {
         num = nNum;
-        position = nSecpos;
-        sector = nSector; // no duplicate
+        position = sectorPos;
+        this.sector = sector; // no duplicate
     }
 
     /** 子ディレクトリを作成 */
@@ -321,12 +314,14 @@ logger.log(Level.ERROR, e.getMessage(), e);
         }
     }
 
-    /// 子ディレクトリを追加
-    ///
-    /// @param newitem 新しいアイテム
-    public void addChild(DiskBasicDirItem<T> newitem) {
+    /**
+     * 子ディレクトリを追加
+     *
+     * @param newItem 新しいアイテム
+     */
+    public void addChild(DiskBasicDirItem<T> newItem) {
         createChildren();
-        children.add(newitem);
+        children.add(newItem);
     }
 
     public DiskBasicDirItem<T> getParent() {
@@ -378,9 +373,11 @@ logger.log(Level.ERROR, e.getMessage(), e);
         return valid;
     }
 
-    /// アイテムを削除できるか
-    ///
-    /// @return true 削除できる
+    /**
+     * アイテムを削除できるか
+     *
+     * @return true 削除できる
+     */
     public boolean isDeletable() {
         return getFileAttr().unmatchType(FILE_TYPE_DIRECTORY_MASK.getValue() | FILE_TYPE_VOLUME_MASK.getValue(), FILE_TYPE_VOLUME_MASK.getValue());
     }
@@ -403,24 +400,30 @@ logger.log(Level.ERROR, e.getMessage(), e);
         calcFileSize();
     }
 
-    /// アイテムをロード・エクスポートできるか
-    ///
-    /// @return true ロードできる
+    /**
+     * アイテムをロード・エクスポートできるか
+     *
+     * @return true ロードできる
+     */
     public boolean isLoadable() {
         return isDeletable();
     }
 
-    /// アイテムをコピーできるか
-    ///
-    /// @return true コピーできる
+    /**
+     * アイテムをコピーできるか
+     *
+     * @return true コピーできる
+     */
     public boolean isCopyable() {
         // ボリュームラベルは不可
         return getFileAttr().matchType(FILE_TYPE_DIRECTORY_MASK.getValue() | FILE_TYPE_VOLUME_MASK.getValue(), 0);
     }
 
-    /// アイテムを上書きできるか
-    ///
-    /// @return true 上書きできる
+    /**
+     * アイテムを上書きできるか
+     *
+     * @return true 上書きできる
+     */
     public boolean isOverWritable() {
         // ディレクトリ、ボリュームラベルは不可
         return isCopyable();
@@ -485,8 +488,9 @@ logger.log(Level.ERROR, e.getMessage(), e);
 
     /**
      * ファイル名を設定
-     *
+     * <p>
      * filename はデータビットが反転している場合あり
+     *
      * @param filename [in,out] ファイル名
      * @param size     バッファサイズ
      * @param length   長さ
@@ -503,24 +507,27 @@ logger.log(Level.ERROR, e.getMessage(), e);
 
     /**
      * 拡張子を設定
-     *
+     * <p>
      * fileext はデータビットが反転している場合あり
-     * @param fileext [in,out] 拡張子
+     *
+     * @param fileExt [in,out] 拡張子
      * @param size    バッファサイズ
      * @param length  長さ
      */
-    protected void setNativeExt(byte[] fileext, int size, int length) {
+    protected void setNativeExt(byte[] fileExt, int size, int length) {
         int[] el = new int[1];
         byte[] e = getFileExtPos(el);
         if (e != null && el[0] > 0) {
             if (el[0] > size) el[0] = size;
-            System.arraycopy(fileext, 0, e, 0, el[0]);
+            System.arraycopy(fileExt, 0, e, 0, el[0]);
         }
     }
 
-    /// ファイル名(拡張子除く)を返す
-    ///
-    /// @return ファイル名
+    /**
+     * ファイル名(拡張子除く)を返す
+     *
+     * @return ファイル名
+     */
     public String getFileNamePlainStr() {
         byte[] name = new byte[256];
         int[] nl = new int[1];
@@ -533,9 +540,11 @@ logger.log(Level.ERROR, e.getMessage(), e);
         return dst;
     }
 
-    /// 拡張子を返す
-    ///
-    /// @return 拡張子
+    /**
+     * 拡張子を返す
+     *
+     * @return 拡張子
+     */
     protected String getFileExtPlainStr() {
         byte[] ext = new byte[256];
         int[] nl = new int[1];
@@ -553,17 +562,17 @@ logger.log(Level.ERROR, e.getMessage(), e);
      *
      * @param filename ファイル名 (Unicode)
      * @param name     [out] 内部ファイル名バッファ
-     * @param nlen     [in,out] 上記バッファサイズ / 文字列長さを返す
+     * @param nLen     [in,out] 上記バッファサイズ / 文字列長さを返す
      * @param ext      [out] 内部拡張子名バッファ
      * @param elen     [in,out] 上記バッファサイズ / 文字列長さを返す
      * @return true: OK, false: 変換できない文字がある
      */
-    protected boolean toNativeFileName(String filename, byte[] name, int[] nlen, byte[] ext, int[] elen) {
+    protected boolean toNativeFileName(String filename, byte[] name, int[] nLen, byte[] ext, int[] elen) {
         byte[] tmp = new byte[256];
         int[] nl = new int[1];
         int[] el = new int[1];
         String namestr = filename;
-        if (basic.diskBasicParam.toUpperAfterRenamed()) {
+        if (basic.toUpperAfterRenamed()) {
             namestr = namestr.toUpperCase();
         }
         int tmplen = convStringToChars(namestr, tmp, tmp.length);
@@ -573,21 +582,23 @@ logger.log(Level.ERROR, e.getMessage(), e);
             getFileExtPos(extLen);
             elen[0] = extLen[0];
         }
-        splitFileName(tmp, tmp.length, tmplen, name, nlen[0], nl, ext, elen[0], el, basic.diskBasicParam.getExtensionPreCode());
-        nlen[0] = nl[0];
+        splitFileName(tmp, tmp.length, tmplen, name, nLen[0], nl, ext, elen[0], el, basic.getExtensionPreCode());
+        nLen[0] = nl[0];
         elen[0] = el[0];
         return true;
     }
 
-    /// ファイルパスから内部ファイル名を生成する
-    ///
-    /// インポート時のダイアログを出す前
-    /// 拡張子がない機種では拡張子部分をファイル名としてそのまま設定
-    ///
-    /// @param filepath ファイルパス
-    /// @return ファイル名
+    /**
+     * ファイルパスから内部ファイル名を生成する
+     *
+     * インポート時のダイアログを出す前
+     * 拡張子がない機種では拡張子部分をファイル名としてそのまま設定
+     *
+     * @param filepath ファイルパス
+     * @return ファイル名
+     */
     protected String remakeFileNameAndExtStr(String filepath) {
-        String newname = "";
+        String newName = "";
         Path path = Paths.get(filepath);
         String filename = path.getFileName().toString();
         int[] nl = new int[1];
@@ -604,32 +615,34 @@ logger.log(Level.ERROR, e.getMessage(), e);
         el[0] = extLen[0];
         int lastDot = filename.lastIndexOf('.');
         if (el[0] == 0) {
-            newname = filename.substring(0, Math.min(filename.length(), nl[0]));
+            newName = filename.substring(0, Math.min(filename.length(), nl[0]));
         } else {
             String name = lastDot >= 0 ? filename.substring(0, lastDot) : filename;
             String ext = lastDot >= 0 ? filename.substring(lastDot + 1) : "";
-            newname = name.substring(0, Math.min(name.length(), nl[0]));
+            newName = name.substring(0, Math.min(name.length(), nl[0]));
             if (!ext.isEmpty()) {
-                newname += ".";
-                newname += ext.substring(0, Math.min(ext.length(), el[0]));
+                newName += ".";
+                newName += ext.substring(0, Math.min(ext.length(), el[0]));
             }
         }
-        if (basic.diskBasicParam.toUpperBeforeDialog()) {
-            newname = newname.toUpperCase();
+        if (basic.toUpperBeforeDialog()) {
+            newName = newName.toUpperCase();
         }
-        convertFileNameBeforeImportDialog(newname);
-        return newname;
+        convertFileNameBeforeImportDialog(newName);
+        return newName;
     }
 
-    /// ファイルパスから内部ファイル名を生成する
-    ///
-    /// インポート時のダイアログを出す前
-    /// 拡張子がない機種では拡張子はとり除かれる
-    ///
-    /// @param filepath ファイルパス
-    /// @return ファイル名
+    /**
+     * ファイルパスから内部ファイル名を生成する
+     *
+     * インポート時のダイアログを出す前
+     * 拡張子がない機種では拡張子はとり除かれる
+     *
+     * @param filepath ファイルパス
+     * @return ファイル名
+     */
     protected String remakeFileNameOnlyStr(String filepath) {
-        String newname = "";
+        String newName = "";
         Path path = Paths.get(filepath);
         String filename = path.getFileName().toString();
         int[] nl = new int[1];
@@ -643,18 +656,18 @@ logger.log(Level.ERROR, e.getMessage(), e);
         int lastDot = filename.lastIndexOf('.');
         String name = lastDot >= 0 ? filename.substring(0, lastDot) : filename;
         String ext = lastDot >= 0 ? filename.substring(lastDot + 1) : "";
-        newname = name.substring(0, Math.min(name.length(), nl[0]));
+        newName = name.substring(0, Math.min(name.length(), nl[0]));
         if (el[0] > 0) {
             if (!ext.isEmpty()) {
-                newname += (char) basic.diskBasicParam.getExtensionPreCode();
-                newname += ext.substring(0, Math.min(ext.length(), el[0]));
+                newName += (char) basic.getExtensionPreCode();
+                newName += ext.substring(0, Math.min(ext.length(), el[0]));
             }
         }
-        if (basic.diskBasicParam.toUpperBeforeDialog()) {
-            newname = newname.toUpperCase();
+        if (basic.toUpperBeforeDialog()) {
+            newName = newName.toUpperCase();
         }
-        convertFileNameBeforeImportDialog(newname);
-        return newname;
+        convertFileNameBeforeImportDialog(newName);
+        return newName;
     }
 
     /**
@@ -670,14 +683,14 @@ logger.log(Level.ERROR, e.getMessage(), e);
     protected void addExtensionByFileAttr(int fileType, int mask, String[] filename, boolean dupli /* = false */) {
         Path path = Paths.get(filename[0]);
         String ext = getFileExtension(path.getFileName().toString());
-        MyAttribute sa = findUpperCase(basic.diskBasicParam.getAttributesByExtension(), ext, fileType, mask);
+        MyAttribute sa = findUpperCase(basic.getAttributesByExtension(), ext, fileType, mask);
         if (sa == null) {
-            sa = findType(basic.diskBasicParam.getAttributesByExtension(), fileType, mask);
+            sa = findType(basic.getAttributesByExtension(), fileType, mask);
         }
         if (sa != null) {
             if (dupli || !ext.equalsIgnoreCase(sa.getName())) {
                 filename[0] += ".";
-                if (isUpperString(filename[0])) {
+                if (Utils.isUpperString(filename[0])) {
                     filename[0] += sa.getName().toUpperCase();
                 } else {
                     filename[0] += sa.getName().toLowerCase();
@@ -700,17 +713,17 @@ logger.log(Level.ERROR, e.getMessage(), e);
     protected void addExtensionByFileAttr(int fileType, int mask, String filename, int external, boolean dupli) {
         Path path = Paths.get(filename);
         String ext = getFileExtension(path.getFileName().toString());
-        MyAttribute sa = findUpperCase(basic.diskBasicParam.getAttributesByExtension(), ext, fileType, mask);
+        MyAttribute sa = findUpperCase(basic.getAttributesByExtension(), ext, fileType, mask);
         if (sa == null) {
-            sa = find(basic.diskBasicParam.getAttributesByExtension(), fileType, mask, external);
+            sa = find(basic.getAttributesByExtension(), fileType, mask, external);
         }
         if (sa == null) {
-            sa = findType(basic.diskBasicParam.getAttributesByExtension(), fileType, mask);
+            sa = findType(basic.getAttributesByExtension(), fileType, mask);
         }
         if (sa != null) {
             if (dupli || !ext.equalsIgnoreCase(sa.getName())) {
                 filename += ".";
-                if (isUpperString(filename)) {
+                if (Utils.isUpperString(filename)) {
                     filename += sa.getName().toUpperCase();
                 } else {
                     filename += sa.getName().toLowerCase();
@@ -737,7 +750,7 @@ logger.log(Level.ERROR, e.getMessage(), e);
         if (pos >= 0) {
             attr[0] = Utils.keyAt(list, pos);
         } else {
-            MyAttribute sa = findValue(basic.diskBasicParam.getSpecialAttributes(), -pos);
+            MyAttribute sa = findValue(basic.getSpecialAttributes(), -pos);
             if (sa != null) {
                 attr[0] = sa.getName();
             } else {
@@ -750,39 +763,43 @@ logger.log(Level.ERROR, e.getMessage(), e);
         return match;
     }
 
-    /// 拡張子から属性を決定できるか 決定できる場合、末尾の拡張子をとり除く
-    ///
-    /// インポートするファイルのファイル名に適用
-    ///
-    /// <pre> For Example:
-    ///  foobar.aaa.bas (is basic file) -> foobar.aaa (trimming last extension)
-    ///  foobar.bas (is basic file) -> foobar (trimming last extension)
-    ///  foobar.bbb.ccc (is unknown attr) -> foobar.bbb.ccc (no change filename)
-    /// </pre>
+    /**
+     * 拡張子から属性を決定できるか 決定できる場合、末尾の拡張子をとり除く
+     *
+     * インポートするファイルのファイル名に適用
+     *
+     * <pre> For Example:
+     *  foobar.aaa.bas (is basic file) -> foobar.aaa (trimming last extension)
+     *  foobar.bas (is basic file) -> foobar (trimming last extension)
+     *  foobar.bbb.ccc (is unknown attr) -> foobar.bbb.ccc (no change filename)
+     * </pre>
+     */
     protected boolean trimExtensionByExtensionAttr(String[] filename) {
         String ext = getFileExtension(filename[0]);
-        MyAttribute sa = findUpperCase(basic.diskBasicParam.getAttributesByExtension(), ext);
+        MyAttribute sa = findUpperCase(basic.getAttributesByExtension(), ext);
         if (sa != null) {
             filename[0] = removeExtension(filename[0]);
         }
         return sa != null;
     }
 
-    /// 拡張子から属性を決定できるか
-    ///
-    /// 決定できる場合、拡張子が２つつながっている場合は末尾の拡張子をとり除く
-    ///
-    /// インポートするファイルのファイル名に適用
-    ///
-    /// <pre>
-    ///  For Example:
-    ///  foobar.aaa.bas (is basic file) -> foobar.aaa (trimming last extension)
-    ///  foobar.bas (is basic file) -> foobar.bas (no change filename)
-    ///  foobar.bbb.ccc (is unknown attr) -> foobar.bbb.ccc (no change filename)
-    /// </pre>
+    /**
+     * 拡張子から属性を決定できるか
+     *
+     * 決定できる場合、拡張子が２つつながっている場合は末尾の拡張子をとり除く
+     *
+     * インポートするファイルのファイル名に適用
+     *
+     * <pre>
+     *  For Example:
+     *  foobar.aaa.bas (is basic file) -> foobar.aaa (trimming last extension)
+     *  foobar.bas (is basic file) -> foobar.bas (no change filename)
+     *  foobar.bbb.ccc (is unknown attr) -> foobar.bbb.ccc (no change filename)
+     * </pre>
+     */
     protected boolean trimLastExtensionByExtensionAttr(String filename) {
         String ext = getFileExtension(filename);
-        MyAttribute sa = findUpperCase(basic.diskBasicParam.getAttributesByExtension(), ext);
+        MyAttribute sa = findUpperCase(basic.getAttributesByExtension(), ext);
         if (sa != null) {
             String name = removeExtension(filename);
             String subext = getFileExtension(name);
@@ -819,13 +836,13 @@ logger.log(Level.ERROR, e.getMessage(), e);
         int t1 = 0;
         int p1 = -1;
         String ext = getFileExtension(filename).toUpperCase();
-        int idx = indexOf(list, ext);
+        int idx = Utils.indexOf(list, ext);
         if (idx >= listFirst && idx <= listLast) {
             match = true;
             t1 = (int) list.get(idx);
             p1 = idx;
         } else {
-            MyAttribute sa = findUpperCase(basic.diskBasicParam.getAttributesByExtension(), ext);
+            MyAttribute sa = findUpperCase(basic.getAttributesByExtension(), ext);
             if (sa != null) {
                 match = true;
                 t1 = sa.getType();
@@ -863,18 +880,18 @@ logger.log(Level.ERROR, e.getMessage(), e);
         int t1 = 0;
         int p1 = -1;
         String ext = getFileExtension(filename).toUpperCase();
-        int idx = indexOf(list, ext);
+        int idx = Utils.indexOf(list, ext);
         if (idx >= listFirst && idx <= listLast) {
             match = true;
             t1 = (int) Utils.valueAt(list, idx);
             p1 = idx;
         } else {
-            MyAttribute sa = findUpperCase(basic.diskBasicParam.getSpecialAttributes(), ext);
+            MyAttribute sa = findUpperCase(basic.getSpecialAttributes(), ext);
             if (sa != null) {
                 match = true;
                 t1 = sa.getValue();
             } else {
-                sa = findUpperCase(basic.diskBasicParam.getAttributesByExtension(), ext);
+                sa = findUpperCase(basic.getAttributesByExtension(), ext);
                 if (sa != null) {
                     match = true;
                     t1 = sa.getValue();
@@ -907,9 +924,8 @@ logger.log(Level.ERROR, e.getMessage(), e);
                 matchValue = true;
             }
         }
-        List<MyAttribute> attrs = basic.diskBasicParam.getSpecialAttributes();
-        for (int i = 0; i < attrs.size(); i++) {
-            MyAttribute attr = attrs.get(i);
+        List<MyAttribute> attrs = basic.getSpecialAttributes();
+        for (MyAttribute attr : attrs) {
             String str = attr.getName() + String.format(" 0x%02x", attr.getValue());
             if (!attr.getDescription().isEmpty()) {
                 str += " (" + attr.getDescription() + ")";
@@ -935,7 +951,7 @@ logger.log(Level.ERROR, e.getMessage(), e);
      */
     public static int selectChoiceForAttrDialog(DiskBasic basic, int selPos, int endPos, int unknownPos) {
         if (selPos < 0) {
-            List<MyAttribute> attrs = basic.diskBasicParam.getSpecialAttributes();
+            List<MyAttribute> attrs = basic.getSpecialAttributes();
             int nType = getIndexByValue(attrs, -selPos);
             if (nType >= 0) {
                 selPos = nType + endPos;
@@ -952,7 +968,7 @@ logger.log(Level.ERROR, e.getMessage(), e);
         int val = -1;
         if (pos >= endPos) {
             pos -= endPos;
-            List<MyAttribute> attrs = basic.diskBasicParam.getSpecialAttributes();
+            List<MyAttribute> attrs = basic.getSpecialAttributes();
             int count = attrs.size();
             if (pos < count) {
                 val = getValueByIndex(attrs, pos);
@@ -966,7 +982,7 @@ logger.log(Level.ERROR, e.getMessage(), e);
         int t = 0;
         if (pos >= endPos) {
             pos -= endPos;
-            List<MyAttribute> attrs = basic.diskBasicParam.getSpecialAttributes();
+            List<MyAttribute> attrs = basic.getSpecialAttributes();
             int count = attrs.size();
             if (pos < count) {
                 t = getTypeByIndex(attrs, pos);
@@ -975,10 +991,10 @@ logger.log(Level.ERROR, e.getMessage(), e);
         return t;
     }
 
-    /// ファイル名の通常コードの割合(0.0-1.0) */
+    /** ファイル名の通常コードの割合(0.0-1.0) */
     public double normalCodesInFileName() {
         int count = 0;
-        boolean invert = basic.diskBasicParam.isDataInverted();
+        boolean invert = basic.isDataInverted();
         int[] l = new int[1];
         byte[] n = getFileNamePos(0, l);
         for (int i = 0; i < l[0]; i++) {
@@ -997,9 +1013,11 @@ logger.log(Level.ERROR, e.getMessage(), e);
         return true;
     }
 
-    /// ファイル名を設定 "."で拡張子と分離
-    ///
-    /// @param filename ファイル名(Unicode)
+    /**
+     * ファイル名を設定 "."で拡張子と分離
+     *
+     * @param filename ファイル名(Unicode)
+     */
     public void setFileNameStr(String filename) {
         byte[] name = new byte[256];
         byte[] ext = new byte[256];
@@ -1009,10 +1027,12 @@ logger.log(Level.ERROR, e.getMessage(), e);
         setNativeFileName(name, name.length, nlen[0], ext, ext.length, elen[0]);
     }
 
-    /// ファイル名をそのまま設定
-    /// 拡張子部分はクリアする
-    ///
-    /// @param filename ファイル名(Unicode)
+    /**
+     * ファイル名をそのまま設定
+     * 拡張子部分はクリアする
+     *
+     * @param filename ファイル名(Unicode)
+     */
     public void setFileNamePlain(String filename) {
         byte[] name = new byte[256];
         byte[] ext = new byte[256];
@@ -1022,14 +1042,16 @@ logger.log(Level.ERROR, e.getMessage(), e);
         setNativeFileName(name, name.length, nlen[0], ext, ext.length, 0);
     }
 
-    /// 拡張子を設定
-    ///
-    /// @param fileext 拡張子(Unicode)
-    public void setFileExtPlain(String fileext) {
+    /**
+     * 拡張子を設定
+     *
+     * @param fileExt 拡張子(Unicode)
+     */
+    public void setFileExtPlain(String fileExt) {
         byte[] ext = new byte[256];
         int[] nlen = new int[] {0};
         int[] elen = new int[] {ext.length};
-        toNativeFileName(fileext, ext, elen, null, nlen);
+        toNativeFileName(fileExt, ext, elen, null, nlen);
         setNativeFileName(null, 0, 0, ext, ext.length, elen[0]);
     }
 
@@ -1037,63 +1059,67 @@ logger.log(Level.ERROR, e.getMessage(), e);
      * ファイル名と拡張子を設定
      *
      * @param name  [in,out] ファイル名
-     * @param nsize ファイル名バッファサイズ
-     * @param nlen  ファイル名長さ
+     * @param nSize ファイル名バッファサイズ
+     * @param nLen  ファイル名長さ
      * @param ext   [in,out] 拡張子
-     * @param esize 拡張子バッファサイズ
-     * @param elen  拡張子長さ
+     * @param eSize 拡張子バッファサイズ
+     * @param eLen  拡張子長さ
      *              データビットはこの関数で反転させる
      */
-    public void setNativeFileName(byte[] name, int nsize, int nlen, byte[] ext, int esize, int elen) {
-        boolean invert = basic.diskBasicParam.isDataInverted();
-        char space = (char) basic.diskBasicParam.getDirSpaceCode(); // 空白コード
-        char term = (char) basic.diskBasicParam.getDirTerminateCode(); // 終端コード
+    public void setNativeFileName(byte[] name, int nSize, int nLen, byte[] ext, int eSize, int eLen) {
+        boolean invert = basic.isDataInverted();
+        char space = (char) basic.getDirSpaceCode(); // 空白コード
+        char term = (char) basic.getDirTerminateCode(); // 終端コード
         if (name != null) {
-            if (nsize > nlen) {
-                name[nlen] = (byte) term;
-                nlen++;
+            if (nSize > nLen) {
+                name[nLen] = (byte) term;
+                nLen++;
             }
-            if (nsize > nlen) {
-                Arrays.fill(name, nlen, nsize, (byte) space);
+            if (nSize > nLen) {
+                Arrays.fill(name, nLen, nSize, (byte) space);
             }
             if (invert) {
-                invertBytes(name, nsize);
+                Common.invertMemory(name, nSize);
             }
-            setNativeName(name, nsize, nlen);
+            setNativeName(name, nSize, nLen);
         }
         if (ext != null) {
-            if (esize > elen) {
-                ext[elen] = (byte) term;
-                elen++;
+            if (eSize > eLen) {
+                ext[eLen] = (byte) term;
+                eLen++;
             }
-            if (esize > elen) {
-                Arrays.fill(ext, elen, esize, (byte) space);
+            if (eSize > eLen) {
+                Arrays.fill(ext, eLen, eSize, (byte) space);
             }
             if (invert) {
-                invertBytes(ext, esize);
+                Common.invertMemory(ext, eSize);
             }
-            setNativeExt(ext, esize, elen);
+            setNativeExt(ext, eSize, eLen);
         }
     }
 
-    /// ファイル名をコピー
-    ///
-    /// @param src ディレクトリアイテム
+    /**
+     * ファイル名をコピー
+     *
+     * @param src ディレクトリアイテム
+     */
     public void copyFileName(DiskBasicDirItem<T> src) {
         byte[] name = new byte[256];
         byte[] ext = new byte[256];
-        int[] nlen = new int[] {name.length};
-        int[] elen = new int[1];
+        int[] nLen = new int[] {name.length};
+        int[] eLen = new int[1];
         int[] extLen = new int[1];
         getFileExtPos(extLen);
-        elen[0] = extLen[0];
-        src.getNativeFileName(name, nlen, ext, elen);
-        setNativeFileName(name, name.length, nlen[0], ext, ext.length, elen[0]);
+        eLen[0] = extLen[0];
+        src.getNativeFileName(name, nLen, ext, eLen);
+        setNativeFileName(name, name.length, nLen[0], ext, ext.length, eLen[0]);
     }
 
-    /// ファイル名を返す 名前 + "." + 拡張子
-    ///
-    /// @return ファイル名
+    /**
+     * ファイル名を返す 名前 + "." + 拡張子
+     *
+     * @return ファイル名
+     */
     public String getFileNameStr() {
         byte[] name = new byte[256], ext = new byte[256];
         int[] nl = new int[] {name.length};
@@ -1104,16 +1130,18 @@ logger.log(Level.ERROR, e.getMessage(), e);
         String dst = convCharsToString(name, nl[0]);
 
         if (el[0] > 0) {
-            dst += (char) basic.diskBasicParam.getExtensionPreCode();
+            dst += (char) basic.getExtensionPreCode();
             dst += convCharsToString(ext, el[0]);
         }
 
         return dst;
     }
 
-    /// ファイル名を返す 名前 + "." + 拡張子 エクスポート時
-    ///
-    /// @return ファイル名
+    /**
+     * ファイル名を返す 名前 + "." + 拡張子 エクスポート時
+     *
+     * @return ファイル名
+     */
     public String getFileNameStrForExport() {
         byte[] name = new byte[256], ext = new byte[256];
         int[] nl = new int[] {name.length};
@@ -1131,11 +1159,13 @@ logger.log(Level.ERROR, e.getMessage(), e);
         return dst;
     }
 
-    /// ファイル名を得る 名前 + "." + 拡張子
-    /// バッファを超える場合は拡張子を追加しない
-    ///
-    /// @param filename 出力先バッファ
-    /// @param length   出力先バッファのサイズ
+    /**
+     * ファイル名を得る 名前 + "." + 拡張子
+     * バッファを超える場合は拡張子を追加しない
+     *
+     * @param filename 出力先バッファ
+     * @param length   出力先バッファのサイズ
+     */
     public void getFileName(byte[] filename, int length) {
         byte[] name = new byte[256];
         byte[] ext = new byte[256];
@@ -1144,7 +1174,7 @@ logger.log(Level.ERROR, e.getMessage(), e);
         getNativeFileName(name, nl, ext, el);
         System.arraycopy(name, 0, filename, 0, Math.min(length, nl[0]));
         if (el[0] > 0 && (nl[0] + el[0] + 1) < length) {
-            filename[nl[0]] = basic.diskBasicParam.getExtensionPreCode();
+            filename[nl[0]] = basic.getExtensionPreCode();
             nl[0]++;
             System.arraycopy(ext, 0, filename, nl[0], el[0]);
         }
@@ -1152,17 +1182,17 @@ logger.log(Level.ERROR, e.getMessage(), e);
 
     /**
      * ファイル名を得る
-     *
+     * <p>
      * データビットは反転させたまま
+     *
      * @param filename [in,out] ファイル名
      * @param size     バッファサイズ
      * @param length   [out] 長さ
      */
     protected void getNativeName(byte[] filename, int size, int[] length) {
-        byte[] n = null;
         int[] s = new int[1];
         int[] l = new int[1];
-        n = getFileNamePos(0, s, l);
+        byte[] n = getFileNamePos(0, s, l);
         if (n != null && s[0] > 0) {
             if (s[0] > size) s[0] = size;
             System.arraycopy(n, 0, filename, 0, s[0]);
@@ -1172,18 +1202,18 @@ logger.log(Level.ERROR, e.getMessage(), e);
 
     /**
      * 拡張子を得る
-     *
+     * <p>
      * データビットは反転させたまま
-     * @param fileext [in,out] 拡張子
+     *
+     * @param fileExt [in,out] 拡張子
      * @param size    バッファサイズ
      * @param length  [out] 長さ
      */
-    protected void getNativeExt(byte[] fileext, int size, int[] length) {
-        byte[] e = null;
+    protected void getNativeExt(byte[] fileExt, int size, int[] length) {
         int[] l = new int[1];
-        e = getFileExtPos(l);
+        byte[] e = getFileExtPos(l);
         if (e != null && l[0] > 0) {
-            System.arraycopy(e, 0, fileext, 0, l[0]);
+            System.arraycopy(e, 0, fileExt, 0, l[0]);
         }
         length[0] = l[0];
     }
@@ -1193,121 +1223,127 @@ logger.log(Level.ERROR, e.getMessage(), e);
      * それぞれ空白は右トリミング
      *
      * @param name [out] ファイル名バッファ
-     * @param nlen [in,out] 上記バッファサイズ / 文字列長さを返す
+     * @param nLen [in,out] 上記バッファサイズ / 文字列長さを返す
      * @param ext  [out] 拡張子名バッファ
-     * @param elen [in,out] 上記バッファサイズ / 文字列長さを返す
+     * @param eLen [in,out] 上記バッファサイズ / 文字列長さを返す
      *             データビットはこの関数で反転させる
      */
-    public void getNativeFileName(byte[] name, int[] nlen, byte[] ext, int[] elen) {
+    public void getNativeFileName(byte[] name, int[] nLen, byte[] ext, int[] eLen) {
         int[] nl = new int[1];
         int[] el = new int[1];
-        boolean invert = basic.diskBasicParam.isDataInverted();
-        char trimm = (char) basic.diskBasicParam.getDirTrimmingCode(); // とり除くコード
-        char space = (char) basic.diskBasicParam.getDirSpaceCode(); // 空白コード
-        char term = (char) basic.diskBasicParam.getDirTerminateCode(); // 終端コード
-        if (name != null && nlen[0] > 0) {
-            Arrays.fill(name, 0, nlen[0], (byte) 0);
-            getNativeName(name, nlen[0], nl);
+        boolean invert = basic.isDataInverted();
+        char trim = (char) basic.getDirTrimmingCode(); // とり除くコード
+        char space = (char) basic.getDirSpaceCode(); // 空白コード
+        char term = (char) basic.getDirTerminateCode(); // 終端コード
+        if (name != null && nLen[0] > 0) {
+            Arrays.fill(name, 0, nLen[0], (byte) 0);
+            getNativeName(name, nLen[0], nl);
             if (invert) {
-                invertBytes(name, nl[0]);
+                Common.invertMemory(name, nl[0]);
             }
-            nl[0] = rtrim(name, nl[0], trimm);
-            nl[0] = rtrim(name, nl[0], space);
-            nl[0] = rtrim(name, nl[0], term);
-            if (isUsed()) nlen[0] = strShrink(name, nl[0]);
-            else nlen[0] = nl[0];
+            nl[0] = Common.trimRight(name, nl[0], (byte) trim);
+            nl[0] = Common.trimRight(name, nl[0], (byte) space);
+            nl[0] = Common.trimRight(name, nl[0], (byte) term);
+            if (isUsed()) nLen[0] = Common.shrinkString(name, nl[0]);
+            else nLen[0] = nl[0];
         }
-        if (ext != null && elen[0] > 0) {
-            Arrays.fill(ext, 0, elen[0], (byte) 0);
-            getNativeExt(ext, elen[0], el);
+        if (ext != null && eLen[0] > 0) {
+            Arrays.fill(ext, 0, eLen[0], (byte) 0);
+            getNativeExt(ext, eLen[0], el);
             if (invert) {
-                invertBytes(ext, el[0]);
+                Common.invertMemory(ext, el[0]);
             }
-            el[0] = rtrim(ext, el[0], trimm);
-            el[0] = rtrim(ext, el[0], space);
-            el[0] = rtrim(ext, el[0], term);
-            if (isUsed()) elen[0] = strShrink(ext, el[0]);
-            else elen[0] = el[0];
+            el[0] = Common.trimRight(ext, el[0], (byte) trim);
+            el[0] = Common.trimRight(ext, el[0], (byte) space);
+            el[0] = Common.trimRight(ext, el[0], (byte) term);
+            if (isUsed()) eLen[0] = Common.shrinkString(ext, el[0]);
+            else eLen[0] = el[0];
         }
     }
 
-    /// ファイル名(拡張子除く)が一致するか
-    ///
-    /// @param name  ファイル名
-    /// @param icase 大文字小文字を区別しないか(case insensitive)
-    public boolean isSameName(String name, boolean icase) {
+    /**
+     * ファイル名(拡張子除く)が一致するか
+     *
+     * @param name  ファイル名
+     * @param caseInsensitive 大文字小文字を区別しないか(case insensitive)
+     */
+    public boolean isSameName(String name, boolean caseInsensitive) {
         if (!isUsedAndVisible()) return false;
-        byte[] sname = new byte[256];
-        byte[] dname = new byte[256];
-        int[] snlen = new int[] {sname.length};
-        int[] dnlen = new int[] {dname.length};
-        int[] selen = new int[] {0};
-        int[] delen = new int[] {0};
-        toNativeFileName(name, dname, dnlen, null, delen);
-        getNativeFileName(sname, snlen, null, selen);
-        if (icase) {
-            toUpper(sname, snlen[0]);
-            toUpper(dname, dnlen[0]);
+        byte[] sName = new byte[256];
+        byte[] dName = new byte[256];
+        int[] sNLen = new int[] {sName.length};
+        int[] dNLen = new int[] {dName.length};
+        int[] sELen = new int[] {0};
+        int[] dELen = new int[] {0};
+        toNativeFileName(name, dName, dNLen, null, dELen);
+        getNativeFileName(sName, sNLen, null, sELen);
+        if (caseInsensitive) {
+            toUpper(sName, sNLen[0]);
+            toUpper(dName, dNLen[0]);
         }
-        return Arrays.equals(Arrays.copyOf(sname, Math.max(snlen[0], dnlen[0])), Arrays.copyOf(dname, Math.max(snlen[0], dnlen[0])));
+        return Arrays.equals(Arrays.copyOf(sName, Math.max(sNLen[0], dNLen[0])), Arrays.copyOf(dName, Math.max(sNLen[0], dNLen[0])));
     }
 
-    /// 同じファイル名か
-    /// ファイル名＋拡張子＋拡張属性で一致するかどうか
-    ///
-    /// @param filename ファイル名
-    /// @param icase    大文字小文字を区別しないか(case insensitive)
-    /// @see #getOptionalName()
-    public boolean isSameFileName(DiskBasicFileName filename, boolean icase) {
+    /**
+     * 同じファイル名か
+     * ファイル名＋拡張子＋拡張属性で一致するかどうか
+     *
+     * @param filename ファイル名
+     * @param caseInsensitive    大文字小文字を区別しないか(case insensitive)
+     * @see #getOptionalName()
+     */
+    public boolean isSameFileName(DiskBasicFileName filename, boolean caseInsensitive) {
         if (!isUsedAndVisible()) return false;
-        byte[] sname = new byte[256];
-        byte[] sext = new byte[256];
-        byte[] dname = new byte[256];
-        byte[] dext = new byte[256];
-        int[] snlen = new int[] {sname.length};
-        int[] selen = new int[] {sext.length};
-        int[] dnlen = new int[] {dname.length};
-        int[] delen = new int[] {dext.length};
-        toNativeFileName(filename.getName(), dname, dnlen, dext, delen);
-        getNativeFileName(sname, snlen, sext, selen);
-        if (icase) {
-            toUpper(sname, snlen[0]);
-            toUpper(sext, selen[0]);
-            toUpper(dname, dnlen[0]);
-            toUpper(dext, delen[0]);
+        byte[] sName = new byte[256];
+        byte[] sExt = new byte[256];
+        byte[] dName = new byte[256];
+        byte[] dExt = new byte[256];
+        int[] sNLen = new int[] {sName.length};
+        int[] ELen = new int[] {sExt.length};
+        int[] dNLen = new int[] {dName.length};
+        int[] dELen = new int[] {dExt.length};
+        toNativeFileName(filename.getName(), dName, dNLen, dExt, dELen);
+        getNativeFileName(sName, sNLen, sExt, ELen);
+        if (caseInsensitive) {
+            toUpper(sName, sNLen[0]);
+            toUpper(sExt, ELen[0]);
+            toUpper(dName, dNLen[0]);
+            toUpper(dExt, dELen[0]);
         }
-        return Arrays.equals(Arrays.copyOf(sname, Math.max(snlen[0], dnlen[0])), Arrays.copyOf(dname, Math.max(snlen[0], dnlen[0])))
-                && ((delen[0] == 0 && selen[0] == 0) || Arrays.equals(Arrays.copyOf(sext, Math.max(selen[0], delen[0])), Arrays.copyOf(dext, Math.max(selen[0], delen[0]))))
-                && (getOptionalName() == filename.getOptional());
+        return Arrays.equals(Arrays.copyOf(sName, Math.max(sNLen[0], dNLen[0])), Arrays.copyOf(dName, Math.max(sNLen[0], dNLen[0]))) &&
+                ((dELen[0] == 0 && ELen[0] == 0) || Arrays.equals(Arrays.copyOf(sExt, Math.max(ELen[0], dELen[0])), Arrays.copyOf(dExt, Math.max(ELen[0], dELen[0])))) &&
+                (getOptionalName() == filename.getOptional());
     }
 
-    /// 同じファイル名か
-    /// ファイル名＋拡張子＋拡張属性で一致するかどうか
-    ///
-    /// @param src   比較対象
-    /// @param icase 大文字小文字を区別しないか(case insensitive)
-    /// @see #getOptionalName()
-    public boolean isSameFileName(DiskBasicDirItem<T> src, boolean icase) {
+    /**
+     * 同じファイル名か
+     * ファイル名＋拡張子＋拡張属性で一致するかどうか
+     *
+     * @param src   比較対象
+     * @param iCase 大文字小文字を区別しないか(case insensitive)
+     * @see #getOptionalName()
+     */
+    public boolean isSameFileName(DiskBasicDirItem<T> src, boolean iCase) {
         if (!isUsedAndVisible()) return false;
-        byte[] sname = new byte[256];
-        byte[] sext = new byte[256];
-        byte[] dname = new byte[256];
-        byte[] dext = new byte[256];
-        int[] snlen = new int[] {sname.length};
-        int[] selen = new int[] {sext.length};
-        int[] dnlen = new int[] {dname.length};
-        int[] delen = new int[] {dext.length};
-        src.getNativeFileName(dname, dnlen, dext, delen);
-        getNativeFileName(sname, snlen, sext, selen);
-        if (icase) {
-            toUpper(sname, snlen[0]);
-            toUpper(sext, selen[0]);
-            toUpper(dname, dnlen[0]);
-            toUpper(dext, delen[0]);
+        byte[] sName = new byte[256];
+        byte[] sExt = new byte[256];
+        byte[] dName = new byte[256];
+        byte[] dExt = new byte[256];
+        int[] sNLen = new int[] {sName.length};
+        int[] sELen = new int[] {sExt.length};
+        int[] dNLen = new int[] {dName.length};
+        int[] dELen = new int[] {dExt.length};
+        src.getNativeFileName(dName, dNLen, dExt, dELen);
+        getNativeFileName(sName, sNLen, sExt, sELen);
+        if (iCase) {
+            toUpper(sName, sNLen[0]);
+            toUpper(sExt, sELen[0]);
+            toUpper(dName, dNLen[0]);
+            toUpper(dExt, dELen[0]);
         }
-        return Arrays.equals(Arrays.copyOf(sname, Math.max(snlen[0], dnlen[0])), Arrays.copyOf(dname, Math.max(snlen[0], dnlen[0])))
-                && ((delen[0] == 0 && selen[0] == 0) || Arrays.equals(Arrays.copyOf(sext, Math.max(selen[0], delen[0])), Arrays.copyOf(dext, Math.max(selen[0], delen[0]))))
-                && (src.getOptionalName() == getOptionalName());
+        return Arrays.equals(Arrays.copyOf(sName, Math.max(sNLen[0], dNLen[0])), Arrays.copyOf(dName, Math.max(sNLen[0], dNLen[0]))) &&
+                ((dELen[0] == 0 && sELen[0] == 0) || Arrays.equals(Arrays.copyOf(sExt, Math.max(sELen[0], dELen[0])), Arrays.copyOf(dExt, Math.max(sELen[0], dELen[0])))) &&
+                (src.getOptionalName() == getOptionalName());
     }
 
     /**
@@ -1316,17 +1352,15 @@ logger.log(Level.ERROR, e.getMessage(), e);
      * @param str  [in,out] 文字列
      * @param size 長さ
      */
-    public void toUpper(byte[] str, int size) {
-        for (int i = 0; i < size; i++) {
-            if (str[i] >= 'a' && str[i] <= 'z') {
-                str[i] = (byte) (str[i] - 32);
-            }
-        }
+    public static void toUpper(byte[] str, int size) {
+        Common.toUpper(str, size);
     }
 
-    /// ファイル名＋拡張子のサイズ
-    ///
-    /// @return サイズ
+    /**
+     * ファイル名＋拡張子のサイズ
+     *
+     * @return サイズ
+     */
     public int getFileNameStrSize() {
         int nl = 0;
         int el = 0;
@@ -1360,57 +1394,59 @@ logger.log(Level.ERROR, e.getMessage(), e);
      * 文字列をバッファにコピー
      *
      * @param src   ファイル名
-     * @param ssize ファイル名サイズ
-     * @param slen  ファイル名長さ
+     * @param sSize ファイル名サイズ
+     * @param sLen  ファイル名長さ
      * @param dst   [out] 出力先バッファ
-     * @param dsize 上記バッファサイズ
-     * @param dlen  [out] 上記長さ
+     * @param dSize 上記バッファサイズ
+     * @param dLen  [out] 上記長さ
      */
-    public static void memoryCopy(byte[] src, int ssize, int slen, byte[] dst, int dsize, int[] dlen) {
-        if (dst == null || dsize == 0) {
-            dlen[0] = 0;
+    public static void memoryCopy(byte[] src, int sSize, int sLen, byte[] dst, int dSize, int[] dLen) {
+        if (dst == null || dSize == 0) {
+            dLen[0] = 0;
             return;
         }
-        if (dsize > slen) Arrays.fill(dst, slen, dsize, (byte) 0);
-        if (slen > 0) System.arraycopy(src, 0, dst, 0, slen);
-        dlen[0] = slen;
+        if (dSize > sLen) Arrays.fill(dst, sLen, dSize, (byte) 0);
+        if (sLen > 0) System.arraycopy(src, 0, dst, 0, sLen);
+        dLen[0] = sLen;
     }
 
     /**
-     * 文字列をバッファにコピー spchr(通常".")で拡張子とを分ける
+     * 文字列をバッファにコピー spChr(通常".")で拡張子とを分ける
      *
      * @param src    ファイル名
-     * @param ssize  ファイル名サイズ
-     * @param slen   ファイル名長さ
-     * @param dname  [out] 出力先ファイル名バッファ
-     * @param dnsize 上記ファイル名バッファサイズ
-     * @param dnlen  [out] 上記ファイル名長さ
-     * @param dext   [out] 出力先拡張子バッファ
-     * @param desize 上記拡張子バッファサイズ
-     * @param delen  [out] 上記拡張子長さ
-     * @param spchr  分割に使用する文字
+     * @param sSize  ファイル名サイズ
+     * @param sLen   ファイル名長さ
+     * @param dName  [out] 出力先ファイル名バッファ
+     * @param dNSize 上記ファイル名バッファサイズ
+     * @param dNLen  [out] 上記ファイル名長さ
+     * @param dExt   [out] 出力先拡張子バッファ
+     * @param dESize 上記拡張子バッファサイズ
+     * @param dELen  [out] 上記拡張子長さ
+     * @param spChr  分割に使用する文字
      */
-    public static void splitFileName(byte[] src, int ssize, int slen, byte[] dname, int dnsize, int[] dnlen, byte[] dext, int desize, int[] delen, byte spchr) {
+    public static void splitFileName(byte[] src, int sSize, int sLen, byte[] dName, int dNSize, int[] dNLen, byte[] dExt, int dESize, int[] dELen, byte spChr) {
         int pos = -1;
-        for (int i = slen - 1; i >= 0; i--) {
-            if (src[i] == spchr) {
+        for (int i = sLen - 1; i >= 0; i--) {
+            if (src[i] == spChr) {
                 pos = i;
                 break;
             }
         }
-        if (desize > 0 && pos >= 0) {
-            memoryCopy(src, ssize, pos, dname, dnsize, dnlen);
+        if (dESize > 0 && pos >= 0) {
+            memoryCopy(src, sSize, pos, dName, dNSize, dNLen);
             pos++;
-            memoryCopy(Arrays.copyOfRange(src, pos, src.length), ssize - pos, slen - pos, dext, desize, delen);
+            memoryCopy(Arrays.copyOfRange(src, pos, src.length), sSize - pos, sLen - pos, dExt, dESize, dELen);
         } else {
-            memoryCopy(src, ssize, slen, dname, dnsize, dnlen);
-            memoryCopy(null, 0, 0, dext, desize, delen);
+            memoryCopy(src, sSize, sLen, dName, dNSize, dNLen);
+            memoryCopy(null, 0, 0, dExt, dESize, dELen);
         }
     }
 
-    /// 属性を設定
-    ///
-    /// @param fileType 属性
+    /**
+     * 属性を設定
+     *
+     * @param fileType 属性
+     */
     public void setFileAttr(DiskBasicFileType fileType) {
     }
 
@@ -1422,27 +1458,33 @@ logger.log(Level.ERROR, e.getMessage(), e);
         setFileAttr(formatType, fileType, originalType0, originalType1, 0);
     }
 
-    /// 属性を設定
-    ///
-    /// @param formatType    フォーマット種類 DiskBasicFormatType
-    /// @param fileType      共通属性 file_type_mask の組み合わせ
-    /// @param originalType0 本来の属性
-    /// @param originalType1 本来の属性 つづき1
-    /// @param originalType2 本来の属性 つづき2
+    /**
+     * 属性を設定
+     *
+     * @param formatType    フォーマット種類 DiskBasicFormatType
+     * @param fileType      共通属性 file_type_mask の組み合わせ
+     * @param originalType0 本来の属性
+     * @param originalType1 本来の属性 つづき1
+     * @param originalType2 本来の属性 つづき2
+     */
     public void setFileAttr(DiskBasicFormatType formatType, int fileType, int originalType0, int originalType1, int originalType2) {
         setFileAttr(new DiskBasicFileType(formatType, fileType, originalType0, originalType1, originalType2));
     }
 
-    /// 属性を返す
-    ///
-    /// @return 属性
+    /**
+     * 属性を返す
+     *
+     * @return 属性
+     */
     public DiskBasicFileType getFileAttr() {
         return new DiskBasicFileType();
     }
 
-    /// 属性の文字列を返す(ファイル一覧画面表示用)
-    ///
-    /// @return 文字列
+    /**
+     * 属性の文字列を返す(ファイル一覧画面表示用)
+     *
+     * @return 文字列
+     */
     public String getFileAttrStr() {
         return "";
     }
@@ -1456,9 +1498,11 @@ logger.log(Level.ERROR, e.getMessage(), e);
         return externalAttr;
     }
 
-    /// 通常のファイルか ディレクトリ削除でのチェックで使用
-    ///
-    /// @return true 通常のファイル
+    /**
+     * 通常のファイルか ディレクトリ削除でのチェックで使用
+     *
+     * @return true 通常のファイル
+     */
     public boolean isNormalFile() {
         DiskBasicFileType attr = getFileAttr();
         if (attr.isVolume()) {
@@ -1474,35 +1518,43 @@ logger.log(Level.ERROR, e.getMessage(), e);
         return true;
     }
 
-    /// ディレクトリか
-    ///
-    /// @return true ディレクトリ
+    /**
+     * ディレクトリか
+     *
+     * @return true ディレクトリ
+     */
     public boolean isDirectory() {
         return getFileAttr().isDirectory();
     }
 
-    /// ファイルサイズをセット
-    ///
-    /// @param val サイズ
+    /**
+     * ファイルサイズをセット
+     *
+     * @param val サイズ
+     */
     public void setFileSize(int val) {
         groups.setSize(val);
     }
 
-    /// ファイルサイズを返す
-    ///
-    /// @return サイズ
+    /**
+     * ファイルサイズを返す
+     *
+     * @return サイズ
+     */
     public int getFileSize() {
         return groups.getSize();
     }
 
-    /// ディレクトリサイズをセット
-    ///
-    /// @param val サイズ
+    /**
+     * ディレクトリサイズをセット
+     *
+     * @param val サイズ
+     */
     public void setDirectorySize(int val) {
         setFileSize(val);
     }
 
-    public void getUnitGroups(int fileunitNum, DiskBasicGroups groupItems) throws IOException {
+    public void getUnitGroups(int fileUnitNum, DiskBasicGroups groupItems) throws IOException {
     }
 
     /**
@@ -1515,16 +1567,20 @@ logger.log(Level.ERROR, e.getMessage(), e);
         getUnitGroups(0, groupItems);
     }
 
-    /// グループ数をセット
-    ///
-    /// @param val 数
+    /**
+     * グループ数をセット
+     *
+     * @param val 数
+     */
     public void setGroupSize(int val) {
         groups.setNums(val);
     }
 
-    /// グループ数を返す
-    ///
-    /// @return 数
+    /**
+     * グループ数を返す
+     *
+     * @return 数
+     */
     public int getGroupSize() {
         return groups.getNums();
     }
@@ -1534,30 +1590,38 @@ logger.log(Level.ERROR, e.getMessage(), e);
         setStartGroup(fileunitNum, val, 0);
     }
 
-    /// 最初のグループ番号をセット
-    ///
-    /// @param fileunitNum ファイル番号
-    /// @param val         番号
-    /// @param size        サイズ(機種依存)
-    public void setStartGroup(int fileunitNum, int val, int size) {
+    /**
+     * 最初のグループ番号をセット
+     *
+     * @param fileUnitNum ファイル番号
+     * @param val         番号
+     * @param size        サイズ(機種依存)
+     */
+    public void setStartGroup(int fileUnitNum, int val, int size) {
     }
 
-    /// 最初のグループ番号をセット
-    ///
-    /// @param fileunitNum ファイル番号
-    public int getStartGroup(int fileunitNum) {
+    /**
+     * 最初のグループ番号をセット
+     *
+     * @param fileUnitNum ファイル番号
+     */
+    public int getStartGroup(int fileUnitNum) {
         return 0;
     }
 
-    /// 追加のグループ番号をセット(機種依存)
-    ///
-    /// @param val 番号
+    /**
+     * 追加のグループ番号をセット(機種依存)
+     *
+     * @param val 番号
+     */
     public void setExtraGroup(int val) {
     }
 
-    /// 追加のグループ番号を返す(機種依存)
-    ///
-    /// @return 番号
+    /**
+     * 追加のグループ番号を返す(機種依存)
+     *
+     * @return 番号
+     */
     public int getExtraGroup() {
         return INVALID_GROUP_NUMBER;
     }
@@ -1574,9 +1638,11 @@ logger.log(Level.ERROR, e.getMessage(), e);
     public void getExtraGroups(DiskBasicGroups[] grps) {
     }
 
-    /// 次のグループ番号をセット(機種依存)
-    ///
-    /// @param val 番号
+    /**
+     * 次のグループ番号をセット(機種依存)
+     *
+     * @param val 番号
+     */
     public void setNextGroup(int val) {
     }
 
@@ -1585,28 +1651,36 @@ logger.log(Level.ERROR, e.getMessage(), e);
         return INVALID_GROUP_NUMBER;
     }
 
-    /// 最後のグループ番号をセット(機種依存)
-    ///
-    /// @param val 番号
+    /**
+     * 最後のグループ番号をセット(機種依存)
+     *
+     * @param val 番号
+     */
     public void setLastGroup(int val) {
     }
 
-    /// 最後のグループ番号を返す(機種依存)
-    ///
-    /// @return 番号
+    /**
+     * 最後のグループ番号を返す(機種依存)
+     *
+     * @return 番号
+     */
     public int getLastGroup() {
         return INVALID_GROUP_NUMBER;
     }
 
-    /// 親のグループ番号をセット(機種依存)
-    ///
-    /// @param val 番号
+    /**
+     * 親のグループ番号をセット(機種依存)
+     *
+     * @param val 番号
+     */
     public void setParentGroup(int val) {
     }
 
-    /// 親のグループ番号を返す(機種依存)
-    ///
-    /// @return 番号
+    /**
+     * 親のグループ番号を返す(機種依存)
+     *
+     * @return 番号
+     */
     public int getParentGroup() {
         return INVALID_GROUP_NUMBER;
     }
@@ -1627,17 +1701,17 @@ logger.log(Level.ERROR, e.getMessage(), e);
     }
 
     /** グループリストのアイテムを返す */
-    public DiskBasicGroupItem getGroup(int idx) {
-        return groups.get(idx);
+    public DiskBasicGroupItem getGroup(int index) {
+        return groups.get(index);
     }
 
-    public void clearChainSector(DiskBasicDirItem<T> pitem /* = null */) throws IOException {
+    public void clearChainSector(DiskBasicDirItem<T> pItem /* = null */) throws IOException {
     }
 
-    public void setChainSector(DiskImageSector sector, byte[] data, DiskBasicDirItem<T> pitem /* = null */) throws IOException {
+    public void setChainSector(DiskImageSector sector, byte[] data, DiskBasicDirItem<T> pItem /* = null */) throws IOException {
     }
 
-    public void setChainSector(DiskImageSector sector, int num, byte[] data, DiskBasicDirItem<T> pitem /* = null */) throws IOException {
+    public void setChainSector(DiskImageSector sector, int num, byte[] data, DiskBasicDirItem<T> pItem /* = null */) throws IOException {
     }
 
     public void setChainSector(int num, int pos, byte[] data, DiskBasicDirItem<T> pitem /* = null */) {
@@ -1730,26 +1804,31 @@ logger.log(Level.ERROR, e.getMessage(), e);
         return tm;
     }
 
-
-    /// ファイルの作成日付を文字列にして返す
-    ///
-    /// @return 日付文字列
+    /**
+     * ファイルの作成日付を文字列にして返す
+     *
+     * @return 日付文字列
+     */
     @Deprecated
     public String getFileCreateDateStr() {
         return "";
     }
 
-    /// ファイルの作成時間を文字列にして返す
-    ///
-    /// @return 時間文字列
+    /**
+     * ファイルの作成時間を文字列にして返す
+     *
+     * @return 時間文字列
+     */
     @Deprecated
     public String getFileCreateTimeStr() {
         return "";
     }
 
-    /// ファイルの作成日時を文字列にして返す
-    ///
-    /// @return 日時文字列 ない場合"---"
+    /**
+     * ファイルの作成日時を文字列にして返す
+     *
+     * @return 日時文字列 ない場合"---"
+     */
     @Deprecated
     public String getFileCreateDateTimeStr() {
         String str = getFileCreateDateStr();
@@ -1794,25 +1873,31 @@ logger.log(Level.ERROR, e.getMessage(), e);
         return tm;
     }
 
-    /// 変更日付のタイトル名（ダイアログ用）
-    ///
-    /// @return タイトル文字列
+    /**
+     * 変更日付のタイトル名（ダイアログ用）
+     *
+     * @return タイトル文字列
+     */
     @Deprecated
     public String getFileModifyDateStr() {
         return "";
     }
 
-    /// ファイルの変更日付を文字列にして返す
-    ///
-    /// @return 日付文字列
+    /**
+     * ファイルの変更日付を文字列にして返す
+     *
+     * @return 日付文字列
+     */
     @Deprecated
     public String getFileModifyTimeStr() {
         return "";
     }
 
-    /// ファイルの変更日時を文字列にして返す
-    ///
-    /// @return 日時文字列 ない場合"---"
+    /**
+     * ファイルの変更日時を文字列にして返す
+     *
+     * @return 日時文字列 ない場合"---"
+     */
     @Deprecated
     public String getFileModifyDateTimeStr() {
         String str = getFileModifyDateStr();
@@ -1843,7 +1928,7 @@ logger.log(Level.ERROR, e.getMessage(), e);
     /**
      * アクセス日時を得る
      *
-     * @return 日時
+     * @param tm [out] 日時
      */
     public void getFileAccessDateTime(LocalDateTime tm) {
         getFileAccessDate();
@@ -1857,25 +1942,31 @@ logger.log(Level.ERROR, e.getMessage(), e);
         return tm;
     }
 
-    /// ファイルのアクセス日付を文字列にして返す
-    ///
-    /// @return 日付文字列
+    /**
+     * ファイルのアクセス日付を文字列にして返す
+     *
+     * @return 日付文字列
+     */
     @Deprecated
     public String getFileAccessDateStr() {
         return "";
     }
 
-    /// ファイルのアクセス時間を文字列にして返す
-    ///
-    /// @return 時間文字列
+    /**
+     * ファイルのアクセス時間を文字列にして返す
+     *
+     * @return 時間文字列
+     */
     @Deprecated
     public String getFileAccessTimeStr() {
         return "";
     }
 
-    /// ファイルのアクセス日時を文字列にして返す
-    ///
-    /// @return 日時文字列 ない場合"---"
+    /**
+     * ファイルのアクセス日時を文字列にして返す
+     *
+     * @return 日時文字列 ない場合"---"
+     */
     @Deprecated
     public String getFileAccessDateTimeStr() {
         String str = getFileAccessDateStr();
@@ -1885,9 +1976,11 @@ logger.log(Level.ERROR, e.getMessage(), e);
         return str;
     }
 
-    /// 作成日時をセット
-    ///
-    /// @param tm 日時
+    /**
+     * 作成日時をセット
+     *
+     * @param tm 日時
+     */
     public void setFileCreateDate(LocalDateTime tm) {
     }
 
@@ -1899,16 +1992,20 @@ logger.log(Level.ERROR, e.getMessage(), e);
         setFileCreateTime(tm);
     }
 
-    /// 作成日付のタイトル名（ダイアログ用）
-    ///
-    /// @return タイトル文字列
+    /**
+     * 作成日付のタイトル名（ダイアログ用）
+     *
+     * @return タイトル文字列
+     */
     public String getFileCreateDateTimeTitle() {
         return "Created Date";
     }
 
-    /// 変更日時をセット
-    ///
-    /// @param tm 日時
+    /**
+     * 変更日時をセット
+     *
+     * @param tm 日時
+     */
     public void setFileModifyDate(LocalDateTime tm) {
     }
 
@@ -1930,17 +2027,21 @@ logger.log(Level.ERROR, e.getMessage(), e);
     public void setFileAccessTime(LocalDateTime tm) {
     }
 
-    /// アクセス日時をセット
-    ///
-    /// @param tm 日時
+    /**
+     * アクセス日時をセット
+     *
+     * @param tm 日時
+     */
     public void setFileAccessDateTime(LocalDateTime tm) {
         setFileAccessDate(tm);
         setFileAccessTime(tm);
     }
 
-    /// アクセス日付のタイトル名（ダイアログ用）
-    ///
-    /// @return タイトル文字列
+    /**
+     * アクセス日付のタイトル名（ダイアログ用）
+     *
+     * @return タイトル文字列
+     */
     @Deprecated
     public String getFileAccessDateTimeTitle() {
         return "Accessed Date";
@@ -2051,9 +2152,11 @@ logger.log(Level.ERROR, e.getMessage(), e);
         flags = val ? (flags | VISIBLE_TREE) : (flags & ~VISIBLE_TREE);
     }
 
-    /// ファイル名、属性をコピー
-    ///
-    /// @param src ディレクトリアイテム
+    /**
+     * ファイル名、属性をコピー
+     *
+     * @param src ディレクトリアイテム
+     */
     public void copyItem(DiskBasicDirItem<T> src) {
         // データはコピーする
         copyData(src.getRawData());
@@ -2091,7 +2194,7 @@ logger.log(Level.ERROR, e.getMessage(), e);
 
     /** ファイルの終端コードを返す */
     public byte getEofCode() {
-        return basic.diskBasicParam.getTextTerminateCode();
+        return basic.getTextTerminateCode();
     }
 
     public boolean needChainInData() {
@@ -2125,25 +2228,27 @@ logger.log(Level.ERROR, e.getMessage(), e);
      * ファイル番号のファイルサイズを得る
      * １つのエントリで複数のファイルを管理している場合は要オーバーライド
      *
-     * @param fileunitNum ファイル番号
-     * @param istream     [in,out] 入力ストリーム
+     * @param fileUnitNum ファイル番号
+     * @param iStream     [in,out] 入力ストリーム
      * @param fileOffset  ストリーム内のオフセット
      * @return ファイルサイズ / ない場合 -1
      */
-    public int getFileUnitSize(int fileunitNum, InputStream istream, int fileOffset) throws IOException {
-        if (fileunitNum == 0) {
-            return istream.available();
+    public int getFileUnitSize(int fileUnitNum, InputStream iStream, int fileOffset) throws IOException {
+        if (fileUnitNum == 0) {
+            return iStream.available();
         } else {
             return -1;
         }
     }
 
-    /// ファイル番号のファイルへアクセスできるか
-    /// １つのエントリで複数のファイルを管理している場合は要オーバーライド
-    ///
-    /// @param fileunitNum ファイル番号
-    public boolean isValidFileUnit(int fileunitNum) {
-        return fileunitNum == 0;
+    /**
+     * ファイル番号のファイルへアクセスできるか
+     * １つのエントリで複数のファイルを管理している場合は要オーバーライド
+     *
+     * @param fileUnitNum ファイル番号
+     */
+    public boolean isValidFileUnit(int fileUnitNum) {
+        return fileUnitNum == 0;
     }
 
     /** ファイル名から属性を決定する */
@@ -2161,9 +2266,11 @@ logger.log(Level.ERROR, e.getMessage(), e);
         return 0;
     }
 
-    /// 属性値を加工する
-    ///
-    /// インポートダイアログ入力後に必要なら入力した属性値の加工を行う
+    /**
+     * 属性値を加工する
+     * <p>
+     * インポートダイアログ入力後に必要なら入力した属性値の加工を行う
+     */
     public boolean processAttr(DiskBasicDirItemAttr attr, DiskBasicError errinfo) {
         return true;
     }
@@ -2172,9 +2279,11 @@ logger.log(Level.ERROR, e.getMessage(), e);
     public void setOptionalAttr(DiskBasicDirItemAttr attr) {
     }
 
-    /// 文字列をバイト列に変換 文字コードは機種依存
-    ///
-    /// @return >=0 バイト数
+    /**
+     * 文字列をバイト列に変換 文字コードは機種依存
+     *
+     * @return >=0 バイト数
+     */
     public int convStringToChars(String src, byte[] dst, int len) {
         System.arraycopy(src.getBytes(), 0, dst, 0, len);
         return len;
@@ -2187,9 +2296,11 @@ logger.log(Level.ERROR, e.getMessage(), e);
         return sb.toString();
     }
 
-    /// ファイル属性をXMLで出力
-    ///
-    /// @param path 出力先XMLファイルパス
+    /**
+     * ファイル属性をXMLで出力
+     *
+     * @param path 出力先XMLファイルパス
+     */
     public boolean writeFileAttrToXml(String path) {
         try {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -2274,11 +2385,11 @@ logger.log(Level.ERROR, e.getMessage(), e);
             getNativeFileName(fname, fnl, fext, fel);
 
             Element ext1 = doc.createElement("Ext");
-            ext1.setTextContent(encodeEscape(fext, fel[0]));
+            ext1.setTextContent(Utils.encodeEscape(fext, fel[0]));
             root.appendChild(ext1);
 
             Element name1 = doc.createElement("Name");
-            name1.setTextContent(encodeEscape(fname, fnl[0]));
+            name1.setTextContent(Utils.encodeEscape(fname, fnl[0]));
             root.appendChild(name1);
 
             Element fmt1 = doc.createElement("Format");
@@ -2293,7 +2404,7 @@ logger.log(Level.ERROR, e.getMessage(), e);
 
             return true;
         } catch (Exception e) {
-logger.log(Level.ERROR, e.getMessage(), e);
+            logger.log(Level.ERROR, e.getMessage(), e);
             return false;
         }
     }
@@ -2326,53 +2437,50 @@ logger.log(Level.ERROR, e.getMessage(), e);
             int endAddr = -1;
             int execAddr = -1;
             int externalAttr = 0;
-            LocalDateTime tmCtmp = LocalDateTime.now();
-            LocalDateTime tmMtmp = LocalDateTime.now();
-            LocalDateTime tmAtmp = LocalDateTime.now();
+            LocalDateTime tmCTmp = LocalDateTime.now();
+            LocalDateTime tmMTmp = LocalDateTime.now();
+            LocalDateTime tmATmp = LocalDateTime.now();
 
-            byte[] fname = new byte[256];
-            byte[] fext = new byte[256];
-            int fnl = fname.length;
-            int fel = fext.length;
+            byte[] fileName = new byte[256];
+            byte[] fileExt = new byte[256];
+            int fileNameLen = fileName.length;
+            int fileExtLen = fileExt.length;
 
-            org.w3c.dom.NodeList nodes = root.getChildNodes();
+            NodeList nodes = root.getChildNodes();
             for (int i = 0; i < nodes.getLength(); i++) {
-                org.w3c.dom.Node node = nodes.item(i);
-                if (node.getNodeType() == org.w3c.dom.Node.ELEMENT_NODE) {
+                Node node = nodes.item(i);
+                if (node.getNodeType() == Node.ELEMENT_NODE) {
                     String name = node.getNodeName();
                     String content = node.getTextContent();
 
-                    if (name.equals("Format")) {
-                        formatType = Integer.parseInt(content);
-                    } else if (name.equals("Name")) {
-                        decodeEscape(content, fname, fnl);
-                    } else if (name.equals("Ext")) {
-                        decodeEscape(content, fext, fel);
-                    } else if (name.equals("Type")) {
+                    switch (name) {
+                        case "Format" -> formatType = Integer.parseInt(content);
+                        case "Name" -> Utils.decodeEscape(content, fileName, fileNameLen);
+                        case "Ext" -> Utils.decodeEscape(content, fileExt, fileExtLen);
+                        case "Type" ->
                         fileType = Integer.parseInt(content.startsWith("0x") ? content.substring(2) : content, content.startsWith("0x") ? 16 : 10);
-                    } else if (name.equals("OriginalType0")) {
+                        case "OriginalType0" ->
                         originalType0 = Integer.parseInt(content.startsWith("0x") ? content.substring(2) : content, content.startsWith("0x") ? 16 : 10);
-                    } else if (name.equals("OriginalType1")) {
+                        case "OriginalType1" ->
                         originalType1 = Integer.parseInt(content.startsWith("0x") ? content.substring(2) : content, content.startsWith("0x") ? 16 : 10);
-                    } else if (name.equals("OriginalType2")) {
+                        case "OriginalType2" ->
                         originalType2 = Integer.parseInt(content.startsWith("0x") ? content.substring(2) : content, content.startsWith("0x") ? 16 : 10);
-                    } else if (name.equals("Size")) {
-                        fileSize = Integer.parseInt(content);
-                    } else if (name.equals("StartAddress")) {
+                        case "Size" -> fileSize = Integer.parseInt(content);
+                        case "StartAddress" ->
                         startAddr = Integer.parseInt(content.startsWith("0x") ? content.substring(2) : content, content.startsWith("0x") ? 16 : 10);
-                    } else if (name.equals("EndAddress")) {
+                        case "EndAddress" ->
                         endAddr = Integer.parseInt(content.startsWith("0x") ? content.substring(2) : content, content.startsWith("0x") ? 16 : 10);
-                    } else if (name.equals("ExecuteAddress")) {
+                        case "ExecuteAddress" ->
                         execAddr = Integer.parseInt(content.startsWith("0x") ? content.substring(2) : content, content.startsWith("0x") ? 16 : 10);
-                    } else if (name.equals("ExternalAttribute")) {
+                        case "ExternalAttribute" ->
                         externalAttr = Integer.parseInt(content.startsWith("0x") ? content.substring(2) : content, content.startsWith("0x") ? 16 : 10);
                     }
                 }
             }
 
-            fnl = strLength(fname, fnl, 0);
-            fel = strLength(fext, fel, 0);
-            setNativeFileName(fname, fname.length, fnl, fext, fext.length, fel);
+            fileNameLen = Common.getStringLength(fileName, fileNameLen, (byte) 0);
+            fileExtLen = Common.getStringLength(fileExt, fileExtLen, (byte) 0);
+            setNativeFileName(fileName, fileName.length, fileNameLen, fileExt, fileExt.length, fileExtLen);
             setFileAttr(DiskBasicFormatType.valueOf(formatType), fileType, originalType0, originalType1, originalType2);
             setFileSize(fileSize);
             setStartAddress(startAddr);
@@ -2380,13 +2488,14 @@ logger.log(Level.ERROR, e.getMessage(), e);
             setExecuteAddress(execAddr);
             setExternalAttr(externalAttr);
             if (attr != null) {
-                attr.setCreateDateTime(tmCtmp);
-                attr.setModifyDateTime(tmMtmp);
-                attr.setAccessDateTime(tmAtmp);
+                attr.setCreateDateTime(tmCTmp);
+                attr.setModifyDateTime(tmMTmp);
+                attr.setAccessDateTime(tmATmp);
             }
 
             return true;
         } catch (Exception e) {
+            logger.log(Level.ERROR, e.getMessage(), e);
             return false;
         }
     }
@@ -2418,7 +2527,7 @@ logger.log(Level.ERROR, e.getMessage(), e);
     public void setInternalDataInAttrDialog(KeyValArray vals) throws IOException {
     }
 
-    public void calcFileUnitSize(int fileunitNum) throws IOException {
+    public void calcFileUnitSize(int fileUnitNum) throws IOException {
     }
 
     /** ファイルサイズとグループ数を計算する */
@@ -2427,31 +2536,29 @@ logger.log(Level.ERROR, e.getMessage(), e);
         calcFileUnitSize(0);
     }
 
-    /// ファイルの終端コードをチェックして必要なサイズを返す
-    ///
-    /// @param istream  入力ストリーム
-    /// @param fileSize 入力ストリームの元のデータサイズ
-    /// @return 終端コードを付加したサイズ（元のサイズ+1）
-    public int checkEofCode(InputStream istream, int fileSize) {
-        try {
-            istream.skip(fileSize - 1);
-            byte[] c = new byte[1];
-            istream.read(c);
-            if (c[0] != getEofCode()) {
-                fileSize++;
-            }
-            istream.reset();
-            return fileSize;
-        } catch (IOException e) {
-            return fileSize;
+    /**
+     * ファイルの終端コードをチェックして必要なサイズを返す
+     *
+     * @param iStream  入力ストリーム
+     * @param fileSize 入力ストリームの元のデータサイズ
+     * @return 終端コードを付加したサイズ（元のサイズ+1）
+     */
+    public int checkEofCode(InputStream iStream, int fileSize) throws IOException {
+        iStream.skipNBytes(fileSize - 1);
+        byte[] c = new byte[1];
+        iStream.read(c);
+        if (c[0] != getEofCode()) {
+            fileSize++;
         }
+        iStream.reset();
+        return fileSize;
     }
 
     public int recalcFileSize(DiskBasicGroups groupItems, int occupiedSize) throws IOException {
         return occupiedSize;
     }
 
-    public int recalcFileSizeOnSave(InputStream istream, int fileSize) throws IOException {
+    public int recalcFileSizeOnSave(InputStream iStream, int fileSize) throws IOException {
         return fileSize;
     }
 
@@ -2465,90 +2572,7 @@ logger.log(Level.ERROR, e.getMessage(), e);
         return lastDot >= 0 ? filename.substring(0, lastDot) : filename;
     }
 
-    private boolean isUpperString(String str) {
-        for (int i = 0; i < str.length(); i++) {
-            char c = str.charAt(i);
-            if (Character.isLetter(c) && Character.isLowerCase(c)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private int indexOf(Map<String, Object> list, String ext) {
-        int i = 0;
-        for (Map.Entry<String, Object> e : list.entrySet()) {
-            if (e.getKey().equalsIgnoreCase(ext)) {
-                return i;
-            }
-            i++;
-        }
-        return -1;
-    }
-
-    private int rtrim(byte[] arr, int len, char ch) {
-        while (len > 0 && arr[len - 1] == (byte) ch) {
-            len--;
-        }
-        return len;
-    }
-
-    private int strShrink(byte[] arr, int len) {
-        int newLen = 0;
-        for (int i = 0; i < len; i++) {
-            if (arr[i] != 0) {
-                newLen = i + 1;
-            }
-        }
-        return newLen;
-    }
-
-    private int strLength(byte[] arr, int maxLen, int val) {
-        int len = 0;
-        for (int i = 0; i < maxLen; i++) {
-            if (arr[i] == (byte) val) {
-                break;
-            }
-            len++;
-        }
-        return len;
-    }
-
-    void invertBytes(byte[] arr, int len) {
-        for (int i = 0; i < len; i++) {
-            arr[i] = (byte) (~arr[i]);
-        }
-    }
-
-    private String encodeEscape(byte[] data, int len) {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < len; i++) {
-            int b = data[i] & 0xFF;
-            if (b < 32 || b > 126) {
-                sb.append(String.format("\\x%02X", b));
-            } else {
-                sb.append((char) b);
-            }
-        }
-        return sb.toString();
-    }
-
-    private void decodeEscape(String str, byte[] dst, int maxLen) {
-        int j = 0;
-        for (int i = 0; i < str.length() && j < maxLen; i++) {
-            if (str.charAt(i) == '\\' && i + 3 < str.length() && str.charAt(i + 1) == 'x') {
-                String hex = str.substring(i + 2, i + 4);
-                dst[j++] = (byte) Integer.parseInt(hex, 16);
-                i += 3;
-            } else {
-                dst[j++] = (byte) str.charAt(i);
-            }
-        }
-    }
-
-    //
-    // 属性値を一時的に集めておくクラス
-    //
+    /** 属性値を一時的に集めておくクラス */
     public static class DiskBasicDirItemAttr {
 
         private boolean rename;
@@ -2592,10 +2616,12 @@ logger.log(Level.ERROR, e.getMessage(), e);
             name = val;
         }
 
-        /// ファイル名をセット
-        ///
-        /// @param nName     ファイル名
-        /// @param nOptional ファイル名の属性
+        /**
+         * ファイル名をセット
+         *
+         * @param nName     ファイル名
+         * @param nOptional ファイル名の属性
+         */
         public void setFileName(String nName, int nOptional) {
             name.setName(nName);
             name.setOptional(nOptional);
@@ -2613,13 +2639,15 @@ logger.log(Level.ERROR, e.getMessage(), e);
             setFileAttr(nFormat, nType, nOrigin0, 0, 0);
         }
 
-        /// 属性をセット
-        ///
-        /// @param nFormat  フォーマットタイプ
-        /// @param nType    共通属性
-        /// @param nOrigin0 独自属性
-        /// @param nOrigin1 独自属性 つづき1
-        /// @param nOrigin2 独自属性 つづき2
+        /**
+         * 属性をセット
+         *
+         * @param nFormat  フォーマットタイプ
+         * @param nType    共通属性
+         * @param nOrigin0 独自属性
+         * @param nOrigin1 独自属性 つづき1
+         * @param nOrigin2 独自属性 つづき2
+         */
         public void setFileAttr(DiskBasicFormatType nFormat, int nType, int nOrigin0, int nOrigin1, int nOrigin2 /* = 0 */) {
             type.setFormat(nFormat);
             type.setType(nType);
@@ -2628,24 +2656,30 @@ logger.log(Level.ERROR, e.getMessage(), e);
             type.setOrigin(2, nOrigin2);
         }
 
-        /// 共通属性をセット
-        ///
-        /// @param nType 共通属性
+        /**
+         * 共通属性をセット
+         *
+         * @param nType 共通属性
+         */
         public void setFileType(int nType) {
             type.setType(nType);
         }
 
-        /// 独自属性をセット
-        ///
-        /// @param idx     0..2
-        /// @param nOrigin 独自属性
+        /**
+         * 独自属性をセット
+         *
+         * @param idx     0..2
+         * @param nOrigin 独自属性
+         */
         public void setFileOriginAttr(int idx, int nOrigin) {
             type.setOrigin(idx, nOrigin);
         }
 
-        /// 独自属性をセット
-        ///
-        /// @param nOrigin 独自属性
+        /**
+         * 独自属性をセット
+         *
+         * @param nOrigin 独自属性
+         */
         public void setFileOriginAttr(int nOrigin) {
             type.setOrigin(nOrigin);
         }
@@ -2703,9 +2737,11 @@ logger.log(Level.ERROR, e.getMessage(), e);
             return type.getType();
         }
 
-        /// 独自属性を得る
-        ///
-        /// @param idx 0..2
+        /**
+         * 独自属性を得る
+         *
+         * @param idx 0..2
+         */
         public int getFileOriginAttr(int idx /* = 0 */) {
             return type.getOrigin(idx);
         }
@@ -2743,9 +2779,7 @@ logger.log(Level.ERROR, e.getMessage(), e);
         }
     }
 
-    //
-    // セクタをまたぐディレクトリアイテムを処理
-    //
+    /** セクタをまたぐディレクトリアイテムを処理 */
     public static class DirItemSectorBoundary {
 
         private static class SectorInfo {
@@ -2757,7 +2791,7 @@ logger.log(Level.ERROR, e.getMessage(), e);
             SectorInfo() {
                 data = null;
                 size = 0;
-                pos = 0xFFFF;
+                pos = 0xffff;
             }
         }
 
@@ -2776,24 +2810,26 @@ logger.log(Level.ERROR, e.getMessage(), e);
             for (int i = 0; i < 2; i++) {
                 s[i].data = null;
                 s[i].size = 0;
-                s[i].pos = 0xFFFF;
+                s[i].pos = 0xffff;
             }
         }
 
-        /// アイテムの位置情報をセット
-        ///
-        /// @param basic    Disk Basic
-        /// @param sector   セクタ
-        /// @param position アイテムの位置
-        /// @param itemData アイテムデータ
-        /// @param itemSize アイテムサイズ
-        /// @param next     次のセクタ
-        /// @return セクタまたぎがある場合true
-        public <T extends DirectoryT> boolean set(DiskBasic basic, DiskImageSector sector, int position, byte[] itemData, int itemSize, SectorParam next) throws IOException {
+        /**
+         * アイテムの位置情報をセット
+         *
+         * @param basic    Disk Basic
+         * @param sector   セクタ
+         * @param position アイテムの位置
+         * @param itemData アイテムデータ
+         * @param itemSize アイテムサイズ
+         * @param next     次のセクタ
+         * @return セクタまたぎがある場合true
+         */
+        public <T extends Directory> boolean set(DiskBasic basic, DiskImageSector sector, int position, byte[] itemData, int itemSize, SectorParam next) throws IOException {
             if (sector == null) return false;
 
-            int spos = position;
-            int ssize = sector.getSectorSize();
+            int sPos = position;
+            int sSize = sector.getSectorSize();
             byte[] sptr = itemData;
             if (itemData != null) {
                 s[0].data = sptr;
@@ -2810,23 +2846,23 @@ logger.log(Level.ERROR, e.getMessage(), e);
             //               |<---- s[0].size -->|
             //               +- s[0].data
             //
-            if (spos + itemSize >= ssize) {
+            if (sPos + itemSize >= sSize) {
                 // セクタまたぎ
-                s[1].pos = ssize - spos;
+                s[1].pos = sSize - sPos;
                 s[1].size = s[0].size - s[1].pos;
                 s[0].size = s[1].pos;
 
                 // 次のセクタ
                 if (next != null) {
-                    DiskBasicType type = basic.getType();
-                    int nsectorPos = type.getSectorPosFromNum(next.getTrackNumber(), next.getSideNumber(), next.getSectorNumber());
+                    DiskBasicType<Directory> type = basic.getType();
+                    int nSectorPos = type.getSectorPosFromNum(next.getTrackNumber(), next.getSideNumber(), next.getSectorNumber());
                     int[] side = {next.getSideNumber()}, sec = {next.getSectorNumber()};
                     DiskImageSector nsector = basic.getManagedSector(next.getTrackNumber(), side, sec);
                     if (nsector != null) {
                         sptr = nsector.getSectorBuffer();
-                        ssize = nsector.getSectorSize();
-                        spos = basic.diskBasicParam.getDirStartPosOnSector();
-                        spos += (nsectorPos % basic.diskBasicParam.getSectorsPerGroup()) == 0 ? basic.diskBasicParam.getDirStartPosOnGroup() : 0;
+                        sSize = nsector.getSectorSize();
+                        sPos = basic.getDirStartPosOnSector();
+                        sPos += (nSectorPos % basic.getSectorsPerGroup()) == 0 ? basic.getDirStartPosOnGroup() : 0;
                         s[1].data = Arrays.copyOfRange(sptr, 0, s[1].size);
                         s[1].pos = 0;
                     }
@@ -2850,9 +2886,11 @@ logger.log(Level.ERROR, e.getMessage(), e);
             }
         }
 
-        /// コピー
-        ///
-        /// @param srcItem アイテムデータ
+        /**
+         * コピー
+         *
+         * @param srcItem アイテムデータ
+         */
         public void copyFrom(byte[] srcItem) {
             for (int i = 0; i < 2; i++) {
                 byte[] dst = s[i].data;

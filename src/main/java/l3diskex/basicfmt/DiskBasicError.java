@@ -156,23 +156,23 @@ public class DiskBasicError extends ResultInfo {
     @Override
     public void setMessageV(int errorNumber, Object... args) {
         if (errorNumber <= 0) {
-            return;                           // nothing to do
+            return;  // nothing to do
         }
 
         String msg;
 
-        if (errorNumber < ERRV_START) {         // no‑argument messages
+        if (errorNumber < ERRV_START) {      // no‑argument messages
             msg = translate(gDiskBasicErrorMsgs[errorNumber]);
-        } else if (errorNumber < ERRV_END) {    // argument‑dependent messages
+        } else if (errorNumber < ERRV_END) { // argument‑dependent messages
             msg = String.format(translate(gDiskBasicErrorMsgs[errorNumber]), args);
-        } else {                               // unknown error
+        } else {                             // unknown error
             msg = String.format(translate(gDiskBasicErrorMsgs[ERRV_END]), errorNumber);
         }
 
         // add to the collection only if it is not already present
-        if (!msgs.contains(msg)) {
+        if (!messages.contains(msg)) {
 //logger.log(Level.TRACE, msg, new Exception("MESSAGE: " + msg));
-            msgs.add(msg);
+            messages.add(msg);
         }
     }
 }

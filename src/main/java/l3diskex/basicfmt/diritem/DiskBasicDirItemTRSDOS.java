@@ -12,15 +12,15 @@ import java.util.Map;
 import java.util.ResourceBundle;
 
 import l3diskex.Utils;
-import l3diskex.basicfmt.BasicCommon.DirectoryT;
+import l3diskex.basicfmt.BasicCommon.Directory;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasicDirItem;
-import l3diskex.basicfmt.diritem.DiskBasicDirItemTRSDOS.DiskBasicDirItemTRSD13.DirectoryTrsd13;
-import l3diskex.basicfmt.diritem.DiskBasicDirItemTRSDOS.DiskBasicDirItemTRSD23.DirectoryTrsd23;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemTRSDOS.DiskBasicDirItemTRSD13.DirectoryTrsD13;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemTRSDOS.DiskBasicDirItemTRSD23.DirectoryTrsD23;
 import l3diskex.basicfmt.type.DiskBasicTypeTRSDOS;
 import l3diskex.basicfmt.type.DiskBasicTypeTRSDOS.DiskBasicTypeTRSD13;
 import l3diskex.basicfmt.type.DiskBasicTypeTRSDOS.DiskBasicTypeTRSD23;
@@ -38,7 +38,7 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_SYSTEM_MASK;
  *
  * @see DiskBasicTypeTRSDOS
  */
-public abstract class DiskBasicDirItemTRSDOS<T extends DirectoryT> extends DiskBasicDirItem<T> {
+public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBasicDirItem<T> {
 
     private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
 
@@ -46,7 +46,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends DirectoryT> extends DiskB
      * TRSDOS gap
      */
     @Serdes
-    public static class TrsdosGap {
+    public static class TrsDosGap {
 
         @Element(sequence = 1)
         public byte track;
@@ -54,62 +54,64 @@ public abstract class DiskBasicDirItemTRSDOS<T extends DirectoryT> extends DiskB
         public byte granules;
     }
 
-    /// TRSDOS属性位置
+    // TRSDOS属性位置
     public static final int FILETYPE_MASK_TRSDOS_ACCESS = 0x07;
     public static final int FILETYPE_MASK_TRSDOS_INVISIBLE = 0x08;
     public static final int FILETYPE_MASK_TRSDOS_INUSE = 0x10;
     public static final int FILETYPE_MASK_TRSDOS_SYSTEM = 0x40;
     public static final int FILETYPE_MASK_TRSDOS_OVERFLOW = 0x80;
 
-    /// TRSDOS属性値
-    static final Map<String, Object> gTypeNameTRSDOS = new LinkedHashMap<>() {{
+    /** TRSDOS属性値 */
+    static final Map<String, Object> typeNameTrsDos = new LinkedHashMap<>() {{
         put("Invisible", FILETYPE_MASK_TRSDOS_INVISIBLE);
         put("System", FILETYPE_MASK_TRSDOS_SYSTEM);
         put("Overflow", FILETYPE_MASK_TRSDOS_OVERFLOW);
     }};
 
-    /// TRSDOS属性名
-    static final Map<String, Object> gTypeNameTRSDOS2 = new LinkedHashMap<>() {{
+    /** TRSDOS属性名 */
+    static final Map<String, Object> typeNameTrsDos2 = new LinkedHashMap<>() {{
         put("SYS", FILETYPE_MASK_TRSDOS_SYSTEM);
     }};
 
-    /// TRSDOS属性位置
+    /** TRSDOS属性位置 */
     static final int TYPE_NAME_2_TRSDOS_SYS = 0;
 
-    /// 次のエントリ(overflowアリの場合)
-    protected DiskBasicDirItemTRSDOS<T> next_item;
+    /** 次のエントリ(overflowアリの場合) */
+    protected DiskBasicDirItemTRSDOS<T> nextItem;
 
-    /// HITの位置
-    protected int m_position_in_hit;
+    /** HITの位置 */
+    protected int positionInHit;
 
     public DiskBasicDirItemTRSDOS(DiskBasic basic) {
         super(basic);
 
-        m_position_in_hit = -1;
-        next_item = null;
+        positionInHit = -1;
+        nextItem = null;
     }
 
-    public DiskBasicDirItemTRSDOS(DiskBasic basic, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP) {
-        super(basic, n_sector, n_secpos, n_data, dataP);
+    public DiskBasicDirItemTRSDOS(DiskBasic basic, DiskImageSector sector, int secPos, byte[] data, int dataP) {
+        super(basic, sector, secPos, data, dataP);
 
-        m_position_in_hit = -1;
-        next_item = null;
+        positionInHit = -1;
+        nextItem = null;
     }
 
-    public DiskBasicDirItemTRSDOS(DiskBasic basic, int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP, SectorParam n_next, boolean[] n_unuse) {
-        super(basic, n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next, n_unuse);
+    public DiskBasicDirItemTRSDOS(DiskBasic basic, int num, DiskBasicGroupItem groupItem, DiskImageSector sector, int secPos,
+                                  byte[] data, int dataP, SectorParam next, boolean[] unuse) {
+        super(basic, num, groupItem, sector, secPos, data, dataP, next, unuse);
 
-        m_position_in_hit = -1;
-        next_item = null;
+        positionInHit = -1;
+        nextItem = null;
     }
 
     /**
      * アイテムへのポインタを設定
      */
     @Override
-    public void setDataPtr(int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP, SectorParam n_next) throws IOException {
-        super.setDataPtr(n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next);
-        m_position_in_hit = -1;
+    public void setData(int num, DiskBasicGroupItem groupItem, DiskImageSector sector, int sectorPos,
+                        byte[] data, int dataPos, SectorParam next) throws IOException {
+        super.setData(num, groupItem, sector, sectorPos, data, dataPos, next);
+        positionInHit = -1;
     }
 
     /**
@@ -118,8 +120,8 @@ public abstract class DiskBasicDirItemTRSDOS<T extends DirectoryT> extends DiskB
     @Override
     public boolean checkUsed(boolean unuse) {
         boolean used = false;
-        if (m_position_in_hit >= 0) {
-            used = (((DiskBasicTypeTRSDOS<T>) type).hit_impl.getHI(m_position_in_hit) != 0);
+        if (positionInHit >= 0) {
+            used = (((DiskBasicTypeTRSDOS<T>) type).hit.getHI(positionInHit) != 0);
         }
         used &= ((getFileType1() & FILETYPE_MASK_TRSDOS_INUSE) != 0);
         return used;
@@ -128,16 +130,16 @@ public abstract class DiskBasicDirItemTRSDOS<T extends DirectoryT> extends DiskB
     /**
      * ファイル内部のアドレスを取り出す
      */
-    protected void takeAddressesInFile(DiskBasicGroups group_items) {
-        if (group_items.size() == 0) {
+    protected void takeAddressesInFile(DiskBasicGroups groupItems) {
+        if (groupItems.size() == 0) {
             return;
         }
-        //DiskBasicGroupItem item = group_items.get(0);
+        //DiskBasicGroupItem item = groupItems.get(0);
         //DiskImageSector sector = basic.getSector(item.track, item.side, item.sectorStart);
         //if (sector == null) return;
 
         // 開始アドレス
-        //m_start_address = (int) sector.get16(0);
+        //startAddress = (int) sector.get16(0);
     }
 
     /**
@@ -158,13 +160,13 @@ public abstract class DiskBasicDirItemTRSDOS<T extends DirectoryT> extends DiskB
         // GATのエントリを削除
         type.deleteGroups(groups);
         // HITのエントリも削除
-        if (m_position_in_hit >= 0) {
-            ((DiskBasicTypeTRSDOS<T>) type).hit_impl.deleteHI(m_position_in_hit);
+        if (positionInHit >= 0) {
+            ((DiskBasicTypeTRSDOS<T>) type).hit.deleteHI(positionInHit);
         }
         // Overflowがあるとき
-        if (next_item != null) {
-            next_item.delete();
-            next_item = null;
+        if (nextItem != null) {
+            nextItem.delete();
+            nextItem = null;
         }
         return true;
     }
@@ -173,23 +175,23 @@ public abstract class DiskBasicDirItemTRSDOS<T extends DirectoryT> extends DiskB
      * 属性を設定
      */
     @Override
-    public void setFileAttr(DiskBasicFileType file_type) {
-        int ftype = file_type.getType();
-        if (ftype == -1) return;
+    public void setFileAttr(DiskBasicFileType fileType) {
+        int fType = fileType.getType();
+        if (fType == -1) return;
 
-        if (file_type.getFormat().getValue() == basic.getFormatTypeNumber().getValue()) {
+        if (fileType.getFormat().getValue() == basic.getFormatTypeNumber().getValue()) {
             // 同じOSから
-            int t1 = file_type.getOrigin(0);
+            int t1 = fileType.getOrigin(0);
 
             setFileType1(t1);
         } else {
             // 違うOSから
             int t1 = FILETYPE_MASK_TRSDOS_INUSE;
 
-            if ((ftype & FILE_TYPE_HIDDEN_MASK.getValue()) != 0) {
+            if ((fType & FILE_TYPE_HIDDEN_MASK.getValue()) != 0) {
                 t1 |= FILETYPE_MASK_TRSDOS_INVISIBLE;
             }
-            if ((ftype & FILE_TYPE_SYSTEM_MASK.getValue()) != 0) {
+            if ((fType & FILE_TYPE_SYSTEM_MASK.getValue()) != 0) {
                 t1 |= FILETYPE_MASK_TRSDOS_SYSTEM;
             }
 
@@ -219,28 +221,28 @@ public abstract class DiskBasicDirItemTRSDOS<T extends DirectoryT> extends DiskB
      * HITの位置をセット
      */
     public void setPositionInHIT(byte val) {
-        m_position_in_hit = val;
+        positionInHit = val;
     }
 
     /**
      * HITの位置を返す
      */
     public byte getPositionInHIT() {
-        return (byte) m_position_in_hit;
+        return (byte) positionInHit;
     }
 
     /**
      * 次のアイテムをセット
      */
     public void setNextItem(DiskBasicDirItem<T> val) {
-        next_item = (DiskBasicDirItemTRSDOS<T>) val;
+        nextItem = (DiskBasicDirItemTRSDOS<T>) val;
     }
 
     /**
      * 次のアイテムを返す
      */
     public DiskBasicDirItemTRSDOS<T> getNextItem() {
-        return next_item;
+        return nextItem;
     }
 
     /**
@@ -250,10 +252,10 @@ public abstract class DiskBasicDirItemTRSDOS<T extends DirectoryT> extends DiskB
     public String getFileAttrStr() {
         StringBuilder str = new StringBuilder();
         int val = getFileType1();
-        for (int i = 0; i < gTypeNameTRSDOS.size(); i++) {
-            if ((val & (int) Utils.valueAt(gTypeNameTRSDOS, i)) != 0) {
+        for (int i = 0; i < typeNameTrsDos.size(); i++) {
+            if ((val & (int) Utils.valueAt(typeNameTrsDos, i)) != 0) {
                 if (!str.isEmpty()) str.append(", ");
-                str.append(rb.getString(Utils.keyAt(gTypeNameTRSDOS, i)));
+                str.append(rb.getString(Utils.keyAt(typeNameTrsDos, i)));
             }
         }
         return str.toString();
@@ -263,15 +265,15 @@ public abstract class DiskBasicDirItemTRSDOS<T extends DirectoryT> extends DiskB
      * 最終セクタのサイズを計算してファイルサイズを返す
      */
     @Override
-    public int recalcFileSize(DiskBasicGroups group_items, int occupied_size) {
-        return occupied_size;
+    public int recalcFileSize(DiskBasicGroups groupItems, int occupiedSize) {
+        return occupiedSize;
     }
 
     /**
      * 最初のグループ番号をセット
      */
     @Override
-    public void setStartGroup(int fileunit_num, int val, int size) {
+    public void setStartGroup(int fileUnitNum, int val, int size) {
         setGranulesOnGap(0, val, size);
     }
 
@@ -279,7 +281,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends DirectoryT> extends DiskB
      * 最初のグループ番号を返す
      */
     @Override
-    public int getStartGroup(int fileunit_num) {
+    public int getStartGroup(int fileUnitNum) {
         return getGranulesOnGap(0, new int[1]);
     }
 
@@ -324,7 +326,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends DirectoryT> extends DiskB
     /**
      * Overflowファイルとして設定
      */
-    public void setAsOverflowFile(byte position_in_hit, byte hash_code) {
+    public void setAsOverflowFile(byte positionInHit, byte hashCode) {
     }
 
     /**
@@ -355,7 +357,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends DirectoryT> extends DiskB
         // 拡張子前の'.'を'/'に置き換える
         int pos = filename[0].indexOf('.');
         if (pos != -1) {
-            filename[0] = filename[0].substring(0, pos) + (char) basic.diskBasicParam.getExtensionPreCode() + filename[0].substring(pos + 1);
+            filename[0] = filename[0].substring(0, pos) + basic.getExtensionPreCode() + filename[0].substring(pos + 1);
         }
         return true;
     }
@@ -367,7 +369,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends DirectoryT> extends DiskB
     public int convOriginalTypeFromFileName(String filename) {
         int[] t1 = {0};
         // 拡張子で属性を設定する
-        isContainAttrByExtension(filename, gTypeNameTRSDOS2, 0, TYPE_NAME_2_TRSDOS_SYS, null, t1, null);
+        isContainAttrByExtension(filename, typeNameTrsDos2, 0, TYPE_NAME_2_TRSDOS_SYS, null, t1, null);
         return t1[0];
     }
 
@@ -376,8 +378,8 @@ public abstract class DiskBasicDirItemTRSDOS<T extends DirectoryT> extends DiskB
      */
     @Override
     public boolean isDeletable() {
-        int stype = getFileType1();
-        return stype != FILETYPE_MASK_TRSDOS_SYSTEM;
+        int sType = getFileType1();
+        return sType != FILETYPE_MASK_TRSDOS_SYSTEM;
     }
 
     /**
@@ -385,7 +387,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends DirectoryT> extends DiskB
      */
     @Override
     public void setModify() {
-        //m_sdata.copyFrom(m_data.data());
+        //sdata.copyFrom(data.data());
     }
 
     /**
@@ -405,13 +407,13 @@ public abstract class DiskBasicDirItemTRSDOS<T extends DirectoryT> extends DiskB
      *
      * @see DiskBasicTypeTRSD23
      */
-    public static class DiskBasicDirItemTRSD23 extends DiskBasicDirItemTRSDOS<DirectoryTrsd23> {
+    public static class DiskBasicDirItemTRSD23 extends DiskBasicDirItemTRSDOS<DirectoryTrsD23> {
 
         /**
          * ディレクトリエントリ TRSDOS 2.x (32bytes)
          */
         @Serdes
-        public static class DirectoryTrsd23 implements DirectoryT {
+        public static class DirectoryTrsD23 implements Directory {
 
             @Element(sequence = 1)
             public byte accessControl;
@@ -434,11 +436,11 @@ public abstract class DiskBasicDirItemTRSDOS<T extends DirectoryT> extends DiskB
             @Element(sequence = 10)
             public short eofSector;
             @Element(sequence = 11)
-            public TrsdosGap[] gap = new TrsdosGap[5];
+            public TrsDosGap[] gap = new TrsDosGap[5];
 
-            public DirectoryTrsd23() {
+            public DirectoryTrsD23() {
                 for (int i = 0; i < 5; i++) {
-                    gap[i] = new TrsdosGap();
+                    gap[i] = new TrsDosGap();
                 }
             }
 
@@ -446,41 +448,42 @@ public abstract class DiskBasicDirItemTRSDOS<T extends DirectoryT> extends DiskB
         }
 
         /** ディレクトリデータ */
-        protected DiskBasicDirData<DirectoryTrsd23> m_data = new DiskBasicDirData<>();
+        protected DiskBasicDirData<DirectoryTrsD23> data = new DiskBasicDirData<>();
 
         public DiskBasicDirItemTRSD23(DiskBasic basic) {
             super(basic);
 
-            m_data.alloc(DirectoryTrsd23.class);
+            data.alloc(DirectoryTrsD23.class);
         }
 
-        public DiskBasicDirItemTRSD23(DiskBasic basic, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP) {
-            super(basic, n_sector, n_secpos, n_data, dataP);
+        public DiskBasicDirItemTRSD23(DiskBasic basic, DiskImageSector sector, int secPos, byte[] data, int dataP) {
+            super(basic, sector, secPos, data, dataP);
 
-            m_data.attach(DirectoryTrsd23.class, n_data, dataP);
-            if (n_sector != null) {
-                m_position_in_hit = DiskBasicTypeTRSD23.getHIPosition(n_sector.getSectorNumber() - basic.getSectorNumberBase(), n_secpos / getDataSize());
+            this.data.attach(DirectoryTrsD23.class, data, dataP);
+            if (sector != null) {
+                positionInHit = DiskBasicTypeTRSD23.getHIPosition(sector.getSectorNumber() - basic.getSectorNumberBase(), secPos / getDataSize());
             }
         }
 
-        public DiskBasicDirItemTRSD23(DiskBasic basic, int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP, SectorParam n_next, boolean[] n_unuse) {
-            super(basic, n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next, n_unuse);
+        public DiskBasicDirItemTRSD23(DiskBasic basic, int num, DiskBasicGroupItem groupItem, DiskImageSector sector, int secPos,
+                                      byte[] data, int dataP, SectorParam next, boolean[] unuse) {
+            super(basic, num, groupItem, sector, secPos, data, dataP, next, unuse);
 
-            m_data.attach(DirectoryTrsd23.class, n_data, dataP);
-            m_position_in_hit = DiskBasicTypeTRSD23.getHIPosition(n_sector.getSectorNumber() - basic.getSectorNumberBase(), n_secpos / getDataSize());
+            this.data.attach(DirectoryTrsD23.class, data, dataP);
+            positionInHit = DiskBasicTypeTRSD23.getHIPosition(sector.getSectorNumber() - basic.getSectorNumberBase(), secPos / getDataSize());
 
-            used(checkUsed(n_unuse[0]));
+            used(checkUsed(unuse[0]));
         }
 
         /**
          * アイテムへのポインタを設定
          */
         @Override
-        public void setDataPtr(int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP, SectorParam n_next) throws IOException {
-            super.setDataPtr(n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next);
+        public void setData(int num, DiskBasicGroupItem groupItem, DiskImageSector sector, int sectorPos, byte[] data, int dataPos, SectorParam next) throws IOException {
+            super.setData(num, groupItem, sector, sectorPos, data, dataPos, next);
 
-            m_data.attach(DirectoryTrsd23.class, n_data, dataP);
-            m_position_in_hit = DiskBasicTypeTRSD23.getHIPosition(n_sector.getSectorNumber() - basic.getSectorNumberBase(), n_secpos / getDataSize());
+            this.data.attach(DirectoryTrsD23.class, data, dataPos);
+            positionInHit = DiskBasicTypeTRSD23.getHIPosition(sector.getSectorNumber() - basic.getSectorNumberBase(), sectorPos / getDataSize());
         }
 
         /**
@@ -488,18 +491,18 @@ public abstract class DiskBasicDirItemTRSDOS<T extends DirectoryT> extends DiskB
          */
         @Override
         public boolean check(boolean[] last) {
-            if (!m_data.isValid()) return false;
+            if (!data.isValid()) return false;
 
-            int ov = getOverflow() & 0xff;
-            if (ov > 0 && ov < 254) {
+            int overflow = getOverflow() & 0xff;
+            if (overflow > 0 && overflow < 254) {
                 // 参照元アイテムと関連付ける
-                int[] ov_sec_num = {0};
-                int[] ov_sec_pos = {0};
-                ((DiskBasicTypeTRSD23) type).getFromHIPosition(ov, ov_sec_num, ov_sec_pos);
+                int[] overflowSectorNum = {0};
+                int[] overflowSectorPos = {0};
+                ((DiskBasicTypeTRSD23) type).getFromHIPosition(overflow, overflowSectorNum, overflowSectorPos);
                 // 通し番号を計算
-                int num = (ov_sec_num[0] - 2) * basic.getSectorSize() / getDataSize() + ov_sec_pos[0];
-                int mnum = (basic.diskBasicParam.getDirEndSector() - basic.diskBasicParam.getDirStartSector() + 1) * basic.getSectorSize() / getDataSize();
-                if (num >= mnum) {
+                int num = (overflowSectorNum[0] - 2) * basic.getSectorSize() / getDataSize() + overflowSectorPos[0];
+                int maxNum = (basic.getDirEndSector() - basic.getDirStartSector() + 1) * basic.getSectorSize() / getDataSize();
+                if (num >= maxNum) {
                     // invalid chain
                     return false;
                 }
@@ -512,7 +515,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends DirectoryT> extends DiskB
          */
         @Override
         public int getFileType1() {
-            return m_data.data().accessControl & 0xff;
+            return data.data().accessControl & 0xff;
         }
 
         /**
@@ -520,7 +523,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends DirectoryT> extends DiskB
          */
         @Override
         protected void setFileType1(int val) {
-            m_data.data().accessControl = (byte) (val & 0xff);
+            data.data().accessControl = (byte) (val & 0xff);
         }
 
         /**
@@ -528,7 +531,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends DirectoryT> extends DiskB
          */
         @Override
         public void setOverflow(byte val) {
-            m_data.data().overflow = (byte) (val & 0xff);
+            data.data().overflow = (byte) (val & 0xff);
         }
 
         /**
@@ -536,7 +539,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends DirectoryT> extends DiskB
          */
         @Override
         public int getOverflow() {
-            return m_data.data().overflow & 0xff;
+            return data.data().overflow & 0xff;
         }
 
         /**
@@ -545,8 +548,8 @@ public abstract class DiskBasicDirItemTRSDOS<T extends DirectoryT> extends DiskB
         @Override
         public byte[] getFileNamePos(int num, int[] size, int[] len) {
             if (num == 0) {
-                size[0] = len[0] = m_data.data().name.length;
-                return m_data.data().name;
+                size[0] = len[0] = data.data().name.length;
+                return data.data().name;
             } else {
                 size[0] = len[0] = 0;
                 return null;
@@ -558,8 +561,8 @@ public abstract class DiskBasicDirItemTRSDOS<T extends DirectoryT> extends DiskB
          */
         @Override
         public byte[] getFileExtPos(int[] len) {
-            len[0] = m_data.data().ext.length;
-            return m_data.data().ext;
+            len[0] = data.data().ext.length;
+            return data.data().ext;
         }
 
         /**
@@ -570,15 +573,15 @@ public abstract class DiskBasicDirItemTRSDOS<T extends DirectoryT> extends DiskB
             used(true);
             setFileType1(getFileType1() | FILETYPE_MASK_TRSDOS_INUSE);
             // HITエントリに登録
-            byte h = DiskBasicTypeTRSD23.computeHI(m_data.data().name);
-            if (m_position_in_hit >= 0) {
-                ((DiskBasicTypeTRSDOS<DirectoryTrsd23>) type).hit_impl.setHI(m_position_in_hit, h);
+            byte h = DiskBasicTypeTRSD23.computeHI(data.data().name);
+            if (positionInHit >= 0) {
+                ((DiskBasicTypeTRSDOS<DirectoryTrsD23>) type).hit.setHI(positionInHit, h);
             }
             // パスワード
-            m_data.data().accessPassword = m_data.data().updatePassword = (short) 0x4296;
+            data.data().accessPassword = data.data().updatePassword = (short) 0x4296;
 
             // エントリのクリア
-            for (int pos = 0; pos < m_data.data().gap.length; pos++) {
+            for (int pos = 0; pos < data.data().gap.length; pos++) {
                 clearGranulesOnGap(pos, 0xff, 0xff);
             }
         }
@@ -587,7 +590,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends DirectoryT> extends DiskB
          * Overflowファイルとして設定
          */
         @Override
-        public void setAsOverflowFile(byte position_in_hit, byte hash_code) {
+        public void setAsOverflowFile(byte positionInHit, byte hashCode) {
             clearData();
 
             used(true);
@@ -595,15 +598,15 @@ public abstract class DiskBasicDirItemTRSDOS<T extends DirectoryT> extends DiskB
 
             setFileType1(FILETYPE_MASK_TRSDOS_OVERFLOW | FILETYPE_MASK_TRSDOS_INUSE);
             // HITエントリに登録
-            if (m_position_in_hit >= 0) {
-                ((DiskBasicTypeTRSDOS<DirectoryTrsd23>) type).hit_impl.setHI(m_position_in_hit, hash_code);
+            if (this.positionInHit >= 0) {
+                ((DiskBasicTypeTRSDOS<DirectoryTrsD23>) type).hit.setHI(this.positionInHit, hashCode);
             }
-            setOverflow(position_in_hit);
+            setOverflow(positionInHit);
             // パスワード
-            //m_data.data().access_password = m_data.data().update_password = 0x4296;
+            //data.data().accessPassword = data.data().updatePassword = 0x4296;
 
             // エントリのクリア
-            for (int pos = 0; pos < m_data.data().gap.length; pos++) {
+            for (int pos = 0; pos < data.data().gap.length; pos++) {
                 clearGranulesOnGap(pos, 0xff, 0xff);
             }
         }
@@ -628,58 +631,58 @@ public abstract class DiskBasicDirItemTRSDOS<T extends DirectoryT> extends DiskB
             setFileNameStr("DIR/SYS");
             setAsNewFile();
             setFileType1(FILETYPE_MASK_TRSDOS_SYSTEM | FILETYPE_MASK_TRSDOS_INUSE | FILETYPE_MASK_TRSDOS_INVISIBLE | 5);
-            setStartGroup(0, basic.diskBasicParam.getManagedTrackNumber() * basic.diskBasicParam.getGroupsPerTrack() * basic.diskBasicParam.getSidesPerDiskOnBasic(), basic.diskBasicParam.getGroupsPerTrack());
-            setFileSize(basic.getSectorsPerTrack() * basic.diskBasicParam.getSidesPerDiskOnBasic() * basic.getSectorSize());
+            setStartGroup(0, basic.getManagedTrackNumber() * basic.getGroupsPerTrack() * basic.getSidesPerDiskOnBasic(), basic.getGroupsPerTrack());
+            setFileSize(basic.getSectorsPerTrack() * basic.getSidesPerDiskOnBasic() * basic.getSectorSize());
         }
 
         /**
          * ファイルサイズとグループ数を計算する
          */
         @Override
-        public void calcFileUnitSize(int fileunit_num) throws IOException {
+        public void calcFileUnitSize(int fileUnitNum) throws IOException {
             if (!isUsed()) return;
 
-            getUnitGroups(fileunit_num, groups);
+            getUnitGroups(fileUnitNum, groups);
         }
 
         /**
          * 指定ディレクトリのすべてのグループを取得
          */
         @Override
-        public void getUnitGroups(int fileunit_num, DiskBasicGroups group_items) throws IOException {
-            int calc_groups = 0;
-            int calc_file_size = 0;
+        public void getUnitGroups(int fileUnitNum, DiskBasicGroups groupItems) throws IOException {
+            int calcGroups = 0;
+            int calcFileSize = 0;
 
             int sector_size = basic.getSectorSize();
-            int block_size = sector_size * basic.diskBasicParam.getSectorsPerGroup();
-            int max_group = basic.diskBasicParam.getFatEndGroup();
+            int block_size = sector_size * basic.getSectorsPerGroup();
+            int maxGroup = basic.getFatEndGroup();
 
-            int remain_size = getFileSize();
+            int remainSize = getFileSize();
 
-            for (int pos = 0; pos < m_data.data().gap.length; pos++) {
+            for (int pos = 0; pos < data.data().gap.length; pos++) {
                 int[] count = {0};
-                int group_num = getGranulesOnGap(pos, count);
-                if (group_num >= max_group) break;
+                int groupNum = getGranulesOnGap(pos, count);
+                if (groupNum >= maxGroup) break;
 
                 for (int i = 0; i < count[0]; i++) {
-                    basic.getNumsFromGroup(group_num, 0, sector_size, remain_size, group_items);
-                    group_num++;
-                    calc_groups++;
-                    calc_file_size += block_size;
-                    remain_size -= block_size;
+                    basic.getNumsFromGroup(groupNum, 0, sector_size, remainSize, groupItems);
+                    groupNum++;
+                    calcGroups++;
+                    calcFileSize += block_size;
+                    remainSize -= block_size;
                 }
             }
             // overflowがあるとき
-            if (next_item != null) {
-                next_item.getUnitGroups(fileunit_num, group_items);
+            if (nextItem != null) {
+                nextItem.getUnitGroups(fileUnitNum, groupItems);
             }
 
-            group_items.addNums(calc_groups);
-            group_items.addSize(calc_file_size);
-            group_items.setSizePerGroup(block_size);
+            groupItems.addNums(calcGroups);
+            groupItems.addSize(calcFileSize);
+            groupItems.setSizePerGroup(block_size);
 
             // ファイル内部のアドレスを得る
-            takeAddressesInFile(group_items);
+            takeAddressesInFile(groupItems);
         }
 
         /**
@@ -687,13 +690,13 @@ public abstract class DiskBasicDirItemTRSDOS<T extends DirectoryT> extends DiskB
          */
         @Override
         public void setFileSize(int val) {
-            int diva = val / basic.getSectorSize();
-            int moda = val % basic.getSectorSize();
-            if (moda != 0) {
-                diva++;
+            int quotient = val / basic.getSectorSize();
+            int remainder = val % basic.getSectorSize();
+            if (remainder != 0) {
+                quotient++;
             }
-            m_data.data().eofSector = (short) diva;
-            m_data.data().eofByteOffset = (byte) (moda & 0xff);
+            data.data().eofSector = (short) quotient;
+            data.data().eofByteOffset = (byte) (remainder & 0xff);
         }
 
         /**
@@ -701,10 +704,10 @@ public abstract class DiskBasicDirItemTRSDOS<T extends DirectoryT> extends DiskB
          */
         @Override
         public int getFileSize() {
-            int val = (m_data.data().eofSector & 0xffff) * basic.getSectorSize();
-            if (m_data.data().eofByteOffset != 0) {
+            int val = (data.data().eofSector & 0xffff) * basic.getSectorSize();
+            if (data.data().eofByteOffset != 0) {
                 val -= basic.getSectorSize();
-                val += m_data.data().eofByteOffset & 0xff;
+                val += data.data().eofByteOffset & 0xff;
             }
             return val;
         }
@@ -714,11 +717,11 @@ public abstract class DiskBasicDirItemTRSDOS<T extends DirectoryT> extends DiskB
          */
         @Override
         public void setGranulesOnGap(int pos, int val, int cnt) {
-            int blk = basic.diskBasicParam.getGroupsPerTrack() * basic.diskBasicParam.getSidesPerDiskOnBasic();
-            int trk = val / blk;
-            int sta = val % blk;
-            m_data.data().gap[pos].track = (byte) (trk & 0xff);
-            m_data.data().gap[pos].granules = (byte) (((sta << 5) & 0xe0) | ((cnt & 0x1f) - 1));
+            int block = basic.getGroupsPerTrack() * basic.getSidesPerDiskOnBasic();
+            int track = val / block;
+            int start = val % block;
+            data.data().gap[pos].track = (byte) (track & 0xff);
+            data.data().gap[pos].granules = (byte) (((start << 5) & 0xe0) | ((cnt & 0x1f) - 1));
         }
 
         /**
@@ -726,8 +729,8 @@ public abstract class DiskBasicDirItemTRSDOS<T extends DirectoryT> extends DiskB
          */
         @Override
         public void clearGranulesOnGap(int pos, int track, int granule) {
-            m_data.data().gap[pos].track = (byte) (track & 0xff);
-            m_data.data().gap[pos].granules = (byte) (granule & 0xff);
+            data.data().gap[pos].track = (byte) (track & 0xff);
+            data.data().gap[pos].granules = (byte) (granule & 0xff);
         }
 
         /**
@@ -735,11 +738,11 @@ public abstract class DiskBasicDirItemTRSDOS<T extends DirectoryT> extends DiskB
          */
         @Override
         public int getGranulesOnGap(int pos, int[] cnt) {
-            int val = m_data.data().gap[pos].track * basic.diskBasicParam.getGroupsPerTrack() * basic.diskBasicParam.getSidesPerDiskOnBasic();
-            int sta = (m_data.data().gap[pos].granules & 0xe0) >> 5;
-            val += sta;
+            int val = data.data().gap[pos].track * basic.getGroupsPerTrack() * basic.getSidesPerDiskOnBasic();
+            int start = (data.data().gap[pos].granules & 0xe0) >> 5;
+            val += start;
             if (cnt != null && cnt.length > 0) {
-                cnt[0] = (m_data.data().gap[pos].granules & 0x1f) + 1;
+                cnt[0] = (data.data().gap[pos].granules & 0x1f) + 1;
             }
             return val;
         }
@@ -749,15 +752,15 @@ public abstract class DiskBasicDirItemTRSDOS<T extends DirectoryT> extends DiskB
          */
         @Override
         public int getDataSize() {
-            return m_data.getDataSize();
+            return data.getDataSize();
         }
 
         /**
          * アイテムを返す
          */
         @Override
-        public DirectoryTrsd23 getData() {
-            return m_data.data();
+        public DirectoryTrsD23 getData() {
+            return data.data();
         }
 
         /**
@@ -765,7 +768,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends DirectoryT> extends DiskB
          */
         @Override
         public boolean copyData(byte[] val) {
-            return m_data.copy(val);
+            return data.copy(val);
         }
 
         /**
@@ -773,7 +776,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends DirectoryT> extends DiskB
          */
         @Override
         public void clearData() {
-            m_data.fill(0);
+            data.fill(0);
         }
 
         /**
@@ -781,18 +784,18 @@ public abstract class DiskBasicDirItemTRSDOS<T extends DirectoryT> extends DiskB
          */
         @Override
         public void setInternalDataInAttrDialog(KeyValArray vals) {
-            vals.add("ACCESS_CONTROL", m_data.data().accessControl);
-            vals.add("OVERFLOW", m_data.data().overflow);
-            vals.add("EOF_BYTE_OFFSET", m_data.data().eofByteOffset);
-            vals.add("RECORD_LENGTH", m_data.data().recordLength);
-            vals.add("FILE_NAME", m_data.data().name, m_data.data().name.length);
-            vals.add("EXTENSION", m_data.data().ext, m_data.data().ext.length);
-            vals.add("UPDATE_PASSWORD", m_data.data().updatePassword);
-            vals.add("ACCESS_PASSWORD", m_data.data().accessPassword);
-            vals.add("EOF_SECTOR", m_data.data().eofSector);
-            for (int i = 0; i < m_data.data().gap.length; i++) {
-                vals.add(String.format("GAP%d TRACK", i + 1), m_data.data().gap[i].track);
-                vals.add(String.format("GAP%d GRANULES", i + 1), m_data.data().gap[i].granules);
+            vals.add("ACCESS_CONTROL", data.data().accessControl);
+            vals.add("OVERFLOW", data.data().overflow);
+            vals.add("EOF_BYTE_OFFSET", data.data().eofByteOffset);
+            vals.add("RECORD_LENGTH", data.data().recordLength);
+            vals.add("FILE_NAME", data.data().name, data.data().name.length);
+            vals.add("EXTENSION", data.data().ext, data.data().ext.length);
+            vals.add("UPDATE_PASSWORD", data.data().updatePassword);
+            vals.add("ACCESS_PASSWORD", data.data().accessPassword);
+            vals.add("EOF_SECTOR", data.data().eofSector);
+            for (int i = 0; i < data.data().gap.length; i++) {
+                vals.add(String.format("GAP%d TRACK", i + 1), data.data().gap[i].track);
+                vals.add(String.format("GAP%d GRANULES", i + 1), data.data().gap[i].granules);
             }
         }
     }
@@ -802,12 +805,12 @@ public abstract class DiskBasicDirItemTRSDOS<T extends DirectoryT> extends DiskB
      *
      * @see DiskBasicTypeTRSD13
      */
-    public static class DiskBasicDirItemTRSD13 extends DiskBasicDirItemTRSDOS<DirectoryTrsd13> {
+    public static class DiskBasicDirItemTRSD13 extends DiskBasicDirItemTRSDOS<DirectoryTrsD13> {
 
         /**
          * ディレクトリエントリ TRSDOS 1.3 (48bytes)
          */
-        public static class DirectoryTrsd13 implements DirectoryT {
+        public static class DirectoryTrsD13 implements Directory {
 
             public byte accessControl;
             public byte month; // 0x01 - 0x0c
@@ -819,11 +822,11 @@ public abstract class DiskBasicDirItemTRSDOS<T extends DirectoryT> extends DiskB
             public short updatePassword;
             public short accessPassword;
             public short eofSector;
-            public TrsdosGap[] gap = new TrsdosGap[13];
+            public TrsDosGap[] gap = new TrsDosGap[13];
 
-            public DirectoryTrsd13() {
+            public DirectoryTrsD13() {
                 for (int i = 0; i < 13; i++) {
-                    gap[i] = new TrsdosGap();
+                    gap[i] = new TrsDosGap();
                 }
             }
 
@@ -831,7 +834,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends DirectoryT> extends DiskB
         }
 
         /** ディレクトリデータ */
-        protected DiskBasicDirData<DirectoryTrsd13> m_data = new DiskBasicDirData<>();
+        protected DiskBasicDirData<DirectoryTrsD13> data = new DiskBasicDirData<>();
 
         public int getHIPosition(int pos) {
             return pos & 0xff;
@@ -841,34 +844,36 @@ public abstract class DiskBasicDirItemTRSDOS<T extends DirectoryT> extends DiskB
             super(basic);
         }
 
-        public DiskBasicDirItemTRSD13(DiskBasic basic, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP) {
-            super(basic, n_sector, n_secpos, n_data, dataP);
+        public DiskBasicDirItemTRSD13(DiskBasic basic, DiskImageSector sector, int secPos, byte[] data, int dataP) {
+            super(basic, sector, secPos, data, dataP);
 
-            m_data.attach(DirectoryTrsd13.class, n_data, dataP);
-            if (n_sector != null) {
+            this.data.attach(DirectoryTrsD13.class, data, dataP);
+            if (sector != null) {
                 int n = (basic.getSectorSize() / getDataSize());
-                m_position_in_hit = getHIPosition((n_sector.getSectorNumber() - basic.getSectorNumberBase() - 2) * n + (n_secpos / getDataSize()));
+                positionInHit = getHIPosition((sector.getSectorNumber() - basic.getSectorNumberBase() - 2) * n + (secPos / getDataSize()));
             }
         }
 
-        public DiskBasicDirItemTRSD13(DiskBasic basic, int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP, SectorParam n_next, boolean[] n_unuse) {
-            super(basic, n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next, n_unuse);
+        public DiskBasicDirItemTRSD13(DiskBasic basic, int num, DiskBasicGroupItem groupItem, DiskImageSector sector, int secPos,
+                                      byte[] data, int dataP, SectorParam next, boolean[] unuse) {
+            super(basic, num, groupItem, sector, secPos, data, dataP, next, unuse);
 
-            m_data.attach(DirectoryTrsd13.class, n_data, dataP);
-            m_position_in_hit = getHIPosition(n_num);
+            this.data.attach(DirectoryTrsD13.class, data, dataP);
+            positionInHit = getHIPosition(num);
 
-            used(checkUsed(n_unuse[0]));
+            used(checkUsed(unuse[0]));
         }
 
         /**
          * アイテムへのポインタを設定
          */
         @Override
-        public void setDataPtr(int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP, SectorParam n_next) throws IOException {
-            super.setDataPtr(n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next);
+        public void setData(int num, DiskBasicGroupItem groupItem, DiskImageSector sector, int sectorPos,
+                            byte[] data, int dataPos, SectorParam next) throws IOException {
+            super.setData(num, groupItem, sector, sectorPos, data, dataPos, next);
 
-            m_data.attach(DirectoryTrsd13.class, n_data, dataP);
-            m_position_in_hit = getHIPosition(n_num);
+            this.data.attach(DirectoryTrsD13.class, data, dataPos);
+            positionInHit = getHIPosition(num);
         }
 
         /**
@@ -876,7 +881,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends DirectoryT> extends DiskB
          */
         @Override
         public boolean check(boolean[] last) {
-            if (!m_data.isValid()) return false;
+            if (!data.isValid()) return false;
 
             return true;
         }
@@ -904,13 +909,13 @@ public abstract class DiskBasicDirItemTRSDOS<T extends DirectoryT> extends DiskB
          */
         @Override
         public LocalDate getFileCreateDate(LocalDateTime tm) {
-            int yy = m_data.data().year & 0xff;
+            int yy = data.data().year & 0xff;
             if (yy < 80) {
                 yy += 100;
             }
             return LocalDate.of(
                     yy,
-                    m_data.data().month - 1,
+                    data.data().month - 1,
                     1);
         }
 
@@ -929,8 +934,8 @@ public abstract class DiskBasicDirItemTRSDOS<T extends DirectoryT> extends DiskB
          */
         @Override
         public void setFileCreateDate(LocalDateTime tm) {
-            m_data.data().year = (byte) (tm.getYear() & 0xff);
-            m_data.data().month = (byte) ((tm.getMonth().ordinal() + 1) & 0xff);
+            data.data().year = (byte) (tm.getYear() & 0xff);
+            data.data().month = (byte) ((tm.getMonth().ordinal() + 1) & 0xff);
         }
 
         /**
@@ -939,8 +944,8 @@ public abstract class DiskBasicDirItemTRSDOS<T extends DirectoryT> extends DiskB
         @Override
         public byte[] getFileNamePos(int num, int[] size, int[] len) {
             if (num == 0) {
-                size[0] = len[0] = m_data.data().name.length;
-                return m_data.data().name;
+                size[0] = len[0] = data.data().name.length;
+                return data.data().name;
             } else {
                 size[0] = len[0] = 0;
                 return null;
@@ -952,8 +957,8 @@ public abstract class DiskBasicDirItemTRSDOS<T extends DirectoryT> extends DiskB
          */
         @Override
         public byte[] getFileExtPos(int[] len) {
-            len[0] = m_data.data().ext.length;
-            return m_data.data().ext;
+            len[0] = data.data().ext.length;
+            return data.data().ext;
         }
 
         /**
@@ -961,7 +966,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends DirectoryT> extends DiskB
          */
         @Override
         public int getFileType1() {
-            return m_data.data().accessControl & 0xff;
+            return data.data().accessControl & 0xff;
         }
 
         /**
@@ -969,7 +974,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends DirectoryT> extends DiskB
          */
         @Override
         protected void setFileType1(int val) {
-            m_data.data().accessControl = (byte) (val & 0xff);
+            data.data().accessControl = (byte) (val & 0xff);
         }
 
         /**
@@ -980,15 +985,15 @@ public abstract class DiskBasicDirItemTRSDOS<T extends DirectoryT> extends DiskB
             used(true);
             setFileType1(getFileType1() | FILETYPE_MASK_TRSDOS_INUSE);
             // HITエントリに登録
-            byte h = DiskBasicTypeTRSD23.computeHI(m_data.data().name);
-            if (m_position_in_hit >= 0) {
-                ((DiskBasicTypeTRSDOS<DirectoryTrsd13>) type).hit_impl.setHI(m_position_in_hit, h);
+            byte h = DiskBasicTypeTRSD23.computeHI(data.data().name);
+            if (positionInHit >= 0) {
+                ((DiskBasicTypeTRSDOS<DirectoryTrsD13>) type).hit.setHI(positionInHit, h);
             }
             // パスワード
-            m_data.data().accessPassword = m_data.data().updatePassword = (short) 0x5cef;
+            data.data().accessPassword = data.data().updatePassword = (short) 0x5cef;
 
             // エントリのクリア
-            for (int pos = 0; pos < m_data.data().gap.length; pos++) {
+            for (int pos = 0; pos < data.data().gap.length; pos++) {
                 clearGranulesOnGap(pos, 0xff, 0xff);
             }
         }
@@ -997,50 +1002,50 @@ public abstract class DiskBasicDirItemTRSDOS<T extends DirectoryT> extends DiskB
          * ファイルサイズとグループ数を計算する
          */
         @Override
-        public void calcFileUnitSize(int fileunit_num) throws IOException {
+        public void calcFileUnitSize(int fileUnitNum) throws IOException {
             if (!isUsed()) return;
 
-            getUnitGroups(fileunit_num, groups);
+            getUnitGroups(fileUnitNum, groups);
         }
 
         /**
          * 指定ディレクトリのすべてのグループを取得
          */
         @Override
-        public void getUnitGroups(int fileunit_num, DiskBasicGroups group_items) throws IOException {
-            int calc_groups = 0;
-            int calc_file_size = 0;
+        public void getUnitGroups(int fileUnitNum, DiskBasicGroups groupItems) throws IOException {
+            int calcGroups = 0;
+            int calcFileSize = 0;
 
-            int sector_size = basic.getSectorSize();
-            int block_size = sector_size * basic.diskBasicParam.getSectorsPerGroup();
-            int max_group = basic.getFatEndGroup();
+            int sectorSize = basic.getSectorSize();
+            int blockSize = sectorSize * basic.getSectorsPerGroup();
+            int maxGroup = basic.getFatEndGroup();
 
-            int remain_size = getFileSize();
+            int remainSize = getFileSize();
 
-            for (int pos = 0; pos < m_data.data().gap.length; pos++) {
+            for (int pos = 0; pos < data.data().gap.length; pos++) {
                 int[] count = {0};
-                int group_num = getGranulesOnGap(pos, count);
-                if (group_num >= max_group) break;
+                int groupNum = getGranulesOnGap(pos, count);
+                if (groupNum >= maxGroup) break;
 
                 for (int i = 0; i < count[0]; i++) {
-                    basic.getNumsFromGroup(group_num, 0, sector_size, remain_size, group_items);
-                    group_num++;
-                    calc_groups++;
-                    calc_file_size += block_size;
-                    remain_size -= block_size;
+                    basic.getNumsFromGroup(groupNum, 0, sectorSize, remainSize, groupItems);
+                    groupNum++;
+                    calcGroups++;
+                    calcFileSize += blockSize;
+                    remainSize -= blockSize;
                 }
             }
             // overflowがあるとき
-            if (next_item != null) {
-                next_item.getUnitGroups(fileunit_num, group_items);
+            if (nextItem != null) {
+                nextItem.getUnitGroups(fileUnitNum, groupItems);
             }
 
-            group_items.addNums(calc_groups);
-            group_items.addSize(calc_file_size);
-            group_items.setSizePerGroup(block_size);
+            groupItems.addNums(calcGroups);
+            groupItems.addSize(calcFileSize);
+            groupItems.setSizePerGroup(blockSize);
 
             // ファイル内部のアドレスを得る
-            takeAddressesInFile(group_items);
+            takeAddressesInFile(groupItems);
         }
 
         /**
@@ -1048,9 +1053,9 @@ public abstract class DiskBasicDirItemTRSDOS<T extends DirectoryT> extends DiskB
          */
         @Override
         public void setFileSize(int val) {
-            int diva = (val >>> 8);
-            m_data.data().eofSector = (short) diva;
-            m_data.data().eofByteOffset = (byte) (val & 0xff);
+            int quotient = (val >>> 8);
+            data.data().eofSector = (short) quotient;
+            data.data().eofByteOffset = (byte) (val & 0xff);
         }
 
         /**
@@ -1058,9 +1063,9 @@ public abstract class DiskBasicDirItemTRSDOS<T extends DirectoryT> extends DiskB
          */
         @Override
         public int getFileSize() {
-            int val = m_data.data().eofSector & 0xffff;
+            int val = data.data().eofSector & 0xffff;
             val <<= 8;
-            val |= m_data.data().eofByteOffset & 0xff;
+            val |= data.data().eofByteOffset & 0xff;
             return val;
         }
 
@@ -1069,11 +1074,11 @@ public abstract class DiskBasicDirItemTRSDOS<T extends DirectoryT> extends DiskB
          */
         @Override
         public void setGranulesOnGap(int pos, int val, int cnt) {
-            int blk = basic.diskBasicParam.getGroupsPerTrack() * basic.getSidesPerDiskOnBasic();
-            int trk = val / blk;
-            int sta = val % blk;
-            m_data.data().gap[pos].track = (byte) (trk & 0xff);
-            m_data.data().gap[pos].granules = (byte) (((sta << 5) & 0xe0) | (cnt & 0x1f));
+            int block = basic.getGroupsPerTrack() * basic.getSidesPerDiskOnBasic();
+            int track = val / block;
+            int start = val % block;
+            data.data().gap[pos].track = (byte) (track & 0xff);
+            data.data().gap[pos].granules = (byte) (((start << 5) & 0xe0) | (cnt & 0x1f));
         }
 
         /**
@@ -1081,8 +1086,8 @@ public abstract class DiskBasicDirItemTRSDOS<T extends DirectoryT> extends DiskB
          */
         @Override
         public void clearGranulesOnGap(int pos, int track, int granule) {
-            m_data.data().gap[pos].track = (byte) (track & 0xff);
-            m_data.data().gap[pos].granules = (byte) (granule & 0xff);
+            data.data().gap[pos].track = (byte) (track & 0xff);
+            data.data().gap[pos].granules = (byte) (granule & 0xff);
         }
 
         /**
@@ -1090,11 +1095,11 @@ public abstract class DiskBasicDirItemTRSDOS<T extends DirectoryT> extends DiskB
          */
         @Override
         public int getGranulesOnGap(int pos, int[] cnt) {
-            int val = (m_data.data().gap[pos].track & 0xff) * basic.diskBasicParam.getGroupsPerTrack() * basic.diskBasicParam.getSidesPerDiskOnBasic();
-            int sta = ((m_data.data().gap[pos].granules & 0xe0) >> 5);
-            val += sta;
+            int val = (data.data().gap[pos].track & 0xff) * basic.getGroupsPerTrack() * basic.getSidesPerDiskOnBasic();
+            int start = ((data.data().gap[pos].granules & 0xe0) >> 5);
+            val += start;
             if (cnt != null && cnt.length > 0) {
-                cnt[0] = m_data.data().gap[pos].granules & 0x1f;
+                cnt[0] = data.data().gap[pos].granules & 0x1f;
             }
             return val;
         }
@@ -1104,15 +1109,15 @@ public abstract class DiskBasicDirItemTRSDOS<T extends DirectoryT> extends DiskB
          */
         @Override
         public int getDataSize() {
-            return m_data.getDataSize();
+            return data.getDataSize();
         }
 
         /**
          * アイテムを返す
          */
         @Override
-        public DirectoryTrsd13 getData() {
-            return m_data.data();
+        public DirectoryTrsD13 getData() {
+            return data.data();
         }
 
         /**
@@ -1120,7 +1125,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends DirectoryT> extends DiskB
          */
         @Override
         public boolean copyData(byte[] val) {
-            return m_data.copy(val);
+            return data.copy(val);
         }
 
         /**
@@ -1128,7 +1133,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends DirectoryT> extends DiskB
          */
         @Override
         public void clearData() {
-            m_data.fill(0);
+            data.fill(0);
         }
 
         /**
@@ -1136,19 +1141,19 @@ public abstract class DiskBasicDirItemTRSDOS<T extends DirectoryT> extends DiskB
          */
         @Override
         public void setInternalDataInAttrDialog(KeyValArray vals) {
-            vals.add("ACCESS_CONTROL", m_data.data().accessControl);
-            vals.add("MONTH", m_data.data().month);
-            vals.add("YEAR", m_data.data().year);
-            vals.add("EOF_BYTE_OFFSET", m_data.data().eofByteOffset);
-            vals.add("RECORD_LENGTH", m_data.data().recordLength);
-            vals.add("FILE_NAME", m_data.data().name, m_data.data().name.length);
-            vals.add("EXTENSION", m_data.data().ext, m_data.data().ext.length);
-            vals.add("UPDATE_PASSWORD", m_data.data().updatePassword);
-            vals.add("ACCESS_PASSWORD", m_data.data().accessPassword);
-            vals.add("EOF_SECTOR", m_data.data().eofSector);
-            for (int i = 0; i < m_data.data().gap.length; i++) {
-                vals.add(String.format("GAP%d TRACK", i + 1), m_data.data().gap[i].track);
-                vals.add(String.format("GAP%d GRANULES", i + 1), m_data.data().gap[i].granules);
+            vals.add("ACCESS_CONTROL", data.data().accessControl);
+            vals.add("MONTH", data.data().month);
+            vals.add("YEAR", data.data().year);
+            vals.add("EOF_BYTE_OFFSET", data.data().eofByteOffset);
+            vals.add("RECORD_LENGTH", data.data().recordLength);
+            vals.add("FILE_NAME", data.data().name, data.data().name.length);
+            vals.add("EXTENSION", data.data().ext, data.data().ext.length);
+            vals.add("UPDATE_PASSWORD", data.data().updatePassword);
+            vals.add("ACCESS_PASSWORD", data.data().accessPassword);
+            vals.add("EOF_SECTOR", data.data().eofSector);
+            for (int i = 0; i < data.data().gap.length; i++) {
+                vals.add(String.format("GAP%d TRACK", i + 1), data.data().gap[i].track);
+                vals.add(String.format("GAP%d GRANULES", i + 1), data.data().gap[i].granules);
             }
         }
     }

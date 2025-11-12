@@ -26,8 +26,8 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_ARCHIVE_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_BINARY_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_READONLY_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_SYSTEM_MASK;
-import static l3diskex.basicfmt.diritem.DiskBasicDirItemCPM.gTypeNameCPM;
-import static l3diskex.basicfmt.diritem.DiskBasicDirItemCPM.gTypeNameCPM_2;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemCPM.typeNameCPM;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemCPM.typeNameCPM_2;
 
 
 /**
@@ -99,8 +99,8 @@ public class UiDirItemCPM extends UiDirItem {
         SetFileTypeForAttrDialog(show_flags, file_path, file_type_1, file_type_2);
 
         List<String> choices = new ArrayList<>();
-        for (int i = 0; gTypeNameCPM_2[i] != null; i++) {
-            choices.add(rb.getString(gTypeNameCPM_2[i]));
+        for (int i = 0; typeNameCPM_2[i] != null; i++) {
+            choices.add(rb.getString(typeNameCPM_2[i]));
         }
         radBinAsc = new ButtonGroup(parent, IDC_RADIO_BINASC, "Select File Type", null, null, choices, 0, 0); // wxRA_SPECIFY_COLS
         radBinAsc.setSelected((file_type_2[0] & FILE_TYPE_BINARY_MASK.getValue()) != 0 ? EnTypeNameCPM2.TYPE_NAME_CPM_BINARY.getValue() : EnTypeNameCPM2.TYPE_NAME_CPM_ASCII.getValue());
@@ -114,13 +114,13 @@ public class UiDirItemCPM extends UiDirItem {
         staType4.Add(hbox);
 
         hbox = new BoxLayout(0); // wxHORIZONTAL
-        chkReadOnly = new JCheckBox(parent, IDC_CHECK_READONLY, rb.getString(gTypeNameCPM[EnTypeNameCPM.TYPE_NAME_CPM_READ_ONLY.getValue()]));
+        chkReadOnly = new JCheckBox(parent, IDC_CHECK_READONLY, rb.getString(typeNameCPM[EnTypeNameCPM.TYPE_NAME_CPM_READ_ONLY.getValue()]));
         chkReadOnly.SetValue((file_type_2[0] & FILE_TYPE_READONLY_MASK.getValue()) != 0);
         hbox.Add(chkReadOnly, flags);
-        chkSystem = new JCheckBox(parent, IDC_CHECK_SYSTEM, rb.getString(gTypeNameCPM[EnTypeNameCPM.TYPE_NAME_CPM_SYSTEM.getValue()]));
+        chkSystem = new JCheckBox(parent, IDC_CHECK_SYSTEM, rb.getString(typeNameCPM[EnTypeNameCPM.TYPE_NAME_CPM_SYSTEM.getValue()]));
         chkSystem.SetValue((file_type_2[0] & FILE_TYPE_SYSTEM_MASK.getValue()) != 0);
         hbox.Add(chkSystem, flags);
-        chkArchive = new JCheckBox(parent, IDC_CHECK_ARCHIVE, rb.getString(gTypeNameCPM[EnTypeNameCPM.TYPE_NAME_CPM_ARCHIVE.getValue()]));
+        chkArchive = new JCheckBox(parent, IDC_CHECK_ARCHIVE, rb.getString(typeNameCPM[EnTypeNameCPM.TYPE_NAME_CPM_ARCHIVE.getValue()]));
         chkArchive.SetValue((file_type_2[0] & FILE_TYPE_ARCHIVE_MASK.getValue()) != 0);
         hbox.Add(chkArchive, flags);
 

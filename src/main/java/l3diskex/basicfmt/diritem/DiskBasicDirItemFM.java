@@ -13,7 +13,7 @@ import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
 
 
-/// ディレクトリ１アイテム F-BASIC
+/** ディレクトリ１アイテム F-BASIC */
 public class DiskBasicDirItemFM extends DiskBasicDirItemFAT8F {
 
     /**

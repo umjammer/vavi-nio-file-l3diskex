@@ -23,7 +23,6 @@ public final class Utils {
 
     /**
      * Helper to perform bitwise NOT (XOR with 0xFF) on a byte array.
-     * C++ equivalent of an assumed 'mem_invert' function.
      *
      * @param data The byte array.
      * @param size The number of bytes to invert.
@@ -39,17 +38,17 @@ public final class Utils {
      */
     public static class FIFOBuffer {
 
-        private byte[] m_data;
-        private int m_size;
-        private int m_rpos;
-        private int m_wpos;
+        private byte[] data;
+        private int size;
+        private int rPos;
+        private int wPos;
 
         public FIFOBuffer(int val) {
-            m_data = new byte[val];
-            m_size = val;
-            m_rpos = 0;
-            m_wpos = 0;
-            Arrays.fill(m_data, (byte) 0);
+            data = new byte[val];
+            size = val;
+            rPos = 0;
+            wPos = 0;
+            Arrays.fill(data, (byte) 0);
         }
 
         public FIFOBuffer() {
@@ -62,12 +61,12 @@ public final class Utils {
          * @param val Size.
          */
         public void setBufSize(int val) {
-            if (m_size < val) {
+            if (size < val) {
                 byte[] new_data = new byte[val];
-                System.arraycopy(m_data, 0, new_data, 0, m_size);
-                Arrays.fill(new_data, m_size, val, (byte) 0);
-                m_data = new_data;
-                m_size = val;
+                System.arraycopy(data, 0, new_data, 0, size);
+                Arrays.fill(new_data, size, val, (byte) 0);
+                data = new_data;
+                size = val;
             }
         }
 
@@ -75,9 +74,9 @@ public final class Utils {
          * Clear buffer.
          */
         public void clear() {
-            m_rpos = 0;
-            m_wpos = 0;
-            Arrays.fill(m_data, (byte) 0);
+            rPos = 0;
+            wPos = 0;
+            Arrays.fill(data, (byte) 0);
         }
 
         /**
@@ -86,11 +85,11 @@ public final class Utils {
          * @param val Data byte.
          */
         public void appendByte(byte val) {
-            if (m_size <= m_wpos) {
-                setBufSize(m_size * 2);
+            if (size <= wPos) {
+                setBufSize(size * 2);
             }
-            m_data[m_wpos] = val;
-            m_wpos++;
+            data[wPos] = val;
+            wPos++;
         }
 
         /**
@@ -100,15 +99,15 @@ public final class Utils {
          * @param size Data size.
          */
         public void appendData(byte[] buf, int size) {
-            if (m_size <= m_wpos + size) {
-                int new_size = m_size;
+            if (this.size <= wPos + size) {
+                int new_size = this.size;
                 do {
                     new_size *= 2;
-                } while (new_size < m_wpos + size);
+                } while (new_size < wPos + size);
                 setBufSize(new_size);
             }
-            System.arraycopy(buf, 0, m_data, m_wpos, size);
-            m_wpos += size;
+            System.arraycopy(buf, 0, data, wPos, size);
+            wPos += size;
         }
 
         /**
@@ -117,8 +116,8 @@ public final class Utils {
          * @return Data (0-255) or -1 if empty.
          */
         public int peekByte() {
-            if (m_rpos < m_wpos) {
-                return m_data[m_rpos] & 0xFF; // Treat as unsigned
+            if (rPos < wPos) {
+                return data[rPos] & 0xFF; // Treat as unsigned
             } else {
                 return -1;
             }
@@ -130,8 +129,8 @@ public final class Utils {
          * @return Data (0-255) or -1 if empty.
          */
         public int getByte() {
-            if (m_rpos < m_wpos) {
-                return m_data[m_rpos++] & 0xFF; // Treat as unsigned
+            if (rPos < wPos) {
+                return data[rPos++] & 0xFF; // Treat as unsigned
             } else {
                 return -1;
             }
@@ -145,10 +144,10 @@ public final class Utils {
          * @return Size of data stored.
          */
         public int getData(byte[] buf, int size) {
-            int remaining = m_wpos - m_rpos;
+            int remaining = wPos - rPos;
             if (size > remaining) size = remaining;
-            System.arraycopy(m_data, m_rpos, buf, 0, size);
-            m_rpos += size;
+            System.arraycopy(data, rPos, buf, 0, size);
+            rPos += size;
             return size;
         }
 
@@ -158,7 +157,7 @@ public final class Utils {
          * @return Data array.
          */
         public byte[] getData() {
-            return m_data;
+            return data;
         }
 
         /**
@@ -167,7 +166,7 @@ public final class Utils {
          * @return Read position.
          */
         public int getReadPos() {
-            return m_rpos;
+            return rPos;
         }
 
         /**
@@ -176,7 +175,7 @@ public final class Utils {
          * @return Write position.
          */
         public int getWritePos() {
-            return m_wpos;
+            return wPos;
         }
 
         /**
@@ -185,7 +184,7 @@ public final class Utils {
          * @return Remaining size.
          */
         public int remain() {
-            return m_wpos - m_rpos;
+            return wPos - rPos;
         }
 
         /**
@@ -194,7 +193,7 @@ public final class Utils {
          * @param val Position.
          */
         public void setReadPos(int val) {
-            m_rpos = val;
+            rPos = val;
         }
 
         /**
@@ -203,14 +202,14 @@ public final class Utils {
          * @param val Position.
          */
         public void setWritePos(int val) {
-            m_wpos = val;
+            wPos = val;
         }
 
         /**
          * Set read position to write position (all read).
          */
         public void fix() {
-            m_rpos = m_wpos;
+            rPos = wPos;
         }
     }
 
@@ -228,12 +227,12 @@ public final class Utils {
          * Binary dump.
          *
          * @param buffer  Source data.
-         * @param bufsize Source data length.
+         * @param bufSize Source data length.
          * @param str     Dumped string builder.
          * @param invert  Invert data if true.
          * @return Number of dump lines.
          */
-        public int binary(byte[] buffer, int bufsize, StringBuilder str, boolean invert) {
+        public int binary(byte[] buffer, int bufSize, StringBuilder str, boolean invert) {
             int rows = 0;
             int inv = invert ? 0xFF : 0;
             str.append("    :");
@@ -242,11 +241,9 @@ public final class Utils {
             }
             str.append("\n");
             str.append("-----");
-            for (int col = 0; col < 16; col++) {
-                str.append("---");
-            }
+            str.append("---".repeat(16));
             str.append("\n");
-            for (int pos = 0, col = 0; pos < bufsize; pos++) {
+            for (int pos = 0, col = 0; pos < bufSize; pos++) {
                 if (col == 0) {
                     str.append(String.format("+%02x0:", rows));
                 }
@@ -266,40 +263,38 @@ public final class Utils {
         /**
          * ASCII dump.
          *
-         * @param buffer    Source data.
-         * @param bufsize   Source data length.
-         * @param char_code Character code map ID (String).
-         * @param str       Dumped string builder.
-         * @param invert    Invert data if true.
+         * @param buffer   Source data.
+         * @param bufSize  Source data length.
+         * @param charCode Character code map ID (String).
+         * @param str      Dumped string builder.
+         * @param invert   Invert data if true.
          * @return Number of dump lines (returns 0 in C++).
          */
-        public int ascii(byte[] buffer, int bufsize, String char_code, StringBuilder str, boolean invert) {
+        public int ascii(byte[] buffer, int bufSize, String charCode, StringBuilder str, boolean invert) {
             int inv = invert ? 0xFF : 0;
-            codes.setMap(char_code);
+            codes.setMap(charCode);
 
             for (int col = 0; col < 16; col++) {
                 str.append(String.format("%x", col));
             }
             str.append("\n");
-            for (int col = 0; col < 16; col++) {
-                str.append("-");
-            }
+            str.append("-".repeat(16));
             str.append("\n");
 
             int col = 0;
-            for (int pos = 0; pos < bufsize; ) {
+            for (int pos = 0; pos < bufSize; ) {
                 if (col >= 16) {
                     str.append("\n");
                     col -= 16;
                     if (col > 0) {
-                        for (int i = 0; i < col; i++) str.append(" ");
+                        str.append(" ".repeat(col));
                     }
                 }
 
                 StringBuilder cstr = new StringBuilder();
                 byte[] c = new byte[4];
                 c[0] = (byte) ((buffer[pos] & 0xFF) ^ inv);
-                c[1] = pos + 1 == bufsize ? 0 : (byte) ((buffer[pos + 1] & 0xFF) ^ inv);
+                c[1] = pos + 1 == bufSize ? 0 : (byte) ((buffer[pos + 1] & 0xFF) ^ inv);
                 c[2] = 0;
 
                 int len = codes.findString(c, 2, cstr, (byte) '.');
@@ -360,9 +355,7 @@ public final class Utils {
                     // Tab
                     if ((c[1] & 0xFF) >= 1 && (c[1] & 0xFF) < 0x20) {
                         // for FLEX
-                        for (int i = 0; i < (c[1] & 0xFF); i++) {
-                            str.append(" ");
-                        }
+                        str.append(" ".repeat((c[1] & 0xFF)));
                         col += (c[1] & 0xFF);
                         pos += 2;
                     } else {

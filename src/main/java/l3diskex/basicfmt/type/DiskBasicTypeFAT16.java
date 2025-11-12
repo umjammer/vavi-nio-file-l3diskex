@@ -6,7 +6,7 @@ package l3diskex.basicfmt.type;
 
 import java.io.IOException;
 
-import l3diskex.basicfmt.BasicCommon.DirectoryT;
+import l3diskex.basicfmt.BasicCommon.Directory;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasicDir;
 import l3diskex.basicfmt.DiskBasicFat;
@@ -15,7 +15,7 @@ import l3diskex.basicfmt.DiskBasicFat;
 /**
  * FAT16の処理
  */
-public class DiskBasicTypeFAT16<T extends DirectoryT> extends DiskBasicTypeFATBase<T> {
+public class DiskBasicTypeFAT16<T extends Directory> extends DiskBasicTypeFATBase<T> {
 
     /** */
     public DiskBasicTypeFAT16(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<T> dir) {

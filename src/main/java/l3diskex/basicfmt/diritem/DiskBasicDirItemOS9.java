@@ -16,7 +16,7 @@ import java.util.ResourceBundle;
 
 import l3diskex.Parambase.MyAttribute;
 import l3diskex.Utils;
-import l3diskex.basicfmt.BasicCommon.DirectoryT;
+import l3diskex.basicfmt.BasicCommon.Directory;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
@@ -29,7 +29,7 @@ import l3diskex.diskimg.DiskParam.SectorParam;
 import vavi.util.serdes.Element;
 import vavi.util.serdes.Serdes;
 
-import static l3diskex.Config.gConfig;
+import static l3diskex.Config.config;
 import static l3diskex.Parambase.MyAttributes.findUpperCase;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_BINARY_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_DIRECTORY_MASK;
@@ -50,11 +50,11 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     public static class Os9Lsn {
 
         @Element(sequence = 1)
-        public byte h; // byte
+        public byte h;
         @Element(sequence = 2)
-        public byte m; // byte
+        public byte m;
         @Element(sequence = 3)
-        public byte l; // byte
+        public byte l;
 
         public int getOs9Lsn() {
             return (((h & 0xff) << 16) | ((m & 0xff) << 8) | (l & 0xff));
@@ -96,12 +96,12 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
         @Element(sequence = 5)
         public byte mi;
 
-        public Os9Cdate toCdate() {
-            Os9Cdate cdate = new Os9Cdate();
-            cdate.yy = this.yy;
-            cdate.mm = this.mm;
-            cdate.dd = this.dd;
-            return cdate;
+        public Os9CDate toCDate() {
+            Os9CDate cDate = new Os9CDate();
+            cDate.yy = this.yy;
+            cDate.mm = this.mm;
+            cDate.dd = this.dd;
+            return cDate;
         }
     }
 
@@ -109,26 +109,26 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
      * OS-9 Created Date
      */
     @Serdes
-    public static class Os9Cdate {
+    public static class Os9CDate {
 
         @Element(sequence = 1)
-        public byte yy; // byte
+        public byte yy;
         @Element(sequence = 2)
-        public byte mm; // byte
+        public byte mm;
         @Element(sequence = 3)
-        public byte dd; // byte
+        public byte dd;
     }
 
     /**
      * ディレクトリエントリ OS-9 (32bytes)
      */
     @Serdes
-    public static class DirectoryOs9 implements DirectoryT {
+    public static class DirectoryOs9 implements Directory {
 
         @Element(sequence = 1)
         public byte[] deNam = new byte[28];
         @Element(sequence = 2)
-        public byte deReserved; // byte
+        public byte deReserved;
         @Element(sequence = 3)
         public Os9Lsn deLsn = new Os9Lsn(); // link to FD
 
@@ -139,26 +139,26 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
      * OS-9 File Descriptor
      */
     @Serdes
-    public static class DirectoryOs9Fd implements DirectoryT {
+    public static class DirectoryOs9Fd implements Directory {
 
         @Element(sequence = 1)
-        public byte fdAtt; // 1 attr
+        public byte attr; // 1 fdAtt
         @Element(sequence = 2)
-        public short fdOwn; // 2 owner id
+        public short ownerId; // 2 fdOwn
         @Element(sequence = 3)
-        public Os9Date fdDat = new Os9Date(); // 5 date
+        public Os9Date date = new Os9Date(); // 5 fdDat
         @Element(sequence = 4)
-        public byte fdLnk; // 1 link count
+        public byte linkCount; // 1 fdLnk
         @Element(sequence = 5)
-        public int fdSiz; // 4 in bytes
+        public int size; // 4 in bytes fdSiz
         @Element(sequence = 6)
-        public Os9Cdate fdDcr = new Os9Cdate(); // 3 created date
+        public Os9CDate cDate = new Os9CDate(); // 3 cDate
         @Element(sequence = 7)
-        public Os9Segment[] fdSeg = new Os9Segment[48]; // 5*48=240
+        public Os9Segment[] segments = new Os9Segment[48]; // 5*48=240 fdSeg
 
         public DirectoryOs9Fd() {
             for (int i = 0; i < 48; i++) {
-                fdSeg[i] = new Os9Segment();
+                segments[i] = new Os9Segment();
             }
         }
 
@@ -183,11 +183,11 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
             "Non-sharable",
     };
 
-    public static final char[] G_TYPE_NAME_OS9_2 = {
+    public static final char[] TYPE_NAME_OS9_2 = {
             'X', 'W', 'R', 'x', 'w', 'r'
     };
 
-    public static final String[] G_TYPE_NAME_OS9_2L = {
+    public static final String[] TYPE_NAME_OS9_2L = {
             "Execute",
             "Write",
             "Read",
@@ -200,235 +200,175 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
 
         private DiskBasic basic;
         private DiskImageSector sector;
-        private DirectoryOs9Fd p_fd;
-        private int m_mylsn;
-        private boolean m_fd_ownmake;
-        private final ZeroData zero_data = new ZeroData(); // union replacement
+        private DirectoryOs9Fd fd;
+        private int myLsn;
+        private final ZeroData zeroData = new ZeroData(); // union replacement
 
         private static class ZeroData {
 
             public Os9Date date = new Os9Date();
-            public Os9Cdate cdate = new Os9Cdate();
+            public Os9CDate cDate = new Os9CDate();
         }
 
         public DiskBasicDirItemOS9FD() {
             basic = null;
             sector = null;
-            p_fd = null;
-            m_mylsn = -1;
-            m_fd_ownmake = false;
+            fd = null;
+            myLsn = -1;
         }
 
-        /**
-         * ポインタをセット
-         */
-        public void set(DiskBasic n_basic, DiskImageSector n_sector, int n_mylsn, DirectoryOs9Fd n_fd) {
-            basic = n_basic;
-            sector = n_sector;
-            m_mylsn = n_mylsn;
-            if (m_fd_ownmake) {
-                p_fd = null;
-            }
-            p_fd = n_fd;
-            m_fd_ownmake = false;
+        /** ポインタをセット */
+        public void set(DiskBasic basic, DiskImageSector sector, int myLsn, DirectoryOs9Fd fd) {
+            this.basic = basic;
+            this.sector = sector;
+            this.myLsn = myLsn;
+            this.fd = fd;
         }
 
-        /**
-         * FDのメモリ確保
-         */
+        /** FDのメモリ確保 */
         public void alloc() {
-            if (m_fd_ownmake) {
-                p_fd = null;
-            }
-            p_fd = new DirectoryOs9Fd();
-            m_fd_ownmake = true;
+            fd = null;
+            fd = new DirectoryOs9Fd();
         }
 
-        /**
-         * FDをクリア
-         */
+        /** FDをクリア */
         public void clear() {
             if (sector != null) {
                 sector.fill((byte) 0);
-            } else if (p_fd != null) {
-                p_fd = new DirectoryOs9Fd();
+            } else if (fd != null) {
+                fd = new DirectoryOs9Fd();
             }
         }
 
-        /**
-         * 有効か
-         */
+        /** 有効か */
         public boolean isValid() {
-            return (p_fd != null);
+            return (fd != null);
         }
 
-        /**
-         * FDへのポインタを返す
-         */
+        /** FDへのポインタを返す */
         public DirectoryOs9Fd getFD() {
-            return p_fd;
+            return fd;
         }
 
-        /**
-         * 自分のLSNを返す
-         */
+        /** 自分のLSNを返す */
         public int getMyLSN() {
-            return m_mylsn;
+            return myLsn;
         }
 
-        /**
-         * 自分のLSNを設定
-         */
+        /** 自分のLSNを設定 */
         public void setMyLSN(int val) {
-            m_mylsn = val;
+            myLsn = val;
         }
 
-        /**
-         * 属性を返す
-         */
-        public short getATT() {
-            return p_fd != null ? p_fd.fdAtt : 0;
+        /** 属性を返す */
+        public short getAttr() {
+            return fd != null ? fd.attr : 0;
         }
 
-        /**
-         * 属性をセット
-         */
-        public void setATT(short val) {
-            if (p_fd != null) {
-                p_fd.fdAtt = (byte) val;
+        /** 属性をセット */
+        public void setAttr(short val) {
+            if (fd != null) {
+                fd.attr = (byte) val;
             }
         }
 
-        /**
-         * ユーザIDを返す
-         */
-        public int getOWN() {
-            return p_fd != null ? p_fd.fdOwn : 0;
+        /** ユーザIDを返す */
+        public int getOwnerId() {
+            return fd != null ? fd.ownerId : 0;
         }
 
-        /**
-         * ユーザIDをセット
-         */
-        public void setOWN(int val) {
-            if (p_fd != null) {
-                p_fd.fdOwn = (short) val;
+        /** ユーザIDをセット */
+        public void setOwnerId(int val) {
+            if (fd != null) {
+                fd.ownerId = (short) val;
             }
         }
 
-        /**
-         * セグメントのLSNを返す
-         */
-        public int getLSN(int idx) {
-            return p_fd != null ? p_fd.fdSeg[idx].lsn.getOs9Lsn() : 0;
+        /** セグメントのLSNを返す */
+        public int getLsn(int idx) {
+            return fd != null ? fd.segments[idx].lsn.getOs9Lsn() : 0;
         }
 
-        /**
-         * セグメントのセクタ数を返す
-         */
-        public int getSIZ(int idx) {
-            return p_fd != null ? p_fd.fdSeg[idx].siz : 0;
+        /** セグメントのセクタ数を返す */
+        public int getSize(int idx) {
+            return fd != null ? fd.segments[idx].siz : 0;
         }
 
-        /**
-         * セグメントにLSNを設定
-         */
-        public void SetLSN(int idx, int val) {
-            if (p_fd != null) {
+        /** セグメントにLSNを設定 */
+        public void setLsn(int idx, int val) {
+            if (fd != null) {
                 Os9Lsn x = new Os9Lsn();
                 x.setOs9Lsn(val);
-                p_fd.fdSeg[idx].lsn = x;
+                fd.segments[idx].lsn = x;
             }
         }
 
-        /**
-         * セグメントにセクタ数を設定
-         */
-        public void setSIZ(int idx, int val) {
-            if (p_fd != null) {
-                p_fd.fdSeg[idx].siz = (short) val;
+        /** セグメントにセクタ数を設定 */
+        public void setSize(int idx, int val) {
+            if (fd != null) {
+                fd.segments[idx].siz = (short) val;
             }
         }
 
-        /**
-         * ファイルサイズを返す
-         */
-        public int getSIZ() {
-            return p_fd != null ? p_fd.fdSiz : 0;
+        /** ファイルサイズを返す */
+        public int getSize() {
+            return fd != null ? fd.size : 0;
         }
 
-        /**
-         * ファイルサイズを設定
-         */
-        public void setSIZ(int val) {
-            if (p_fd != null) {
-                p_fd.fdSiz = val;
+        /** ファイルサイズを設定 */
+        public void setSize(int val) {
+            if (fd != null) {
+                fd.size = val;
             }
         }
 
-        /**
-         * リンク数を返す
-         */
-        public short getLNK() {
-            return p_fd != null ? p_fd.fdLnk : 0;
+        /** リンク数を返す */
+        public short getLinkCount() {
+            return fd != null ? fd.linkCount : 0;
         }
 
-        /**
-         * リンク数を設定
-         */
-        public void setLNK(short val) {
-            if (p_fd != null) {
-                p_fd.fdLnk = (byte) val;
+        /** リンク数を設定 */
+        public void setLinkCount(short val) {
+            if (fd != null) {
+                fd.linkCount = (byte) val;
             }
         }
 
-        /**
-         * 更新日付を返す
-         */
-        public Os9Date getDAT() {
-            return p_fd != null ? p_fd.fdDat : zero_data.date;
+        /** 更新日付を返す */
+        public Os9Date getDate() {
+            return fd != null ? fd.date : zeroData.date;
         }
 
-        /**
-         * 更新日付をセット
-         */
-        public void setDAT(Os9Date val) {
-            if (p_fd != null) {
-                p_fd.fdDat = val;
+        /** 更新日付をセット */
+        public void setDate(Os9Date val) {
+            if (fd != null) {
+                fd.date = val;
             }
         }
 
-        /**
-         * 更新日付をセット
-         */
-        public void setDAT(Os9Cdate val) {
-            if (p_fd != null) {
-                p_fd.fdDat.yy = val.yy;
-                p_fd.fdDat.mm = val.mm;
-                p_fd.fdDat.dd = val.dd;
+        /** 更新日付をセット */
+        public void setDate(Os9CDate val) {
+            if (fd != null) {
+                fd.date.yy = val.yy;
+                fd.date.mm = val.mm;
+                fd.date.dd = val.dd;
             }
         }
 
-        /**
-         * 作成日付を返す
-         */
-        public Os9Cdate getDCR() {
-            return p_fd != null ? p_fd.fdDcr : zero_data.cdate;
+        /** 作成日付を返す */
+        public Os9CDate getCDate() {
+            return fd != null ? fd.cDate : zeroData.cDate;
         }
 
-        /**
-         * 作成日付をセット
-         */
-        public void setDCR(Os9Cdate val) {
-            if (p_fd != null) {
-                p_fd.fdDcr = val;
+        /** 作成日付をセット */
+        public void setCDate(Os9CDate val) {
+            if (fd != null) {
+                fd.cDate = val;
             }
         }
 
-        /**
-         * 更新にする
-         */
+        /** 更新にする */
         public void setModify() {
-            // No logic in C++, so no logic here.
         }
     }
 
@@ -437,52 +377,53 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     //
 
     /** ディレクトリデータ */
-    private final DiskBasicDirData<DirectoryOs9> m_data = new DiskBasicDirData<>();
+    private final DiskBasicDirData<DirectoryOs9> data = new DiskBasicDirData<>();
 
     /** File Descriptorエリアのポインタ */
     private final DiskBasicDirItemOS9.DiskBasicDirItemOS9FD fd = new DiskBasicDirItemOS9FD();
 
     /** ユーザID(プロパティダイアログ用) */
-    public int m_owner_id;
+    public int ownerId;
 
     /** グループID(プロパティダイアログ用) */
-    public int m_group_id;
+    public int groupId;
 
     public DiskBasicDirItemOS9(DiskBasic basic) {
         super(basic);
 
-        m_data.alloc(DirectoryOs9.class);
+        data.alloc(DirectoryOs9.class);
         fd.alloc();
-        m_owner_id = 0;
-        m_group_id = 0;
+        ownerId = 0;
+        groupId = 0;
     }
 
-    public DiskBasicDirItemOS9(DiskBasic basic, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP) {
-        super(basic, n_sector, n_secpos, n_data, dataP);
+    public DiskBasicDirItemOS9(DiskBasic basic, DiskImageSector sector, int secPos, byte[] data, int dataP) {
+        super(basic, sector, secPos, data, dataP);
 
-        m_data.attach(DirectoryOs9.class, n_data, dataP);
-        m_owner_id = 0;
-        m_group_id = 0;
+        this.data.attach(DirectoryOs9.class, data, dataP);
+        ownerId = 0;
+        groupId = 0;
     }
 
-    public DiskBasicDirItemOS9(DiskBasic basic, int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP, SectorParam n_next, boolean[] n_unuse) throws IOException {
-        super(basic, n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next, n_unuse);
+    public DiskBasicDirItemOS9(DiskBasic basic, int num, DiskBasicGroupItem groupItem, DiskImageSector sector, int secPos,
+                               byte[] data, int dataP, SectorParam next, boolean[] unuse) throws IOException {
+        super(basic, num, groupItem, sector, secPos, data, dataP, next, unuse);
 
-        m_data.attach(DirectoryOs9.class, n_data, dataP);
-        m_owner_id = 0;
-        m_group_id = 0;
+        this.data.attach(DirectoryOs9.class, data, dataP);
+        ownerId = 0;
+        groupId = 0;
 
-        used(checkUsed(n_unuse[0]));
+        used(checkUsed(unuse[0]));
 
         // FDセクタへのポインタをセット
         if (isUsed()) {
-            int lsn = m_data.data().deLsn.getOs9Lsn();
+            int lsn = this.data.data().deLsn.getOs9Lsn();
             if (lsn != 0) {
-                DiskImageSector sector = basic.getSectorFromGroup(lsn);
-                if (sector != null) {
+                DiskImageSector targetSector = basic.getSectorFromGroup(lsn);
+                if (targetSector != null) {
                     DirectoryOs9Fd fd = new DirectoryOs9Fd();
-                    Serdes.Util.deserialize(new ByteArrayInputStream(sector.getSectorBuffer()), fd);
-                    this.fd.set(basic, sector, lsn, fd);
+                    Serdes.Util.deserialize(new ByteArrayInputStream(targetSector.getSectorBuffer()), fd);
+                    this.fd.set(basic, targetSector, lsn, fd);
                 }
             }
         }
@@ -497,18 +438,19 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     /**
      * アイテムへのポインタを設定
      *
-     * @param n_num    通し番号
-     * @param n_gitem  トラック番号などのデータ
-     * @param n_sector セクタ
-     * @param n_secpos セクタ内のディレクトリエントリの位置
-     * @param n_data   ディレクトリアイテム
-     * @param n_next   [out] 次のセクタ
+     * @param num    通し番号
+     * @param groupItem  トラック番号などのデータ
+     * @param sector セクタ
+     * @param sectorPos セクタ内のディレクトリエントリの位置
+     * @param data   ディレクトリアイテム
+     * @param next   [out] 次のセクタ
      */
     @Override
-    public void setDataPtr(int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP, SectorParam n_next) throws IOException {
-        super.setDataPtr(n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next);
+    public void setData(int num, DiskBasicGroupItem groupItem, DiskImageSector sector, int sectorPos,
+                        byte[] data, int dataPos, SectorParam next) throws IOException {
+        super.setData(num, groupItem, sector, sectorPos, data, dataPos, next);
 
-        m_data.attach(DirectoryOs9.class, n_data, dataP);
+        this.data.attach(DirectoryOs9.class, data, dataPos);
     }
 
     /**
@@ -517,8 +459,8 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     @Override
     protected byte[] getFileNamePos(int num, int[] size, int[] len) {
         if (num == 0) {
-            size[0] = len[0] = m_data.data().deNam.length;
-            return m_data.data().deNam;
+            size[0] = len[0] = data.data().deNam.length;
+            return data.data().deNam;
         } else {
             size[0] = len[0] = 0;
             return null;
@@ -530,7 +472,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
      */
     @Override
     protected int getFileType1() {
-        return fd.getATT() & 0xffff;
+        return fd.getAttr() & 0xffff;
     }
 
     /**
@@ -538,7 +480,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
      */
     @Override
     protected void setFileType1(int val) {
-        fd.setATT((short) (val & 0xff));
+        fd.setAttr((short) (val & 0xff));
     }
 
     /**
@@ -546,21 +488,21 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
      */
     @Override
     public boolean checkUsed(boolean unuse) {
-        return (m_data.data().deNam[0] != 0);
+        return (data.data().deNam[0] != 0);
     }
 
     /**
      * ユーザIDを返す
      */
     public int getUserID() {
-        return fd.getOWN();
+        return fd.getOwnerId();
     }
 
     /**
      * ユーザIDのセット
      */
     public void setUserID(int val) {
-        fd.setOWN(val & 0xffff);
+        fd.setOwnerId(val & 0xffff);
     }
 
     /**
@@ -584,17 +526,17 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
      * ファイル名を得る
      */
     @Override
-    public void getNativeFileName(byte[] name, int[] nlen, byte[] ext, int[] elen) {
-        super.getNativeFileName(name, nlen, ext, elen);
+    public void getNativeFileName(byte[] name, int[] nLen, byte[] ext, int[] eLen) {
+        super.getNativeFileName(name, nLen, ext, eLen);
 
         // 文字列の最後はMSBがセットされているのでクリア
-        nlen[0] = decodeString(name, nlen[0], name, nlen[0]);
+        nLen[0] = decodeString(name, nLen[0], name, nLen[0]);
     }
 
     /**
      * 日付を変換
      */
-    public LocalDate convDateToTm(Os9Cdate date) {
+    public LocalDate convDateToTm(Os9CDate date) {
         return LocalDate.of(
                 (date.yy % 100) +
                         (date.yy % 100) < 80 ? 100 : 0,
@@ -615,7 +557,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     /**
      * 日付に変換
      */
-    public void convTmToDate(LocalDateTime tm, Os9Cdate date) {
+    public void convTmToDate(LocalDateTime tm, Os9CDate date) {
         date.yy = (byte) (tm.getYear() % 100);
         date.mm = (byte) (tm.getMonth().ordinal() + 1);
         date.dd = (byte) tm.getDayOfMonth();
@@ -634,9 +576,9 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
      */
     @Override
     public boolean check(boolean[] last) {
-        if (!m_data.isValid()) return false;
+        if (!data.isValid()) return false;
 
-        //if (m_data.data().DE_Reserved != 0) return false;
+        //if (data.data().DE_Reserved != 0) return false;
 
         return true;
     }
@@ -647,7 +589,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     @Override
     public boolean delete() {
         // 削除はエントリの先頭にコードを入れるだけ
-        m_data.data().deNam[0] = basic.diskBasicParam.getDeleteCode();
+        data.data().deNam[0] = basic.getDeleteCode();
         used(false);
         return true;
     }
@@ -656,24 +598,24 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
      * 属性を設定
      */
     @Override
-    public void setFileAttr(DiskBasicFileType file_type) {
-        int ftype = file_type.getType();
-        if (ftype == -1) return;
+    public void setFileAttr(DiskBasicFileType fileType) {
+        int fType = fileType.getType();
+        if (fType == -1) return;
 
         int t1 = 0;
         int user_id = -1;
-        if (file_type.getFormat() == basic.getFormatTypeNumber()) {
-            t1 = file_type.getOrigin(0);
-            user_id = file_type.getOrigin(1);
+        if (fileType.getFormat() == basic.getFormatTypeNumber()) {
+            t1 = fileType.getOrigin(0);
+            user_id = fileType.getOrigin(1);
         } else {
-            if ((ftype & FILE_TYPE_DIRECTORY_MASK.getValue()) != 0) {
+            if ((fType & FILE_TYPE_DIRECTORY_MASK.getValue()) != 0) {
                 t1 |= FILETYPE_MASK_OS9_DIRECTORY;
             }
-            if ((ftype & FILE_TYPE_NONSHARE_MASK.getValue()) != 0) {
+            if ((fType & FILE_TYPE_NONSHARE_MASK.getValue()) != 0) {
                 t1 |= FILETYPE_MASK_OS9_NONSHARE;
             }
-            //t1 |= ((ftype & FILETYPE_OS9_PERMISSION_MASK) >> FILETYPE_OS9_PERMISSION_POS);
-            if ((ftype & FILE_TYPE_BINARY_MASK.getValue()) != 0) {
+            //t1 |= ((fType & FILETYPE_OS9_PERMISSION_MASK) >> FILETYPE_OS9_PERMISSION_POS);
+            if ((fType & FILE_TYPE_BINARY_MASK.getValue()) != 0) {
                 t1 |= FILETYPE_MASK_OS9_PUBLIC_EXEC;
                 t1 |= FILETYPE_MASK_OS9_USER_EXEC;
             }
@@ -712,18 +654,18 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     public String getFileAttrStr() {
         StringBuilder str = new StringBuilder();
         if (fd.isValid()) {
-            if ((fd.getATT() & FILETYPE_MASK_OS9_DIRECTORY) != 0) {
+            if ((fd.getAttr() & FILETYPE_MASK_OS9_DIRECTORY) != 0) {
                 if (!str.isEmpty()) str.append(", ");
                 str.append(rb.getString(G_TYPE_NAME_OS9[TYPE_NAME_OS9_DIRECTORY]));
             }
-            if ((fd.getATT() & FILETYPE_MASK_OS9_NONSHARE) != 0) {
+            if ((fd.getAttr() & FILETYPE_MASK_OS9_NONSHARE) != 0) {
                 if (!str.isEmpty()) str.append(", ");
                 str.append(rb.getString(G_TYPE_NAME_OS9[TYPE_NAME_OS9_NONSHARE]));
             }
             if (!str.isEmpty()) str.append(", ");
             for (int i = 0; i < 6; i++) {
-                if ((fd.getATT() & (0x20 >> i)) != 0) {
-                    str.append(G_TYPE_NAME_OS9_2[i]);
+                if ((fd.getAttr() & (0x20 >> i)) != 0) {
+                    str.append(TYPE_NAME_OS9_2[i]);
                 } else {
                     str.append('-');
                 }
@@ -737,7 +679,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
      */
     @Override
     public void setFileSize(int val) {
-        fd.setSIZ(val);
+        fd.setSize(val);
         groups.setSize(val);
     }
 
@@ -746,7 +688,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
      */
     @Override
     public int getFileSize() {
-        int size = fd.getSIZ();
+        int size = fd.getSize();
         if (size == 0) size = groups.getSize();
         return size;
     }
@@ -755,52 +697,52 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
      * ファイルサイズとグループ数を計算する
      */
     @Override
-    public void calcFileUnitSize(int fileunit_num) {
+    public void calcFileUnitSize(int fileUnitNum) {
         if (!isUsed() || !fd.isValid()) return;
 
-        getUnitGroups(fileunit_num, groups);
+        getUnitGroups(fileUnitNum, groups);
     }
 
     /**
      * 指定ディレクトリのすべてのグループを取得
      */
     @Override
-    public void getUnitGroups(int fileunit_num, DiskBasicGroups group_items) {
+    public void getUnitGroups(int fileUnitNum, DiskBasicGroups groupItems) {
         if (!fd.isValid()) return;
 
-        int calc_groups = 0;
-        int calc_file_size = getFileSize();
+        int calcGroups = 0;
+        int calcFileSize = getFileSize();
 
         for (int i = 0; i < 48; i++) {
-            int lsn = fd.getLSN(i);
-            int siz = fd.getSIZ(i);
-            if (siz == 0) {
+            int lsn = fd.getLsn(i);
+            int size = fd.getSize(i);
+            if (size == 0) {
                 break;
             }
 
             if (i != 0) {
-                if (group_items.size() > 0) {
-                    DiskBasicGroupItem gitm = group_items.last();
-                    gitm.next = lsn;
+                if (groupItems.size() > 0) {
+                    DiskBasicGroupItem groupItem = groupItems.last();
+                    groupItem.next = lsn;
                 }
             }
-            for (int n = 0; n < siz; n++) {
-                int[] track_num = {0};
-                int[] side_num = {0};
-                int[] sector_num = {1};
-                int next_lsn = n + 1 != siz ? lsn + n + 1 : 0;
-                basic.calcNumFromSectorPosForGroup(lsn + n, track_num, side_num, sector_num, null, null);
-                group_items.add(lsn + n, next_lsn, track_num[0], side_num[0], sector_num[0], sector_num[0], 0, 1);
-                calc_groups++;
-                if (calc_groups >= basic.getFatEndGroup()) {
+            for (int n = 0; n < size; n++) {
+                int[] trackNum = {0};
+                int[] sideNum = {0};
+                int[] sectorNum = {1};
+                int nextLsn = n + 1 != size ? lsn + n + 1 : 0;
+                basic.calcNumFromSectorPosForGroup(lsn + n, trackNum, sideNum, sectorNum, null, null);
+                groupItems.add(lsn + n, nextLsn, trackNum[0], sideNum[0], sectorNum[0], sectorNum[0], 0, 1);
+                calcGroups++;
+                if (calcGroups >= basic.getFatEndGroup()) {
                     // too large block size
                     break;
                 }
             }
         }
-        group_items.setNums(calc_groups);
-        group_items.setSize(calc_file_size);
-        group_items.setSizePerGroup(basic.getSectorSize());
+        groupItems.setNums(calcGroups);
+        groupItems.setSize(calcFileSize);
+        groupItems.setSizePerGroup(basic.getSectorSize());
     }
 
     /**
@@ -809,7 +751,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     @Override
     public LocalDate getFileCreateDate(LocalDateTime tm) {
         if (fd.isValid()) {
-            return convDateToTm(fd.getDCR());
+            return convDateToTm(fd.getCDate());
         } else {
             return LocalDate.of(1970, 1, 1);
         }
@@ -831,9 +773,9 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     @Override
     public void setFileCreateDate(LocalDateTime tm) {
         if (fd.isValid() && tm.getYear() >= 0 && tm.getMonth().ordinal() >= 0) {
-            Os9Cdate date = new Os9Cdate();
+            Os9CDate date = new Os9CDate();
             convTmToDate(tm, date);
-            fd.setDCR(date);
+            fd.setCDate(date);
         }
     }
 
@@ -843,11 +785,11 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     @Override
     public LocalDate getFileModifyDate(LocalDateTime tm) {
         if (fd.isValid()) {
-            Os9Cdate cdate = fd.getDAT().toCdate();
-            cdate.yy = fd.getDAT().yy;
-            cdate.mm = fd.getDAT().mm;
-            cdate.dd = fd.getDAT().dd;
-            return convDateToTm(cdate);
+            Os9CDate cDate = fd.getDate().toCDate();
+            cDate.yy = fd.getDate().yy;
+            cDate.mm = fd.getDate().mm;
+            cDate.dd = fd.getDate().dd;
+            return convDateToTm(cDate);
         } else {
             return LocalDate.of(1970, 1, 1);
         }
@@ -859,7 +801,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     @Override
     public LocalTime getFileModifyTime(LocalDateTime tm) {
         if (fd.isValid()) {
-            return convTimeToTm(fd.getDAT());
+            return convTimeToTm(fd.getDate());
         } else {
             return LocalTime.of(0, 0, 0);
         }
@@ -891,9 +833,9 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     @Override
     public void setFileModifyDate(LocalDateTime tm) {
         if (fd.isValid() && tm.getYear() >= 0 && tm.getMonth().ordinal() >= -1) {
-            Os9Cdate date = new Os9Cdate();
+            Os9CDate date = new Os9CDate();
             convTmToDate(tm, date);
-            fd.setDAT(date);
+            fd.setDate(date);
         }
     }
 
@@ -903,9 +845,9 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     @Override
     public void setFileModifyTime(LocalDateTime tm) {
         if (fd.isValid() && tm.getHour() >= 0 && tm.getMinute() >= -1) {
-            Os9Date time = fd.getDAT();
+            Os9Date time = fd.getDate();
             convTmToTime(tm, time);
-            fd.setDAT(time);
+            fd.setDate(time);
         }
     }
 
@@ -929,16 +871,16 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
      * 最初のグループ番号を設定
      */
     @Override
-    public void setStartGroup(int fileunit_num, int val, int size /* = 0 */) {
-        m_data.data().deLsn.setOs9Lsn(val);
+    public void setStartGroup(int fileUnitNum, int val, int size /* = 0 */) {
+        data.data().deLsn.setOs9Lsn(val);
     }
 
     /**
      * 最初のグループ番号を返す
      */
     @Override
-    public int getStartGroup(int fileunit_num) {
-        return m_data.data().deLsn.getOs9Lsn();
+    public int getStartGroup(int fileUnitNum) {
+        return data.data().deLsn.getOs9Lsn();
     }
 
     /**
@@ -946,7 +888,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
      */
     @Override
     public void setExtraGroup(int val) {
-        m_data.data().deLsn.setOs9Lsn(val);
+        data.data().deLsn.setOs9Lsn(val);
     }
 
     /**
@@ -954,7 +896,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
      */
     @Override
     public int getExtraGroup() {
-        return m_data.data().deLsn.getOs9Lsn();
+        return data.data().deLsn.getOs9Lsn();
     }
 
     /**
@@ -969,17 +911,17 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
      * チェイン用のセクタをセット
      */
     @Override
-    public void setChainSector(DiskImageSector sector, int lsn, byte[] data, DiskBasicDirItem<DirectoryOs9> pitem) throws IOException {
+    public void setChainSector(DiskImageSector sector, int lsn, byte[] data, DiskBasicDirItem<DirectoryOs9> pItem) throws IOException {
         DirectoryOs9Fd fd = new DirectoryOs9Fd();
         Serdes.Util.deserialize(new ByteArrayInputStream(sector.getSectorBuffer()), fd);
         this.fd.set(basic, sector, lsn, fd);
         this.fd.clear();
 
         // 属性をコピー
-        if (pitem != null) copyItem(pitem);
+        if (pItem != null) copyItem(pItem);
 
         // リンク数
-        this.fd.setLNK((short) 1);
+        this.fd.setLinkCount((short) 1);
     }
 
     /**
@@ -1041,7 +983,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
      */
     @Override
     public int getDataSize() {
-        return m_data.getDataSize();
+        return data.getDataSize();
     }
 
     /**
@@ -1049,7 +991,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
      */
     @Override
     public DirectoryOs9 getData() {
-        return m_data.data();
+        return data.data();
     }
 
     /**
@@ -1057,7 +999,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
      */
     @Override
     public boolean copyData(byte[] val) {
-        return m_data.copy(val, getDataSize());
+        return data.copy(val, getDataSize());
     }
 
     /**
@@ -1065,7 +1007,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
      */
     @Override
     public void clearData() {
-        m_data.fill(basic.diskBasicParam.getDeleteCode(), getDataSize(), basic.isDataInverted(), 0);
+        data.fill(basic.getDeleteCode(), getDataSize(), basic.isDataInverted(), 0);
     }
 
     /**
@@ -1074,18 +1016,18 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     @Override
     public void copyItem(DiskBasicDirItem<DirectoryOs9> src) {
         super.copyItem(src);
-        DiskBasicDirItemOS9FD src_fd = ((DiskBasicDirItemOS9) src).getFD();
-        fd.setATT(src_fd.getATT());
-        fd.setOWN(src_fd.getOWN());
-        fd.setSIZ(src_fd.getSIZ());
-        fd.setDAT(src_fd.getDAT());
-        fd.setDCR(src_fd.getDCR());
+        DiskBasicDirItemOS9FD srcFd = ((DiskBasicDirItemOS9) src).getFd();
+        fd.setAttr(srcFd.getAttr());
+        fd.setOwnerId(srcFd.getOwnerId());
+        fd.setSize(srcFd.getSize());
+        fd.setDate(srcFd.getDate());
+        fd.setCDate(srcFd.getCDate());
     }
 
     /**
      * FDセクタのポインタを返す
      */
-    public DiskBasicDirItemOS9FD getFD() {
+    public DiskBasicDirItemOS9FD getFd() {
         return fd;
     }
 
@@ -1101,10 +1043,10 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     /**
      * 文字列の最後のMSBをセット
      */
-    public static int encodeString(byte[] dst, int dlen, String src, int slen) {
-        Arrays.fill(dst, 0, dlen, (byte) 0);
-        int len = dlen > slen ? slen : dlen;
-        System.arraycopy(src, 0, dst, 0, slen);
+    public static int encodeString(byte[] dst, int dLen, String src, int sLen) {
+        Arrays.fill(dst, 0, dLen, (byte) 0);
+        int len = dLen > sLen ? sLen : dLen;
+        System.arraycopy(src, 0, dst, 0, sLen);
 
         // 文字列の最後にMSBをセット
         for (int i = len - 1; i >= 0; i--) {
@@ -1119,8 +1061,8 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     /**
      * 文字列の最後のMSBをクリア
      */
-    public static int decodeString(byte[] dst, int dlen, byte[] src, int slen) {
-        int len = dlen > slen ? slen : dlen;
+    public static int decodeString(byte[] dst, int dLen, byte[] src, int sLen) {
+        int len = dLen > sLen ? sLen : dLen;
 
         // 文字列のMSBをクリア
         boolean last = false;
@@ -1128,14 +1070,14 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
             last = ((src[i] & 0x80) != 0);
             dst[i] = (byte) (src[i] & 0x7f);
             if (last) {
-                dlen = i + 1;
+                dLen = i + 1;
                 break;
             }
         }
-        for (int i = dlen; i < len; i++) {
+        for (int i = dLen; i < len; i++) {
             dst[i] = 0;
         }
-        return dlen;
+        return dLen;
     }
 
     /**
@@ -1143,7 +1085,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
      */
     @Override
     public boolean preExportDataFile(String[] filename) {
-        if (!gConfig.isAddExtensionExport()) return true;
+        if (!config.isAddExtensionExport()) return true;
 
         if (!isDirectory()) {
             addExtensionByFileAttr(getFileAttr().getType(), 0x3f, filename, false);
@@ -1156,7 +1098,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
      */
     @Override
     public boolean preImportDataFile(String[] filename) {
-        if (gConfig.isDecideAttrImport()) {
+        if (config.isDecideAttrImport()) {
             trimExtensionByExtensionAttr(filename);
         }
         filename[0] = remakeFileNameAndExtStr(filename[0]);
@@ -1176,7 +1118,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
         t1 |= FILETYPE_MASK_OS9_USER_WRITE;
         t1 |= FILETYPE_MASK_OS9_USER_READ;
         // 拡張子で実行属性を付ける
-        MyAttribute sa = findUpperCase(basic.diskBasicParam.getAttributesByExtension(), Utils.getExt(filename), FILE_TYPE_BINARY_MASK, FILE_TYPE_BINARY_MASK);
+        MyAttribute sa = findUpperCase(basic.getAttributesByExtension(), Utils.getExt(filename), FILE_TYPE_BINARY_MASK, FILE_TYPE_BINARY_MASK);
         if (sa != null) {
             // 実行属性を付ける
             t1 |= FILETYPE_MASK_OS9_PUBLIC_EXEC;
@@ -1200,24 +1142,24 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     @Override
     public void setInternalDataInAttrDialog(KeyValArray vals) throws IOException {
 
-        vals.add("DE_NAM", m_data.data().deNam, m_data.data().deNam.length);
-        vals.add("DE_Reserved", m_data.data().deReserved);
-        vals.add("DE_LSN", m_data.data().deLsn.getOs9Lsn());
+        vals.add("DE_NAM", data.data().deNam, data.data().deNam.length);
+        vals.add("DE_Reserved", data.data().deReserved);
+        vals.add("DE_LSN", data.data().deLsn.getOs9Lsn());
 
-        DiskBasicDirItemOS9FD cfd = getFD();
+        DiskBasicDirItemOS9FD cfd = getFd();
         if (!cfd.isValid()) return;
 
         DirectoryOs9Fd fd_data = cfd.getFD();
 
-        vals.add("FD_ATT", fd_data.fdAtt);
-        vals.add("FD_OWN", (byte) fd_data.fdOwn, true);
+        vals.add("FD_ATT", fd_data.attr);
+        vals.add("FD_OWN", (byte) fd_data.ownerId, true);
         ByteArrayOutputStream x = new ByteArrayOutputStream();
-        Serdes.Util.serialize(fd_data.fdDat, x);
+        Serdes.Util.serialize(fd_data.date, x);
         vals.add("FD_DAT", x.toByteArray(), x.size());
-        vals.add("FD_LNK", fd_data.fdLnk);
-        vals.add("FD_SIZ", (byte) fd_data.fdSiz, true);
+        vals.add("FD_LNK", fd_data.linkCount);
+        vals.add("FD_SIZ", (byte) fd_data.size, true);
         x = new ByteArrayOutputStream();
-        Serdes.Util.serialize(fd_data.fdDcr, x);
+        Serdes.Util.serialize(fd_data.cDate, x);
         vals.add("FD_DCR", x.toByteArray(), x.size());
     }
 }

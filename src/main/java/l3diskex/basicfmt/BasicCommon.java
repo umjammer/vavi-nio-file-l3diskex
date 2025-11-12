@@ -65,7 +65,7 @@ public class BasicCommon {
     /**
      * ディレクトリエントリ
      */
-    public interface DirectoryT {
+    public interface Directory {
 
     }
 
@@ -180,28 +180,26 @@ public class BasicCommon {
         public DiskBasicFileType() {
             format = DiskBasicFormatType.FORMAT_TYPE_UNKNOWN;
             type = 0;
-            for (int i = 0; i < origin.length; i++) {
-                origin[i] = 0;
-            }
+            Arrays.fill(origin, 0);
         }
 
         /**
-         * @param nFormat  フォーマット
-         * @param nType    enum #en_file_type_mask の値の組み合わせ
-         * @param nOrigin0 本来の属性
-         * @param nOrigin1 本来の属性 つづき1
-         * @param nOrigin2 本来の属性 つづき2
+         * @param format  フォーマット
+         * @param type    enum #en_file_type_mask の値の組み合わせ
+         * @param origin0 本来の属性
+         * @param origin1 本来の属性 つづき1
+         * @param origin2 本来の属性 つづき2
          */
-        public DiskBasicFileType(DiskBasicFormatType nFormat, int nType, int nOrigin0, int nOrigin1, int nOrigin2) {
-            format = nFormat;
-            type = nType;
-            origin[0] = nOrigin0;
-            origin[1] = nOrigin1;
-            origin[2] = nOrigin2;
+        public DiskBasicFileType(DiskBasicFormatType format, int type, int origin0, int origin1, int origin2) {
+            this.format = format;
+            this.type = type;
+            origin[0] = origin0;
+            origin[1] = origin1;
+            origin[2] = origin2;
         }
 
-        public DiskBasicFileType(DiskBasicFormatType nFormat, int nType, int nOrigin0) {
-            this(nFormat, nType, nOrigin0, 0, 0);
+        public DiskBasicFileType(DiskBasicFormatType format, int type, int origin0) {
+            this(format, type, origin0, 0, 0);
         }
 
         /** DISK BASIC種類 */
@@ -312,7 +310,7 @@ public class BasicCommon {
         /** １グループがセクタ内に複数ある時の分割位置 */
         public int divNum;
         /** １グループがセクタ内に複数ある時の分割数 */
-        public int divNums;
+        public int numOfDivs;
         /** 機種依存データ */
         public DiskBasicGroupUserData userData;
 
@@ -324,7 +322,7 @@ public class BasicCommon {
             sectorStart = 0;
             sectorEnd = 0;
             divNum = 0;
-            divNums = 1;
+            numOfDivs = 1;
             userData = null;
         }
 
@@ -336,7 +334,7 @@ public class BasicCommon {
             sectorStart = src.sectorStart;
             sectorEnd = src.sectorEnd;
             divNum = src.divNum;
-            divNums = src.divNums;
+            numOfDivs = src.numOfDivs;
             userData = null;
             if (src.userData != null) {
                 userData = src.userData.clone();
@@ -354,7 +352,7 @@ public class BasicCommon {
             sectorStart = src.sectorStart;
             sectorEnd = src.sectorEnd;
             divNum = src.divNum;
-            divNums = src.divNums;
+            numOfDivs = src.numOfDivs;
             if (userData != null) {
                 // Delete old data before assigning new
                 userData = null;
@@ -366,81 +364,81 @@ public class BasicCommon {
         }
 
         /**
-         * @param nGroup グループ番号
-         * @param nNext  次のグループ番号（任意）
-         * @param nTrack トラック番号
-         * @param nSide  サイド番号
-         * @param nStart グループ内の開始セクタ番号
-         * @param nEnd   グループ内の終了セクタ番号
-         * @param nDiv   １グループがセクタ内に複数ある時の分割位置
-         * @param nDivs  １グループがセクタ内に複数ある時の分割数
-         * @param nUser  機種依存データ
+         * @param group グループ番号
+         * @param next  次のグループ番号（任意）
+         * @param track トラック番号
+         * @param side  サイド番号
+         * @param start グループ内の開始セクタ番号
+         * @param end   グループ内の終了セクタ番号
+         * @param div   １グループがセクタ内に複数ある時の分割位置
+         * @param divs  １グループがセクタ内に複数ある時の分割数
+         * @param user  機種依存データ
          */
-        public DiskBasicGroupItem(int nGroup, int nNext, int nTrack, int nSide, int nStart, int nEnd, int nDiv, int nDivs, DiskBasicGroupUserData nUser) {
-            this.set(nGroup, nNext, nTrack, nSide, nStart, nEnd, nDiv, nDivs, nUser);
+        public DiskBasicGroupItem(int group, int next, int track, int side, int start, int end, int div, int divs, DiskBasicGroupUserData user) {
+            this.set(group, next, track, side, start, end, div, divs, user);
         }
 
-        public DiskBasicGroupItem(int nGroup, int nNext, int nTrack, int nSide, int nStart, int nEnd) {
-            this(nGroup, nNext, nTrack, nSide, nStart, nEnd, 0, 1, null);
-        }
-
-        /**
-         * @param nGroup グループ番号
-         * @param nNext  次のグループ番号（任意）
-         * @param nTrack トラック番号
-         * @param nSide  サイド番号
-         * @param nStart グループ内の開始セクタ番号
-         * @param nUser  機種依存データ
-         */
-        public DiskBasicGroupItem(int nGroup, int nNext, int nTrack, int nSide, int nStart, DiskBasicGroupUserData nUser) {
-            this.set(nGroup, nNext, nTrack, nSide, nStart, nUser);
+        public DiskBasicGroupItem(int group, int next, int track, int side, int start, int end) {
+            this(group, next, track, side, start, end, 0, 1, null);
         }
 
         /**
-         * データセット
-         *
-         * @param nGroup グループ番号
-         * @param nNext  次のグループ番号（任意）
-         * @param nTrack トラック番号
-         * @param nSide  サイド番号
-         * @param nStart グループ内の開始セクタ番号
-         * @param nEnd   グループ内の終了セクタ番号
-         * @param nDiv   １グループがセクタ内に複数ある時の分割位置
-         * @param nDivs  １グループがセクタ内に複数ある時の分割数
-         * @param nUser  機種依存データ
+         * @param group グループ番号
+         * @param next  次のグループ番号（任意）
+         * @param track トラック番号
+         * @param side  サイド番号
+         * @param start グループ内の開始セクタ番号
+         * @param user  機種依存データ
          */
-        public void set(int nGroup, int nNext, int nTrack, int nSide, int nStart, int nEnd, int nDiv, int nDivs, DiskBasicGroupUserData nUser) {
-            group = nGroup;
-            next = nNext;
-            track = nTrack;
-            side = nSide;
-            sectorStart = nStart;
-            sectorEnd = nEnd;
-            divNum = nDiv;
-            divNums = nDivs;
-            userData = nUser;
+        public DiskBasicGroupItem(int group, int next, int track, int side, int start, DiskBasicGroupUserData user) {
+            this.set(group, next, track, side, start, user);
         }
 
         /**
          * データセット
          *
-         * @param nGroup グループ番号
-         * @param nNext  次のグループ番号（任意）
-         * @param nTrack トラック番号
-         * @param nSide  サイド番号
-         * @param nStart グループ内の開始セクタ番号
-         * @param nUser  機種依存データ
+         * @param group グループ番号
+         * @param next  次のグループ番号（任意）
+         * @param track トラック番号
+         * @param side  サイド番号
+         * @param start グループ内の開始セクタ番号
+         * @param end   グループ内の終了セクタ番号
+         * @param div   １グループがセクタ内に複数ある時の分割位置
+         * @param divs  １グループがセクタ内に複数ある時の分割数
+         * @param user  機種依存データ
          */
-        public void set(int nGroup, int nNext, int nTrack, int nSide, int nStart, DiskBasicGroupUserData nUser) {
-            group = nGroup;
-            next = nNext;
-            track = nTrack;
-            side = nSide;
-            sectorStart = nStart;
-            sectorEnd = nStart;
+        public void set(int group, int next, int track, int side, int start, int end, int div, int divs, DiskBasicGroupUserData user) {
+            this.group = group;
+            this.next = next;
+            this.track = track;
+            this.side = side;
+            sectorStart = start;
+            sectorEnd = end;
+            divNum = div;
+            numOfDivs = divs;
+            userData = user;
+        }
+
+        /**
+         * データセット
+         *
+         * @param group グループ番号
+         * @param next  次のグループ番号（任意）
+         * @param track トラック番号
+         * @param side  サイド番号
+         * @param start グループ内の開始セクタ番号
+         * @param user  機種依存データ
+         */
+        public void set(int group, int next, int track, int side, int start, DiskBasicGroupUserData user) {
+            this.group = group;
+            this.next = next;
+            this.track = track;
+            this.side = side;
+            sectorStart = start;
+            sectorEnd = start;
             divNum = 0;
-            divNums = 1;
-            userData = nUser;
+            numOfDivs = 1;
+            userData = user;
         }
 
         /**
@@ -485,60 +483,60 @@ public class BasicCommon {
         }
 
         /**
-         * @param nGroup グループ番号
-         * @param nNext  次のグループ番号（任意）
-         * @param nTrack トラック番号
-         * @param nSide  サイド番号
-         * @param nStart グループ内の開始セクタ番号
-         * @param nEnd   グループ内の終了セクタ番号
-         * @param nDiv   １グループがセクタ内に複数ある時の分割位置
-         * @param nDivs  １グループがセクタ内に複数ある時の分割数
-         * @param nUser  機種依存データ
+         * @param group グループ番号
+         * @param next  次のグループ番号（任意）
+         * @param track トラック番号
+         * @param side  サイド番号
+         * @param start グループ内の開始セクタ番号
+         * @param end   グループ内の終了セクタ番号
+         * @param div   １グループがセクタ内に複数ある時の分割位置
+         * @param divs  １グループがセクタ内に複数ある時の分割数
+         * @param user  機種依存データ
          *               追加
          */
-        public void add(int nGroup, int nNext, int nTrack, int nSide, int nStart, int nEnd, int nDiv, int nDivs, DiskBasicGroupUserData nUser) {
-            items.add(new DiskBasicGroupItem(nGroup, nNext, nTrack, nSide, nStart, nEnd, nDiv, nDivs, nUser));
+        public void add(int group, int next, int track, int side, int start, int end, int div, int divs, DiskBasicGroupUserData user) {
+            items.add(new DiskBasicGroupItem(group, next, track, side, start, end, div, divs, user));
         }
 
-        public void add(int nGroup, int nNext, int nTrack, int nSide, int nStart, int nEnd) {
-            add(nGroup, nNext, nTrack, nSide, nStart, nEnd, 0, 1, null);
+        public void add(int group, int next, int track, int side, int start, int end) {
+            add(group, next, track, side, start, end, 0, 1, null);
         }
 
-        public void add(int nGroup, int nNext, int nTrack, int nSide, int nStart, int nEnd, int nDiv, int nDivs) {
-            add(nGroup, nNext, nTrack, nSide, nStart, nEnd, nDiv, nDivs, null);
-        }
-
-        /**
-         * 追加
-         * @param nGroup グループ番号
-         * @param nNext  次のグループ番号（任意）
-         * @param nTrack トラック番号
-         * @param nSide  サイド番号
-         * @param nStart グループ内の開始セクタ番号
-         * @param nUser  機種依存データ
-         */
-        public void add(int nGroup, int nNext, int nTrack, int nSide, int nStart, DiskBasicGroupUserData nUser) {
-            items.add(new DiskBasicGroupItem(nGroup, nNext, nTrack, nSide, nStart, nUser));
+        public void add(int group, int next, int track, int side, int start, int end, int div, int divs) {
+            add(group, next, track, side, start, end, div, divs, null);
         }
 
         /**
          * 追加
-         * @param nItem アイテム
+         * @param group グループ番号
+         * @param next  次のグループ番号（任意）
+         * @param track トラック番号
+         * @param side  サイド番号
+         * @param start グループ内の開始セクタ番号
+         * @param user  機種依存データ
          */
-        public void add(DiskBasicGroupItem nItem) {
-            items.add(new DiskBasicGroupItem(nItem)); // Add a copy to maintain ownership semantics
+        public void add(int group, int next, int track, int side, int start, DiskBasicGroupUserData user) {
+            items.add(new DiskBasicGroupItem(group, next, track, side, start, user));
         }
 
         /**
          * 追加
-         * @param nItems アイテムリスト
+         * @param item アイテム
          */
-        public void add(DiskBasicGroups nItems) {
-            for (int i = 0; i < nItems.size(); i++) {
-                items.add(new DiskBasicGroupItem(nItems.get(i)));
+        public void add(DiskBasicGroupItem item) {
+            items.add(new DiskBasicGroupItem(item)); // Add a copy to maintain ownership semantics
+        }
+
+        /**
+         * 追加
+         * @param items アイテムリスト
+         */
+        public void add(DiskBasicGroups items) {
+            for (int i = 0; i < items.size(); i++) {
+                this.items.add(new DiskBasicGroupItem(items.get(i)));
             }
-            nums += nItems.nums;
-            size += nItems.size;
+            nums += items.nums;
+            size += items.size;
         }
 
         /** リストをクリア */
@@ -644,15 +642,15 @@ public class BasicCommon {
             }
         }
 
-        private String mKey;
-        private byte[] mValue;
-        private int mSize;
-        private Type mType;
+        private String key;
+        private byte[] value;
+        private int size;
+        private Type type;
 
         public KeyValItem() {
-            mValue = null;
-            mSize = 0;
-            mType = Type.TYPE_UNKNOWN;
+            value = null;
+            size = 0;
+            type = Type.TYPE_UNKNOWN;
         }
 
         public KeyValItem(String key, int val) {
@@ -684,9 +682,9 @@ public class BasicCommon {
         }
 
         public void clear() {
-            mValue = null;
-            mSize = 0;
-            mType = Type.TYPE_UNKNOWN;
+            value = null;
+            size = 0;
+            type = Type.TYPE_UNKNOWN;
         }
 
         /**
@@ -697,11 +695,11 @@ public class BasicCommon {
          */
         public void set(String key, int val) {
             clear();
-            mKey = key;
-            mValue = new byte[Integer.BYTES];
-            ByteUtil.writeLeInt(val, mValue, 0);
-            mSize = Integer.BYTES;
-            mType = Type.TYPE_INTEGER;
+            this.key = key;
+            value = new byte[Integer.BYTES];
+            ByteUtil.writeLeInt(val, value, 0);
+            size = Integer.BYTES;
+            type = Type.TYPE_INTEGER;
         }
 
         /**
@@ -713,12 +711,12 @@ public class BasicCommon {
          */
         public void set(String key, byte val, boolean invert) {
             clear();
-            mKey = key;
-            mValue = new byte[Byte.BYTES];
-            mValue[0] = val;
-            mSize = Byte.BYTES;
-            mType = Type.TYPE_UINT8;
-            if (invert) Common.mem_invert(mValue, mSize);
+            this.key = key;
+            value = new byte[Byte.BYTES];
+            value[0] = val;
+            size = Byte.BYTES;
+            type = Type.TYPE_UINT8;
+            if (invert) Common.invertMemory(value, size);
         }
 
         /**
@@ -731,15 +729,15 @@ public class BasicCommon {
          */
         public void set(String key, short val, boolean bigEndian, boolean invert) {
             clear();
-            mKey = key;
-            mValue = new byte[Short.BYTES];
+            this.key = key;
+            value = new byte[Short.BYTES];
             if (bigEndian)
-                ByteUtil.writeBeShort(val, mValue, 0);
+                ByteUtil.writeBeShort(val, value, 0);
             else
-                ByteUtil.writeLeShort(val, mValue, 0);
-            mSize = Short.BYTES;
-            mType = Type.TYPE_UINT16;
-            if (invert) Common.mem_invert(mValue, mSize);
+                ByteUtil.writeLeShort(val, value, 0);
+            size = Short.BYTES;
+            type = Type.TYPE_UINT16;
+            if (invert) Common.invertMemory(value, size);
         }
 
         /**
@@ -752,15 +750,15 @@ public class BasicCommon {
          */
         public void set(String key, int val, boolean bigEndian, boolean invert) {
             clear();
-            mKey = key;
-            mValue = new byte[Integer.BYTES];
+            this.key = key;
+            value = new byte[Integer.BYTES];
             if (bigEndian)
-                ByteUtil.writeBeInt(val, mValue, 0);
+                ByteUtil.writeBeInt(val, value, 0);
             else
-                ByteUtil.writeLeInt(val, mValue, 0);
-            mSize = Integer.BYTES;
-            mType = Type.TYPE_UINT32;
-            if (invert) Common.mem_invert(mValue, mSize);
+                ByteUtil.writeLeInt(val, value, 0);
+            size = Integer.BYTES;
+            type = Type.TYPE_UINT32;
+            if (invert) Common.invertMemory(value, size);
         }
 
         /**
@@ -773,13 +771,13 @@ public class BasicCommon {
          */
         public void set(String key, byte[] val, int size, boolean invert) {
             clear();
-            mKey = key;
-            mValue = new byte[size + 1]; // +1 for C-style string termination, though not used in the logic
-            System.arraycopy(val, 0, mValue, 0, size);
-            mValue[size] = 0; // Null terminator
-            mSize = size;
-            mType = Type.TYPE_STRING;
-            if (invert) Common.mem_invert(mValue, mSize);
+            this.key = key;
+            value = new byte[size + 1];
+            System.arraycopy(val, 0, value, 0, size);
+            value[size] = 0;
+            this.size = size;
+            type = Type.TYPE_STRING;
+            if (invert) Common.invertMemory(value, this.size);
         }
 
         /**
@@ -790,57 +788,54 @@ public class BasicCommon {
          */
         public void set(String key, boolean val) {
             clear();
-            mKey = key;
-            mValue = new byte[1];
-            mValue[0] = val ? (byte) 1 : (byte) 0;
-            mSize = 1;
-            mType = Type.TYPE_BOOL;
+            this.key = key;
+            value = new byte[1];
+            value[0] = val ? (byte) 1 : (byte) 0;
+            size = 1;
+            type = Type.TYPE_BOOL;
         }
 
         /**
          * 値を文字列にして返す
          */
         public String getValueString() {
-            if (mValue == null) return "";
+            if (value == null) return "";
 
-            switch (mType) {
+            switch (type) {
                 case TYPE_INTEGER:
-                    // Reading back the integer (assuming little endian as per C++ implicit behavior if not big endian)
-                    int intVal = ((mValue[3] & 0xFF) << 24) | ((mValue[2] & 0xFF) << 16) | ((mValue[1] & 0xFF) << 8) | (mValue[0] & 0xFF);
+                    int intVal = ((value[3] & 0xff) << 24) | ((value[2] & 0xff) << 16) | ((value[1] & 0xff) << 8) | (value[0] & 0xff);
                     return String.format("%d", intVal);
                 case TYPE_UINT8:
-                    return String.format("0x%02x", mValue[0] & 0xFF);
+                    return String.format("0x%02x", value[0] & 0xFF);
                 case TYPE_UINT16:
-                    // Reading back the short (assuming little endian)
-                    short shortVal = (short) (((mValue[1] & 0xFF) << 8) | (mValue[0] & 0xFF));
-                    return String.format("0x%04x", shortVal & 0xFFFF);
+                    short shortVal = (short) (((value[1] & 0xff) << 8) | (value[0] & 0xff));
+                    return String.format("0x%04x", shortVal & 0xffff);
                 case TYPE_UINT32:
-                    // Reading back the int (assuming little endian)
-                    int uint32Val = ((mValue[3] & 0xFF) << 24) | ((mValue[2] & 0xFF) << 16) | ((mValue[1] & 0xFF) << 8) | (mValue[0] & 0xFF);
+                    int uint32Val = ((value[3] & 0xff) << 24) | ((value[2] & 0xff) << 16) | ((value[1] & 0xff) << 8) | (value[0] & 0xff);
                     return String.format("0x%08x", uint32Val); // Format as 8 hex digits
                 case TYPE_STRING:
                     StringBuilder sb = new StringBuilder();
-                    for (int i = 0; i < mSize; i++) {
+                    for (int i = 0; i < size; i++) {
                         if (i > 0) sb.append(" ");
-                        sb.append(String.format("%02x", mValue[i] & 0xFF));
+                        sb.append(String.format("%02x", value[i] & 0xff));
                     }
                     return sb.toString();
                 case TYPE_BOOL:
-                    return mValue[0] != 0 ? "true" : "false";
+                    return value[0] != 0 ? "true" : "false";
                 default:
                     return "";
             }
         }
 
         public final String getKey() {
-            return mKey;
+            return key;
         }
 
         /**
          * キー名の比較
          */
         public static int compare(KeyValItem item1, KeyValItem item2) {
-            return item1.mKey.compareTo(item2.mKey);
+            return item1.key.compareTo(item2.key);
         }
 
         /**

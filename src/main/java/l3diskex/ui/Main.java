@@ -255,7 +255,7 @@ public class Main {
                     break;
                 case 2:
                     if (!includeDir) {
-                        frame.openDroppedFile(filenames.get(0));
+                        frame.openDroppedFile(filenames.getFirst());
                     }
                     break;
                 default:

@@ -7,7 +7,7 @@ package l3diskex.basicfmt.type;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasicDir;
 import l3diskex.basicfmt.DiskBasicFat;
-import l3diskex.basicfmt.diritem.DiskBasicDirItemFAT8.DiskBasicDirItemFAT8F.DirectoryFat8f;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemFAT8.DiskBasicDirItemFAT8F.DirectoryFat8F;
 import l3diskex.basicfmt.type.DiskBasicTypeFAT8.DiskBasicTypeFAT8F;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 
@@ -18,7 +18,7 @@ import l3diskex.diskimg.DiskImage.DiskImageSector;
 public class DiskBasicTypeL31S extends DiskBasicTypeFAT8F {
 
     /** */
-    public DiskBasicTypeL31S(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryFat8f> dir) {
+    public DiskBasicTypeL31S(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryFat8F> dir) {
         super(basic, fat, dir);
     }
 
@@ -31,12 +31,12 @@ public class DiskBasicTypeL31S extends DiskBasicTypeFAT8F {
      */
     @Override
     public double parseParamOnDisk(boolean isFormatting) {
-        if (basic.diskBasicParam.getFatEndGroup() == 0) {
-            int endGroup = basic.diskBasicParam.getTracksPerSideOnBasic() * basic.diskBasicParam.getSidesPerDiskOnBasic() * basic.diskBasicParam.getSectorsPerTrackOnBasic();
+        if (basic.getFatEndGroup() == 0) {
+            int endGroup = basic.getTracksPerSideOnBasic() * basic.getSidesPerDiskOnBasic() * basic.getSectorsPerTrackOnBasic();
             // Subtract the tracks reserved for disk management
-            endGroup -= basic.diskBasicParam.getSidesPerDiskOnBasic() * basic.diskBasicParam.getSectorsPerTrackOnBasic();
-            endGroup /= basic.diskBasicParam.getSectorsPerGroup();
-            basic.diskBasicParam.setFatEndGroup(endGroup - 1);
+            endGroup -= basic.getSidesPerDiskOnBasic() * basic.getSectorsPerTrackOnBasic();
+            endGroup /= basic.getSectorsPerGroup();
+            basic.setFatEndGroup(endGroup - 1);
         }
         return 1.0;
     }
@@ -52,7 +52,7 @@ public class DiskBasicTypeL31S extends DiskBasicTypeFAT8F {
         double validRatio = super.checkFat(isFormatting);
         if (validRatio >= 0.0) {
             // Check the first sector of the FAT region
-            DiskImageSector sector = basic.getManagedSector(basic.diskBasicParam.getFatStartSector() - 1);
+            DiskImageSector sector = basic.getManagedSector(basic.getFatStartSector() - 1);
             if (sector == null) {
                 validRatio = -1.0;
             } else {

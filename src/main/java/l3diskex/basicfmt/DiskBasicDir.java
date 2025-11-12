@@ -3,7 +3,7 @@ package l3diskex.basicfmt;
 import java.io.IOException;
 import java.util.List;
 
-import l3diskex.basicfmt.BasicCommon.DirectoryT;
+import l3diskex.basicfmt.BasicCommon.Directory;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileName;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFormatType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
@@ -48,7 +48,7 @@ import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_UNKN
 
 
 /** ディレクトリアクセス */
-public class DiskBasicDir<T extends DirectoryT> {
+public class DiskBasicDir<T extends Directory> {
 
     private final DiskBasic basic;
     private final DiskBasicFat fat;
@@ -200,7 +200,7 @@ public class DiskBasicDir<T extends DirectoryT> {
      * @param nSector Sector
      * @param nPos    Position within the sector
      * @param nData   Buffer within the sector
-     * @param dataP
+     * @param dataP   Buffer pointer
      * @return New DiskBasicDirItem or null
      */
     public DiskBasicDirItem<T> newItem(DiskImageSector nSector, int nPos, byte[] nData, int dataP) throws IOException {
@@ -557,47 +557,47 @@ public class DiskBasicDir<T extends DirectoryT> {
     /**
      * Returns a directory item pointer by index in the current directory.
      *
-     * @param idx Index
+     * @param index Index
      * @return Directory item or null
      */
-    public DiskBasicDirItem<T> itemPtr(int idx) {
+    public DiskBasicDirItem<T> item(int index) {
         List<DiskBasicDirItem<T>> items = getCurrentItems(null);
-        if (items == null || idx < 0 || idx >= items.size()) return null;
-        return items.get(idx);
+        if (items == null || index < 0 || index >= items.size()) return null;
+        return items.get(index);
     }
 
     /**
      * Returns an unused directory item in the current directory.
      *
-     * @param pitem    Temporary directory item with filename/attributes
+     * @param pItem    Temporary directory item with filename/attributes
      * @param nextItem Output array for the item after the unused one (can be null)
      * @return Unused directory item or null
      */
-    public DiskBasicDirItem<T> getEmptyItemOnCurrent(DiskBasicDirItem<T> pitem, DiskBasicDirItem<T>[] nextItem) throws IOException {
-        return getEmptyItem(getCurrentItem(), getCurrentItems(null), pitem, nextItem);
+    public DiskBasicDirItem<T> getEmptyItemOnCurrent(DiskBasicDirItem<T> pItem, DiskBasicDirItem<T>[] nextItem) throws IOException {
+        return getEmptyItem(getCurrentItem(), getCurrentItems(null), pItem, nextItem);
     }
 
     /**
      * Returns an unused directory item in the root directory.
      *
-     * @param pitem    Temporary directory item with filename/attributes
+     * @param pItem    Temporary directory item with filename/attributes
      * @param nextItem Output array for the item after the unused one (can be null)
      * @return Unused directory item or null
      */
-    public DiskBasicDirItem<T> getEmptyItemOnRoot(DiskBasicDirItem<T> pitem, DiskBasicDirItem<T>[] nextItem) throws IOException {
-        return getEmptyItem(getRootItem(), getRootItems(null), pitem, nextItem);
+    public DiskBasicDirItem<T> getEmptyItemOnRoot(DiskBasicDirItem<T> pItem, DiskBasicDirItem<T>[] nextItem) throws IOException {
+        return getEmptyItem(getRootItem(), getRootItems(null), pItem, nextItem);
     }
 
     /**
      * Returns an unused directory item in the specified directory.
      *
      * @param dirItem  Directory
-     * @param pitem    Temporary directory item with filename/attributes
+     * @param pItem    Temporary directory item with filename/attributes
      * @param nextItem Output array for the item after the unused one (can be null)
      * @return Unused directory item or null
      */
-    public DiskBasicDirItem<T> getEmptyItem(DiskBasicDirItem<T> dirItem, DiskBasicDirItem<T> pitem, DiskBasicDirItem<T>[] nextItem) throws IOException {
-        return getEmptyItem(dirItem, getChildren(dirItem), pitem, nextItem);
+    public DiskBasicDirItem<T> getEmptyItem(DiskBasicDirItem<T> dirItem, DiskBasicDirItem<T> pItem, DiskBasicDirItem<T>[] nextItem) throws IOException {
+        return getEmptyItem(dirItem, getChildren(dirItem), pItem, nextItem);
     }
 
     /**
@@ -605,26 +605,26 @@ public class DiskBasicDir<T extends DirectoryT> {
      *
      * @param dirItem  Directory
      * @param children List of directory items in dirItem
-     * @param pitem    Temporary directory item with filename/attributes
+     * @param pItem    Temporary directory item with filename/attributes
      * @param nextItem Output array for the item after the unused one (can be null)
      * @return Unused directory item or null
      */
-    public DiskBasicDirItem<T> getEmptyItem(DiskBasicDirItem<T> dirItem, List<DiskBasicDirItem<T>> children, DiskBasicDirItem<T> pitem, DiskBasicDirItem<T>[] nextItem) throws IOException {
+    public DiskBasicDirItem<T> getEmptyItem(DiskBasicDirItem<T> dirItem, List<DiskBasicDirItem<T>> children, DiskBasicDirItem<T> pItem, DiskBasicDirItem<T>[] nextItem) throws IOException {
         DiskBasicType<T> type = basic.getType();
-        return type.getEmptyDirectoryItem(dirItem, children, pitem, nextItem);
+        return type.getEmptyDirectoryItem(dirItem, children, pItem, nextItem);
     }
 
     /**
      * Checks if a file with the same name already exists in the current directory.
      *
      * @param filename    Filename
-     * @param icase       Case insensitive flag
+     * @param iCase       Case insensitive flag
      * @param excludeItem Item to exclude from search (can be null)
      * @param nextItem    Output array for the item after the matched one (can be null)
      * @return Matched directory item or null
      */
-    public DiskBasicDirItem<T> findFileOnCurrent(DiskBasicFileName filename, boolean icase, DiskBasicDirItem<T> excludeItem, DiskBasicDirItem<T>[] nextItem) {
-        return findFile(getCurrentItem(), filename, icase, excludeItem, nextItem);
+    public DiskBasicDirItem<T> findFileOnCurrent(DiskBasicFileName filename, boolean iCase, DiskBasicDirItem<T> excludeItem, DiskBasicDirItem<T>[] nextItem) {
+        return findFile(getCurrentItem(), filename, iCase, excludeItem, nextItem);
     }
 
     /**
@@ -632,18 +632,18 @@ public class DiskBasicDir<T extends DirectoryT> {
      *
      * @param dirItem     Directory item to search
      * @param filename    Filename
-     * @param icase       Case insensitive flag
+     * @param iCase       Case insensitive flag
      * @param excludeItem Item to exclude from search (can be null)
      * @param nextItem    Output array for the item after the matched one (can be null)
      * @return Matched directory item or null
      */
-    public DiskBasicDirItem<T> findFile(DiskBasicDirItem<T> dirItem, DiskBasicFileName filename, boolean icase, DiskBasicDirItem<T> excludeItem, DiskBasicDirItem<T>[] nextItem) {
+    public DiskBasicDirItem<T> findFile(DiskBasicDirItem<T> dirItem, DiskBasicFileName filename, boolean iCase, DiskBasicDirItem<T> excludeItem, DiskBasicDirItem<T>[] nextItem) {
         DiskBasicDirItem<T> matchItem = null;
         List<DiskBasicDirItem<T>> items = dirItem.getChildren();
         if (items != null) {
             for (int pos = 0; pos < items.size(); pos++) {
                 DiskBasicDirItem<T> item = items.get(pos);
-                if (item != excludeItem && item.isSameFileName(filename, icase)) {
+                if (item != excludeItem && item.isSameFileName(filename, iCase)) {
                     matchItem = item;
                     if (nextItem != null && nextItem.length > 0) {
                         pos++;
@@ -664,13 +664,13 @@ public class DiskBasicDir<T extends DirectoryT> {
      * Checks if a file with the same name already exists in the current directory.
      *
      * @param targetItem  Target item to compare with
-     * @param icase       Case insensitive flag
+     * @param iCase       Case insensitive flag
      * @param excludeItem Item to exclude from search (can be null)
      * @param nextItem    Output array for the item after the matched one (can be null)
      * @return Matched directory item or null
      */
-    public DiskBasicDirItem<T> findFileOnCurrent(DiskBasicDirItem<T> targetItem, boolean icase, DiskBasicDirItem<T> excludeItem, DiskBasicDirItem<T>[] nextItem) {
-        return findFile(getCurrentItem(), targetItem, icase, excludeItem, nextItem);
+    public DiskBasicDirItem<T> findFileOnCurrent(DiskBasicDirItem<T> targetItem, boolean iCase, DiskBasicDirItem<T> excludeItem, DiskBasicDirItem<T>[] nextItem) {
+        return findFile(getCurrentItem(), targetItem, iCase, excludeItem, nextItem);
     }
 
     /**
@@ -710,13 +710,13 @@ public class DiskBasicDir<T extends DirectoryT> {
      * Checks if a file with the same name (excluding extension) exists in the current directory.
      *
      * @param name        Filename (excluding extension)
-     * @param icase       Case insensitive flag
+     * @param iCase       Case insensitive flag
      * @param excludeItem Item to exclude from search (can be null)
      * @param nextItem    Output array for the item after the matched one (can be null)
      * @return Matched directory item or null
      */
-    public DiskBasicDirItem<T> findNameOnCurrent(String name, boolean icase, DiskBasicDirItem<T> excludeItem, DiskBasicDirItem<T>[] nextItem) {
-        return findName(getCurrentItem(), name, icase, excludeItem, nextItem);
+    public DiskBasicDirItem<T> findNameOnCurrent(String name, boolean iCase, DiskBasicDirItem<T> excludeItem, DiskBasicDirItem<T>[] nextItem) {
+        return findName(getCurrentItem(), name, iCase, excludeItem, nextItem);
     }
 
     /**
@@ -724,18 +724,18 @@ public class DiskBasicDir<T extends DirectoryT> {
      *
      * @param dirItem     Directory item to search
      * @param name        Filename (excluding extension)
-     * @param icase       Case insensitive flag
+     * @param iCase       Case insensitive flag
      * @param excludeItem Item to exclude from search (can be null)
      * @param nextItem    Output array for the item after the matched one (can be null)
      * @return Matched directory item or null
      */
-    public DiskBasicDirItem<T> findName(DiskBasicDirItem<T> dirItem, String name, boolean icase, DiskBasicDirItem<T> excludeItem, DiskBasicDirItem[] nextItem) {
+    public DiskBasicDirItem<T> findName(DiskBasicDirItem<T> dirItem, String name, boolean iCase, DiskBasicDirItem<T> excludeItem, DiskBasicDirItem[] nextItem) {
         DiskBasicDirItem<T> matchItem = null;
         List<DiskBasicDirItem<T>> items = dirItem.getChildren();
         if (items != null) {
             for (int pos = 0; pos < items.size(); pos++) {
                 DiskBasicDirItem<T> item = items.get(pos);
-                if (item != excludeItem && item.isSameName(name, icase)) {
+                if (item != excludeItem && item.isSameName(name, iCase)) {
                     matchItem = item;
                     if (nextItem != null && nextItem.length > 0) {
                         pos++;
@@ -876,7 +876,6 @@ public class DiskBasicDir<T extends DirectoryT> {
      * @return True
      */
     public boolean releaseRoot(DiskBasicType<T> type) {
-        // C++: delete root;
         this.root = null;
         return true;
     }
@@ -963,7 +962,7 @@ public class DiskBasicDir<T extends DirectoryT> {
         if (getParentItem(dirItem) != null) {
             valid = assign(type, dirItem);
         } else {
-            valid = assignRoot(type, basic.diskBasicParam.getDirStartSector(), basic.diskBasicParam.getDirEndSector());
+            valid = assignRoot(type, basic.getDirStartSector(), basic.getDirEndSector());
         }
         return valid;
     }
@@ -983,7 +982,7 @@ public class DiskBasicDir<T extends DirectoryT> {
      * Initializes the root directory.
      */
     public void clearRoot() {
-        fill(basic.diskBasicParam.getDirStartSector(), basic.diskBasicParam.getDirEndSector(), basic.diskBasicParam.getFillCodeOnDir());
+        fill(basic.getDirStartSector(), basic.getDirEndSector(), basic.getFillCodeOnDir());
     }
 
     /**

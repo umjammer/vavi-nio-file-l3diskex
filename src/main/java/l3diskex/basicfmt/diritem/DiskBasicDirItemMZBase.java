@@ -6,7 +6,7 @@ package l3diskex.basicfmt.diritem;
 
 import java.io.IOException;
 
-import l3diskex.basicfmt.BasicCommon.DirectoryT;
+import l3diskex.basicfmt.BasicCommon.Directory;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
@@ -16,10 +16,10 @@ import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
 
 
-//
-// ディレクトリ１アイテム MZ Base
-//
-public abstract class DiskBasicDirItemMZBase<T extends DirectoryT> extends DiskBasicDirItem<T> {
+/**
+ * ディレクトリ１アイテム MZ Base
+ */
+public abstract class DiskBasicDirItemMZBase<T extends Directory> extends DiskBasicDirItem<T> {
 
     /** */
     public DiskBasicDirItemMZBase(DiskBasic basic) {
@@ -28,22 +28,22 @@ public abstract class DiskBasicDirItemMZBase<T extends DirectoryT> extends DiskB
 
     /** */
     public DiskBasicDirItemMZBase(DiskBasic basic,
-                                  DiskImageSector n_sector,
-                                  int n_secpos,
-                                  byte[] n_data, int dataP) {
-        super(basic, n_sector, n_secpos, n_data, dataP);
+                                  DiskImageSector sector,
+                                  int secPos,
+                                  byte[] data, int dataP) {
+        super(basic, sector, secPos, data, dataP);
     }
 
     /** */
     public DiskBasicDirItemMZBase(DiskBasic basic,
-                                  int n_num,
-                                  DiskBasicGroupItem n_gitem,
-                                  DiskImageSector n_sector,
-                                  int n_secpos,
-                                  byte[] n_data, int dataP,
-                                  SectorParam n_next,
-                                  boolean[] n_unuse) {
-        super(basic, n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next, n_unuse);
+                                  int num,
+                                  DiskBasicGroupItem groupItem,
+                                  DiskImageSector sector,
+                                  int secPos,
+                                  byte[] data, int dataP,
+                                  SectorParam next,
+                                  boolean[] unuse) {
+        super(basic, num, groupItem, sector, secPos, data, dataP, next, unuse);
     }
 
     /** データ内にファイルサイズをセット */
@@ -75,7 +75,7 @@ public abstract class DiskBasicDirItemMZBase<T extends DirectoryT> extends DiskB
     @Override
     public boolean delete() throws IOException {
         // エントリの先頭にコードを入れる
-        setFileType1(basic.diskBasicParam.getDeleteCode());
+        setFileType1(basic.getDeleteCode());
         used(false);
         // 開始グループを未使用にする
         type.setGroupNumber(getStartGroup(0), 0);
@@ -94,19 +94,19 @@ public abstract class DiskBasicDirItemMZBase<T extends DirectoryT> extends DiskB
     }
 
     @Override
-    public void calcFileUnitSize(int fileunitNum) {
+    public void calcFileUnitSize(int fileUnitNum) {
         if (!isUsed()) return;
 
-        getUnitGroups(fileunitNum, groups);
+        getUnitGroups(fileUnitNum, groups);
     }
 
     @Override
-    public void getUnitGroups(int fileunitNum, DiskBasicGroups groupItems) {
+    public void getUnitGroups(int fileUnitNum, DiskBasicGroups groupItems) {
         // ファイルサイズ
         int calcFileSize = getFileSizeBase();
         preCalcFileSize();
 
-        int[] groupNum = {getStartGroup(fileunitNum)};
+        int[] groupNum = {getStartGroup(fileUnitNum)};
         int[] remain = {calcFileSize};
         int[] secSize = {basic.getSectorSize()};
         int[] calcFlags = {0};
@@ -115,16 +115,16 @@ public abstract class DiskBasicDirItemMZBase<T extends DirectoryT> extends DiskB
 
         preCalcAllGroups(calcFlags, groupNum, remain, secSize, userData);
 
-        int limit = basic.diskBasicParam.getFatEndGroup() + 1;
+        int limit = basic.getFatEndGroup() + 1;
         while (remain[0] > 0 && limit >= 0) {
             // 使用しているか
             boolean usedGroup = type.isUsedGroupNumber(groupNum[0]);
             if (usedGroup) {
-                int[] endSec = {-1};
+                int[] endSector = {-1};
                 basic.getNumsFromGroup(groupNum[0], 0, secSize[0], remain[0], groupItems, (int[]) userData[0]);
-                calcAllGroups(calcFlags[0], groupNum, remain, secSize, endSec, userData[0]);
+                calcAllGroups(calcFlags[0], groupNum, remain, secSize, endSector, userData[0]);
                 calcGroups++;
-                remain[0] -= (secSize[0] * basic.getSectorsPerGroup());
+                remain[0] -= secSize[0] * basic.getSectorsPerGroup();
             } else {
                 limit = 0;
             }

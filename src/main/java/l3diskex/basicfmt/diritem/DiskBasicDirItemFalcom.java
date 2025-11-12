@@ -6,7 +6,7 @@ package l3diskex.basicfmt.diritem;
 
 import java.io.IOException;
 
-import l3diskex.basicfmt.BasicCommon.DirectoryT;
+import l3diskex.basicfmt.BasicCommon.Directory;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
@@ -22,32 +22,32 @@ import vavi.util.serdes.Serdes;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_BINARY_MASK;
 
 
-/// ディレクトリ１アイテム Falcom DOS
+/** ディレクトリ１アイテム Falcom DOS */
 public class DiskBasicDirItemFalcom extends DiskBasicDirItem<DirectoryFalcom> {
 
     /** Directory data. */
-    private final DiskBasicDirData<DirectoryFalcom> m_data = new DiskBasicDirData<>();
+    private final DiskBasicDirData<DirectoryFalcom> data = new DiskBasicDirData<>();
 
     /**
      * ディレクトリエントリ Falcom (16bytes)
      */
     @Serdes
-    public static class DirectoryFalcom implements DirectoryT {
+    public static class DirectoryFalcom implements Directory {
 
         @Element(sequence = 1)
         public byte[] name = new byte[6];
         @Element(sequence = 2)
-        public short execAddr;
+        public short execAddress;
         @Element(sequence = 3)
-        public short startAddr;
+        public short startAddress;
         @Element(sequence = 4)
-        public short endAddr;
+        public short endAddress;
         @Element(sequence = 5)
-        public GroupPtr startGroup = new GroupPtr();
+        public GroupPointer startGroup = new GroupPointer();
         @Element(sequence = 6)
-        public GroupPtr endGroup = new GroupPtr();
+        public GroupPointer endGroup = new GroupPointer();
 
-        public static class GroupPtr {
+        public static class GroupPointer {
 
             @Element(sequence = 1)
             public byte track;
@@ -66,54 +66,54 @@ public class DiskBasicDirItemFalcom extends DiskBasicDirItem<DirectoryFalcom> {
     public DiskBasicDirItemFalcom(DiskBasic basic) {
         super(basic);
 
-        m_data.alloc(DirectoryFalcom.class);
+        data.alloc(DirectoryFalcom.class);
     }
 
     /** */
     public DiskBasicDirItemFalcom(DiskBasic basic,
-                                  DiskImageSector n_sector,
-                                  int n_secpos,
-                                  byte[] n_data, int dataP) {
-        super(basic, n_sector, n_secpos, n_data, dataP);
+                                  DiskImageSector sector,
+                                  int secPos,
+                                  byte[] data, int dataP) {
+        super(basic, sector, secPos, data, dataP);
 
-        m_data.attach(DirectoryFalcom.class, n_data, dataP);
+        this.data.attach(DirectoryFalcom.class, data, dataP);
     }
 
     /** */
     public DiskBasicDirItemFalcom(DiskBasic basic,
-                                  int n_num,
-                                  DiskBasicGroupItem n_gitem,
-                                  DiskImageSector n_sector,
-                                  int n_secpos,
-                                  byte[] n_data, int dataP,
-                                  SectorParam n_next,
-                                  boolean[] n_unuse) throws IOException {
-        super(basic, n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next, n_unuse);
+                                  int num,
+                                  DiskBasicGroupItem groupItem,
+                                  DiskImageSector sector,
+                                  int secPos,
+                                  byte[] data, int dataP,
+                                  SectorParam next,
+                                  boolean[] unuse) throws IOException {
+        super(basic, num, groupItem, sector, secPos, data, dataP, next, unuse);
 
-        m_data.attach(DirectoryFalcom.class, n_data, dataP);
+        this.data.attach(DirectoryFalcom.class, data, dataP);
 
-        used(checkUsed(n_unuse[0]));
-        n_unuse[0] = (n_unuse[0] || (m_data.data().name[0] == (byte) 0xFF));
+        used(checkUsed(unuse[0]));
+        unuse[0] = (unuse[0] || (this.data.data().name[0] == (byte) 0xff));
 
         // ファイルサイズとグループ数を計算
         calcFileSize();
     }
 
     @Override
-    public void setDataPtr(int n_num,
-                           DiskBasicGroupItem n_gitem,
-                           DiskImageSector n_sector,
-                           int n_secpos,
-                           byte[] n_data,
-                           int dataP, SectorParam n_next) throws IOException {
-        super.setDataPtr(n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next);
+    public void setData(int n_num,
+                        DiskBasicGroupItem groupItem,
+                        DiskImageSector sector,
+                        int sectorPos,
+                        byte[] data,
+                        int dataPos, SectorParam next) throws IOException {
+        super.setData(n_num, groupItem, sector, sectorPos, data, dataPos, next);
 
-        m_data.attach(DirectoryFalcom.class, n_data, dataP);
+        this.data.attach(DirectoryFalcom.class, data, dataPos);
     }
 
     @Override
     public boolean check(boolean[] last) {
-        DirectoryFalcom data = m_data.data();
+        DirectoryFalcom data = this.data.data();
         byte first = data.name[0];
         return (first == 0 ||
                 first == (byte) 0xff ||
@@ -123,14 +123,14 @@ public class DiskBasicDirItemFalcom extends DiskBasicDirItem<DirectoryFalcom> {
     @Override
     public boolean delete() {
         // Delete is simply marking the first byte as the delete code.
-        m_data.fill(basic.invertUint8(basic.diskBasicParam.getDeleteCode()), 1);
+        data.fill(basic.invertUint8(basic.getDeleteCode()), 1);
         used(false);
         return true;
     }
 
     @Override
     public boolean checkUsed(boolean unuse) {
-        return !unuse && m_data.data().name[0] != (byte) 0xff;
+        return !unuse && data.data().name[0] != (byte) 0xff;
     }
 
     @Override
@@ -157,62 +157,62 @@ public class DiskBasicDirItemFalcom extends DiskBasicDirItem<DirectoryFalcom> {
     }
 
     @Override
-    public void calcFileUnitSize(int fileunit_num) {
+    public void calcFileUnitSize(int fileUnitNum) {
         if (!isUsed()) return;
 
-        getUnitGroups(fileunit_num, groups);
+        getUnitGroups(fileUnitNum, groups);
     }
 
     @Override
-    public void getUnitGroups(int fileunit_num, DiskBasicGroups group_items) {
-        int calc_file_size = 0;
-        int calc_groups = 0;
+    public void getUnitGroups(int fileUnitNum, DiskBasicGroups groupItems) {
+        int calcFileSize = 0;
+        int calcGroups = 0;
 
-        int start_group = getStartGroup(fileunit_num);
-        int last_group = getLastGroup();
-        for (int grp = start_group; grp <= last_group; grp++) {
-            int next_grp = (grp < last_group) ? grp + 1 : 0xFFFF;
-            basic.getNumsFromGroup(grp, next_grp, basic.getSectorSize(), 0, group_items);
-            calc_file_size += (basic.getSectorSize() * basic.getSectorsPerGroup());
-            calc_groups++;
+        int startGroup = getStartGroup(fileUnitNum);
+        int lastGroup = getLastGroup();
+        for (int group = startGroup; group <= lastGroup; group++) {
+            int nextGroup = (group < lastGroup) ? group + 1 : 0xFFFF;
+            basic.getNumsFromGroup(group, nextGroup, basic.getSectorSize(), 0, groupItems);
+            calcFileSize += (basic.getSectorSize() * basic.getSectorsPerGroup());
+            calcGroups++;
         }
 
-        group_items.addNums(calc_groups);
-        int file_size = getFileSize();
-        group_items.addSize((calc_file_size <= file_size && file_size > 0) ? file_size : calc_file_size);
-        group_items.setSizePerGroup(basic.getSectorSize() * basic.getSectorsPerGroup());
+        groupItems.addNums(calcGroups);
+        int fileSize = getFileSize();
+        groupItems.addSize((calcFileSize <= fileSize && fileSize > 0) ? fileSize : calcFileSize);
+        groupItems.setSizePerGroup(basic.getSectorSize() * basic.getSectorsPerGroup());
     }
 
     @Override
-    public void setStartGroup(int fileunit_num, int val, int size) {
-        int sub_type = basic.diskBasicParam.getFormatSubTypeNumber();
-        switch (sub_type) {
+    public void setStartGroup(int fileUnitNum, int val, int size) {
+        int subType = basic.getFormatSubTypeNumber();
+        switch (subType) {
             case 1:
-                m_data.data().startGroup.track = (byte) (val % 256);
-                m_data.data().startGroup.sector = (byte) (val / 256);
+                data.data().startGroup.track = (byte) (val % 256);
+                data.data().startGroup.sector = (byte) (val / 256);
                 break;
             default:
-                m_data.data().startGroup.track = (byte) (val / basic.diskBasicParam.getSectorsPerTrackOnBasic());
-                m_data.data().startGroup.sector = (byte) ((val % basic.diskBasicParam.getSectorsPerTrackOnBasic()) + 1);
+                data.data().startGroup.track = (byte) (val / basic.getSectorsPerTrackOnBasic());
+                data.data().startGroup.sector = (byte) ((val % basic.getSectorsPerTrackOnBasic()) + 1);
                 break;
         }
     }
 
     @Override
-    public int getStartGroup(int fileunit_num) {
-        int sub_type = basic.diskBasicParam.getFormatSubTypeNumber();
+    public int getStartGroup(int fileUnitNum) {
+        int subType = basic.getFormatSubTypeNumber();
         int val;
-        switch (sub_type) {
+        switch (subType) {
             case 1:
-                val = (m_data.data().startGroup.sector & 0xff) * 256 + (m_data.data().startGroup.track & 0xff);
+                val = (data.data().startGroup.sector & 0xff) * 256 + (data.data().startGroup.track & 0xff);
                 break;
             default:
-                val = m_data.data().startGroup.track & 0xff;
-                if (val >= basic.diskBasicParam.getTracksPerSideOnBasic() * basic.getSidesPerDisk()) {
-                    val = basic.diskBasicParam.getTracksPerSideOnBasic() * basic.getSidesPerDisk();
+                val = data.data().startGroup.track & 0xff;
+                if (val >= basic.getTracksPerSideOnBasic() * basic.getSidesPerDisk()) {
+                    val = basic.getTracksPerSideOnBasic() * basic.getSidesPerDisk();
                 }
-                val *= basic.diskBasicParam.getSectorsPerTrackOnBasic();
-                val += (m_data.data().startGroup.sector & 0xff) - 1;
+                val *= basic.getSectorsPerTrackOnBasic();
+                val += (data.data().startGroup.sector & 0xff) - 1;
                 break;
         }
         if (val < 0) {
@@ -223,34 +223,34 @@ public class DiskBasicDirItemFalcom extends DiskBasicDirItem<DirectoryFalcom> {
 
     @Override
     public void setLastGroup(int val) {
-        int sub_type = basic.diskBasicParam.getFormatSubTypeNumber();
-        switch (sub_type) {
+        int subType = basic.getFormatSubTypeNumber();
+        switch (subType) {
             case 1:
-                m_data.data().endGroup.track = (byte) (val % 256);
-                m_data.data().endGroup.sector = (byte) (val / 256);
+                data.data().endGroup.track = (byte) (val % 256);
+                data.data().endGroup.sector = (byte) (val / 256);
                 break;
             default:
-                m_data.data().endGroup.track = (byte) (val / basic.diskBasicParam.getSectorsPerTrackOnBasic());
-                m_data.data().endGroup.sector = (byte) ((val % basic.diskBasicParam.getSectorsPerTrackOnBasic()) + 1);
+                data.data().endGroup.track = (byte) (val / basic.getSectorsPerTrackOnBasic());
+                data.data().endGroup.sector = (byte) ((val % basic.getSectorsPerTrackOnBasic()) + 1);
                 break;
         }
     }
 
     @Override
     public int getLastGroup() {
-        int sub_type = basic.diskBasicParam.getFormatSubTypeNumber();
+        int subType = basic.getFormatSubTypeNumber();
         int val;
-        switch (sub_type) {
+        switch (subType) {
             case 1:
-                val = (m_data.data().endGroup.sector & 0xff) * 256 + (m_data.data().endGroup.track & 0xff);
+                val = (data.data().endGroup.sector & 0xff) * 256 + (data.data().endGroup.track & 0xff);
                 break;
             default:
-                val = m_data.data().endGroup.track & 0xff;
+                val = data.data().endGroup.track & 0xff;
                 if (val >= basic.getTracksPerSideOnBasic() * basic.getSidesPerDisk()) {
                     val = 0;
                 }
                 val *= basic.getSectorsPerTrackOnBasic();
-                val += (m_data.data().endGroup.sector & 0xff) - 1;
+                val += (data.data().endGroup.sector & 0xff) - 1;
                 break;
         }
         if (val < 0) {
@@ -265,43 +265,43 @@ public class DiskBasicDirItemFalcom extends DiskBasicDirItem<DirectoryFalcom> {
     }
 
     @Override
-    public int recalcFileSizeOnSave(java.io.InputStream istream, int file_size) {
-        return file_size;
+    public int recalcFileSizeOnSave(java.io.InputStream iStream, int fileSize) {
+        return fileSize;
     }
 
     @Override
     public int getStartAddress() {
-        return m_data.data().startAddr & 0xffff;
+        return data.data().startAddress & 0xffff;
     }
 
     @Override
     public int getEndAddress() {
-        return m_data.data().endAddr & 0xffff;
+        return data.data().endAddress & 0xffff;
     }
 
     @Override
     public int getExecuteAddress() {
-        return m_data.data().execAddr & 0xffff;
+        return data.data().execAddress & 0xffff;
     }
 
     @Override
     public int getDataSize() {
-        return m_data.getDataSize();
+        return data.getDataSize();
     }
 
     @Override
     public DirectoryFalcom getData() {
-        return m_data.data();
+        return data.data();
     }
 
     @Override
     public boolean copyData(byte[] val) {
-        return m_data.copy(val);
+        return data.copy(val);
     }
 
     @Override
     public void clearData() {
-        m_data.fill(basic.diskBasicParam.getFillCodeOnDir(), 1);
+        data.fill(basic.getFillCodeOnDir(), 1);
     }
 
     @Override
@@ -316,11 +316,11 @@ public class DiskBasicDirItemFalcom extends DiskBasicDirItem<DirectoryFalcom> {
 
     @Override
     public void setInternalDataInAttrDialog(KeyValArray vals) {
-        vals.add("NAME", m_data.data().name, m_data.data().name.length);
-        vals.add("EXEC_ADDR", m_data.data().execAddr);
-        vals.add("START_ADDR", m_data.data().startAddr);
-        vals.add("END_ADDR", m_data.data().endAddr);
-        vals.add("START_GROUP", m_data.data().startGroup.getBytes(), 4);
-        vals.add("END_GROUP", m_data.data().endGroup.getBytes(), 4);
+        vals.add("NAME", data.data().name, data.data().name.length);
+        vals.add("EXEC_ADDR", data.data().execAddress);
+        vals.add("START_ADDR", data.data().startAddress);
+        vals.add("END_ADDR", data.data().endAddress);
+        vals.add("START_GROUP", data.data().startGroup.getBytes(), 4);
+        vals.add("END_GROUP", data.data().endGroup.getBytes(), 4);
     }
 }

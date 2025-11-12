@@ -10,18 +10,12 @@ import l3diskex.basicfmt.DiskBasicFat;
 import l3diskex.basicfmt.diritem.DiskBasicDirItemCPM.DirectoryCpm;
 
 
-///
-/// disk basic type for SMC-777 Sony Filer
-///
+/**
+ * disk basic type for SMC-777 Sony Filer
+ */
 public class DiskBasicTypeSMC extends DiskBasicTypeCPM {
 
-    /**
-     * Constructor that forwards the arguments to the superclass constructor.
-     *
-     * @param basic the DiskBasic instance
-     * @param fat   the DiskBasicFat instance
-     * @param dir   the DiskBasicDir instance
-     */
+    /** */
     public DiskBasicTypeSMC(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryCpm> dir) {
         super(basic, fat, dir);
     }

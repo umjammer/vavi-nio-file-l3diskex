@@ -23,47 +23,47 @@ public class DiskBasicTypeMDOS extends DiskBasicTypeFAT16<DirectoryMdos> {
     }
 
     @Override
-    public double checkFat(boolean is_formatting) throws IOException {
+    public double checkFat(boolean isFormatting) throws IOException {
         // 重複チェック
-        double valid_ratio = checkFatDuplicated(is_formatting, 1, 0x1fff);
+        double validRatio = checkFatDuplicated(isFormatting, 1, 0x1fff);
 
-        if (valid_ratio < 0.0) return valid_ratio;
+        if (validRatio < 0.0) return validRatio;
 
         // FATの最初はシステム
         for (int pos = 0; pos < 2; pos++) {
-            int gnum = getGroupNumber(pos);
-            if (gnum != basic.diskBasicParam.getGroupSystemCode()) {
-                valid_ratio = -1.0;
+            int groupNum = getGroupNumber(pos);
+            if (groupNum != basic.getGroupSystemCode()) {
+                validRatio = -1.0;
                 break;
             }
         }
 
-        return valid_ratio;
+        return validRatio;
     }
 
     @Override
-    public double parseParamOnDisk(boolean is_formatting) {
+    public double parseParamOnDisk(boolean isFormatting) {
         // グループ数
         if (basic.getFatEndGroup() == 0) {
-            int end_group = basic.getTracksPerSideOnBasic() * basic.getSidesPerDiskOnBasic() * basic.getSectorsPerTrackOnBasic();
-            basic.diskBasicParam.setFatEndGroup(end_group - 1);
+            int endGroup = basic.getTracksPerSideOnBasic() * basic.getSidesPerDiskOnBasic() * basic.getSectorsPerTrackOnBasic();
+            basic.setFatEndGroup(endGroup - 1);
         }
         return 1.0;
     }
 
     @Override
-    public void getUsableDiskSize(int[] disk_size, int[] group_size) {
-        super.getUsableDiskSize(disk_size, group_size);
+    public void getUsableDiskSize(int[] diskSize, int[] groupSize) {
+        super.getUsableDiskSize(diskSize, groupSize);
     }
 
     @Override
-    public int getStartSectorFromGroup(int group_num) {
-        return super.getStartSectorFromGroup(group_num);
+    public int getStartSectorFromGroup(int groupNum) {
+        return super.getStartSectorFromGroup(groupNum);
     }
 
     @Override
-    public int getEndSectorFromGroup(int group_num, int next_group, int sector_start, int sector_size, int remain_size) {
-        return super.getEndSectorFromGroup(group_num, next_group, sector_start, sector_size, remain_size);
+    public int getEndSectorFromGroup(int groupNum, int nextGroup, int sectorStart, int sectorSize, int remainSize) {
+        return super.getEndSectorFromGroup(groupNum, nextGroup, sectorStart, sectorSize, remainSize);
     }
 
     @Override
@@ -74,15 +74,15 @@ public class DiskBasicTypeMDOS extends DiskBasicTypeFAT16<DirectoryMdos> {
     @Override
     public boolean additionalProcessOnFormatted(DiskBasicIdentifiedData data) {
         // FAT
-        DiskImageSector sector = basic.getSectorFromSectorPos(basic.diskBasicParam.getFatStartSector() - 1);
+        DiskImageSector sector = basic.getSectorFromSectorPos(basic.getFatStartSector() - 1);
         if (sector != null) {
-            sector.fill(basic.invertUint8(basic.diskBasicParam.getFillCodeOnFAT()));
+            sector.fill(basic.invertUint8(basic.getFillCodeOnFAT()));
             // Track 0 is reserved
             sector.fill((byte) 0xee,
-                    basic.diskBasicParam.getSectorsPerTrackOnBasic() +
-                            basic.diskBasicParam.getSectorsPerFat() +
-                            basic.diskBasicParam.getDirEndSector() -
-                            basic.diskBasicParam.getDirStartSector() + 1,
+                    basic.getSectorsPerTrackOnBasic() +
+                            basic.getSectorsPerFat() +
+                            basic.getDirEndSector() -
+                            basic.getDirStartSector() + 1,
                     0);
         }
         return true;
@@ -90,27 +90,27 @@ public class DiskBasicTypeMDOS extends DiskBasicTypeFAT16<DirectoryMdos> {
 
     @Override
     public int calcDataSizeOnLastSector(DiskBasicDirItem<DirectoryMdos> item,
-                                        InputStream istream,
-                                        OutputStream ostream,
-                                        byte[] sector_buffer,
-                                        int sectorOffset, int sector_size,
-                                        int remain_size) {
+                                        InputStream iStream,
+                                        OutputStream oStream,
+                                        byte[] sectorBuffer,
+                                        int sectorOffset, int sectorSize,
+                                        int remainSize) {
         if (item.needCheckEofCode()) {
             // 終端コード($00)の1つ前までを出力
-            byte eof_code = basic.invertUint8(basic.diskBasicParam.getTextTerminateCode());
-            for (int len = 0; len < remain_size; len++) {
-                if (sector_buffer[len] == eof_code) {
-                    remain_size = len;
+            byte eofCode = basic.invertUint8(basic.getTextTerminateCode());
+            for (int len = 0; len < remainSize; len++) {
+                if (sectorBuffer[len] == eofCode) {
+                    remainSize = len;
                     break;
                 }
             }
         }
-        return remain_size;
+        return remainSize;
     }
 
     @Override
-    public void deleteGroupNumber(int group_num) {
+    public void deleteGroupNumber(int groupNum) {
         // 未使用にする
-        setGroupNumber(group_num, 0);
+        setGroupNumber(groupNum, 0);
     }
 }

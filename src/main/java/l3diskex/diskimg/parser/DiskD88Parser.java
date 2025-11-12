@@ -62,10 +62,10 @@ public class DiskD88Parser extends DiskImageParser {
             size = src.size;
         }
 
-        public DiskD88ParseOffset(int n_num, int n_offset, int n_size) {
-            num = n_num;
-            offset = n_offset;
-            size = n_size;
+        public DiskD88ParseOffset(int num, int offset, int size) {
+            this.num = num;
+            this.offset = offset;
+            this.size = size;
         }
 
         public int getNum() {
@@ -84,9 +84,9 @@ public class DiskD88Parser extends DiskImageParser {
             size = val;
         }
 
-        public static Comparator<DiskD88ParseOffset> CmpByNum = (item1, item2) -> (item1.num < item2.num ? -1 : (item1.num > item2.num ? 1 : 0));
+        public static Comparator<DiskD88ParseOffset> CmpByNum = Comparator.comparingInt(item -> item.num);
 
-        public static Comparator<DiskD88ParseOffset> CmpByOffset = (item1, item2) -> (item1.offset < item2.offset ? -1 : (item1.offset > item2.offset ? 1 : 0));
+        public static Comparator<DiskD88ParseOffset> CmpByOffset = Comparator.comparingInt(item -> item.offset);
     }
 
     public DiskD88Parser(DiskImageFile file, short mod_flags, DiskResult result) {
@@ -96,131 +96,131 @@ public class DiskD88Parser extends DiskImageParser {
     /**
      * Get parameters before sector data analysis
      */
-    private void preParseSectors(InputStream istream, int disk_number, int[] track_number, int[] side_number, int[] sector_nums, int[] sector_size) throws IOException {
-        Map<Integer, Integer> track_number_map = new HashMap<>();
-        Map<Integer, Integer> side_number_map = new HashMap<>();
-        Map<Integer, Integer> sector_nums_map = new HashMap<>();
-        Map<Integer, Integer> sector_size_map = new HashMap<>();
+    private void preParseSectors(InputStream iStream, int diskNumber, int[] trackNumber, int[] sideNumber, int[] sectorNums, int[] sectorSize) throws IOException {
+        Map<Integer, Integer> trackNumberMap = new HashMap<>();
+        Map<Integer, Integer> sideNumberMap = new HashMap<>();
+        Map<Integer, Integer> sectorNumsMap = new HashMap<>();
+        Map<Integer, Integer> sectorSizeMap = new HashMap<>();
 
-        int ipos = (int) ((SeekableDataInputStream) istream).position();
+        int ipos = (int) ((SeekableDataInputStream) iStream).position();
 
-        if (sector_nums[0] == 0) {
-            sector_nums[0] = 4;
+        if (sectorNums[0] == 0) {
+            sectorNums[0] = 4;
         }
 
-        for (int num = 0; num < sector_nums[0]; num++) {
-            D88SectorHeader sector_header = new D88SectorHeader();
-            Serdes.Util.deserialize(istream, sector_header);
+        for (int num = 0; num < sectorNums[0]; num++) {
+            D88SectorHeader sectorHeader = new D88SectorHeader();
+            Serdes.Util.deserialize(iStream, sectorHeader);
 
-            IntHashMapUtil.increaseValue(track_number_map, sector_header.id.c & 0xff);
-            IntHashMapUtil.increaseValue(side_number_map, sector_header.id.h & 0xff);
-            IntHashMapUtil.increaseValue(sector_nums_map, sector_header.secnums & 0xff);
+            IntHashMapUtil.increaseValue(trackNumberMap, sectorHeader.id.c & 0xff);
+            IntHashMapUtil.increaseValue(sideNumberMap, sectorHeader.id.h & 0xff);
+            IntHashMapUtil.increaseValue(sectorNumsMap, sectorHeader.numOfSectors & 0xff);
 
-            int secnums_val = sector_header.secnums & 0xffff;
-            if (2 < secnums_val && secnums_val < sector_nums[0]) {
-                sector_nums[0] = secnums_val;
+            int secnums_val = sectorHeader.numOfSectors & 0xffff;
+            if (2 < secnums_val && secnums_val < sectorNums[0]) {
+                sectorNums[0] = secnums_val;
             }
 
-            int real_size = sector_header.size & 0xffff;
-            IntHashMapUtil.increaseValue(sector_size_map, real_size);
+            int realSize = sectorHeader.size & 0xffff;
+            IntHashMapUtil.increaseValue(sectorSizeMap, realSize);
 
-            int pos = (int) ((SeekableDataInputStream) istream).position();
-            ((SeekableDataInputStream) istream).position(pos + real_size); // wxFromCurrent
+            int pos = (int) ((SeekableDataInputStream) iStream).position();
+            ((SeekableDataInputStream) iStream).position(pos + realSize); // wxFromCurrent
         }
 
-        ((SeekableDataInputStream) istream).position(ipos);
+        ((SeekableDataInputStream) iStream).position(ipos);
 
-        track_number[0] = IntHashMapUtil.getMaxKeyOnMaxValue(track_number_map);
-        side_number[0] = IntHashMapUtil.getMaxKeyOnMaxValue(side_number_map);
-        sector_nums[0] = IntHashMapUtil.getMaxKeyOnMaxValue(sector_nums_map);
-        sector_size[0] = IntHashMapUtil.getMaxKeyOnMaxValue(sector_size_map);
+        trackNumber[0] = IntHashMapUtil.getMaxKeyOnMaxValue(trackNumberMap);
+        sideNumber[0] = IntHashMapUtil.getMaxKeyOnMaxValue(sideNumberMap);
+        sectorNums[0] = IntHashMapUtil.getMaxKeyOnMaxValue(sectorNumsMap);
+        sectorSize[0] = IntHashMapUtil.getMaxKeyOnMaxValue(sectorSizeMap);
     }
 
     /**
      * Sector data analysis
      */
-    private int parseSector(InputStream istream, int disk_number, int track_number, int side_number, int sector_nums, int sector_size, DiskImageTrack track) throws IOException {
-        DiskD88SectorHeader sector_header = new DiskD88SectorHeader();
-        sector_header.alloc();
-        int header_size = sector_header.getHeaderSize();
-        Serdes.Util.deserialize(istream, sector_header.getHeader());
+    private int parseSector(InputStream iStream, int diskNumber, int trackNumber, int sideNumber, int sectorNums, int sectorSize, DiskImageTrack track) throws IOException {
+        DiskD88SectorHeader sectorHeader = new DiskD88SectorHeader();
+        sectorHeader.alloc();
+        int headerSize = sectorHeader.getHeaderSize();
+        Serdes.Util.deserialize(iStream, sectorHeader.getHeader());
 
         // track number is same ?
-        if (sector_header.getIDC() != track_number) {
-            result.setWarn(DiskResult.ERRV_ID_TRACK, disk_number, track_number, sector_header.getIDC(), sector_header.getIDH(), sector_header.getIDR());
+        if (sectorHeader.getIDC() != trackNumber) {
+            result.setWarn(DiskResult.ERRV_ID_TRACK, diskNumber, trackNumber, sectorHeader.getIDC(), sectorHeader.getIDH(), sectorHeader.getIDR());
         }
         // side number is valid ?
-        if (sector_header.getIDH() != side_number) {
-            result.setWarn(DiskResult.ERRV_ID_SIDE, disk_number, side_number, track_number, sector_header.getIDC(), sector_header.getIDH(), sector_header.getIDR());
+        if (sectorHeader.getIDH() != sideNumber) {
+            result.setWarn(DiskResult.ERRV_ID_SIDE, diskNumber, sideNumber, trackNumber, sectorHeader.getIDC(), sectorHeader.getIDH(), sectorHeader.getIDR());
         }
-        int sector_number = sector_header.getIDR();
+        int sectorNumber = sectorHeader.getIDR();
         // sector number is valid ?
-        if (sector_number <= 0) {
-            result.setWarn(DiskResult.ERRV_ID_SECTOR, disk_number, track_number, sector_header.getIDC(), sector_header.getIDH(), sector_header.getIDR(), sector_nums);
+        if (sectorNumber <= 0) {
+            result.setWarn(DiskResult.ERRV_ID_SECTOR, diskNumber, trackNumber, sectorHeader.getIDC(), sectorHeader.getIDH(), sectorHeader.getIDR(), sectorNums);
         }
         // invalid sector size
-        if (sector_header.getSize() > 2048) {
-            result.setWarn(DiskResult.ERRV_SECTOR_SIZE_SECTOR, disk_number, sector_header.getIDC(), sector_header.getIDH(), sector_header.getIDR(), sector_header.getIDN(), sector_header.getSize());
-        } else if (sector_header.getSize() == 0) {
-            result.setWarn(DiskResult.ERRV_SECTOR_SIZE_SECTOR, disk_number, sector_header.getIDC(), sector_header.getIDH(), sector_header.getIDR(), sector_header.getIDN(), sector_header.getSize());
+        if (sectorHeader.getSize() > 2048) {
+            result.setWarn(DiskResult.ERRV_SECTOR_SIZE_SECTOR, diskNumber, sectorHeader.getIDC(), sectorHeader.getIDH(), sectorHeader.getIDR(), sectorHeader.getIDN(), sectorHeader.getSize());
+        } else if (sectorHeader.getSize() == 0) {
+            result.setWarn(DiskResult.ERRV_SECTOR_SIZE_SECTOR, diskNumber, sectorHeader.getIDC(), sectorHeader.getIDH(), sectorHeader.getIDR(), sectorHeader.getIDN(), sectorHeader.getSize());
         }
 
         // Add
-        int data_size = sector_header.getSize();
+        int dataSize = sectorHeader.getSize();
         if (result.getValid() >= 0) {
             byte[] sector_data = null;
-            if (data_size > 0) {
-                sector_data = new byte[data_size];
-                istream.read(sector_data, 0, data_size);
+            if (dataSize > 0) {
+                sector_data = new byte[dataSize];
+                iStream.read(sector_data, 0, dataSize);
             }
-            DiskImageSector sector = track.newImageSector(sector_number, sector_header, sector_data);
+            DiskImageSector sector = track.newImageSector(sectorNumber, sectorHeader, sector_data);
             track.add(sector);
 
         } else {
-            data_size = 0;
+            dataSize = 0;
         }
 
         // return the size of this sector data
-        return header_size + data_size;
+        return headerSize + dataSize;
     }
 
     /**
      * Track data analysis
      */
-    private int parseTrack(InputStream istream, long start_pos, int offset_pos, int offset, int disk_number, int track_size, DiskImageDisk disk) throws IOException {
-        int[] track_number = {0};
-        int[] side_number = {0};
-        int[] sector_nums = {0};
-        int[] sector_size = {0};
+    private int parseTrack(InputStream iStream, long startPos, int offsetPos, int offset, int diskNumber, int trackSize, DiskImageDisk disk) throws IOException {
+        int[] trackNumber = {0};
+        int[] sideNumber = {0};
+        int[] sectorNums = {0};
+        int[] sectorSize = {0};
 
-        ((SeekableDataInputStream) istream).position(start_pos + offset); // wxFromStart
+        ((SeekableDataInputStream) iStream).position(startPos + offset); // wxFromStart
 
-        preParseSectors(istream, disk_number, track_number, side_number, sector_nums, sector_size);
+        preParseSectors(iStream, diskNumber, trackNumber, sideNumber, sectorNums, sectorSize);
 
         // too many sectors
-        if (sector_nums[0] > 255) {
-            result.setWarn(DiskResult.ERRV_TOO_MANY_SECTORS, disk_number, 255, track_number, side_number, sector_nums);
-            sector_nums[0] = 255;
+        if (sectorNums[0] > 255) {
+            result.setWarn(DiskResult.ERRV_TOO_MANY_SECTORS, diskNumber, 255, trackNumber, sideNumber, sectorNums);
+            sectorNums[0] = 255;
         }
         // no sectors
-        if (sector_nums[0] == 0) {
-            track_number[0] = -1;
-            side_number[0] = -1;
+        if (sectorNums[0] == 0) {
+            trackNumber[0] = -1;
+            sideNumber[0] = -1;
         }
 
-        DiskImageTrack track = disk.newImageTrack(track_number[0], side_number[0], offset_pos, 1);
-        disk.setMaxTrackNumber(track_number[0]);
+        DiskImageTrack track = disk.newImageTrack(trackNumber[0], sideNumber[0], offsetPos, 1);
+        disk.setMaxTrackNumber(trackNumber[0]);
 
         // sectors
-        int sector_total_size = 0;
-        for (int sec_pos = 0; sec_pos < sector_nums[0] && result.getValid() >= 0; sec_pos++) {
-            sector_total_size += parseSector(istream, disk_number, track_number[0], side_number[0], sector_nums[0], sector_size[0], track);
+        int sectorTotalSize = 0;
+        for (int secPos = 0; secPos < sectorNums[0] && result.getValid() >= 0; secPos++) {
+            sectorTotalSize += parseSector(iStream, diskNumber, trackNumber[0], sideNumber[0], sectorNums[0], sectorSize[0], track);
         }
 
         // sector number is valid ?
         List<DiskImageSector> sectors = track.getSectors();
-        if (sectors != null && sector_nums[0] != sectors.size()) {
-            result.setWarn(DiskResult.ERRV_ID_NUM_OF_SECTOR, disk_number, track_number, side_number);
+        if (sectors != null && sectorNums[0] != sectors.size()) {
+            result.setWarn(DiskResult.ERRV_ID_NUM_OF_SECTOR, diskNumber, trackNumber, sideNumber);
         }
 
         if (result.getValid() >= 0) {
@@ -241,10 +241,10 @@ public class DiskD88Parser extends DiskImageParser {
                     if (prev >= 0) {
                         if (curr == prev) {
                             // duplicate
-                            result.setWarn(DiskResult.ERRV_DUPLICATE_SECTOR, disk_number, curr, track_number, side_number);
+                            result.setWarn(DiskResult.ERRV_DUPLICATE_SECTOR, diskNumber, curr, trackNumber, sideNumber);
                         } else if (prev + 1 != curr) {
                             // non sequential
-                            result.setWarn(DiskResult.ERRV_NO_SECTOR, disk_number, prev + 1, track_number, side_number);
+                            result.setWarn(DiskResult.ERRV_NO_SECTOR, diskNumber, prev + 1, trackNumber, sideNumber);
                         }
                     }
                     prev = curr;
@@ -252,7 +252,7 @@ public class DiskD88Parser extends DiskImageParser {
             }
         }
 
-        if (result.getValid() >= 0 && track_number[0] >= 0) {
+        if (result.getValid() >= 0 && trackNumber[0] >= 0) {
             // track duplication check
             List<DiskImageTrack> tracks = disk.getTracks();
             if (tracks != null) {
@@ -260,15 +260,15 @@ public class DiskD88Parser extends DiskImageParser {
                 do {
                     dup = false;
                     for (DiskImageTrack t : tracks) {
-                        if (t.getTrackNumber() == track_number[0] && t.getSideNumber() == side_number[0]) {
+                        if (t.getTrackNumber() == trackNumber[0] && t.getSideNumber() == sideNumber[0]) {
                             // same track number and side number already exists
-                            if (sector_size[0] >= 256) {
+                            if (sectorSize[0] >= 256) {
                                 // issue warning if sector size is 256 bytes or more.
-                                result.setWarn(DiskResult.ERRV_DUPLICATE_TRACK, disk_number, track_number, side_number, side_number[0] + 1);
+                                result.setWarn(DiskResult.ERRV_DUPLICATE_TRACK, diskNumber, trackNumber, sideNumber, sideNumber[0] + 1);
                             }
                             // change side number
-                            side_number[0]++;
-                            track.setSideNumber(side_number[0]);
+                            sideNumber[0]++;
+                            track.setSideNumber(sideNumber[0]);
                             dup = true;
                             break;    // re-check
                         }
@@ -279,15 +279,15 @@ public class DiskD88Parser extends DiskImageParser {
 
         if (result.getValid() >= 0) {
             // remaining data
-            if (sector_total_size < track_size) {
-                int size = track_size - sector_total_size;
+            if (sectorTotalSize < trackSize) {
+                int size = trackSize - sectorTotalSize;
                 byte[] buf = new byte[size];
-                istream.readNBytes(buf, 0, size);
+                iStream.readNBytes(buf, 0, size);
                 track.setExtraData(buf, size);
             }
 
             // set track size
-            track.setSize(track_size);
+            track.setSize(trackSize);
             // set interleave
             if (disk.getInterleave() < track.getInterleave()) {
                 disk.setInterleave(track.getInterleave());
@@ -296,7 +296,7 @@ public class DiskD88Parser extends DiskImageParser {
             disk.add(track);
         }
 
-        return track_size;
+        return trackSize;
     }
 
     /**
@@ -304,7 +304,7 @@ public class DiskD88Parser extends DiskImageParser {
      *
      * @return disk size
      */
-    private int parseDisk(InputStream istream, long start_pos, int disk_number) throws IOException {
+    private int parseDisk(InputStream iStream, long startPos, int diskNumber) throws IOException {
         DiskD88DiskHeader disk_header = new DiskD88DiskHeader();
         disk_header.alloc();
 
@@ -312,98 +312,98 @@ public class DiskD88Parser extends DiskImageParser {
 
         do {
             // seek
-            ((SeekableDataInputStream) istream).position(start_pos);
+            ((SeekableDataInputStream) iStream).position(startPos);
 
-            int header_size = disk_header.getHeaderSize();
-            size = header_size;
+            int headerSize = disk_header.getHeaderSize();
+            size = headerSize;
 
             // skip if EOF(0x1a)
-            byte[] p = istream.readNBytes(D88Header.SIZE);
-            boolean all_eot = true;
-            for (int pos = 0; pos < header_size; pos++) {
+            byte[] p = iStream.readNBytes(D88Header.SIZE);
+            boolean allEot = true;
+            for (int pos = 0; pos < headerSize; pos++) {
                 if (pos < p.length && p[pos] != 0x1a) { // Simplified check on the initial buffer part
-                    all_eot = false;
+                    allEot = false;
                     break;
                 }
             }
-            if (all_eot) {
+            if (allEot) {
                 break;
             }
 
             Serdes.Util.deserialize(new ByteArrayInputStream(p), disk_header.getHeader());
 
             // disk size is too small
-            if (header_size < disk_header.getHeaderSize()) {
-                result.setWarn(DiskResult.ERRV_DISK_TOO_SMALL, disk_number);
+            if (headerSize < disk_header.getHeaderSize()) {
+                result.setWarn(DiskResult.ERRV_DISK_TOO_SMALL, diskNumber);
                 break;
             }
 
-            int disk_size = disk_header.getDiskSize();
+            int diskSize = disk_header.getDiskSize();
             // disk size is too small
-            if (disk_size < disk_header.getHeaderSize()) {
-                result.setWarn(DiskResult.ERRV_DISK_TOO_SMALL, disk_number);
+            if (diskSize < disk_header.getHeaderSize()) {
+                result.setWarn(DiskResult.ERRV_DISK_TOO_SMALL, diskNumber);
                 break;
             }
 
-            int stream_size = istream.available() + header_size; // TODO depends available
-logger.log(Level.TRACE, "stream_size: %d, disk_size: %d".formatted(stream_size, disk_size));
+            int streamSize = iStream.available() + headerSize; // TODO depends available
+logger.log(Level.TRACE, "streamSize: %d, diskSize: %d".formatted(streamSize, diskSize));
             // disk size is larger than file size or exceeds 4MB
-            if (stream_size < disk_size || (1024 * 1024 * 4) < disk_size) {
-                result.setWarn(DiskResult.ERRV_DISK_TOO_LARGE, disk_number);
-                disk_size = stream_size;
+            if (streamSize < diskSize || (1024 * 1024 * 4) < diskSize) {
+                result.setWarn(DiskResult.ERRV_DISK_TOO_LARGE, diskNumber);
+                diskSize = streamSize;
             }
 
-            size = disk_size;
+            size = diskSize;
 
             // 17th character of the name should be '\0'
-            if (disk_header.getHeader().diskname[16] != '\0') {
-                result.setWarn(DiskResult.ERRV_DISK_HEADER, disk_number);
+            if (disk_header.getHeader().diskName[16] != '\0') {
+                result.setWarn(DiskResult.ERRV_DISK_HEADER, diskNumber);
             }
 
             // find the minimum value of the offset part
             // -> old d88 has a small offset part
-            int offset_start = -1;
+            int offsetStart = -1;
             for (int pos = 0; pos < (DISKD88_MAX_TRACKS - 16); pos++) {
                 int offset = disk_header.getOffset(pos);
-                if (offset_start == -1 || (offset < offset_start && offset > 0)) {
-                    offset_start = offset;
+                if (offsetStart == -1 || (offset < offsetStart && offset > 0)) {
+                    offsetStart = offset;
                 }
             }
             // set initial value if no offset (no tracks)
-            if (offset_start == -1) {
-                offset_start = D88Header.SIZE;
+            if (offsetStart == -1) {
+                offsetStart = D88Header.SIZE;
             }
 
             // set the overflowing part to 0
-            int max_tracks = DISKD88_MAX_TRACKS - (disk_header.getHeaderSize() - offset_start) / 4;
-            if (max_tracks < 0 || max_tracks > DISKD88_MAX_TRACKS) {
+            int maxTracks = DISKD88_MAX_TRACKS - (disk_header.getHeaderSize() - offsetStart) / 4;
+            if (maxTracks < 0 || maxTracks > DISKD88_MAX_TRACKS) {
                 // number of tracks is strange
-                result.setWarn(DiskResult.ERRV_INVALID_DISK, disk_number);
+                result.setWarn(DiskResult.ERRV_INVALID_DISK, diskNumber);
                 break;
             }
 
-            for (int pos = max_tracks; pos < DISKD88_MAX_TRACKS; pos++) {
+            for (int pos = maxTracks; pos < DISKD88_MAX_TRACKS; pos++) {
                 disk_header.setOffset(pos, 0);
             }
 
             // calculate the size of each track from the offset
             List<DiskD88ParseOffset> offsets = new ArrayList<>();
-            for (int pos = 0; pos < max_tracks; pos++) {
+            for (int pos = 0; pos < maxTracks; pos++) {
                 int offset = disk_header.getOffset(pos);
-                if (offset >= offset_start) {
+                if (offset >= offsetStart) {
                     offsets.add(new DiskD88ParseOffset(pos, offset, 0));
                 }
             }
             offsets.sort(DiskD88ParseOffset.CmpByOffset);
-            int offsets_count = offsets.size();
-            for (int pos = 0; pos < offsets_count - 1; pos++) {
+            int offsetsCount = offsets.size();
+            for (int pos = 0; pos < offsetsCount - 1; pos++) {
                 DiskD88ParseOffset curr = offsets.get(pos);
                 DiskD88ParseOffset next = offsets.get(pos + 1);
                 curr.setSize(next.getOffset() - curr.getOffset());
             }
-            if (offsets_count >= 1) {
-                DiskD88ParseOffset curr = offsets.get(offsets_count - 1);
-                curr.setSize(disk_size - curr.getOffset());
+            if (offsetsCount >= 1) {
+                DiskD88ParseOffset curr = offsets.get(offsetsCount - 1);
+                curr.setSize(diskSize - curr.getOffset());
             }
             offsets.sort(DiskD88ParseOffset.CmpByNum);
 
@@ -411,22 +411,22 @@ logger.log(Level.TRACE, "stream_size: %d, disk_size: %d".formatted(stream_size, 
             // create disk
             //
 
-            DiskImageDisk disk = file.newImageDisk(disk_number, disk_header);
+            DiskImageDisk disk = file.newImageDisk(diskNumber, disk_header);
 
-            disk.setOffsetStart(offset_start);
+            disk.setOffsetStart(offsetStart);
 
             // parse tracks
-            for (int pos = 0; pos < offsets_count && result.getValid() >= 0; pos++) {
+            for (int pos = 0; pos < offsetsCount && result.getValid() >= 0; pos++) {
                 DiskD88ParseOffset curr = offsets.get(pos);
 
                 // does the offset exceed the disk size?
-                if (curr.getOffset() >= disk_size) {
-                    result.setWarn(DiskResult.ERRV_OVERFLOW_OFFSET, disk_number, curr.getNum(), curr.getOffset(), disk_size);
+                if (curr.getOffset() >= diskSize) {
+                    result.setWarn(DiskResult.ERRV_OVERFLOW_OFFSET, diskNumber, curr.getNum(), curr.getOffset(), diskSize);
                     disk.setOffset(curr.getNum(), 0);
                     continue;
                 }
 
-                parseTrack(istream, start_pos, curr.getNum(), curr.getOffset(), disk_number, curr.getSize(), disk);
+                parseTrack(iStream, startPos, curr.getNum(), curr.getOffset(), diskNumber, curr.getSize(), disk);
             }
 
             if (result.getValid() >= 0) {
@@ -440,7 +440,7 @@ logger.log(Level.TRACE, "stream_size: %d, disk_size: %d".formatted(stream_size, 
                         List<DiskImageSector> sectors = track.getSectors();
                         if (sectors != null) {
                             if (sectors.size() < disk.getSectorsPerTrack()) {
-                                result.setWarn(DiskResult.ERRV_SHORT_SECTORS, disk_number, disk.getSectorsPerTrack(), track.getTrackNumber(), track.getSideNumber(), sectors.size());
+                                result.setWarn(DiskResult.ERRV_SHORT_SECTORS, diskNumber, disk.getSectorsPerTrack(), track.getTrackNumber(), track.getSideNumber(), sectors.size());
                             }
                         }
                     }
@@ -454,35 +454,35 @@ logger.log(Level.TRACE, "stream_size: %d, disk_size: %d".formatted(stream_size, 
     /**
      * Parse D88 file
      *
-     * @param istream    data to be parsed
-     * @param disk_param parameters, usually not needed
+     * @param iStream   data to be parsed
+     * @param diskParam parameters, usually not needed
      * @return 0: normal, -1: error, 1: warning
      */
     @Override
-    public int parse(InputStream istream, DiskParam disk_param) throws IOException {
-        long read_size = 0;
-        long stream_size = istream.available();
-        int disk_number = file.count();
+    public int parse(InputStream iStream, DiskParam diskParam) throws IOException {
+        long readSize = 0;
+        long streamSize = iStream.available();
+        int diskNumber = file.count();
         // disk size is 0
-        if (stream_size == 0) {
-            result.setError(DiskResult.ERRV_DISK_SIZE_ZERO, disk_number);
+        if (streamSize == 0) {
+            result.setError(DiskResult.ERRV_DISK_SIZE_ZERO, diskNumber);
             return result.getValid();
         }
         // チェック
-        if (check(istream) != 0) {
-            result.setError(DiskResult.ERRV_INVALID_DISK, disk_number);
+        if (check(iStream) != 0) {
+            result.setError(DiskResult.ERRV_INVALID_DISK, diskNumber);
             return result.getValid();
         }
-        for (; read_size < stream_size && result.getValid() >= 0; disk_number++) {
-            int size = parseDisk(istream, read_size, disk_number);
+        for (; readSize < streamSize && result.getValid() >= 0; diskNumber++) {
+            int size = parseDisk(iStream, readSize, diskNumber);
             if (size == 0) break;
-            read_size += size;
+            readSize += size;
         }
         return result.getValid();
     }
 
     @Override
-    public int check(InputStream istream, List<DiskTypeHint> disk_hints, DiskParam disk_param, List<DiskParam> disk_params, DiskParam manual_param) {
+    public int check(InputStream iStream, List<DiskTypeHint> diskHints, DiskParam diskParam, List<DiskParam> diskParams, DiskParam manualParam) {
         return -1;
     }
 
@@ -492,30 +492,30 @@ logger.log(Level.TRACE, "stream_size: %d, disk_size: %d".formatted(stream_size, 
      * @return 0
      */
     @Override
-    public int check(InputStream istream) throws IOException {
-        ((SeekableDataInputStream) istream).position(0);
+    public int check(InputStream iStream) throws IOException {
+        ((SeekableDataInputStream) iStream).position(0);
 
         D88Header header = new D88Header();
-        int header_size_min = D88Header.SIZE - 32;
-        int header_size_max = D88Header.SIZE + 16;
+        int headerSizeMin = D88Header.SIZE - 32;
+        int headerSizeMax = D88Header.SIZE + 16;
 
-        Serdes.Util.deserialize(istream, header);
+        Serdes.Util.deserialize(iStream, header);
 logger.log(Level.TRACE, header);
 
         // check offset
         int valid = -1;
-        int all_zero = 0;
+        int allZero = 0;
         for (int i = 0; i < DISKD88_MAX_TRACKS; i++) {
             int offset = header.offsets[i];
-logger.log(Level.TRACE, "[%d]: %d, %x".formatted(i, offset, offset));
-            if (offset >= header_size_min && offset <= header_size_max && (offset & 0xf) == 0) {
+//logger.log(Level.TRACE, "[%d]: %d, %x".formatted(i, offset, offset));
+            if (offset >= headerSizeMin && offset <= headerSizeMax && (offset & 0xf) == 0) {
                 valid = 0;
                 break;
             } else if (offset == 0) {
-                all_zero++;
+                allZero++;
             }
         }
-        if (all_zero == DISKD88_MAX_TRACKS) {
+        if (allZero == DISKD88_MAX_TRACKS) {
             // when all 0
             valid = 0;
         }

@@ -23,10 +23,10 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_VOLUME_MASK;
  Human68kの処理
 
  DiskBasicParam 固有のパラメータ
- @li IPLString : IPL文字列
- @li IPLCompareString : OS判定時に使用する
- @li IgnoreParameter : セクタ１にあるパラメータを無視するか
- @li MediaID : メディアID
+ <li>IPLString : IPL文字列</li>
+ <li>IPLCompareString : OS判定時に使用する</li>
+ <li>IgnoreParameter : セクタ１にあるパラメータを無視するか</li>
+ <li>MediaID : メディアID</li>
  */
 public class DiskBasicTypeHU68K extends DiskBasicTypeMSDOS {
 
@@ -46,7 +46,7 @@ public class DiskBasicTypeHU68K extends DiskBasicTypeMSDOS {
         if (isFormatting) return 0.0;
 
         double validRatio = 1.0;
-        if (!basic.diskBasicParam.getVariousBoolParam("IgnoreParameter")) {
+        if (!basic.getVariousBoolParam("IgnoreParameter")) {
             validRatio = parseMSDOSParamOnDisk(basic.getDisk(), isFormatting);
         }
         if (validRatio >= 0.0) {
@@ -62,17 +62,12 @@ public class DiskBasicTypeHU68K extends DiskBasicTypeMSDOS {
             String istr = null;
             for (int i = 0; i < 3; i++) {
                 found = -1;
-                switch (i) {
-                    case 0:
-                        istr = basic.diskBasicParam.getVariousStringParam("IPLString");
-                        break;
-                    case 1:
-                        istr = basic.diskBasicParam.getVariousStringParam("IPLCompareString");
-                        break;
-                    case 2:
-                        istr = "Human";
-                        break;
-                }
+                istr = switch (i) {
+                    case 0 -> basic.getVariousStringParam("IPLString");
+                    case 1 -> basic.getVariousStringParam("IPLCompareString");
+                    case 2 -> "Human";
+                    default -> istr;
+                };
                 if (istr != null && !istr.isEmpty()) {
                     found = sector.find(istr.getBytes(), istr.length());
                 }
@@ -103,14 +98,14 @@ public class DiskBasicTypeHU68K extends DiskBasicTypeMSDOS {
         }
 
         // ボリュームラベルを設定
-        int dirStart = basic.diskBasicParam.getReservedSectors() + basic.diskBasicParam.getNumberOfFats() * basic.diskBasicParam.getSectorsPerFat();
-        DiskImageSector sec = basic.getSectorFromSectorPos(dirStart);
-        DiskBasicDirItem<DirectoryMsDos> ditem = dir.newItem(sec, 0, sec.getSectorBuffer(), 0);
+        int dirStart = basic.getReservedSectors() + basic.getNumberOfFats() * basic.getSectorsPerFat();
+        DiskImageSector sector = basic.getSectorFromSectorPos(dirStart);
+        DiskBasicDirItem<DirectoryMsDos> dItem = dir.newItem(sector, 0, sector.getSectorBuffer(), 0);
 
-        ditem.setFileNameStr(data.getVolumeName());
-        ditem.setFileAttr(FORMAT_TYPE_UNKNOWN, FILE_TYPE_VOLUME_MASK.getValue(), 0);
+        dItem.setFileNameStr(data.getVolumeName());
+        dItem.setFileAttr(FORMAT_TYPE_UNKNOWN, FILE_TYPE_VOLUME_MASK.getValue(), 0);
         LocalDateTime tm = LocalDateTime.now();
-        ditem.setFileCreateDateTime(tm);
+        dItem.setFileCreateDateTime(tm);
 
         return true;
     }

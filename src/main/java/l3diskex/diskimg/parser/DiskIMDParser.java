@@ -49,7 +49,7 @@ public class DiskIMDParser extends DiskImageParser {
      * @param diskNumber    ディスク番号
      * @param trackNumber   トラック番号
      * @param sideNumber    サイド番号
-     * @param sectorNums    セクタ数
+     * @param numOfSectors  セクタ数
      * @param sectorNumber  セクタ番号
      * @param sectorSize    セクタサイズ
      * @param singleDensity 単密度か
@@ -60,7 +60,7 @@ public class DiskIMDParser extends DiskImageParser {
                             int diskNumber,
                             int trackNumber,
                             int sideNumber,
-                            int sectorNums,
+                            int numOfSectors,
                             int sectorNumber,
                             int sectorSize,
                             boolean singleDensity,
@@ -73,7 +73,7 @@ public class DiskIMDParser extends DiskImageParser {
         int h_sector = r & 0xff;
 
         // Create sector
-        DiskImageSector sector = track.newImageSector(trackNumber, sideNumber, sectorNumber, sectorSize, sectorNums, false, 0);
+        DiskImageSector sector = track.newImageSector(trackNumber, sideNumber, sectorNumber, sectorSize, numOfSectors, false, 0);
         track.add(sector);
 
         byte[] buffer = sector.getSectorBuffer();
@@ -215,16 +215,16 @@ public class DiskIMDParser extends DiskImageParser {
     /**
      * IMDファイルを解析
      *
-     * @param istream    解析対象データ
+     * @param iStream    解析対象データ
      * @param diskNumber ディスク番号
      * @retval -1: finish parsing
      * @retval 0: parse next disk
      */
-    private int parseDisk(InputStream istream, int diskNumber) throws IOException {
+    private int parseDisk(InputStream iStream, int diskNumber) throws IOException {
         // skip comment line at the start of the stream
         int ch = 0;
-        while (ch != 0x1A && ch != -1) {
-            ch = istream.read();
+        while (ch != 0x1a && ch != -1) {
+            ch = iStream.read();
         }
         if (ch == -1) return -1;
 
@@ -236,7 +236,7 @@ public class DiskIMDParser extends DiskImageParser {
         int d88OffsetPos = 0;
         int limitOffsetPos = disk.getCreatableTracks();
         for (int pos = 0; pos < 204; pos++) {
-            int offset = parseTrack(istream, diskNumber, d88OffsetPos, d88Offset, disk);
+            int offset = parseTrack(iStream, diskNumber, d88OffsetPos, d88Offset, disk);
             if (offset == -1) {
                 break;
             }
@@ -263,22 +263,22 @@ public class DiskIMDParser extends DiskImageParser {
     }
 
     @Override
-    public int check(InputStream istream, List<DiskTypeHint> hints, DiskParam diskParam, List<DiskParam> params, DiskParam manualParam) {
+    public int check(InputStream iStream, List<DiskTypeHint> hints, DiskParam diskParam, List<DiskParam> diskParams, DiskParam manualParam) {
         return -1;
     }
 
     /**
      * チェック
      *
-     * @param istream 解析対象データ
+     * @param iStream 解析対象データ
      * @return 1: 選択ダイアログ表示, 0: 正常（候補が複数ある時はダイアログ表示）
      */
     @Override
-    public int check(InputStream istream) throws IOException {
-        ((SeekableDataInputStream) istream).position(0);
+    public int check(InputStream iStream) throws IOException {
+        ((SeekableDataInputStream) iStream).position(0);
 
         byte[] header = new byte[31];
-        int len = istream.readNBytes(header, 0, 31);
+        int len = iStream.readNBytes(header, 0, 31);
         if (len < header.length) {
             // too short
             return -1;
@@ -294,8 +294,8 @@ public class DiskIMDParser extends DiskImageParser {
 
         // check comment line on head of stream
         int ch = 0;
-        while (ch != 0x1A && ch != -1) {
-            ch = istream.read();
+        while (ch != 0x1a && ch != -1) {
+            ch = iStream.read();
         }
         if (ch == -1) return -1;
 
@@ -305,16 +305,16 @@ public class DiskIMDParser extends DiskImageParser {
     /**
      * IMDファイルを解析
      *
-     * @param istream   解析対象データ
+     * @param iStream   解析対象データ
      * @param diskParam パラメータ通常不要
      * @return 0: 正常m -1: エラーあり, 1: 警告あり
      */
     @Override
-    public int parse(InputStream istream, DiskParam diskParam) throws IOException {
-        ((SeekableDataInputStream) istream).position(0);
+    public int parse(InputStream iStream, DiskParam diskParam) throws IOException {
+        ((SeekableDataInputStream) iStream).position(0);
 
         for (int diskNumber = 0; diskNumber < 1; diskNumber++) {
-            if (parseDisk(istream, diskNumber) < 0) {
+            if (parseDisk(iStream, diskNumber) < 0) {
                 break;
             }
         }

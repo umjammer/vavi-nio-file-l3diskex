@@ -50,11 +50,11 @@ public class DiskBasicCategory {
      *
      * @param node       ノード
      * @param localeName ローケル名
-     * @param errmsgs    [out] エラー時メッセージ
+     * @param errMsgs    [out] エラー時メッセージ
      * @return true / false
      * @see "category_types.xml"
      */
-    public static boolean load(List<DiskBasicCategory> list, Node node, String localeName, StringBuilder errmsgs) {
+    public static boolean load(List<DiskBasicCategory> list, Node node, String localeName, StringBuilder errMsgs) {
         boolean valid = false;
 
         while (node != null && !valid) {
@@ -73,24 +73,24 @@ public class DiskBasicCategory {
             if ("DiskBasicCategory".equals(item.getNodeName())) {
                 String type_name = ((Element) item).getAttribute("name");
                 String desc = "";
-                String desc_locale = "";
+                String descLocale = "";
 
-                Node itemnode = item.getFirstChild();
-                while (itemnode != null) {
-                    if ("Description".equals(itemnode.getNodeName())) {
-                        if (((Element) itemnode).hasAttribute("lang")) {
-                            String lang = ((Element) itemnode).getAttribute("lang");
+                Node itemNode = item.getFirstChild();
+                while (itemNode != null) {
+                    if ("Description".equals(itemNode.getNodeName())) {
+                        if (((Element) itemNode).hasAttribute("lang")) {
+                            String lang = ((Element) itemNode).getAttribute("lang");
                             if (localeName.contains(lang)) {
-                                desc_locale = itemnode.getTextContent();
+                                descLocale = itemNode.getTextContent();
                             }
                         } else {
-                            desc = itemnode.getTextContent();
+                            desc = itemNode.getTextContent();
                         }
                     }
-                    itemnode = itemnode.getNextSibling();
+                    itemNode = itemNode.getNextSibling();
                 }
-                if (!desc_locale.isEmpty()) {
-                    desc = desc_locale;
+                if (!descLocale.isEmpty()) {
+                    desc = descLocale;
                 }
 
                 DiskBasicCategory c = new DiskBasicCategory(type_name, desc);
@@ -98,9 +98,9 @@ public class DiskBasicCategory {
                 if (find(list, type_name) == null) {
                     list.add(c);
                 } else {
-                    errmsgs.append("\n");
-                    errmsgs.append("Duplicate type name in DiskBasicCategory : ");
-                    errmsgs.append(type_name);
+                    errMsgs.append("\n");
+                    errMsgs.append("Duplicate type name in DiskBasicCategory : ");
+                    errMsgs.append(type_name);
                     valid = false;
                     break;
                 }
@@ -113,12 +113,12 @@ public class DiskBasicCategory {
     /**
      * カテゴリを検索
      *
-     * @param n_category カテゴリ名
+     * @param category カテゴリ名
      * @return カテゴリ
      */
-    public static DiskBasicCategory find(List<DiskBasicCategory> list, String n_category) {
+    public static DiskBasicCategory find(List<DiskBasicCategory> list, String category) {
         for (DiskBasicCategory item : list) {
-            if (item.getName().equals(n_category)) {
+            if (item.getName().equals(category)) {
                 return item;
             }
         }

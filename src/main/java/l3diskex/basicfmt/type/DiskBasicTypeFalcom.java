@@ -37,17 +37,17 @@ public class DiskBasicTypeFalcom extends DiskBasicType<DirectoryFalcom> {
 
     /// FATエリアをチェック
     @Override
-    public double checkFat(boolean is_formatting) {
+    public double checkFat(boolean isFormatting) {
         return 1.0;
     }
 
     /** ディスクから各パラメータを取得＆必要なパラメータを計算 */
     @Override
-    public double parseParamOnDisk(boolean is_formatting) {
+    public double parseParamOnDisk(boolean isFormatting) {
         // グループ数
         if (basic.getFatEndGroup() == 0) {
             int end_group = basic.getTracksPerSideOnBasic() * basic.getSidesPerDiskOnBasic() * basic.getSectorsPerTrackOnBasic();
-            basic.diskBasicParam.setFatEndGroup(end_group - 1);
+            basic.setFatEndGroup(end_group - 1);
         }
         return 1.0;
     }
@@ -59,8 +59,8 @@ public class DiskBasicTypeFalcom extends DiskBasicType<DirectoryFalcom> {
 //        fatAvailability.setCount(basic.getFatEndGroup() + 1, FAT_AVAIL_FREE);
 
         List<DiskBasicDirItem<DirectoryFalcom>> items = dir.getCurrentItems(null);
-        for (int idx = 0; items != null && idx < items.size(); idx++) {
-            DiskBasicDirItem<DirectoryFalcom> item = items.get(idx);
+        for (int index = 0; items != null && index < items.size(); index++) {
+            DiskBasicDirItem<DirectoryFalcom> item = items.get(index);
             if (item == null || !item.isUsed()) continue;
 
             // グループ番号のマップを調べる
@@ -68,34 +68,34 @@ public class DiskBasicTypeFalcom extends DiskBasicType<DirectoryFalcom> {
             int count = groups.size();
             for (int n = 0; n < count; n++) {
                 DiskBasicGroupItem group = groups.get(n);
-                int gnum = group.group;
-                if (gnum <= basic.getFatEndGroup()) {
+                int groupNum = group.group;
+                if (groupNum <= basic.getFatEndGroup()) {
                     if (n + 1 == count) {
-                        fatAvailability.set(gnum, FAT_AVAIL_USED_LAST);
+                        fatAvailability.set(groupNum, FAT_AVAIL_USED_LAST);
                     } else {
-                        fatAvailability.set(gnum, FAT_AVAIL_USED);
+                        fatAvailability.set(groupNum, FAT_AVAIL_USED);
                     }
                 }
             }
         }
 
         // 空きをチェック
-        int grps = 0;
-        int dir_area = (basic.diskBasicParam.getDirEndSector() / basic.diskBasicParam.getSectorsPerGroup());
+        int groups = 0;
+        int dirArea = (basic.getDirEndSector() / basic.getSectorsPerGroup());
         for (int pos = 0; pos <= basic.getFatEndGroup(); pos++) {
-            if (pos < dir_area) {
+            if (pos < dirArea) {
                 // ディレクトリエリアは使用済み
                 fatAvailability.set(pos, FAT_AVAIL_SYSTEM);
             } else if (fatAvailability.get(pos) == FAT_AVAIL_FREE) {
-//				fat_availability.Item(pos).set(FAT_AVAIL_FREE);
-                grps++;
+//				fatAvailability.Item(pos).set(FAT_AVAIL_FREE);
+                groups++;
             }
         }
 
-        int fsize = grps * basic.getSectorSize() * basic.getSectorsPerGroup();
+        int fSize = groups * basic.getSectorSize() * basic.getSectorsPerGroup();
 
-        fatAvailability.setFreeSize(fsize);
-        fatAvailability.setFreeGroups(grps);
+        fatAvailability.setFreeSize(fSize);
+        fatAvailability.setFreeGroups(groups);
     }
 
     /** フォーマットできるか */
@@ -112,8 +112,8 @@ public class DiskBasicTypeFalcom extends DiskBasicType<DirectoryFalcom> {
 
     /** ファイルの最終セクタのデータサイズを求める */
     @Override
-    public int calcDataSizeOnLastSector(DiskBasicDirItem<DirectoryFalcom> item, InputStream istream, OutputStream ostream, byte[] sector_buffer, int sectorOffset, int sector_size, int remain_size) {
-        return remain_size;
+    public int calcDataSizeOnLastSector(DiskBasicDirItem<DirectoryFalcom> item, InputStream iStream, OutputStream oStream, byte[] sectorBuffer, int sectorOffset, int sectorSize, int remainSize) {
+        return remainSize;
     }
 
     /** 書き込み可能か */
@@ -128,10 +128,10 @@ public class DiskBasicTypeFalcom extends DiskBasicType<DirectoryFalcom> {
         return false;
     }
 
-    /// 指定したグループ番号のFAT領域を削除する
+    /** 指定したグループ番号のFAT領域を削除する */
     @Override
-    public void deleteGroupNumber(int group_num) throws IOException {
+    public void deleteGroupNumber(int groupNum) throws IOException {
         // 未使用にする
-        setGroupNumber(group_num, 0);
+        setGroupNumber(groupNum, 0);
     }
 }

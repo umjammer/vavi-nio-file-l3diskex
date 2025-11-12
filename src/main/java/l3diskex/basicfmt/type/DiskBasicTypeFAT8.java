@@ -8,14 +8,14 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
 
-import l3diskex.basicfmt.BasicCommon.DirectoryT;
+import l3diskex.basicfmt.BasicCommon.Directory;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasic.DiskBasicIdentifiedData;
 import l3diskex.basicfmt.DiskBasicDir;
 import l3diskex.basicfmt.DiskBasicDirItem;
 import l3diskex.basicfmt.DiskBasicFat;
 import l3diskex.basicfmt.DiskBasicType;
-import l3diskex.basicfmt.diritem.DiskBasicDirItemFAT8.DiskBasicDirItemFAT8F.DirectoryFat8f;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemFAT8.DiskBasicDirItemFAT8F.DirectoryFat8F;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskImage.DiskImageTrack;
 
@@ -23,7 +23,7 @@ import l3diskex.diskimg.DiskImage.DiskImageTrack;
 /**
  * FAT8の処理
  */
-public class DiskBasicTypeFAT8<T extends DirectoryT> extends DiskBasicType<T> {
+public class DiskBasicTypeFAT8<T extends Directory> extends DiskBasicType<T> {
 
     /** */
     public DiskBasicTypeFAT8(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<T> dir) {
@@ -48,20 +48,20 @@ public class DiskBasicTypeFAT8<T extends DirectoryT> extends DiskBasicType<T> {
     @Override
     public double checkFat(boolean isFormatting) {
         int end = basic.getFatEndGroup() < 0xff ? basic.getFatEndGroup() : 0xff;
-        int[] tbl = new int[end + 1];
-        Arrays.fill(tbl, 0);
+        int[] table = new int[end + 1];
+        Arrays.fill(table, 0);
 
         // 同じグループ番号が重複しているか
         for (int pos = 0; pos <= end; pos++) {
-            int gnum = getGroupNumber(pos);
-            if (gnum <= end) {
-                tbl[gnum]++;
+            int groupNum = getGroupNumber(pos);
+            if (groupNum <= end) {
+                table[groupNum]++;
             }
         }
         // 同じグループ番号が重複している場合エラー
         double validRatio = 1.0;
         for (int pos = 0; pos <= end; pos++) {
-            if (tbl[pos] > 4) {
+            if (table[pos] > 4) {
                 validRatio = -1.0;
                 break;
             }
@@ -75,10 +75,10 @@ public class DiskBasicTypeFAT8<T extends DirectoryT> extends DiskBasicType<T> {
     public void fillSector(DiskImageTrack track, DiskImageSector sector) {
         if (track.getTrackNumber() == basic.getManagedTrackNumber()) {
             // ファイル管理エリアの場合
-            sector.fill(basic.diskBasicParam.getFillCodeOnFAT());
+            sector.fill(basic.getFillCodeOnFAT());
         } else {
             // ユーザーエリア
-            sector.fill(basic.diskBasicParam.getFillCodeOnFormat());
+            sector.fill(basic.getFillCodeOnFormat());
         }
     }
 
@@ -99,29 +99,29 @@ public class DiskBasicTypeFAT8<T extends DirectoryT> extends DiskBasicType<T> {
         if (remainSecs >= basic.getSectorsPerGroup()) {
             remainSecs = basic.getSectorsPerGroup() - 1;
         }
-        int gnum = remainSecs & 0xff;
-        gnum += basic.diskBasicParam.getGroupFinalCode();
-        return gnum;
+        int lastGroupNum = remainSecs & 0xff;
+        lastGroupNum += basic.getGroupFinalCode();
+        return lastGroupNum;
     }
 
     /**
      * FAT8 specific implementation for F-BASIC / L3 1S
      */
-    public static class DiskBasicTypeFAT8F extends DiskBasicTypeFAT8<DirectoryFat8f> {
+    public static class DiskBasicTypeFAT8F extends DiskBasicTypeFAT8<DirectoryFat8F> {
 
         /** */
-        public DiskBasicTypeFAT8F(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryFat8f> dir) {
+        public DiskBasicTypeFAT8F(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryFat8F> dir) {
             super(basic, fat, dir);
         }
 
         /** 次の空き位置を返す */
         @Override
-        public int getNextEmptyGroupNumber(int currGroup) {
+        public int getNextEmptyGroupNumber(int currentGroup) {
             int newNum = INVALID_GROUP_NUMBER;
             // 若い番号順に検索
-            for (int num = currGroup; num <= basic.getFatEndGroup(); num++) {
-                int gnum = getGroupNumber(num);
-                if (gnum == basic.diskBasicParam.getGroupUnusedCode()) {
+            for (int num = currentGroup; num <= basic.getFatEndGroup(); num++) {
+                int groupNum = getGroupNumber(num);
+                if (groupNum == basic.getGroupUnusedCode()) {
                     newNum = num;
                     break;
                 }
@@ -137,13 +137,13 @@ public class DiskBasicTypeFAT8<T extends DirectoryT> extends DiskBasicType<T> {
 
         /** ファイルの最終セクタのデータサイズを求める */
         @Override
-        public int calcDataSizeOnLastSector(DiskBasicDirItem<DirectoryFat8f> item,
-                                            InputStream istream, OutputStream ostream,
+        public int calcDataSizeOnLastSector(DiskBasicDirItem<DirectoryFat8F> item,
+                                            InputStream iStream, OutputStream oStream,
                                             byte[] sectorBuffer, int sectorOffset, int sectorSize, int remainSize) {
             // ファイルサイズはセクタサイズ境界なので要計算
             if (item.needCheckEofCode()) {
                 // 終端コードの1つ前までを出力
-                byte eofCode = basic.invertUint8(basic.diskBasicParam.getTextTerminateCode());
+                byte eofCode = basic.invertUint8(basic.getTextTerminateCode());
                 // ランダムアクセス時は除く
                 int len = sectorSize - 1;
                 for (; len >= 0; len--) {

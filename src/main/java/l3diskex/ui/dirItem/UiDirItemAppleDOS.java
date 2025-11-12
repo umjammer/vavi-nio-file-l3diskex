@@ -32,7 +32,7 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_INTEGER_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_MACHINE_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_READONLY_MASK;
 import static l3diskex.basicfmt.diritem.DiskBasicDirItemAppleDOS.APLEDOS_TRACK_LIST_MAX;
-import static l3diskex.basicfmt.diritem.DiskBasicDirItemAppleDOS.gTypeNameAppleDOS;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemAppleDOS.typeNameAppleDOS;
 
 
 /**
@@ -115,7 +115,7 @@ public class UiDirItemAppleDOS extends UiDirItem {
 
         String[] types1 = new String[en_type_name_appledos.TYPE_NAME_APLEDOS_READ_ONLY.getValue()];
         for (int i = 0; i < en_type_name_appledos.TYPE_NAME_APLEDOS_READ_ONLY.getValue(); i++) {
-            types1[i] = rb.getString(Utils.keyAt(gTypeNameAppleDOS, i));
+            types1[i] = rb.getString(Utils.keyAt(typeNameAppleDOS, i));
         }
         radType1 = new JTextField(parent, IDC_RADIO_TYPE1, "File Type", new DefaultPosition(), new wxDefaultSize(), types1, 2, wxRA_SPECIFY_COLS);
         radType1.setSelected(ConvFileType1Pos(file_type_1[0]));
@@ -123,7 +123,7 @@ public class UiDirItemAppleDOS extends UiDirItem {
 
         BoxLayout staType4 = new BoxLayout(null, wxVERTICAL); // New wxStaticBox(parent, wxID_ANY, _("File Attributes"))
 
-        chkReadOnly = new JCheckBox(parent, IDC_CHECK_READONLY, rb.getString(Utils.keyAt(gTypeNameAppleDOS, en_type_name_appledos.TYPE_NAME_APLEDOS_READ_ONLY.getValue())));
+        chkReadOnly = new JCheckBox(parent, IDC_CHECK_READONLY, rb.getString(Utils.keyAt(typeNameAppleDOS, en_type_name_appledos.TYPE_NAME_APLEDOS_READ_ONLY.getValue())));
         chkReadOnly.setSelected((file_type_1[0] & en_file_type_mask_appledos.FILETYPE_MASK_APLEDOS_READ_ONLY.getValue()) != 0);
         staType4.Add(chkReadOnly, flags);
 
