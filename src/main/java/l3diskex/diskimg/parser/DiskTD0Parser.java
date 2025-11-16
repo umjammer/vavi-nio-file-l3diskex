@@ -26,6 +26,9 @@ import vavi.util.serdes.Serdes;
 
 /**
  * Teledisk td0 ディスクパーサ
+ *
+ * @see "https://dn721605.ca.archive.org/0/items/td0-format-docs/TD0NOTES.TXT"
+ * @see "http://dunfield.classiccmp.org/img42841/teledisk.htm"
  */
 public class DiskTD0Parser extends DiskImageParser {
 

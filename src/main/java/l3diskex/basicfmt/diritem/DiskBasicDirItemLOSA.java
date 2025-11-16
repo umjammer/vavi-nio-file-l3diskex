@@ -21,7 +21,13 @@ import vavi.util.serdes.Serdes;
 import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_LOSA;
 
 
-/** ディレクトリ１アイテム L-os Angeles (MS-DOS compatible) */
+/**
+ * ディレクトリ１アイテム L-os Angeles (MS-DOS compatible)
+ *
+ * @see "https://github.com/tablacus/LosAngeles"
+ * @see "https://github.com/tablacus/LSX-Dodgers"
+ * @see "https://note.com/medamap/n/n4146227b2f9e"
+ */
 public class DiskBasicDirItemLOSA extends DiskBasicDirItemMSDOS {
 
     private static final ResourceBundle rb = ResourceBundle.getBundle("messages");

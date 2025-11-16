@@ -20,10 +20,10 @@ import vavi.util.serdes.Element;
 import vavi.util.serdes.Serdes;
 
 
-/// D88ディスクイメージ入出力
+/** D88ディスクイメージ入出力 */
 public class DiskD88 {
 
-    /// disk density 0: 2D, 1: 2DD, 2: 2HD
+    /** disk density 0: 2D, 1: 2DD, 2: 2HD */
     public static class DiskDensity {
 
         byte val;
@@ -35,16 +35,13 @@ public class DiskD88 {
         }
     }
 
-    /// disk density 0: 2D, 1: 2DD, 2: 2HD, 3: 1DD(unofficial)
+    /** disk density 0: 2D, 1: 2DD, 2: 2HD, 3: 1DD (unofficial) */
     public static final DiskDensity[] gDiskDensity = {
             new DiskDensity(0x00, "2D"),
             new DiskDensity(0x10, "2DD"),
             new DiskDensity(0x20, "2HD"),
             new DiskDensity(0x30, "0x30 1DD"),
     };
-
-    public static final int DISKD88_MAX_TRACKS = 164;
-    public static final int HEADER_TYPE_D88 = 1;
 
     /** D88 sector id */
     @Serdes(bigEndian = false)
@@ -59,7 +56,7 @@ public class DiskD88 {
         /** record (sector) id (1...) */
         @Element(sequence = 3)
         byte r;
-        /** sector size (0:128bytes 1:256bytes 2:512bytes 3:1024bytes) */
+        /** sector size (0: 128 bytes, 1: 256 bytes, 2: 512 bytes, 3: 1024 bytes) */
         @Element(sequence = 4)
         byte n;
     }
@@ -94,6 +91,9 @@ public class DiskD88 {
     /** D88 disk header */
     @Serdes(bigEndian = false)
     public static class D88Header {
+
+        public static final int DISKD88_MAX_TRACKS = 164;
+        public static final int HEADER_TYPE_D88 = 1;
 
         public static final int SIZE = 17 + 9 + 1 + 1 + 4 + 4 * DISKD88_MAX_TRACKS;
 
@@ -140,7 +140,7 @@ public class DiskD88 {
 
         @Override
         public int getHeaderType() {
-            return DiskD88.HEADER_TYPE_D88;
+            return D88Header.HEADER_TYPE_D88;
         }
 
         public D88SectorHeader getHeader() {
@@ -175,7 +175,7 @@ public class DiskD88 {
             if (header == null) {
                 header = new D88SectorHeader();
             }
-            if (src.getHeaderType() == DiskD88.HEADER_TYPE_D88) {
+            if (src.getHeaderType() == D88Header.HEADER_TYPE_D88) {
                 D88SectorHeader srcHeader = ((DiskD88SectorHeader) src).header;
                 header.id.c = srcHeader.id.c;
                 header.id.h = srcHeader.id.h;
@@ -694,7 +694,7 @@ public class DiskD88 {
 
         @Override
         public int getHeaderType() {
-            return DiskD88.HEADER_TYPE_D88;
+            return D88Header.HEADER_TYPE_D88;
         }
 
         public D88Header getHeader() {
@@ -725,14 +725,14 @@ public class DiskD88 {
             if (header == null) {
                 header = new D88Header();
             }
-            if (src.getHeaderType() == DiskD88.HEADER_TYPE_D88) {
+            if (src.getHeaderType() == D88Header.HEADER_TYPE_D88) {
                 D88Header srcHeader = ((DiskD88DiskHeader) src).header;
                 System.arraycopy(srcHeader.diskName, 0, header.diskName, 0, 17);
                 System.arraycopy(srcHeader.reserved1, 0, header.reserved1, 0, 9);
                 header.writeProtect = srcHeader.writeProtect;
                 header.diskDensity = srcHeader.diskDensity;
                 header.diskSize = srcHeader.diskSize;
-                System.arraycopy(srcHeader.offsets, 0, header.offsets, 0, DiskD88.DISKD88_MAX_TRACKS);
+                System.arraycopy(srcHeader.offsets, 0, header.offsets, 0, D88Header.DISKD88_MAX_TRACKS);
             }
         }
 
@@ -753,7 +753,7 @@ public class DiskD88 {
             header.writeProtect = src.header.writeProtect;
             header.diskDensity = src.header.diskDensity;
             header.diskSize = src.header.diskSize;
-            System.arraycopy(src.header.offsets, 0, header.offsets, 0, DiskD88.DISKD88_MAX_TRACKS);
+            System.arraycopy(src.header.offsets, 0, header.offsets, 0, D88Header.DISKD88_MAX_TRACKS);
         }
 
         public void clearOffsets() {
@@ -795,7 +795,7 @@ public class DiskD88 {
         }
 
         public int getOffset(int num) {
-            if (header == null || num < 0 || num >= DiskD88.DISKD88_MAX_TRACKS) return 0;
+            if (header == null || num < 0 || num >= D88Header.DISKD88_MAX_TRACKS) return 0;
             return header.offsets[num];
         }
 
@@ -837,7 +837,7 @@ public class DiskD88 {
         }
 
         public void setOffset(int num, int val) {
-            if (num < 0 || num >= DiskD88.DISKD88_MAX_TRACKS) return;
+            if (num < 0 || num >= D88Header.DISKD88_MAX_TRACKS) return;
             if (header != null) header.offsets[num] = val;
         }
     }

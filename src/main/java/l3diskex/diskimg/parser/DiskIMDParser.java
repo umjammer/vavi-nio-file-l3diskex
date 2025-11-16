@@ -23,6 +23,9 @@ import vavi.util.serdes.Serdes;
 
 /**
  * IMageDisk IMD format disk image parser.
+ *
+ * @see "http://dunfield.classiccmp.org//img42841/readme.txt"
+ * @see "https://oldcomputers-ddns.org/public/pub/manuals/imd.pdf"
  */
 public class DiskIMDParser extends DiskImageParser {
 

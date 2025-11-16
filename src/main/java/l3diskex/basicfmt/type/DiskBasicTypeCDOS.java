@@ -41,6 +41,8 @@ import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_CDOS
  * <li>IPLString    セクタ1のIPL</li>
  * <li>VolumeString ボリューム名</li>
  * <li>Endian       16ビット値のバイトオーダ</li>
+ *
+ * @see "http://fukui.s17.xrea.com/retro/cdos/index.html"
  */
 public class DiskBasicTypeCDOS extends DiskBasicTypeMZBase<DirectoryCDos> {
 

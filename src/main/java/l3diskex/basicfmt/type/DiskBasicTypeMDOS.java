@@ -17,7 +17,9 @@ import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_MDOS
 
 
 /**
- * MDOS の処理
+ * Tsukumo M-DOS の処理
+ *
+ * @see "https://asakita.net/kabekin/2014/07/8570.html"
  */
 public class DiskBasicTypeMDOS extends DiskBasicTypeFAT16<DirectoryMdos> {
 

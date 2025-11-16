@@ -87,9 +87,7 @@ public class DiskSTRParser extends DiskImageParser {
     /** 入力データの圧縮形式 0:非圧縮 bit0:1次圧縮 bit1:2次圧縮 */
     private Expand2FIFOBuffer eStream = new Expand2FIFOBuffer();
 
-    /**
-     * DSKSTRヘッダ
-     */
+    /** DSKSTRヘッダ */
     private static class StrHeader {
 
         int dataSize; // BE
@@ -108,9 +106,7 @@ public class DiskSTRParser extends DiskImageParser {
         }
     }
 
-    /**
-     * DSKSTRトラックヘッダ
-     */
+    /** DSKSTRトラックヘッダ */
     private static class StrTrackHeader {
 
         byte attr;
@@ -154,9 +150,7 @@ public class DiskSTRParser extends DiskImageParser {
         }
     }
 
-    /**
-     * セクタID
-     */
+    /** セクタID */
     private static class StrSectorId {
 
         byte c;

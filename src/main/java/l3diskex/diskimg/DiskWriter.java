@@ -302,7 +302,7 @@ public class DiskWriter extends DiskWriteOptions {
          * @param image       ディスクイメージ
          * @param diskNumber 0~: ディスク番号, -1: のときは全体
          * @param sideNumber 0~: サイド番号, -1: のときは両面
-         * @return 0 正常
+         * @return 0: 正常
          */
         public int validateDisk(DiskImage image, int diskNumber, int sideNumber) {
             result.clear();
@@ -317,7 +317,7 @@ public class DiskWriter extends DiskWriteOptions {
          * @param diskNumber 0~: ディスク番号, -1: のときは全体
          * @param sideNumber 0~: サイド番号, -1: のときは両面
          * @param oStream     出力先
-         * @return 0 正常
+         * @return 0: 正常
          */
         public int saveDisk(DiskImage image, int diskNumber, int sideNumber, OutputStream oStream) throws IOException {
             result.clear();

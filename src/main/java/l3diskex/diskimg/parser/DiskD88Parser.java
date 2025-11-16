@@ -31,7 +31,7 @@ import l3diskex.diskimg.FileParam.DiskTypeHint;
 import vavi.io.SeekableDataInputStream;
 import vavi.util.serdes.Serdes;
 
-import static l3diskex.diskimg.DiskD88.DISKD88_MAX_TRACKS;
+import static l3diskex.diskimg.DiskD88.D88Header.DISKD88_MAX_TRACKS;
 
 
 /**
@@ -102,7 +102,7 @@ public class DiskD88Parser extends DiskImageParser {
     /**
      * Get parameters before sector data analysis
      */
-    private void preParseSectors(InputStream iStream, int diskNumber, int[] trackNumber, int[] sideNumber, int[] sectorNums, int[] sectorSize) throws IOException {
+    private static void preParseSectors(InputStream iStream, int diskNumber, int[] trackNumber, int[] sideNumber, int[] sectorNums, int[] sectorSize) throws IOException {
         Map<Integer, Integer> trackNumberMap = new HashMap<>();
         Map<Integer, Integer> sideNumberMap = new HashMap<>();
         Map<Integer, Integer> sectorNumsMap = new HashMap<>();

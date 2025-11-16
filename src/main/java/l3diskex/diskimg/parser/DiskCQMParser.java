@@ -23,7 +23,11 @@ import vavi.util.serdes.Serdes;
 import static l3diskex.diskimg.DiskParam.gDiskTemplates;
 
 
-/** CopyQMディスクパーサ */
+/**
+ * CopyQMディスクパーサ
+ *
+ * @see "http://www.bitsavers.org/pdf/sydex/CopyQM_Oct94.pdf"
+ */
 public class DiskCQMParser extends DiskPlainParser {
 
     /** Copy QM形式ヘッダ */

@@ -27,6 +27,7 @@ import vavi.util.serdes.Serdes;
  *
  * @see "https://www.cpcmania.com/cpcdiskxp/cpcdiskxp.htm"
  * @see "https://github.com/muckypaws/AmstradDSKExplorer"
+ * @see "https://archive.org/details/amstrad-cpc-cdt-collection"
  */
 public class DiskDskParser extends DiskImageParser {
 

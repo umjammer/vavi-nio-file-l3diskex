@@ -39,6 +39,8 @@ import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_TFDO
  * <li>IDString  セクタ1のIPL</li>
  * <li>VolumeString FAT領域にあるボリューム名</li>
  * <li>ReservedGroups 使用済みにするトラック</li>
+ *
+ * @see "http://fukui.s17.xrea.com/retro/tfdos/index.html"
  */
 public class DiskBasicTypeTFDOS extends DiskBasicTypeMZBase<DirectoryTfDos> {
 

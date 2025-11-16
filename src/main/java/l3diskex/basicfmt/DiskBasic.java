@@ -1040,9 +1040,11 @@ public class DiskBasic extends DiskParam {
         return forcefully;
     }
 
-    /// ロードできるか
-    ///
-    /// @param item ディレクトリのアイテム
+    /**
+     * ロードできるか
+     *
+     * @param item ディレクトリのアイテム
+     */
     public boolean isLoadableFile(DiskBasicDirItem<?> item) {
         if (item == null || !item.isLoadable() || !item.isUsed()) {
             errInfo.setError(DiskBasicError.ERRV_CANNOT_EXPORT, item.getFileNameStr());
@@ -1051,19 +1053,23 @@ public class DiskBasic extends DiskParam {
         return true;
     }
 
-    /// 指定したディレクトリ位置のファイルをロード
-    ///
-    /// @param itemNumber ディレクトリの位置
-    /// @param dstPath    出力先パス
+    /**
+     * 指定したディレクトリ位置のファイルをロード
+     *
+     * @param itemNumber ディレクトリの位置
+     * @param dstPath    出力先パス
+     */
     public boolean loadFile(int itemNumber, String dstPath) {
         DiskBasicDirItem<?> item = dir.item(itemNumber);
         return loadFile(item, dstPath);
     }
 
-    /// 指定したディレクトリアイテムのファイルをロード
-    ///
-    /// @param item    ディレクトリのアイテム
-    /// @param dstPath 出力先パス
+    /**
+     * 指定したディレクトリアイテムのファイルをロード
+     *
+     * @param item    ディレクトリのアイテム
+     * @param dstPath 出力先パス
+     */
     public boolean loadFile(DiskBasicDirItem<?> item, String dstPath) {
         try (FileOutputStream file = new FileOutputStream(dstPath)) {
             return loadFile(item, file);
@@ -1077,9 +1083,9 @@ public class DiskBasic extends DiskParam {
      * 指定したストリームにファイルをロード
      *
      * @param item    ディレクトリのアイテム
-     * @param ostream [in,out] 出力先ストリーム
+     * @param oStream [in,out] 出力先ストリーム
      */
-    public boolean loadFile(DiskBasicDirItem<?> item, OutputStream ostream) throws IOException {
+    public boolean loadFile(DiskBasicDirItem<?> item, OutputStream oStream) throws IOException {
         ByteArrayOutputStream otemp = new ByteArrayOutputStream();
         boolean sts = loadData(item, otemp, null);
         if (!sts) {
@@ -1089,7 +1095,7 @@ public class DiskBasic extends DiskParam {
             return true;
         }
         ByteArrayInputStream itemp = new ByteArrayInputStream(otemp.toByteArray());
-        sts = type.convertDataForLoad(item, itemp, ostream);
+        sts = type.convertDataForLoad(item, itemp, oStream);
         return sts;
     }
 

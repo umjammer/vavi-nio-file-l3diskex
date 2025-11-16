@@ -23,6 +23,9 @@ import static l3diskex.diskimg.DiskParam.gDiskTemplates;
 
 /**
  * DIFC.X DIMディスクイメージパーサ
+ *
+ * @see "https://web.archive.org/web/20010617113151/http://www6.airnet.ne.jp/gun/x68k/difc/difc.html"
+ * @see "https://stdkmd.net/xeij/source/FDMedia.htm"
  */
 public class DiskDIMParser extends DiskPlainParser {
 
