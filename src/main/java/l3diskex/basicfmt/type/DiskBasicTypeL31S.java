@@ -4,6 +4,7 @@
 
 package l3diskex.basicfmt.type;
 
+import l3diskex.basicfmt.BasicCommon.DiskBasicFormatType;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasicDir;
 import l3diskex.basicfmt.DiskBasicFat;
@@ -11,15 +12,22 @@ import l3diskex.basicfmt.diritem.DiskBasicDirItemFAT8.DiskBasicDirItemFAT8F.Dire
 import l3diskex.basicfmt.type.DiskBasicTypeFAT8.DiskBasicTypeFAT8F;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 
+import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_L3_1S;
+
 
 /**
  * LEVEL-3 BASIC 1S(片面・単密度)の処理
  */
 public class DiskBasicTypeL31S extends DiskBasicTypeFAT8F {
 
-    /** */
-    public DiskBasicTypeL31S(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryFat8F> dir) {
-        super(basic, fat, dir);
+    @Override
+    public boolean isSupported(DiskBasicFormatType typeNumber) {
+        return typeNumber == FORMAT_TYPE_L3_1S;
+    }
+
+    @Override
+    public void init(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryFat8F> dir) {
+        super.init(basic, fat, dir);
     }
 
     /**

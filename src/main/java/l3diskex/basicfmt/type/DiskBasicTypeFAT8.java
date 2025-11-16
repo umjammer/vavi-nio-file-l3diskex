@@ -23,11 +23,11 @@ import l3diskex.diskimg.DiskImage.DiskImageTrack;
 /**
  * FAT8の処理
  */
-public class DiskBasicTypeFAT8<T extends Directory> extends DiskBasicType<T> {
+public abstract class DiskBasicTypeFAT8<T extends Directory> extends DiskBasicType<T> {
 
-    /** */
-    public DiskBasicTypeFAT8(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<T> dir) {
-        super(basic, fat, dir);
+    @Override
+    public void init(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<T> dir) {
+        super.init(basic, fat, dir);
     }
 
     /** FAT位置をセット */
@@ -107,11 +107,11 @@ public class DiskBasicTypeFAT8<T extends Directory> extends DiskBasicType<T> {
     /**
      * FAT8 specific implementation for F-BASIC / L3 1S
      */
-    public static class DiskBasicTypeFAT8F extends DiskBasicTypeFAT8<DirectoryFat8F> {
+    public abstract static class DiskBasicTypeFAT8F extends DiskBasicTypeFAT8<DirectoryFat8F> {
 
-        /** */
-        public DiskBasicTypeFAT8F(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryFat8F> dir) {
-            super(basic, fat, dir);
+        @Override
+        public void init(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryFat8F> dir) {
+            super.init(basic, fat, dir);
         }
 
         /** 次の空き位置を返す */

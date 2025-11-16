@@ -27,8 +27,14 @@ import static l3diskex.diskimg.DiskParam.gDiskTemplates;
  */
 public class DiskPlainParser extends DiskImageParser {
 
-    public DiskPlainParser(DiskImageFile file, short modFlags, DiskResult result) {
-        super(file, modFlags, result);
+    @Override
+    public boolean isSupported(String type) {
+        return "plain".equalsIgnoreCase(type);
+    }
+
+    @Override
+    public void init(DiskImageFile file, short modFlags, DiskResult result) {
+        super.init(file, modFlags, result);
     }
 
     /**

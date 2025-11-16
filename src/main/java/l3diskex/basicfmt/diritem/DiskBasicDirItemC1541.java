@@ -15,6 +15,7 @@ import java.util.Map;
 import l3diskex.Utils;
 import l3diskex.basicfmt.BasicCommon.Directory;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
+import l3diskex.basicfmt.BasicCommon.DiskBasicFormatType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
@@ -27,6 +28,7 @@ import vavi.util.serdes.Element;
 import vavi.util.serdes.Serdes;
 
 import static l3diskex.Config.config;
+import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_C1541;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_ASCII_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_BASIC_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_BINARY_MASK;
@@ -123,22 +125,34 @@ public class DiskBasicDirItemC1541 extends DiskBasicDirItem<DirectoryC1541> {
     /** For REL files, side sectors */
     public DiskBasicGroups ssGroups = new DiskBasicGroups();
 
-    public DiskBasicDirItemC1541(DiskBasic basic) {
-        super(basic);
+    @Override
+    public boolean isSupported(DiskBasicFormatType formatType) {
+        return formatType == FORMAT_TYPE_C1541;
+    }
+
+    @Override
+    public void init(DiskBasic basic) throws IOException {
+        super.init(basic);
 
         data.alloc(DirectoryC1541.class);
     }
 
-    public DiskBasicDirItemC1541(DiskBasic basic, DiskImageSector sector, int secPos, byte[] data, int dataP) throws IOException {
-        super(basic, sector, secPos, data, dataP);
+    @Override
+    public void init(DiskBasic basic, DiskImageSector sector, int sectorPos,
+                     byte[] data, int dataP) throws IOException {
+        super.init(basic, sector, sectorPos, data, dataP);
 
         this.data.attach(DirectoryC1541.class, data, dataP);
     }
 
-    public DiskBasicDirItemC1541(DiskBasic basic, int num, DiskBasicGroupItem groupItem, DiskImageSector sector, int secPos, byte[] data, int dataP, SectorParam next, boolean[] unuse) throws IOException {
-        super(basic, num, groupItem, sector, secPos, data, dataP, next, unuse);
+    @Override
+    public void init(DiskBasic basic, int num, DiskBasicGroupItem groupItem,
+                     DiskImageSector sector, int sectorPos,
+                     byte[] data, int dataPos,
+                     SectorParam next, boolean[] unuse) throws IOException {
+        super.init(basic, num, groupItem, sector, sectorPos, data, dataPos, next, unuse);
 
-        this.data.attach(DirectoryC1541.class, data, dataP);
+        this.data.attach(DirectoryC1541.class, data, dataPos);
 
         used(checkUsed(unuse[0]));
 

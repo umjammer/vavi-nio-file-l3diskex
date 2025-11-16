@@ -75,25 +75,28 @@ public abstract class DiskBasicDirItemFAT8<T extends Directory> extends DiskBasi
     /** ファイル内部で持っている実行アドレス */
     protected int execAddress;
 
-    public DiskBasicDirItemFAT8(DiskBasic basic) {
-        super(basic);
+    @Override
+    public void init(DiskBasic basic) throws IOException {
+        super.init(basic);
 
         startAddress = -1;
         endAddress = -1;
         execAddress = -1;
     }
 
-    public DiskBasicDirItemFAT8(DiskBasic basic, DiskImageSector sector, int secPos, byte[] data, int dataP) {
-        super(basic, sector, secPos, data, dataP);
+    @Override
+    public void init(DiskBasic basic, DiskImageSector sector, int sectorPos, byte[] data, int dataP) throws IOException {
+        super.init(basic, sector, sectorPos, data, dataP);
 
         startAddress = -1;
         endAddress = -1;
         execAddress = -1;
     }
 
-    public DiskBasicDirItemFAT8(DiskBasic basic, int num, DiskBasicGroupItem groupItem, DiskImageSector sector,
-                                int secPos, byte[] data, int dataP, SectorParam next, boolean[] unuse) {
-        super(basic, num, groupItem, sector, secPos, data, dataP, next, unuse);
+    @Override
+    public void init(DiskBasic basic, int num, DiskBasicGroupItem groupItem, DiskImageSector sector,
+                     int sectorPos, byte[] data, int dataP, SectorParam next, boolean[] unuse) throws IOException {
+        super.init(basic, num, groupItem, sector, sectorPos, data, dataP, next, unuse);
 
         startAddress = -1;
         endAddress = -1;
@@ -350,21 +353,24 @@ public abstract class DiskBasicDirItemFAT8<T extends Directory> extends DiskBasi
         /** ディレクトリデータ */
         protected DiskBasicDirData<DirectoryFat8F> data = new DiskBasicDirData<>();
 
-        public DiskBasicDirItemFAT8F(DiskBasic basic) {
-            super(basic);
+        @Override
+        public void init(DiskBasic basic) throws IOException {
+            super.init(basic);
 
             data.alloc(DirectoryFat8F.class);
         }
 
-        public DiskBasicDirItemFAT8F(DiskBasic basic, DiskImageSector sector, int secPos, byte[] data, int dataP) {
-            super(basic, sector, secPos, data, dataP);
+        @Override
+        public void init(DiskBasic basic, DiskImageSector sector, int sectorPos, byte[] data, int dataP) throws IOException {
+            super.init(basic, sector, sectorPos, data, dataP);
 
             this.data.attach(DirectoryFat8F.class, data, dataP);
         }
 
-        public DiskBasicDirItemFAT8F(DiskBasic basic, int num, DiskBasicGroupItem gropItem, DiskImageSector sector,
-                                     int secPos, byte[] data, int dataP, SectorParam next, boolean[] unuse) throws IOException {
-            super(basic, num, gropItem, sector, secPos, data, dataP, next, unuse);
+        @Override
+        public void init(DiskBasic basic, int num, DiskBasicGroupItem gropItem, DiskImageSector sector,
+                         int sectorPos, byte[] data, int dataP, SectorParam next, boolean[] unuse) throws IOException {
+            super.init(basic, num, gropItem, sector, sectorPos, data, dataP, next, unuse);
 
             this.data.attach(DirectoryFat8F.class, data, dataP);
 

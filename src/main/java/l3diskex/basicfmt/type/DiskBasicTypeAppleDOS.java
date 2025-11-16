@@ -10,6 +10,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
 
+import l3diskex.basicfmt.BasicCommon.DiskBasicFormatType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasic.DiskBasicIdentifiedData;
@@ -27,6 +28,7 @@ import l3diskex.diskimg.DiskImage.DiskImageSector;
 import vavi.util.serdes.Element;
 import vavi.util.serdes.Serdes;
 
+import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_APLEDOS;
 import static l3diskex.basicfmt.diritem.DiskBasicDirItemAppleDOS.AppleDosChain.APLEDOS_TRACK_LIST_MAX;
 import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_FREE;
 import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_SYSTEM;
@@ -79,9 +81,15 @@ public class DiskBasicTypeAppleDOS extends DiskBasicType<DirectoryAppleDos> {
     /** */
     private AppleDosVToc appleDosVToc;
 
+    @Override
+    public boolean isSupported(DiskBasicFormatType typeNumber) {
+        return typeNumber == FORMAT_TYPE_APLEDOS;
+    }
+
     /** */
-    public DiskBasicTypeAppleDOS(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryAppleDos> dir) {
-        super(basic, fat, dir);
+    @Override
+    public void init(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryAppleDos> dir) {
+        super.init(basic, fat, dir);
 
         if (basic.getSectorsPerGroup() <= 0) {
             basic.setGroupsPerTrack(basic.getGroupsPerSector() * basic.getSectorsPerTrackOnBasic());

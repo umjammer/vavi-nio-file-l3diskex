@@ -21,6 +21,7 @@ import java.util.List;
 
 import l3diskex.Common;
 import l3diskex.Utils;
+import l3diskex.basicfmt.BasicCommon.DiskBasicFormatType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasic.DiskBasicIdentifiedData;
@@ -40,6 +41,7 @@ import l3diskex.diskimg.DiskImage.DiskImageSector;
 import vavi.util.serdes.Element;
 import vavi.util.serdes.Serdes;
 
+import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_AMIGA;
 import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_FREE;
 import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_SYSTEM;
 import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_USED;
@@ -271,8 +273,14 @@ logger.log(Level.TRACE, e.getMessage());
     /** Bitmap Blocks */
     private final List<AmigaOneBitmap> bitmap = new ArrayList<>();
 
-    public DiskBasicTypeAmiga(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryAmiga> dir) {
-        super(basic, fat, dir);
+    @Override
+    public boolean isSupported(DiskBasicFormatType typeNumber) {
+        return typeNumber == FORMAT_TYPE_AMIGA;
+    }
+
+    @Override
+    public void init(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryAmiga> dir) {
+        super.init(basic, fat, dir);
 
         root.blockNum = 0;
         root.pre = null;

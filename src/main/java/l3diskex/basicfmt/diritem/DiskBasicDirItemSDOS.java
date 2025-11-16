@@ -13,6 +13,7 @@ import l3diskex.Parambase.MyAttribute;
 import l3diskex.Utils;
 import l3diskex.basicfmt.BasicCommon.Directory;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
+import l3diskex.basicfmt.BasicCommon.DiskBasicFormatType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
@@ -26,6 +27,7 @@ import vavi.util.serdes.Serdes;
 
 import static l3diskex.Config.config;
 import static l3diskex.Parambase.MyAttributes.findUpperCase;
+import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_SDOS;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_BASIC_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_BINARY_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_DATA_MASK;
@@ -96,23 +98,31 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySDos> {
     /** セクタ内部へのポインタ */
     private final DirItemSectorBoundary sectorData = new DirItemSectorBoundary();
 
-    public DiskBasicDirItemSDOS(DiskBasic basic) throws IOException {
-        super(basic);
+    @Override
+    public boolean isSupported(DiskBasicFormatType formatType) {
+        return formatType == FORMAT_TYPE_SDOS;
+    }
+
+    @Override
+    public void init(DiskBasic basic) throws IOException {
+        super.init(basic);
 
         data.alloc(DirectorySDos.class);
         allocateItem(null);
     }
 
-    public DiskBasicDirItemSDOS(DiskBasic basic, DiskImageSector sector, int secPos, byte[] data, int dataP) throws IOException {
-        super(basic, sector, secPos, data, dataP);
+    @Override
+    public void init(DiskBasic basic, DiskImageSector sector, int sectorPos, byte[] data, int dataP) throws IOException {
+        super.init(basic, sector, sectorPos, data, dataP);
 
         this.data.attach(DirectorySDos.class, data, dataP);
         allocateItem(null);
     }
 
-    public DiskBasicDirItemSDOS(DiskBasic basic, int num, DiskBasicGroupItem groupItem, DiskImageSector sector, int secPos,
-                                byte[] data, int dataP, SectorParam next, boolean[] unuse) throws IOException {
-        super(basic, num, groupItem, sector, secPos, data, dataP, next, unuse);
+    @Override
+    public void init(DiskBasic basic, int num, DiskBasicGroupItem groupItem, DiskImageSector sector, int sectorPos,
+                     byte[] data, int dataP, SectorParam next, boolean[] unuse) throws IOException {
+        super.init(basic, num, groupItem, sector, sectorPos, data, dataP, next, unuse);
 
         this.data.attach(DirectorySDos.class, data, dataP);
         allocateItem(next);

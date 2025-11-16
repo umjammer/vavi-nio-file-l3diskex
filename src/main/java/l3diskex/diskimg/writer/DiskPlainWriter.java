@@ -25,6 +25,20 @@ import l3diskex.diskimg.DiskWriter.DiskImageWriter;
  */
 public class DiskPlainWriter extends DiskImageWriter {
 
+    //
+    // べた形式で保存
+    //
+
+    @Override
+    public boolean isSupported(String type) {
+        return "plain".equalsIgnoreCase(type);
+    }
+
+    @Override
+    public void init(DiskWriter writer, DiskResult result) {
+        super.init(writer, result);
+    }
+
     /**
      * ディスク1つを保存
      *
@@ -72,13 +86,6 @@ public class DiskPlainWriter extends DiskImageWriter {
 
         //disk.clearModify();
         return result.getValid();
-    }
-
-    //
-    // べた形式で保存
-    //
-    public DiskPlainWriter(DiskWriter writer, DiskResult result) {
-        super(writer, result);
     }
 
     /**

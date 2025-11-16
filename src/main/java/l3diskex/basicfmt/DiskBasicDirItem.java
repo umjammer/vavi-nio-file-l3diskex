@@ -186,11 +186,11 @@ public abstract class DiskBasicDirItem<T extends Directory> {
         }
     }
 
-    /** bit0:使用しているか */
+    /** bit0: 使用しているか */
     public static final int USED_ITEM = 0x0001;
-    /** bit1:リストに表示するか */
+    /** bit1: リストに表示するか */
     public static final int VISIBLE_LIST = 0x0002;
-    /** bit2:ツリーに表示するか */
+    /** bit2: ツリーに表示するか */
     public static final int VISIBLE_TREE = 0x0004;
 
     protected DiskBasic basic;
@@ -230,13 +230,14 @@ public abstract class DiskBasicDirItem<T extends Directory> {
         groups = new DiskBasicGroups();
     }
 
+    public abstract boolean isSupported(DiskBasicFormatType formatType);
 
     /**
      * ディレクトリアイテムを作成 DATAは内部で確保
      *
      * @param basic DISK BASIC
      */
-    public DiskBasicDirItem(DiskBasic basic) {
+    public void init(DiskBasic basic) throws IOException {
         this.basic = basic;
         this.type = basic.getType();
         parent = null;
@@ -253,19 +254,21 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     /**
      * ディレクトリアイテムを作成 DATAはディスクイメージをアサイン
      *
-     * @param basic   DISK BASIC
-     * @param sector セクタ
-     * @param secPos セクタ内の位置
-     * @param data   セクタ内のディレクトリエントリ
+     * @param basic     DISK BASIC
+     * @param sector    セクタ
+     * @param sectorPos セクタ内の位置
+     * @param data      セクタ内のディレクトリエントリ
      */
-    public DiskBasicDirItem(DiskBasic basic, DiskImageSector sector, int secPos, byte[] data, int dataP) {
+    public void init(DiskBasic basic,
+                     DiskImageSector sector, int sectorPos,
+                     byte[] data, int dataPos) throws IOException {
         this.basic = basic;
         this.type = basic.getType();
         parent = null;
         children = null;
         validDir = false;
         num = 0;
-        position = secPos;
+        position = sectorPos;
         this.sector = sector;
         externalAttr = 0;
         flags = (VISIBLE_LIST | VISIBLE_TREE);
@@ -275,23 +278,26 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     /**
      * ディレクトリアイテムを作成 DATAはディスクイメージをアサイン
      *
-     * @param basic   DISK BASIC
-     * @param num    通し番号
-     * @param gItem  トラック番号などのデータ
-     * @param sector セクタ
-     * @param secPos セクタ内のディレクトリエントリの位置
-     * @param data   セクタ内のディレクトリエントリ
-     * @param next   次のセクタ
-     * @param unuse  [out] 未使用か
+     * @param basic     DISK BASIC
+     * @param num       通し番号
+     * @param groupItem トラック番号などのデータ
+     * @param sector    セクタ
+     * @param sectorPos セクタ内のディレクトリエントリの位置
+     * @param data      セクタ内のディレクトリエントリ
+     * @param next      次のセクタ
+     * @param unuse     [out] 未使用か
      */
-    public DiskBasicDirItem(DiskBasic basic, int num, DiskBasicGroupItem gItem, DiskImageSector sector, int secPos, byte[] data, int dataP, SectorParam next, boolean[] unuse) {
+    public void init(DiskBasic basic, int num, DiskBasicGroupItem groupItem,
+                     DiskImageSector sector, int sectorPos,
+                     byte[] data, int dataPos,
+                     SectorParam next, boolean[] unuse) throws IOException {
         this.basic = basic;
         this.type = basic.getType();
         parent = null;
         children = null;
         validDir = false;
         this.num = num;
-        position = secPos;
+        position = sectorPos;
         this.sector = sector;
         externalAttr = 0;
         flags = (VISIBLE_LIST | VISIBLE_TREE);
@@ -2458,22 +2464,22 @@ public abstract class DiskBasicDirItem<T extends Directory> {
                         case "Name" -> Utils.decodeEscape(content, fileName, fileNameLen);
                         case "Ext" -> Utils.decodeEscape(content, fileExt, fileExtLen);
                         case "Type" ->
-                        fileType = Integer.parseInt(content.startsWith("0x") ? content.substring(2) : content, content.startsWith("0x") ? 16 : 10);
+                                fileType = Integer.parseInt(content.startsWith("0x") ? content.substring(2) : content, content.startsWith("0x") ? 16 : 10);
                         case "OriginalType0" ->
-                        originalType0 = Integer.parseInt(content.startsWith("0x") ? content.substring(2) : content, content.startsWith("0x") ? 16 : 10);
+                                originalType0 = Integer.parseInt(content.startsWith("0x") ? content.substring(2) : content, content.startsWith("0x") ? 16 : 10);
                         case "OriginalType1" ->
-                        originalType1 = Integer.parseInt(content.startsWith("0x") ? content.substring(2) : content, content.startsWith("0x") ? 16 : 10);
+                                originalType1 = Integer.parseInt(content.startsWith("0x") ? content.substring(2) : content, content.startsWith("0x") ? 16 : 10);
                         case "OriginalType2" ->
-                        originalType2 = Integer.parseInt(content.startsWith("0x") ? content.substring(2) : content, content.startsWith("0x") ? 16 : 10);
+                                originalType2 = Integer.parseInt(content.startsWith("0x") ? content.substring(2) : content, content.startsWith("0x") ? 16 : 10);
                         case "Size" -> fileSize = Integer.parseInt(content);
                         case "StartAddress" ->
-                        startAddr = Integer.parseInt(content.startsWith("0x") ? content.substring(2) : content, content.startsWith("0x") ? 16 : 10);
+                                startAddr = Integer.parseInt(content.startsWith("0x") ? content.substring(2) : content, content.startsWith("0x") ? 16 : 10);
                         case "EndAddress" ->
-                        endAddr = Integer.parseInt(content.startsWith("0x") ? content.substring(2) : content, content.startsWith("0x") ? 16 : 10);
+                                endAddr = Integer.parseInt(content.startsWith("0x") ? content.substring(2) : content, content.startsWith("0x") ? 16 : 10);
                         case "ExecuteAddress" ->
-                        execAddr = Integer.parseInt(content.startsWith("0x") ? content.substring(2) : content, content.startsWith("0x") ? 16 : 10);
+                                execAddr = Integer.parseInt(content.startsWith("0x") ? content.substring(2) : content, content.startsWith("0x") ? 16 : 10);
                         case "ExternalAttribute" ->
-                        externalAttr = Integer.parseInt(content.startsWith("0x") ? content.substring(2) : content, content.startsWith("0x") ? 16 : 10);
+                                externalAttr = Integer.parseInt(content.startsWith("0x") ? content.substring(2) : content, content.startsWith("0x") ? 16 : 10);
                     }
                 }
             }

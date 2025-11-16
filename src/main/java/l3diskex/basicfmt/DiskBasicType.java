@@ -10,6 +10,7 @@ import java.util.List;
 
 import l3diskex.Common;
 import l3diskex.basicfmt.BasicCommon.Directory;
+import l3diskex.basicfmt.BasicCommon.DiskBasicFormatType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.DiskBasic.DiskBasicIdentifiedData;
@@ -38,6 +39,8 @@ public abstract class DiskBasicType<T extends Directory> {
     private static final Logger logger = System.getLogger(DiskBasicType.class.getName());
 
     public static final int INVALID_GROUP_NUMBER = -1;
+
+    public abstract boolean isSupported(DiskBasicFormatType typeNumber);
 
     /** セクタを確保する時のフラグ */
     public enum AllocateGroupFlags {
@@ -434,10 +437,7 @@ public abstract class DiskBasicType<T extends Directory> {
     /** 使用状況(FAT,グループ単位) */
     protected DiskBasicAvailability fatAvailability = new DiskBasicAvailability();
 
-    protected DiskBasicType() {
-    }
-
-    public DiskBasicType(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<T> dir) {
+    public void init(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<T> dir) {
         this.basic = basic;
         this.fat = fat;
         this.dir = dir;

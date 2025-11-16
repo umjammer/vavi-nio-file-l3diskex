@@ -31,15 +31,14 @@ public class DiskD88Writer extends DiskImageWriter {
      */
     private static final int DISKD88_MAX_TRACKS = 300;
 
-    /**
-     * Constructor.  The base class {@link DiskImageWriter} stores the
-     * {@link DiskWriter} instance and the {@link DiskResult} instance.
-     *
-     * @param writer  Disk writer that owns the low‑level I/O settings
-     * @param result Result object used for error reporting
-     */
-    public DiskD88Writer(DiskWriter writer, DiskResult result) {
-        super(writer, result);
+    @Override
+    public boolean isSupported(String type) {
+        return "d88".equalsIgnoreCase(type);
+    }
+
+    @Override
+    public void init(DiskWriter writer, DiskResult result) {
+        super.init(writer, result);
     }
 
     /**

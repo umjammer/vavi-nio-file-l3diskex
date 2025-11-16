@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 
+import l3diskex.basicfmt.BasicCommon.DiskBasicFormatType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.DiskBasic;
@@ -17,6 +18,7 @@ import l3diskex.basicfmt.diritem.DiskBasicDirItemSDOS.DirectorySDos;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskImage.DiskImageTrack;
 
+import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_SDOS;
 import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_FREE;
 import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_LEAK;
 import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_SYSTEM;
@@ -30,9 +32,15 @@ public class DiskBasicTypeSDOS extends DiskBasicType<DirectorySDos> {
     // 空き開始グループ
     private int emptyGroupNum;
 
+    @Override
+    public boolean isSupported(DiskBasicFormatType typeNumber) {
+        return typeNumber == FORMAT_TYPE_SDOS;
+    }
+
     /** Public constructor used by the system. */
-    public DiskBasicTypeSDOS(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectorySDos> dir) {
-        super(basic, fat, dir);
+    @Override
+    public void init(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectorySDos> dir) {
+        super.init(basic, fat, dir);
 
         this.emptyGroupNum = 0;
     }

@@ -16,6 +16,7 @@ import java.util.ResourceBundle;
 
 import l3diskex.Utils;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
+import l3diskex.basicfmt.BasicCommon.DiskBasicFormatType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
 import l3diskex.basicfmt.DiskBasic;
@@ -27,6 +28,7 @@ import vavi.util.serdes.Element;
 import vavi.util.serdes.Serdes;
 
 import static l3diskex.Config.config;
+import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_MAGICAL;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_ASCII_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_BASIC_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_BINARY_MASK;
@@ -252,23 +254,31 @@ public class DiskBasicDirItemMAGICAL extends DiskBasicDirItemXDOSBase<DirectoryM
     /** セクタ内部へのポインタ */
     private final DirItemSectorBoundary sectorData = new DirItemSectorBoundary();
 
-    public DiskBasicDirItemMAGICAL(DiskBasic basic) throws IOException {
-        super(basic);
+    @Override
+    public boolean isSupported(DiskBasicFormatType formatType) {
+        return formatType == FORMAT_TYPE_MAGICAL;
+    }
+
+    @Override
+    public void init(DiskBasic basic) throws IOException {
+        super.init(basic);
 
         data.alloc(DirectoryMagical.class);
         allocateItem(null);
     }
 
-    public DiskBasicDirItemMAGICAL(DiskBasic basic, DiskImageSector sector, int secPos, byte[] data, int dataP) throws IOException {
-        super(basic, sector, secPos, data, dataP);
+    @Override
+    public void init(DiskBasic basic, DiskImageSector sector, int sectorPos, byte[] data, int dataP) throws IOException {
+        super.init(basic, sector, sectorPos, data, dataP);
 
         this.data.attach(DirectoryMagical.class, data, dataP);
         allocateItem(null);
     }
 
-    public DiskBasicDirItemMAGICAL(DiskBasic basic, int num, DiskBasicGroupItem groupItem, DiskImageSector sector, int secPos,
-                                   byte[] data, int dataP, SectorParam next, boolean[] unuse) throws IOException {
-        super(basic, num, groupItem, sector, secPos, data, dataP, next, unuse, true);
+    @Override
+    public void init(DiskBasic basic, int num, DiskBasicGroupItem groupItem, DiskImageSector sector, int sectorPos,
+                     byte[] data, int dataP, SectorParam next, boolean[] unuse) throws IOException {
+        super.init(basic, num, groupItem, sector, sectorPos, data, dataP, next, unuse, true);
 
         this.data.attach(DirectoryMagical.class, data, dataP);
         allocateItem(next);

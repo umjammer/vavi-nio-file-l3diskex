@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import l3diskex.Utils;
+import l3diskex.basicfmt.BasicCommon.DiskBasicFormatType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.DiskBasic;
@@ -32,6 +33,7 @@ import l3diskex.diskimg.DiskImage.DiskImageTrack;
 import vavi.util.serdes.Element;
 import vavi.util.serdes.Serdes;
 
+import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_OS9;
 import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_FREE;
 import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_USED;
 import static l3diskex.basicfmt.DiskBasicType.AllocateGroupFlags.ALLOCATE_GROUPS_APPEND;
@@ -283,8 +285,14 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
     /** Allocation Map */
     private final OS9AllocMap allocMap = new OS9AllocMap();
 
-    public DiskBasicTypeOS9(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryOs9> dir) {
-        super(basic, fat, dir);
+    @Override
+    public boolean isSupported(DiskBasicFormatType typeNumber) {
+        return typeNumber == FORMAT_TYPE_OS9;
+    }
+
+    @Override
+    public void init(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryOs9> dir) {
+        super.init(basic, fat, dir);
 
         os9Ident = null;
     }

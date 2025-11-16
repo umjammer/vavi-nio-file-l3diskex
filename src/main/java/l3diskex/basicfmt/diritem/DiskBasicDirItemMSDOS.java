@@ -19,6 +19,7 @@ import l3diskex.Parambase.MyAttribute;
 import l3diskex.Utils;
 import l3diskex.basicfmt.BasicCommon.Directory;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
+import l3diskex.basicfmt.BasicCommon.DiskBasicFormatType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
@@ -34,6 +35,9 @@ import vavi.util.serdes.Element;
 import vavi.util.serdes.Serdes;
 
 import static l3diskex.Parambase.MyAttributes.findUpperCase;
+import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_CDOS2;
+import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_L3_1S;
+import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_MSDOS;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_ARCHIVE_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_ASCII_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_DIRECTORY_MASK;
@@ -171,27 +175,35 @@ public class DiskBasicDirItemMSDOS extends DiskBasicDirItem<DirectoryMs> {
     /** ディレクトリデータ */
     protected DiskBasicDirData<DirectoryMs> data = new DiskBasicDirData<>();
 
+    @Override
+    public boolean isSupported(DiskBasicFormatType formatType) {
+        return formatType == FORMAT_TYPE_CDOS2;
+    }
+
     //
-    public DiskBasicDirItemMSDOS(DiskBasic basic) {
-        super(basic);
+    @Override
+    public void init(DiskBasic basic) throws IOException {
+        super.init(basic);
 
         data.alloc(DirectoryMs.class);
     }
 
     //
-    public DiskBasicDirItemMSDOS(DiskBasic basic, DiskImageSector sector, int secPos, byte[] data, int dataP) {
-        super(basic, sector, secPos, data, dataP);
+    @Override
+    public void init(DiskBasic basic, DiskImageSector sector, int sectorPos, byte[] data, int dataPos) throws IOException {
+        super.init(basic, sector, sectorPos, data, dataPos);
 
-        this.data.attach(DirectoryMs.class, data, dataP);
+        this.data.attach(DirectoryMs.class, data, dataPos);
     }
 
     //
-    public DiskBasicDirItemMSDOS(DiskBasic basic, int num, DiskBasicGroupItem groupItem, DiskImageSector sector, int secPos,
-                                 byte[] data, int dataP, SectorParam next, boolean[] unuse) throws IOException {
-        super(basic, num, groupItem, sector, secPos, data, dataP, next, unuse);
+    @Override
+    public void init(DiskBasic basic, int num, DiskBasicGroupItem groupItem, DiskImageSector sector, int sectorPos,
+                     byte[] data, int dataPos, SectorParam next, boolean[] unuse) throws IOException {
+        super.init(basic, num, groupItem, sector, sectorPos, data, dataPos, next, unuse);
 
         // MS-DOS
-        this.data.attach(DirectoryMs.class, data, dataP);
+        this.data.attach(DirectoryMs.class, data, dataPos);
         used(checkUsed(unuse[0]));
         visible((getFileType1() & FILETYPE_MASK_MS_LFN) != FILETYPE_MASK_MS_LFN);
         unuse[0] = (unuse[0] || (this.data.data().msdos.name[0] == 0));
@@ -751,17 +763,28 @@ public class DiskBasicDirItemMSDOS extends DiskBasicDirItem<DirectoryMs> {
     /** ディレクトリ１アイテム MS-DOS VFAT */
     public static class DiskBasicDirItemVFAT extends DiskBasicDirItemMSDOS {
 
-        public DiskBasicDirItemVFAT(DiskBasic basic) {
-            super(basic);
+        @Override
+        public boolean isSupported(DiskBasicFormatType formatType) {
+            return formatType == FORMAT_TYPE_MSDOS;
         }
 
-        public DiskBasicDirItemVFAT(DiskBasic basic, DiskImageSector sector, int secPos, byte[] data, int dataP) {
-            super(basic, sector, secPos, data, dataP);
+        @Override
+        public void init(DiskBasic basic) throws IOException {
+            super.init(basic);
         }
 
-        public DiskBasicDirItemVFAT(DiskBasic basic, int num, DiskBasicGroupItem groupItem, DiskImageSector sector, int secPos,
-                                    byte[] data, int dataP, SectorParam next, boolean[] unuse) throws IOException {
-            super(basic, num, groupItem, sector, secPos, data, dataP, next, unuse);
+        @Override
+        public void init(DiskBasic basic, DiskImageSector sector, int sectorPos,
+                         byte[] data, int dataPos) throws IOException {
+            super.init(basic, sector, sectorPos, data, dataPos);
+        }
+
+        @Override
+        public void init(DiskBasic basic, int num, DiskBasicGroupItem groupItem,
+                         DiskImageSector sector, int sectorPos,
+                         byte[] data, int dataPos,
+                         SectorParam next, boolean[] unuse) throws IOException {
+            super.init(basic, num, groupItem, sector, sectorPos, data, dataPos, next, unuse);
         }
 
         /** ファイル名を格納する位置を返す */

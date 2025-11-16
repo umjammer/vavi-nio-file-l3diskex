@@ -19,6 +19,7 @@ import java.util.ResourceBundle;
 import l3diskex.Utils;
 import l3diskex.basicfmt.BasicCommon.Directory;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
+import l3diskex.basicfmt.BasicCommon.DiskBasicFormatType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
@@ -33,6 +34,7 @@ import vavi.util.serdes.Element;
 import vavi.util.serdes.Serdes;
 
 import static l3diskex.Config.config;
+import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_XDOS;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_ASCII_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_BASIC_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_BINARY_MASK;
@@ -320,24 +322,32 @@ public class DiskBasicDirItemXDOS extends DiskBasicDirItemXDOSBase<DirectoryXDos
     /** ディレクトリデータ */
     private final DiskBasicDirData<DirectoryXDos> data = new DiskBasicDirData<>();
 
-    protected DiskBasicDirItemXDOS(DiskBasic basic, int num, DiskBasicGroupItem groupItem, DiskImageSector sector, int secPos, byte[] data, int dataP, SectorParam next, boolean[] unuse, boolean[] inherit) {
-        super(basic, num, groupItem, sector, secPos, data, dataP, next, unuse);
+    protected void init(DiskBasic basic, int num, DiskBasicGroupItem groupItem, DiskImageSector sector, int secPos, byte[] data, int dataP, SectorParam next, boolean[] unuse, boolean[] inherit) throws IOException {
+        super.init(basic, num, groupItem, sector, secPos, data, dataP, next, unuse);
     }
 
-    public DiskBasicDirItemXDOS(DiskBasic basic) {
-        super(basic);
+    @Override
+    public boolean isSupported(DiskBasicFormatType formatType) {
+        return formatType == FORMAT_TYPE_XDOS;
+    }
+
+    @Override
+    public void init(DiskBasic basic) throws IOException {
+        super.init(basic);
 
         data.alloc(DirectoryXDos.class);
     }
 
-    public DiskBasicDirItemXDOS(DiskBasic basic, DiskImageSector sector, int secPos, byte[] data, int dataP) {
-        super(basic, sector, secPos, data, dataP);
+    @Override
+    public void init(DiskBasic basic, DiskImageSector sector, int sectorPos, byte[] data, int dataP) throws IOException {
+        super.init(basic, sector, sectorPos, data, dataP);
 
         this.data.attach(DirectoryXDos.class, data, dataP);
     }
 
-    public DiskBasicDirItemXDOS(DiskBasic basic, int num, DiskBasicGroupItem groupItem, DiskImageSector sector, int secPos, byte[] data, int dataP, SectorParam next, boolean[] unuse) throws IOException {
-        super(basic, num, groupItem, sector, secPos, data, dataP, next, unuse);
+    @Override
+    public void init(DiskBasic basic, int num, DiskBasicGroupItem groupItem, DiskImageSector sector, int sectorPos, byte[] data, int dataP, SectorParam next, boolean[] unuse) throws IOException {
+        super.init(basic, num, groupItem, sector, sectorPos, data, dataP, next, unuse);
 
         this.data.attach(DirectoryXDos.class, data, dataP);
 
@@ -807,26 +817,29 @@ abstract class DiskBasicDirItemXDOSBase<T extends Directory> extends DiskBasicDi
     /** チェイン情報 */
     protected DiskBasicDirItemXDOSChain chain = new DiskBasicDirItemXDOSChain();
 
-    protected DiskBasicDirItemXDOSBase(DiskBasic basic, int num, DiskBasicGroupItem groupItem, DiskImageSector sector, int secPos, byte[] data, int dataP, SectorParam next, boolean[] unuse, boolean inherit) {
-        super(basic, num, groupItem, sector, secPos, data, dataP, next, unuse);
+    protected void init(DiskBasic basic, int num, DiskBasicGroupItem groupItem, DiskImageSector sector, int secPos, byte[] data, int dataP, SectorParam next, boolean[] unuse, boolean inherit) throws IOException {
+        super.init(basic, num, groupItem, sector, secPos, data, dataP, next, unuse);
     }
 
-    public DiskBasicDirItemXDOSBase(DiskBasic basic) {
-        super(basic);
+    @Override
+    public void init(DiskBasic basic) throws IOException {
+        super.init(basic);
 
         chain.setBasic(basic);
         chain.alloc();
     }
 
-    public DiskBasicDirItemXDOSBase(DiskBasic basic, DiskImageSector sector, int secPos, byte[] data, int dataP) {
-        super(basic, sector, secPos, data, dataP);
+    @Override
+    public void init(DiskBasic basic, DiskImageSector sector, int sectorPos, byte[] data, int dataP) throws IOException {
+        super.init(basic, sector, sectorPos, data, dataP);
 
         chain.setBasic(basic);
         chain.alloc();
     }
 
-    public DiskBasicDirItemXDOSBase(DiskBasic basic, int num, DiskBasicGroupItem groupItem, DiskImageSector sector, int secPos, byte[] data, int dataP, SectorParam next, boolean[] unuse) {
-        super(basic, num, groupItem, sector, secPos, data, dataP, next, unuse);
+    @Override
+    public void init(DiskBasic basic, int num, DiskBasicGroupItem groupItem, DiskImageSector sector, int sectorPos, byte[] data, int dataP, SectorParam next, boolean[] unuse) throws IOException {
+        super.init(basic, num, groupItem, sector, sectorPos, data, dataP, next, unuse);
     }
 
     protected boolean allocateItem() {

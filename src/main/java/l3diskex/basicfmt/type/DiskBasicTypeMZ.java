@@ -16,6 +16,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import l3diskex.Common;
+import l3diskex.basicfmt.BasicCommon.DiskBasicFormatType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.DiskBasic;
@@ -33,6 +34,7 @@ import vavi.util.ByteUtil;
 import vavi.util.serdes.Element;
 import vavi.util.serdes.Serdes;
 
+import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_MZ;
 import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_UNKNOWN;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_DIRECTORY_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_RANDOM_MASK;
@@ -83,8 +85,14 @@ public class DiskBasicTypeMZ extends DiskBasicTypeMZBase<DirectoryMz> {
         public static final int SIZE = 252;
     }
 
-    public DiskBasicTypeMZ(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryMz> dir) {
-        super(basic, fat, dir);
+    @Override
+    public boolean isSupported(DiskBasicFormatType typeNumber) {
+        return typeNumber == FORMAT_TYPE_MZ;
+    }
+
+    @Override
+    public void init(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryMz> dir) {
+        super.init(basic, fat, dir);
     }
 
     /** FAT位置をセット */

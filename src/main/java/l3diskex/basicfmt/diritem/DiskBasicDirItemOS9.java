@@ -18,6 +18,7 @@ import l3diskex.Parambase.MyAttribute;
 import l3diskex.Utils;
 import l3diskex.basicfmt.BasicCommon.Directory;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
+import l3diskex.basicfmt.BasicCommon.DiskBasicFormatType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
@@ -31,6 +32,7 @@ import vavi.util.serdes.Serdes;
 
 import static l3diskex.Config.config;
 import static l3diskex.Parambase.MyAttributes.findUpperCase;
+import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_OS9;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_BINARY_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_DIRECTORY_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_NONSHARE_MASK;
@@ -388,8 +390,14 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     /** グループID(プロパティダイアログ用) */
     public int groupId;
 
-    public DiskBasicDirItemOS9(DiskBasic basic) {
-        super(basic);
+    @Override
+    public boolean isSupported(DiskBasicFormatType formatType) {
+        return formatType == FORMAT_TYPE_OS9;
+    }
+
+    @Override
+    public void init(DiskBasic basic) throws IOException {
+        super.init(basic);
 
         data.alloc(DirectoryOs9.class);
         fd.alloc();
@@ -397,17 +405,19 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
         groupId = 0;
     }
 
-    public DiskBasicDirItemOS9(DiskBasic basic, DiskImageSector sector, int secPos, byte[] data, int dataP) {
-        super(basic, sector, secPos, data, dataP);
+    @Override
+    public void init(DiskBasic basic, DiskImageSector sector, int sectorPos, byte[] data, int dataP) throws IOException {
+        super.init(basic, sector, sectorPos, data, dataP);
 
         this.data.attach(DirectoryOs9.class, data, dataP);
         ownerId = 0;
         groupId = 0;
     }
 
-    public DiskBasicDirItemOS9(DiskBasic basic, int num, DiskBasicGroupItem groupItem, DiskImageSector sector, int secPos,
-                               byte[] data, int dataP, SectorParam next, boolean[] unuse) throws IOException {
-        super(basic, num, groupItem, sector, secPos, data, dataP, next, unuse);
+    @Override
+    public void init(DiskBasic basic, int num, DiskBasicGroupItem groupItem, DiskImageSector sector, int sectorPos,
+                     byte[] data, int dataP, SectorParam next, boolean[] unuse) throws IOException {
+        super.init(basic, num, groupItem, sector, sectorPos, data, dataP, next, unuse);
 
         this.data.attach(DirectoryOs9.class, data, dataP);
         ownerId = 0;

@@ -14,6 +14,7 @@ import java.util.List;
 
 import l3diskex.Common;
 import l3diskex.Utils;
+import l3diskex.basicfmt.BasicCommon.DiskBasicFormatType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.DiskBasic;
@@ -30,6 +31,7 @@ import l3diskex.diskimg.DiskImage.DiskImageTrack;
 import vavi.util.serdes.Element;
 import vavi.util.serdes.Serdes;
 
+import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_FLEX;
 import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_FREE;
 import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_USED_LAST;
 import static l3diskex.basicfmt.DiskBasicType.AllocateGroupFlags.ALLOCATE_GROUPS_NEW;
@@ -97,9 +99,14 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
     /** SIRエリア */
     private FlexSir flexSir;
 
-    /** */
-    public DiskBasicTypeFLEX(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryFlex> dir) {
-        super(basic, fat, dir);
+    @Override
+    public boolean isSupported(DiskBasicFormatType typeNumber) {
+        return typeNumber == FORMAT_TYPE_FLEX;
+    }
+
+    @Override
+    public void init(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryFlex> dir) {
+        super.init(basic, fat, dir);
 
         flexSir = null;
 

@@ -2,6 +2,7 @@ package l3diskex.basicfmt;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.ServiceLoader;
 
 import l3diskex.basicfmt.BasicCommon.Directory;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileName;
@@ -75,384 +76,84 @@ public class DiskBasicDir<T extends Directory> {
      * @return New DiskBasicDirItem
      */
     public DiskBasicDirItem<T> newItem() throws IOException {
-        DiskBasicDirItem item = null;
 
-        DiskBasicFormatType num = FORMAT_TYPE_UNKNOWN;
-        if (formatType != null) num = formatType.getTypeNumber();
+        DiskBasicFormatType formatType = FORMAT_TYPE_UNKNOWN;
+        if (this.formatType != null) formatType = this.formatType.getTypeNumber();
 
-        switch (num) {
-            case FORMAT_TYPE_L3_1S:
-                item = new DiskBasicDirItemL31S(basic);
-                break;
-            case FORMAT_TYPE_L3S1_2D:
-                item = new DiskBasicDirItemL32D(basic);
-                break;
-            case FORMAT_TYPE_FM:
-                item = new DiskBasicDirItemFM(basic);
-                break;
-            case FORMAT_TYPE_MSDOS:
-                item = new DiskBasicDirItemVFAT(basic);
-                break;
-            case FORMAT_TYPE_MSX:
-                item = new DiskBasicDirItemMSX(basic);
-                break;
-            case FORMAT_TYPE_N88:
-                item = new DiskBasicDirItemN88(basic);
-                break;
-            case FORMAT_TYPE_X1HU:
-                item = new DiskBasicDirItemX1HU(basic);
-                break;
-            case FORMAT_TYPE_MZ:
-                item = new DiskBasicDirItemMZ(basic);
-                break;
-            case FORMAT_TYPE_FLEX:
-                item = new DiskBasicDirItemFLEX(basic);
-                break;
-            case FORMAT_TYPE_OS9:
-                item = new DiskBasicDirItemOS9(basic);
-                break;
-            case FORMAT_TYPE_CPM:
-                item = new DiskBasicDirItemCPM(basic);
-                break;
-            case FORMAT_TYPE_PA:
-                item = new DiskBasicDirItemN88(basic);
-                break;
-            case FORMAT_TYPE_SMC:
-                item = new DiskBasicDirItemCPM(basic);
-                break;
-            case FORMAT_TYPE_FP:
-                item = new DiskBasicDirItemFP(basic);
-                break;
-            case FORMAT_TYPE_DOS80:
-                item = new DiskBasicDirItemDOS80(basic);
-                break;
-            case FORMAT_TYPE_FROST:
-                item = new DiskBasicDirItemFROST(basic);
-                break;
-            case FORMAT_TYPE_MAGICAL:
-                item = new DiskBasicDirItemMAGICAL(basic);
-                break;
-            case FORMAT_TYPE_SDOS:
-                item = new DiskBasicDirItemSDOS(basic);
-                break;
-            case FORMAT_TYPE_MDOS:
-                item = new DiskBasicDirItemMDOS(basic);
-                break;
-            case FORMAT_TYPE_XDOS:
-                item = new DiskBasicDirItemXDOS(basic);
-                break;
-            case FORMAT_TYPE_TFDOS:
-                item = new DiskBasicDirItemTFDOS(basic);
-                break;
-            case FORMAT_TYPE_CDOS:
-                item = new DiskBasicDirItemCDOS(basic);
-                break;
-            case FORMAT_TYPE_MZ_FDOS:
-                item = new DiskBasicDirItemMZFDOS(basic);
-                break;
-            case FORMAT_TYPE_HU68K:
-                item = new DiskBasicDirItemHU68K(basic);
-                break;
-            case FORMAT_TYPE_LOSA:
-                item = new DiskBasicDirItemLOSA(basic);
-                break;
-            case FORMAT_TYPE_CDOS2:
-                item = new DiskBasicDirItemMSDOS(basic);
-                break;
-            case FORMAT_TYPE_FALCOM:
-                item = new DiskBasicDirItemFalcom(basic);
-                break;
-            case FORMAT_TYPE_APLEDOS:
-                item = new DiskBasicDirItemAppleDOS(basic);
-                break;
-            case FORMAT_TYPE_PRODOS:
-                item = new DiskBasicDirItemProDOS(basic);
-                break;
-            case FORMAT_TYPE_C1541:
-                item = new DiskBasicDirItemC1541(basic);
-                break;
-            case FORMAT_TYPE_AMIGA:
-                item = new DiskBasicDirItemAmiga(basic);
-                break;
-            case FORMAT_TYPE_M68FDOS:
-                item = new DiskBasicDirItemM68FDOS(basic);
-                break;
-            case FORMAT_TYPE_TRSD23:
-                item = new DiskBasicDirItemTRSD23(basic);
-                break;
-            case FORMAT_TYPE_TRSD13:
-                item = new DiskBasicDirItemTRSD13(basic);
-                break;
-            default:
-                //logger.log(Level.ERROR, "Unknown type is defined in basic_type.xml.");
-                //item = new DiskBasicDirItem(basic);
-                break;
+        ServiceLoader<DiskBasicDirItem> serviceLoader = ServiceLoader.load(DiskBasicDirItem.class);
+        for (DiskBasicDirItem<T> basicDirItem : serviceLoader) {
+            if (basicDirItem.isSupported(formatType)) {
+                basicDirItem.init(basic);
+                basicDirItem.clearData();
+                return basicDirItem;
+            }
         }
-        if (item != null) {
-            item.clearData();
-        }
-        return item;
+
+        //logger.log(Level.ERROR, "Unknown type is defined in basic_type.xml.");
+        //item = new DiskBasicDirItem(basic);
+        return null;
     }
 
     /**
      * Creates and assigns a new directory item.
      *
-     * @param nSector Sector
-     * @param nPos    Position within the sector
-     * @param nData   Buffer within the sector
-     * @param dataP   Buffer pointer
+     * @param sector    Sector
+     * @param sectorPos Position within the sector
+     * @param data      Buffer within the sector
+     * @param dataPos   Buffer pointer
      * @return New DiskBasicDirItem or null
      */
-    public DiskBasicDirItem<T> newItem(DiskImageSector nSector, int nPos, byte[] nData, int dataP) throws IOException {
-        DiskBasicDirItem item = null;
+    public DiskBasicDirItem<T> newItem(DiskImageSector sector, int sectorPos,
+                                       byte[] data, int dataPos) throws IOException {
 
-        int num = FORMAT_TYPE_UNKNOWN.getValue();
-        if (formatType != null) num = formatType.getTypeNumber().getValue();
+        DiskBasicFormatType formatType = FORMAT_TYPE_UNKNOWN;
+        if (this.formatType != null) formatType = this.formatType.getTypeNumber();
 
-        switch (DiskBasicFormatType.valueOf(num)) {
-            case FORMAT_TYPE_L3_1S:
-                item = new DiskBasicDirItemL31S(basic, nSector, nPos, nData, dataP);
-                break;
-            case FORMAT_TYPE_L3S1_2D:
-                item = new DiskBasicDirItemL32D(basic, nSector, nPos, nData, dataP);
-                break;
-            case FORMAT_TYPE_FM:
-                item = new DiskBasicDirItemFM(basic, nSector, nPos, nData, dataP);
-                break;
-            case FORMAT_TYPE_MSDOS:
-                item = new DiskBasicDirItemVFAT(basic, nSector, nPos, nData, dataP);
-                break;
-            case FORMAT_TYPE_MSX:
-                item = new DiskBasicDirItemMSX(basic, nSector, nPos, nData, dataP);
-                break;
-            case FORMAT_TYPE_N88:
-                item = new DiskBasicDirItemN88(basic, nSector, nPos, nData, dataP);
-                break;
-            case FORMAT_TYPE_X1HU:
-                item = new DiskBasicDirItemX1HU(basic, nSector, nPos, nData, dataP);
-                break;
-            case FORMAT_TYPE_MZ:
-                item = new DiskBasicDirItemMZ(basic, nSector, nPos, nData, dataP);
-                break;
-            case FORMAT_TYPE_FLEX:
-                item = new DiskBasicDirItemFLEX(basic, nSector, nPos, nData, dataP);
-                break;
-            case FORMAT_TYPE_OS9:
-                item = new DiskBasicDirItemOS9(basic, nSector, nPos, nData, dataP);
-                break;
-            case FORMAT_TYPE_CPM:
-                item = new DiskBasicDirItemCPM(basic, nSector, nPos, nData, dataP);
-                break;
-            case FORMAT_TYPE_PA:
-                item = new DiskBasicDirItemN88(basic, nSector, nPos, nData, dataP);
-                break;
-            case FORMAT_TYPE_SMC:
-                item = new DiskBasicDirItemCPM(basic, nSector, nPos, nData, dataP);
-                break;
-            case FORMAT_TYPE_FP:
-                item = new DiskBasicDirItemFP(basic, nSector, nPos, nData, dataP);
-                break;
-            case FORMAT_TYPE_DOS80:
-                item = new DiskBasicDirItemDOS80(basic, nSector, nPos, nData, dataP);
-                break;
-            case FORMAT_TYPE_FROST:
-                item = new DiskBasicDirItemFROST(basic, nSector, nPos, nData, dataP);
-                break;
-            case FORMAT_TYPE_MAGICAL:
-                item = new DiskBasicDirItemMAGICAL(basic, nSector, nPos, nData, dataP);
-                break;
-            case FORMAT_TYPE_SDOS:
-                item = new DiskBasicDirItemSDOS(basic, nSector, nPos, nData, dataP);
-                break;
-            case FORMAT_TYPE_MDOS:
-                item = new DiskBasicDirItemMDOS(basic, nSector, nPos, nData, dataP);
-                break;
-            case FORMAT_TYPE_XDOS:
-                item = new DiskBasicDirItemXDOS(basic, nSector, nPos, nData, dataP);
-                break;
-            case FORMAT_TYPE_TFDOS:
-                item = new DiskBasicDirItemTFDOS(basic, nSector, nPos, nData, dataP);
-                break;
-            case FORMAT_TYPE_CDOS:
-                item = new DiskBasicDirItemCDOS(basic, nSector, nPos, nData, dataP);
-                break;
-            case FORMAT_TYPE_MZ_FDOS:
-                item = new DiskBasicDirItemMZFDOS(basic, nSector, nPos, nData, dataP);
-                break;
-            case FORMAT_TYPE_HU68K:
-                item = new DiskBasicDirItemHU68K(basic, nSector, nPos, nData, dataP);
-                break;
-            case FORMAT_TYPE_LOSA:
-                item = new DiskBasicDirItemLOSA(basic, nSector, nPos, nData, dataP);
-                break;
-            case FORMAT_TYPE_CDOS2:
-                item = new DiskBasicDirItemVFAT(basic, nSector, nPos, nData, dataP);
-                break;
-            case FORMAT_TYPE_FALCOM:
-                item = new DiskBasicDirItemFalcom(basic, nSector, nPos, nData, dataP);
-                break;
-            case FORMAT_TYPE_APLEDOS:
-                item = new DiskBasicDirItemAppleDOS(basic, nSector, nPos, nData, dataP);
-                break;
-            case FORMAT_TYPE_PRODOS:
-                item = new DiskBasicDirItemProDOS(basic, nSector, nPos, nData, dataP);
-                break;
-            case FORMAT_TYPE_C1541:
-                item = new DiskBasicDirItemC1541(basic, nSector, nPos, nData, dataP);
-                break;
-            case FORMAT_TYPE_AMIGA:
-                item = new DiskBasicDirItemAmiga(basic, nSector, nPos, nData, dataP);
-                break;
-            case FORMAT_TYPE_M68FDOS:
-                item = new DiskBasicDirItemM68FDOS(basic, nSector, nPos, nData, dataP);
-                break;
-            case FORMAT_TYPE_TRSD23:
-                item = new DiskBasicDirItemTRSD23(basic, nSector, nPos, nData, dataP);
-                break;
-            case FORMAT_TYPE_TRSD13:
-                item = new DiskBasicDirItemTRSD13(basic, nSector, nPos, nData, dataP);
-                break;
-            default:
-                //logger.log(Level.ERROR, "Unknown type is defined in basic_type.xml.");
-                //item = new DiskBasicDirItem(basic, nSector, nPos, nData, dataP);
-                break;
+        ServiceLoader<DiskBasicDirItem> serviceLoader = ServiceLoader.load(DiskBasicDirItem.class);
+        for (DiskBasicDirItem<T> basicDirItem : serviceLoader) {
+            if (basicDirItem.isSupported(formatType)) {
+                basicDirItem.init(basic, sector, sectorPos, data, dataPos);
+                basicDirItem.clearData();
+                return basicDirItem;
+            }
         }
-        return item;
+
+        //logger.log(Level.ERROR, "Unknown type is defined in basic_type.xml.");
+        //item = new DiskBasicDirItem(basic, sector, sectorPos, data, dataPos);
+        return null;
     }
 
     /**
      * Creates and assigns a new directory item with group/sector info.
      *
-     * @param nNum    Sequential number
-     * @param nGitem  Track number data
-     * @param nSector Sector
-     * @param nPos    Position within the sector
-     * @param nData   Buffer within the sector
-     * @param nNext   Next sector info
-     * @param nUnuse  Is unused (output array)
+     * @param num       Sequential number
+     * @param groupItem Track number data
+     * @param sector    Sector
+     * @param sectorPos Position within the sector
+     * @param data      Buffer within the sector
+     * @param next      Next sector info
+     * @param unuse     Is unused (output array)
      * @return New DiskBasicDirItem or null
      */
-    public DiskBasicDirItem<T> newItem(int nNum, DiskBasicGroupItem nGitem, DiskImageSector nSector, int nPos, byte[] nData, int dataP, SectorParam nNext, boolean[] nUnuse) throws IOException {
-        DiskBasicDirItem item = null;
+    public DiskBasicDirItem<T> newItem(int num, DiskBasicGroupItem groupItem,
+                                       DiskImageSector sector, int sectorPos,
+                                       byte[] data, int dataPos,
+                                       SectorParam next, boolean[] unuse) throws IOException {
+        DiskBasicFormatType formatType = FORMAT_TYPE_UNKNOWN;
+        if (this.formatType != null) formatType = this.formatType.getTypeNumber();
 
-        DiskBasicFormatType num = FORMAT_TYPE_UNKNOWN;
-        if (formatType != null) num = formatType.getTypeNumber();
-
-        // nUnuse is a boolean[] to simulate bool& in C++
-        if (nUnuse == null || nUnuse.length == 0) {
-            // Error handling for missing output parameter
-            return null;
+        ServiceLoader<DiskBasicDirItem> serviceLoader = ServiceLoader.load(DiskBasicDirItem.class);
+        for (DiskBasicDirItem<T> basicDirItem : serviceLoader) {
+            if (basicDirItem.isSupported(formatType)) {
+                basicDirItem.init(basic, num, groupItem, sector, sectorPos, data, dataPos, next, unuse);
+                basicDirItem.clearData();
+                return basicDirItem;
+            }
         }
 
-        switch (num) {
-            case FORMAT_TYPE_L3_1S:
-                item = new DiskBasicDirItemL31S(basic, nNum, nGitem, nSector, nPos, nData, dataP, nNext, nUnuse);
-                break;
-            case FORMAT_TYPE_L3S1_2D:
-                item = new DiskBasicDirItemL32D(basic, nNum, nGitem, nSector, nPos, nData, dataP, nNext, nUnuse);
-                break;
-            case FORMAT_TYPE_FM:
-                item = new DiskBasicDirItemFM(basic, nNum, nGitem, nSector, nPos, nData, dataP, nNext, nUnuse);
-                break;
-            case FORMAT_TYPE_MSDOS:
-                item = new DiskBasicDirItemVFAT(basic, nNum, nGitem, nSector, nPos, nData, dataP, nNext, nUnuse);
-                break;
-            case FORMAT_TYPE_MSX:
-                item = new DiskBasicDirItemMSX(basic, nNum, nGitem, nSector, nPos, nData, dataP, nNext, nUnuse);
-                break;
-            case FORMAT_TYPE_N88:
-                item = new DiskBasicDirItemN88(basic, nNum, nGitem, nSector, nPos, nData, dataP, nNext, nUnuse);
-                break;
-            case FORMAT_TYPE_X1HU:
-                item = new DiskBasicDirItemX1HU(basic, nNum, nGitem, nSector, nPos, nData, dataP, nNext, nUnuse);
-                break;
-            case FORMAT_TYPE_MZ:
-                item = new DiskBasicDirItemMZ(basic, nNum, nGitem, nSector, nPos, nData, dataP, nNext, nUnuse);
-                break;
-            case FORMAT_TYPE_FLEX:
-                item = new DiskBasicDirItemFLEX(basic, nNum, nGitem, nSector, nPos, nData, dataP, nNext, nUnuse);
-                break;
-            case FORMAT_TYPE_OS9:
-                item = new DiskBasicDirItemOS9(basic, nNum, nGitem, nSector, nPos, nData, dataP, nNext, nUnuse);
-                break;
-            case FORMAT_TYPE_CPM:
-                item = new DiskBasicDirItemCPM(basic, nNum, nGitem, nSector, nPos, nData, dataP, nNext, nUnuse);
-                break;
-            case FORMAT_TYPE_PA:
-                item = new DiskBasicDirItemN88(basic, nNum, nGitem, nSector, nPos, nData, dataP, nNext, nUnuse);
-                break;
-            case FORMAT_TYPE_SMC:
-                item = new DiskBasicDirItemCPM(basic, nNum, nGitem, nSector, nPos, nData, dataP, nNext, nUnuse);
-                break;
-            case FORMAT_TYPE_FP:
-                item = new DiskBasicDirItemFP(basic, nNum, nGitem, nSector, nPos, nData, dataP, nNext, nUnuse);
-                break;
-            case FORMAT_TYPE_DOS80:
-                item = new DiskBasicDirItemDOS80(basic, nNum, nGitem, nSector, nPos, nData, dataP, nNext, nUnuse);
-                break;
-            case FORMAT_TYPE_FROST:
-                item = new DiskBasicDirItemFROST(basic, nNum, nGitem, nSector, nPos, nData, dataP, nNext, nUnuse);
-                break;
-            case FORMAT_TYPE_MAGICAL:
-                item = new DiskBasicDirItemMAGICAL(basic, nNum, nGitem, nSector, nPos, nData, dataP, nNext, nUnuse);
-                break;
-            case FORMAT_TYPE_SDOS:
-                item = new DiskBasicDirItemSDOS(basic, nNum, nGitem, nSector, nPos, nData, dataP, nNext, nUnuse);
-                break;
-            case FORMAT_TYPE_MDOS:
-                item = new DiskBasicDirItemMDOS(basic, nNum, nGitem, nSector, nPos, nData, dataP, nNext, nUnuse);
-                break;
-            case FORMAT_TYPE_XDOS:
-                item = new DiskBasicDirItemXDOS(basic, nNum, nGitem, nSector, nPos, nData, dataP, nNext, nUnuse);
-                break;
-            case FORMAT_TYPE_TFDOS:
-                item = new DiskBasicDirItemTFDOS(basic, nNum, nGitem, nSector, nPos, nData, dataP, nNext, nUnuse);
-                break;
-            case FORMAT_TYPE_CDOS:
-                item = new DiskBasicDirItemCDOS(basic, nNum, nGitem, nSector, nPos, nData, dataP, nNext, nUnuse);
-                break;
-            case FORMAT_TYPE_MZ_FDOS:
-                item = new DiskBasicDirItemMZFDOS(basic, nNum, nGitem, nSector, nPos, nData, dataP, nNext, nUnuse);
-                break;
-            case FORMAT_TYPE_HU68K:
-                item = new DiskBasicDirItemHU68K(basic, nNum, nGitem, nSector, nPos, nData, dataP, nNext, nUnuse);
-                break;
-            case FORMAT_TYPE_LOSA:
-                item = new DiskBasicDirItemLOSA(basic, nNum, nGitem, nSector, nPos, nData, dataP, nNext, nUnuse);
-                break;
-            case FORMAT_TYPE_CDOS2:
-                item = new DiskBasicDirItemVFAT(basic, nNum, nGitem, nSector, nPos, nData, dataP, nNext, nUnuse);
-                break;
-            case FORMAT_TYPE_FALCOM:
-                item = new DiskBasicDirItemFalcom(basic, nNum, nGitem, nSector, nPos, nData, dataP, nNext, nUnuse);
-                break;
-            case FORMAT_TYPE_APLEDOS:
-                item = new DiskBasicDirItemAppleDOS(basic, nNum, nGitem, nSector, nPos, nData, dataP, nNext, nUnuse);
-                break;
-            case FORMAT_TYPE_PRODOS:
-                item = new DiskBasicDirItemProDOS(basic, nNum, nGitem, nSector, nPos, nData, dataP, nNext, nUnuse);
-                break;
-            case FORMAT_TYPE_C1541:
-                item = new DiskBasicDirItemC1541(basic, nNum, nGitem, nSector, nPos, nData, dataP, nNext, nUnuse);
-                break;
-            case FORMAT_TYPE_AMIGA:
-                item = new DiskBasicDirItemAmiga(basic, nNum, nGitem, nSector, nPos, nData, dataP, nNext, nUnuse);
-                break;
-            case FORMAT_TYPE_M68FDOS:
-                item = new DiskBasicDirItemM68FDOS(basic, nNum, nGitem, nSector, nPos, nData, dataP, nNext, nUnuse);
-                break;
-            case FORMAT_TYPE_TRSD23:
-                item = new DiskBasicDirItemTRSD23(basic, nNum, nGitem, nSector, nPos, nData, dataP, nNext, nUnuse);
-                break;
-            case FORMAT_TYPE_TRSD13:
-                item = new DiskBasicDirItemTRSD13(basic, nNum, nGitem, nSector, nPos, nData, dataP, nNext, nUnuse);
-                break;
-            default:
-                //logger.log(Level.ERROR, "Unknown type is defined in basic_type.xml.");
-                //item = new DiskBasicDirItem(basic, nNum, nGitem, nSector, nPos, nData, dataP, nNext, nUnuse);
-                break;
-        }
-        return item;
+        //logger.log(Level.ERROR, "Unknown type is defined in basic_type.xml.");
+        //item = new DiskBasicDirItem(basic, num, groupItem, sector, sectorPos, data, dataPos, next, unuse);
+        return null;
     }
 
     /**

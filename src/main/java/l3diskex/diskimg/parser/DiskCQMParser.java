@@ -94,8 +94,14 @@ public class DiskCQMParser extends DiskPlainParser {
         int headCrc;
     }
 
-    public DiskCQMParser(DiskImageFile file, short modFlags, DiskResult result) {
-        super(file, modFlags, result);
+    @Override
+    public boolean isSupported(String type) {
+        return "cqmimg".equalsIgnoreCase(type);
+    }
+
+    @Override
+    public void init(DiskImageFile file, short modFlags, DiskResult result) {
+        super.init(file, modFlags, result);
     }
 
     /** データを展開 */

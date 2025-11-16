@@ -8,6 +8,7 @@ import java.io.IOException;
 
 import l3diskex.basicfmt.BasicCommon.Directory;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
+import l3diskex.basicfmt.BasicCommon.DiskBasicFormatType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
@@ -19,6 +20,7 @@ import l3diskex.diskimg.DiskParam.SectorParam;
 import vavi.util.serdes.Element;
 import vavi.util.serdes.Serdes;
 
+import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_FALCOM;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_BINARY_MASK;
 
 
@@ -62,33 +64,41 @@ public class DiskBasicDirItemFalcom extends DiskBasicDirItem<DirectoryFalcom> {
         public static final int SIZE = 16;
     }
 
+    @Override
+    public boolean isSupported(DiskBasicFormatType formatType) {
+        return formatType == FORMAT_TYPE_FALCOM;
+    }
+
     /** */
-    public DiskBasicDirItemFalcom(DiskBasic basic) {
-        super(basic);
+    @Override
+    public void init(DiskBasic basic) throws IOException {
+        super.init(basic);
 
         data.alloc(DirectoryFalcom.class);
     }
 
     /** */
-    public DiskBasicDirItemFalcom(DiskBasic basic,
-                                  DiskImageSector sector,
-                                  int secPos,
-                                  byte[] data, int dataP) {
-        super(basic, sector, secPos, data, dataP);
+    @Override
+    public void init(DiskBasic basic,
+                     DiskImageSector sector,
+                     int sectorPos,
+                     byte[] data, int dataP) throws IOException {
+        super.init(basic, sector, sectorPos, data, dataP);
 
         this.data.attach(DirectoryFalcom.class, data, dataP);
     }
 
     /** */
-    public DiskBasicDirItemFalcom(DiskBasic basic,
-                                  int num,
-                                  DiskBasicGroupItem groupItem,
-                                  DiskImageSector sector,
-                                  int secPos,
-                                  byte[] data, int dataP,
-                                  SectorParam next,
-                                  boolean[] unuse) throws IOException {
-        super(basic, num, groupItem, sector, secPos, data, dataP, next, unuse);
+    @Override
+    public void init(DiskBasic basic,
+                     int num,
+                     DiskBasicGroupItem groupItem,
+                     DiskImageSector sector,
+                     int sectorPos,
+                     byte[] data, int dataP,
+                     SectorParam next,
+                     boolean[] unuse) throws IOException {
+        super.init(basic, num, groupItem, sector, sectorPos, data, dataP, next, unuse);
 
         this.data.attach(DirectoryFalcom.class, data, dataP);
 

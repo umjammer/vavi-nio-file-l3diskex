@@ -8,11 +8,13 @@ import java.io.IOException;
 import java.util.ResourceBundle;
 
 import l3diskex.Utils;
+import l3diskex.basicfmt.BasicCommon.DiskBasicFormatType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
 
+import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_MSX;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_HIDDEN_MASK;
 
 
@@ -21,29 +23,34 @@ public class DiskBasicDirItemMSX extends DiskBasicDirItemMSDOS {
 
     static final ResourceBundle rb = ResourceBundle.getBundle("messages");
 
-    /** */
-    public DiskBasicDirItemMSX(DiskBasic basic) {
-        super(basic);
+    @Override
+    public boolean isSupported(DiskBasicFormatType formatType) {
+        return formatType == FORMAT_TYPE_MSX;
     }
 
-    /** */
-    public DiskBasicDirItemMSX(DiskBasic basic,
-                               DiskImageSector sector,
-                               int secPos,
-                               byte[] data, int dataP) {
-        super(basic, sector, secPos, data, dataP);
+    @Override
+    public void init(DiskBasic basic) throws IOException {
+        super.init(basic);
     }
 
-    /** */
-    public DiskBasicDirItemMSX(DiskBasic basic,
-                               int num,
-                               DiskBasicGroupItem gitem,
-                               DiskImageSector sector,
-                               int secPos,
-                               byte[] data, int dataP,
-                               SectorParam next,
-                               boolean[] unuse) throws IOException {
-        super(basic, num, gitem, sector, secPos, data, dataP, next, unuse);
+    @Override
+    public void init(DiskBasic basic,
+                     DiskImageSector sector,
+                     int sectorPos,
+                     byte[] data, int dataPos) throws IOException {
+        super.init(basic, sector, sectorPos, data, dataPos);
+    }
+
+    @Override
+    public void init(DiskBasic basic,
+                     int num,
+                     DiskBasicGroupItem gitem,
+                     DiskImageSector sector,
+                     int sectorPos,
+                     byte[] data, int dataPos,
+                     SectorParam next,
+                     boolean[] unuse) throws IOException {
+        super.init(basic, num, gitem, sector, sectorPos, data, dataPos, next, unuse);
     }
 
     /** 属性の文字列を返す(ファイル一覧画面表示用) */

@@ -100,12 +100,29 @@ public class DiskDmkParser extends DiskImageParser {
     //
     // TRS-80 DMK形式をD88形式にする
     //
-    public DiskDmkParser(DiskImageFile file, short modFlags, DiskResult result) {
-        super(file, modFlags, result);
+
+    @Override
+    public boolean isSupported(String type) {
+        return "dmk".equalsIgnoreCase(type);
+    }
+
+    @Override
+    public boolean needsCheck() {
+        return true;
+    }
+
+    @Override
+    public boolean checkCondition(InputStream stream) throws IOException {
+        return check(stream) >= 0;
+    }
+
+    @Override
+    public void init(DiskImageFile file, short modFlags, DiskResult result) {
+        super.init(file, modFlags, result);
     }
 
     // データマークをさがす
-    private boolean findDataMark(InputStream iStream, int sectorSize, boolean doubleDensity, int[] deleted) throws IOException {
+    private static boolean findDataMark(InputStream iStream, int sectorSize, boolean doubleDensity, int[] deleted) throws IOException {
         byte[] buf = new byte[64];
 
         int len = iStream.readNBytes(buf, 0, buf.length);
@@ -291,8 +308,8 @@ public class DiskDmkParser extends DiskImageParser {
     }
 
     @Override
-    public int check(InputStream iStream, List<DiskTypeHint> diskHints, DiskParam diskParam, List<DiskParam> diskParams, DiskParam manualParam) {
-        return -1;
+    public int check(InputStream iStream, List<DiskTypeHint> diskHints, DiskParam diskParam, List<DiskParam> diskParams, DiskParam manualParam) throws IOException {
+        return check(iStream);
     }
 
     // TRS-80 DMKファイルかどうかをチェック

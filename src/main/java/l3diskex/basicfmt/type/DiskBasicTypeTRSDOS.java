@@ -10,6 +10,7 @@ import java.util.List;
 
 import l3diskex.Utils;
 import l3diskex.basicfmt.BasicCommon.Directory;
+import l3diskex.basicfmt.BasicCommon.DiskBasicFormatType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasic.DiskBasicIdentifiedData;
@@ -24,6 +25,8 @@ import l3diskex.diskimg.DiskImage.DiskImageSector;
 import vavi.util.serdes.Element;
 import vavi.util.serdes.Serdes;
 
+import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_TRSD13;
+import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_TRSD23;
 import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_FREE;
 import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_SYSTEM;
 import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_USED;
@@ -148,8 +151,9 @@ public abstract class DiskBasicTypeTRSDOS<T extends Directory> extends DiskBasic
     /** Use composition for TRSDOS_HIT */
     public TrsDosHit hit;
 
-    public DiskBasicTypeTRSDOS(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<T> dir) {
-        super(basic, fat, dir);
+    @Override
+    public void init(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<T> dir) {
+        super.init(basic, fat, dir);
         this.hit = new TrsDosHit();
 
         if (basic.getGroupsPerTrack() <= 0) {
@@ -463,9 +467,14 @@ public abstract class DiskBasicTypeTRSDOS<T extends Directory> extends DiskBasic
     //
     public static class DiskBasicTypeTRSD23 extends DiskBasicTypeTRSDOS<DirectoryTrsD23> {
 
-        /** */
-        public DiskBasicTypeTRSD23(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryTrsD23> dir) {
-            super(basic, fat, dir);
+        @Override
+        public boolean isSupported(DiskBasicFormatType typeNumber) {
+            return typeNumber == FORMAT_TYPE_TRSD23;
+        }
+
+        @Override
+        public void init(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryTrsD23> dir) {
+            super.init(basic, fat, dir);
         }
 
         @Override
@@ -721,8 +730,14 @@ public abstract class DiskBasicTypeTRSDOS<T extends Directory> extends DiskBasic
      */
     public static class DiskBasicTypeTRSD13 extends DiskBasicTypeTRSDOS<DirectoryTrsD13> {
 
-        public DiskBasicTypeTRSD13(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryTrsD13> dir) {
-            super(basic, fat, dir);
+        @Override
+        public boolean isSupported(DiskBasicFormatType typeNumber) {
+            return typeNumber == FORMAT_TYPE_TRSD13;
+        }
+
+        @Override
+        public void init(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryTrsD13> dir) {
+            super.init(basic, fat, dir);
         }
 
         /** ハッシュの格納位置を得る */

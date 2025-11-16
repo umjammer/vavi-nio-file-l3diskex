@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.util.Arrays;
 
 import l3diskex.basicfmt.BasicCommon.Directory;
+import l3diskex.basicfmt.BasicCommon.DiskBasicFormatType;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasicDir;
 import l3diskex.basicfmt.DiskBasicFat;
@@ -25,11 +26,11 @@ import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailabili
 /**
  * FAT handling
  */
-public class DiskBasicTypeFATBase<T extends Directory> extends DiskBasicType<T> {
+public abstract class DiskBasicTypeFATBase<T extends Directory> extends DiskBasicType<T> {
 
-    /** */
-    public DiskBasicTypeFATBase(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<T> dir) {
-        super(basic, fat, dir);
+    @Override
+    public void init(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<T> dir) {
+        super.init(basic, fat, dir);
     }
 
     /**

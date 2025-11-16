@@ -8,6 +8,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
+import java.util.prefs.Preferences;
 
 import l3diskex.diskimg.DiskImage.DiskImageDisk;
 import l3diskex.diskimg.DiskImage.DiskImageFile;
@@ -16,6 +18,7 @@ import l3diskex.diskimg.DiskImage.DiskImageTrack;
 import l3diskex.diskimg.DiskParam;
 import l3diskex.diskimg.DiskParser.DiskImageParser;
 import l3diskex.diskimg.DiskResult;
+import l3diskex.diskimg.FileParam.DiskTypeHint;
 import vavi.io.SeekableDataInputStream;
 import vavi.util.serdes.Element;
 import vavi.util.serdes.Serdes;
@@ -125,7 +128,7 @@ public class DiskTD0Parser extends DiskImageParser {
     }
 
     // TODO Advanced compress version is not supported.
-    private final boolean isCompressed;
+    private boolean isCompressed;
 
     /**
      * セクタデータの作成
@@ -358,6 +361,18 @@ public class DiskTD0Parser extends DiskImageParser {
         return pos;
     }
 
+    @Override
+    public boolean isSupported(String type) {
+        return "teletd0".equalsIgnoreCase(type);
+    }
+
+    @Override
+    public void init(DiskImageFile file, short modFlags, DiskResult result) {
+        super.init(file, modFlags, result);
+
+        isCompressed = false;
+    }
+
     /**
      * チェック
      */
@@ -390,9 +405,11 @@ public class DiskTD0Parser extends DiskImageParser {
         return 0;
     }
 
-    /**
-     * 解析
-     */
+    @Override
+    public int check(InputStream iStream, List<DiskTypeHint> hints, DiskParam diskParam, List<DiskParam> diskParams, DiskParam manualParam) throws IOException {
+        return check(iStream);
+    }
+
     @Override
     public int parse(InputStream iStream, DiskParam diskParam) throws IOException {
         ((SeekableDataInputStream) iStream).position(0);
@@ -402,11 +419,5 @@ public class DiskTD0Parser extends DiskImageParser {
             }
         }
         return result.getValid();
-    }
-
-    public DiskTD0Parser(DiskImageFile file, short modFlags, DiskResult result) {
-        super(file, modFlags, result);
-
-        isCompressed = false;
     }
 }

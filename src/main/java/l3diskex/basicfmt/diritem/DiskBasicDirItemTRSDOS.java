@@ -14,6 +14,7 @@ import java.util.ResourceBundle;
 import l3diskex.Utils;
 import l3diskex.basicfmt.BasicCommon.Directory;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
+import l3diskex.basicfmt.BasicCommon.DiskBasicFormatType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
@@ -29,6 +30,8 @@ import l3diskex.diskimg.DiskParam.SectorParam;
 import vavi.util.serdes.Element;
 import vavi.util.serdes.Serdes;
 
+import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_L3_1S;
+import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_TRSD23;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_HIDDEN_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_SYSTEM_MASK;
 
@@ -82,23 +85,26 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
     /** HITの位置 */
     protected int positionInHit;
 
-    public DiskBasicDirItemTRSDOS(DiskBasic basic) {
-        super(basic);
+    @Override
+    public void init(DiskBasic basic) throws IOException {
+        super.init(basic);
 
         positionInHit = -1;
         nextItem = null;
     }
 
-    public DiskBasicDirItemTRSDOS(DiskBasic basic, DiskImageSector sector, int secPos, byte[] data, int dataP) {
-        super(basic, sector, secPos, data, dataP);
+    @Override
+    public void init(DiskBasic basic, DiskImageSector sector, int sectorPos, byte[] data, int dataP) throws IOException {
+        super.init(basic, sector, sectorPos, data, dataP);
 
         positionInHit = -1;
         nextItem = null;
     }
 
-    public DiskBasicDirItemTRSDOS(DiskBasic basic, int num, DiskBasicGroupItem groupItem, DiskImageSector sector, int secPos,
-                                  byte[] data, int dataP, SectorParam next, boolean[] unuse) {
-        super(basic, num, groupItem, sector, secPos, data, dataP, next, unuse);
+    @Override
+    public void init(DiskBasic basic, int num, DiskBasicGroupItem groupItem, DiskImageSector sector, int sectorPos,
+                     byte[] data, int dataP, SectorParam next, boolean[] unuse) throws IOException {
+        super.init(basic, num, groupItem, sector, sectorPos, data, dataP, next, unuse);
 
         positionInHit = -1;
         nextItem = null;
@@ -450,27 +456,35 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
         /** ディレクトリデータ */
         protected DiskBasicDirData<DirectoryTrsD23> data = new DiskBasicDirData<>();
 
-        public DiskBasicDirItemTRSD23(DiskBasic basic) {
-            super(basic);
+        @Override
+        public boolean isSupported(DiskBasicFormatType formatType) {
+            return formatType == FORMAT_TYPE_TRSD23;
+        }
+
+        @Override
+        public void init(DiskBasic basic) throws IOException {
+            super.init(basic);
 
             data.alloc(DirectoryTrsD23.class);
         }
 
-        public DiskBasicDirItemTRSD23(DiskBasic basic, DiskImageSector sector, int secPos, byte[] data, int dataP) {
-            super(basic, sector, secPos, data, dataP);
+        @Override
+        public void init(DiskBasic basic, DiskImageSector sector, int sectorPos, byte[] data, int dataP) throws IOException {
+            super.init(basic, sector, sectorPos, data, dataP);
 
             this.data.attach(DirectoryTrsD23.class, data, dataP);
             if (sector != null) {
-                positionInHit = DiskBasicTypeTRSD23.getHIPosition(sector.getSectorNumber() - basic.getSectorNumberBase(), secPos / getDataSize());
+                positionInHit = DiskBasicTypeTRSD23.getHIPosition(sector.getSectorNumber() - basic.getSectorNumberBase(), sectorPos / getDataSize());
             }
         }
 
-        public DiskBasicDirItemTRSD23(DiskBasic basic, int num, DiskBasicGroupItem groupItem, DiskImageSector sector, int secPos,
-                                      byte[] data, int dataP, SectorParam next, boolean[] unuse) {
-            super(basic, num, groupItem, sector, secPos, data, dataP, next, unuse);
+        @Override
+        public void init(DiskBasic basic, int num, DiskBasicGroupItem groupItem, DiskImageSector sector, int sectorPos,
+                         byte[] data, int dataP, SectorParam next, boolean[] unuse) throws IOException {
+            super.init(basic, num, groupItem, sector, sectorPos, data, dataP, next, unuse);
 
             this.data.attach(DirectoryTrsD23.class, data, dataP);
-            positionInHit = DiskBasicTypeTRSD23.getHIPosition(sector.getSectorNumber() - basic.getSectorNumberBase(), secPos / getDataSize());
+            positionInHit = DiskBasicTypeTRSD23.getHIPosition(sector.getSectorNumber() - basic.getSectorNumberBase(), sectorPos / getDataSize());
 
             used(checkUsed(unuse[0]));
         }
@@ -840,23 +854,31 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
             return pos & 0xff;
         }
 
-        public DiskBasicDirItemTRSD13(DiskBasic basic) {
-            super(basic);
+        @Override
+        public boolean isSupported(DiskBasicFormatType formatType) {
+            return formatType == FORMAT_TYPE_L3_1S;
         }
 
-        public DiskBasicDirItemTRSD13(DiskBasic basic, DiskImageSector sector, int secPos, byte[] data, int dataP) {
-            super(basic, sector, secPos, data, dataP);
+        @Override
+        public void init(DiskBasic basic) throws IOException {
+            super.init(basic);
+        }
+
+        @Override
+        public void init(DiskBasic basic, DiskImageSector sector, int sectorPos, byte[] data, int dataP) throws IOException {
+            super.init(basic, sector, sectorPos, data, dataP);
 
             this.data.attach(DirectoryTrsD13.class, data, dataP);
             if (sector != null) {
                 int n = (basic.getSectorSize() / getDataSize());
-                positionInHit = getHIPosition((sector.getSectorNumber() - basic.getSectorNumberBase() - 2) * n + (secPos / getDataSize()));
+                positionInHit = getHIPosition((sector.getSectorNumber() - basic.getSectorNumberBase() - 2) * n + (sectorPos / getDataSize()));
             }
         }
 
-        public DiskBasicDirItemTRSD13(DiskBasic basic, int num, DiskBasicGroupItem groupItem, DiskImageSector sector, int secPos,
-                                      byte[] data, int dataP, SectorParam next, boolean[] unuse) {
-            super(basic, num, groupItem, sector, secPos, data, dataP, next, unuse);
+        @Override
+        public void init(DiskBasic basic, int num, DiskBasicGroupItem groupItem, DiskImageSector sector, int sectorPos,
+                         byte[] data, int dataP, SectorParam next, boolean[] unuse) throws IOException {
+            super.init(basic, num, groupItem, sector, sectorPos, data, dataP, next, unuse);
 
             this.data.attach(DirectoryTrsD13.class, data, dataP);
             positionInHit = getHIPosition(num);

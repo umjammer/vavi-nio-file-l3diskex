@@ -10,6 +10,7 @@ import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.List;
 
+import l3diskex.basicfmt.BasicCommon.DiskBasicFormatType;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasic.DiskBasicIdentifiedData;
 import l3diskex.basicfmt.DiskBasicDir;
@@ -19,6 +20,8 @@ import l3diskex.basicfmt.DiskBasicType;
 import l3diskex.basicfmt.diritem.DiskBasicDirItemDOS80.DirectoryDos80;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskImage.DiskImageTrack;
+
+import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_DOS80;
 
 
 /**
@@ -33,9 +36,15 @@ import l3diskex.diskimg.DiskImage.DiskImageTrack;
  */
 public class DiskBasicTypeDOS80 extends DiskBasicTypeFAT8<DirectoryDos80> {
 
+    @Override
+    public boolean isSupported(DiskBasicFormatType typeNumber) {
+        return typeNumber == FORMAT_TYPE_DOS80;
+    }
+
     /** */
-    public DiskBasicTypeDOS80(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryDos80> dir) {
-        super(basic, fat, dir);
+    @Override
+    public void init(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryDos80> dir) {
+        super.init(basic, fat, dir);
     }
 
     /**

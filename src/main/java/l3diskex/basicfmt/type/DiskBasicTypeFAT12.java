@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import l3diskex.basicfmt.BasicCommon.Directory;
+import l3diskex.basicfmt.BasicCommon.DiskBasicFormatType;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasicDir;
 import l3diskex.basicfmt.DiskBasicDirItem;
@@ -14,11 +15,11 @@ import l3diskex.basicfmt.DiskBasicFat;
 /**
  * FAT12の処理
  */
-public class DiskBasicTypeFAT12<T extends Directory> extends DiskBasicTypeFATBase<T> {
+public abstract class DiskBasicTypeFAT12<T extends Directory> extends DiskBasicTypeFATBase<T> {
 
-    /** */
-    public DiskBasicTypeFAT12(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<T> dir) {
-        super(basic, fat, dir);
+    @Override
+    public void init(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<T> dir) {
+        super.init(basic, fat, dir);
     }
 
     @Override

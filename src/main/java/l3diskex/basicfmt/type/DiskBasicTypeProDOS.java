@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
+import l3diskex.basicfmt.BasicCommon.DiskBasicFormatType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.DiskBasic;
@@ -111,8 +112,14 @@ public class DiskBasicTypeProDOS extends DiskBasicType<DirectoryProDos> {
     private DirectoryProDos volume;
     private final DiskBasicSectorPosTrans sectorMap = new DiskBasicSectorPosTrans();
 
-    public DiskBasicTypeProDOS(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryProDos> dir) {
-        super(basic, fat, dir);
+    @Override
+    public boolean isSupported(DiskBasicFormatType typeNumber) {
+        return typeNumber == FORMAT_TYPE_PRODOS;
+    }
+
+    @Override
+    public void init(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryProDos> dir) {
+        super.init(basic, fat, dir);
         this.volume = null;
 
         // ProDOS 8のときは、セクタ→ブロックマップを作成

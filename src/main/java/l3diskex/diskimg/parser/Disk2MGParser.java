@@ -82,8 +82,14 @@ public class Disk2MGParser extends DiskPlainParser {
     //
     //
 
-    public Disk2MGParser(DiskImageFile file, short modFlags, DiskResult result) {
-        super(file, modFlags, result);
+    @Override
+    public boolean isSupported(String type) {
+        return "2mg".equalsIgnoreCase(type);
+    }
+
+    @Override
+    public void init(DiskImageFile file, short modFlags, DiskResult result) {
+        super.init(file, modFlags, result);
     }
 
     @Override

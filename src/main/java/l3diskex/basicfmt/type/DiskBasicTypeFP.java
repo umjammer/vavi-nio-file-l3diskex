@@ -10,6 +10,7 @@ import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.List;
 
+import l3diskex.basicfmt.BasicCommon.DiskBasicFormatType;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasic.DiskBasicIdentifiedData;
 import l3diskex.basicfmt.DiskBasicDir;
@@ -18,6 +19,7 @@ import l3diskex.basicfmt.DiskBasicFat;
 import l3diskex.basicfmt.diritem.DiskBasicDirItemN88.DirectoryN88;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 
+import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_FP;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_RANDOM_MASK;
 
 
@@ -30,9 +32,14 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_RANDOM_MASK;
  */
 public class DiskBasicTypeFP extends DiskBasicTypeN88 {
 
-    /** */
-    public DiskBasicTypeFP(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryN88> dir) {
-        super(basic, fat, dir);
+    @Override
+    public boolean isSupported(DiskBasicFormatType typeNumber) {
+        return typeNumber == FORMAT_TYPE_FP;
+    }
+
+    @Override
+    public void init(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryN88> dir) {
+        super.init(basic, fat, dir);
     }
 
     /** FATエリアをチェック */

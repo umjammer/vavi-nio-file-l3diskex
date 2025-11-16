@@ -8,6 +8,7 @@ import java.io.IOException;
 
 import l3diskex.Parambase.MyAttribute;
 import l3diskex.basicfmt.BasicCommon.Directory;
+import l3diskex.basicfmt.BasicCommon.DiskBasicFormatType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
@@ -20,6 +21,7 @@ import vavi.util.serdes.Serdes;
 
 import static l3diskex.Parambase.MyAttributes.findType;
 import static l3diskex.Parambase.MyAttributes.findUpperCase;
+import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_L3S1_2D;
 
 
 /**
@@ -57,27 +59,35 @@ public class DiskBasicDirItemL32D extends DiskBasicDirItemFAT8<DirectoryL32d> {
     /** Directory data */
     private final DiskBasicDirData<DirectoryL32d> data = new DiskBasicDirData<>();
 
+    @Override
+    public boolean isSupported(DiskBasicFormatType formatType) {
+        return formatType == FORMAT_TYPE_L3S1_2D;
+    }
+
     /** */
-    public DiskBasicDirItemL32D(DiskBasic basic) {
-        super(basic);
+    @Override
+    public void init(DiskBasic basic) throws IOException {
+        super.init(basic);
 
         data.alloc(DirectoryL32d.class);
     }
 
     /** */
-    public DiskBasicDirItemL32D(DiskBasic basic, DiskImageSector sector,
-                                int secPos, byte[] data, int dataP) {
-        super(basic, sector, secPos, data, dataP);
+    @Override
+    public void init(DiskBasic basic, DiskImageSector sector,
+                     int sectorPos, byte[] data, int dataP) throws IOException {
+        super.init(basic, sector, sectorPos, data, dataP);
 
         this.data.attach(DirectoryL32d.class, data, dataP);
     }
 
     /** */
-    public DiskBasicDirItemL32D(DiskBasic basic, int num,
-                                DiskBasicGroupItem groupItem, DiskImageSector sector,
-                                int secPos, byte[] data, int dataP, SectorParam next,
-                                boolean[] unuse) throws IOException {
-        super(basic, num, groupItem, sector, secPos, data, dataP, next, unuse);
+    @Override
+    public void init(DiskBasic basic, int num,
+                     DiskBasicGroupItem groupItem, DiskImageSector sector,
+                     int sectorPos, byte[] data, int dataP, SectorParam next,
+                     boolean[] unuse) throws IOException {
+        super.init(basic, num, groupItem, sector, sectorPos, data, dataP, next, unuse);
 
         // L3 2D
         this.data.attach(DirectoryL32d.class, data, dataP);

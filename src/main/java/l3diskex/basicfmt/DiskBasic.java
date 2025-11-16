@@ -20,6 +20,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.ServiceLoader;
 
 import l3diskex.CharCodes;
 import l3diskex.Common;
@@ -34,9 +35,6 @@ import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.DiskBasicDirItem.DiskBasicDirItemAttr;
 import l3diskex.basicfmt.DiskBasicParam.DiskBasicFormat;
 import l3diskex.basicfmt.DiskBasicParam.DiskBasicParams;
-import l3diskex.basicfmt.type.*;
-import l3diskex.basicfmt.type.DiskBasicTypeTRSDOS.DiskBasicTypeTRSD13;
-import l3diskex.basicfmt.type.DiskBasicTypeTRSDOS.DiskBasicTypeTRSD23;
 import l3diskex.diskimg.DiskImage.DiskImageDisk;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskImage.DiskImageTrack;
@@ -190,7 +188,7 @@ public class DiskBasic extends DiskParam {
         skippedTrack = 0x7fff;
 
         fat = new DiskBasicFat(this);
-        dir = new DiskBasicDir(this);
+        dir = new DiskBasicDir<>(this);
         type = null;
 
         codes = new CharCodes();
@@ -629,112 +627,19 @@ public class DiskBasic extends DiskParam {
     private void createType() {
         type = null;
 
-        DiskBasicFormat fmt = getFormatType();
-        if (fmt == null) return;
+        DiskBasicFormat format = getFormatType();
+        if (format == null) return;
 
-        switch (fmt.getTypeNumber()) {
-            case FORMAT_TYPE_L3_1S:
-                type = new DiskBasicTypeL31S(this, fat, dir);
-                break;
-            case FORMAT_TYPE_L3S1_2D:
-                type = new DiskBasicTypeL32D(this, fat, dir);
-                break;
-            case FORMAT_TYPE_FM:
-                type = new DiskBasicTypeFM(this, fat, dir);
-                break;
-            case FORMAT_TYPE_MSDOS:
-            case FORMAT_TYPE_LOSA:
-            case FORMAT_TYPE_CDOS2:
-                type = new DiskBasicTypeMSDOS(this, fat, dir);
-                break;
-            case FORMAT_TYPE_MSX:
-                type = new DiskBasicTypeMSX(this, fat, dir);
-                break;
-            case FORMAT_TYPE_N88:
-                type = new DiskBasicTypeN88(this, fat, dir);
-                break;
-            case FORMAT_TYPE_X1HU:
-                type = new DiskBasicTypeX1HU(this, fat, dir);
-                break;
-            case FORMAT_TYPE_MZ:
-                type = new DiskBasicTypeMZ(this, fat, dir);
-                break;
-            case FORMAT_TYPE_FLEX:
-                type = new DiskBasicTypeFLEX(this, fat, dir);
-                break;
-            case FORMAT_TYPE_OS9:
-                type = new DiskBasicTypeOS9(this, fat, dir);
-                break;
-            case FORMAT_TYPE_CPM:
-                type = new DiskBasicTypeCPM(this, fat, dir);
-                break;
-            case FORMAT_TYPE_PA:
-                type = new DiskBasicTypePA(this, fat, dir);
-                break;
-            case FORMAT_TYPE_SMC:
-                type = new DiskBasicTypeSMC(this, fat, dir);
-                break;
-            case FORMAT_TYPE_FP:
-                type = new DiskBasicTypeFP(this, fat, dir);
-                break;
-            case FORMAT_TYPE_DOS80:
-                type = new DiskBasicTypeDOS80(this, fat, dir);
-                break;
-            case FORMAT_TYPE_FROST:
-                type = new DiskBasicTypeFROST(this, fat, dir);
-                break;
-            case FORMAT_TYPE_MAGICAL:
-                type = new DiskBasicTypeMAGICAL(this, fat, dir);
-                break;
-            case FORMAT_TYPE_SDOS:
-                type = new DiskBasicTypeSDOS(this, fat, dir);
-                break;
-            case FORMAT_TYPE_MDOS:
-                type = new DiskBasicTypeMDOS(this, fat, dir);
-                break;
-            case FORMAT_TYPE_XDOS:
-                type = new DiskBasicTypeXDOS(this, fat, dir);
-                break;
-            case FORMAT_TYPE_TFDOS:
-                type = new DiskBasicTypeTFDOS(this, fat, dir);
-                break;
-            case FORMAT_TYPE_CDOS:
-                type = new DiskBasicTypeCDOS(this, fat, dir);
-                break;
-            case FORMAT_TYPE_MZ_FDOS:
-                type = new DiskBasicTypeMZFDOS(this, fat, dir);
-                break;
-            case FORMAT_TYPE_HU68K:
-                type = new DiskBasicTypeHU68K(this, fat, dir);
-                break;
-            case FORMAT_TYPE_FALCOM:
-                type = new DiskBasicTypeFalcom(this, fat, dir);
-                break;
-            case FORMAT_TYPE_APLEDOS:
-                type = new DiskBasicTypeAppleDOS(this, fat, dir);
-                break;
-            case FORMAT_TYPE_PRODOS:
-                type = new DiskBasicTypeProDOS(this, fat, dir);
-                break;
-            case FORMAT_TYPE_C1541:
-                type = new DiskBasicTypeC1541(this, fat, dir);
-                break;
-            case FORMAT_TYPE_AMIGA:
-                type = new DiskBasicTypeAmiga(this, fat, dir);
-                break;
-            case FORMAT_TYPE_M68FDOS:
-                type = new DiskBasicTypeM68FDOS(this, fat, dir);
-                break;
-            case FORMAT_TYPE_TRSD23:
-                type = new DiskBasicTypeTRSD23(this, fat, dir);
-                break;
-            case FORMAT_TYPE_TRSD13:
-                type = new DiskBasicTypeTRSD13(this, fat, dir);
-                break;
-            default:
-                logger.log(Level.INFO, "Unknown type is defined in basic_type.xml.");
-                break;
+        ServiceLoader<DiskBasicType> serviceLoader = ServiceLoader.load(DiskBasicType.class);
+        for (DiskBasicType<?> diskBasicType : serviceLoader) {
+            if (diskBasicType.isSupported(format.getTypeNumber())) {
+                type = diskBasicType;
+                type.init(this, fat, dir);
+                return;
+            }
         }
+
+        logger.log(Level.WARNING, "Unknown type is defined in basic_type.xml.");
     }
 
     /** Returns the index of the highest value */

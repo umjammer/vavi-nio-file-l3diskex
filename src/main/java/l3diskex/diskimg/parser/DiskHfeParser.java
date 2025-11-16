@@ -918,13 +918,19 @@ public class DiskHfeParser extends DiskImageParser {
         return d88_offset;
     }
 
-    public DiskHfeParser(DiskImageFile file, short mod_flags, DiskResult result) {
-        super(file, mod_flags, result);
+    @Override
+    public boolean isSupported(String type) {
+        return "hfe".equalsIgnoreCase(type);
     }
 
     @Override
-    public int check(InputStream iStream, List<DiskTypeHint> disk_hints, DiskParam diskParam, List<DiskParam> diskParams, DiskParam manualParam) {
-        return -1;
+    public void init(DiskImageFile file, short mod_flags, DiskResult result) {
+        super.init(file, mod_flags, result);
+    }
+
+    @Override
+    public int check(InputStream iStream, List<DiskTypeHint> disk_hints, DiskParam diskParam, List<DiskParam> diskParams, DiskParam manualParam) throws IOException {
+        return check(iStream);
     }
 
     /**

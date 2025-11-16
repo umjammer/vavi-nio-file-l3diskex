@@ -16,6 +16,7 @@ import java.util.ResourceBundle;
 import l3diskex.Utils;
 import l3diskex.basicfmt.BasicCommon.Directory;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
+import l3diskex.basicfmt.BasicCommon.DiskBasicFormatType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
@@ -28,6 +29,7 @@ import vavi.util.serdes.Element;
 import vavi.util.serdes.Serdes;
 
 import static l3diskex.Config.config;
+import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_APLEDOS;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_ASCII_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_BASIC_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_BINARY_MASK;
@@ -311,8 +313,14 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryAppleDos
     /** トラック＆セクタリスト */
     private final DiskBasicDirItemAppleDosChain chain = new DiskBasicDirItemAppleDosChain();
 
-    public DiskBasicDirItemAppleDOS(DiskBasic basic) {
-        super(basic);
+    @Override
+    public boolean isSupported(DiskBasicFormatType formatType) {
+        return formatType == FORMAT_TYPE_APLEDOS;
+    }
+
+    @Override
+    public void init(DiskBasic basic) throws IOException {
+        super.init(basic);
 
         startAddress = -1;
         dataLength = -1;
@@ -320,41 +328,43 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryAppleDos
         data.alloc(DirectoryAppleDos.class);
     }
 
-    public DiskBasicDirItemAppleDOS(DiskBasic basic, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP) throws IOException {
-        super(basic, n_sector, n_secpos, n_data, dataP);
+    @Override
+    public void init(DiskBasic basic, DiskImageSector sector, int sectorPos, byte[] data, int dataPos) throws IOException {
+        super.init(basic, sector, sectorPos, data, dataPos);
 
         startAddress = -1;
         dataLength = -1;
 
-        data.attach(DirectoryAppleDos.class, n_data, dataP);
+        this.data.attach(DirectoryAppleDos.class, data, dataPos);
     }
 
-    public DiskBasicDirItemAppleDOS(DiskBasic basic, int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP, SectorParam n_next, boolean[] n_unuse) throws IOException {
-        super(basic, n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next, n_unuse);
+    @Override
+    public void init(DiskBasic basic, int num, DiskBasicGroupItem groupItem, DiskImageSector sector, int sectorPos, byte[] data, int dataPos, SectorParam next, boolean[] unuse) throws IOException {
+        super.init(basic, num, groupItem, sector, sectorPos, data, dataPos, next, unuse);
 
         startAddress = -1;
         dataLength = -1;
 
-        data.attach(DirectoryAppleDos.class, n_data, dataP);
+        this.data.attach(DirectoryAppleDos.class, data, dataPos);
 
-        used(checkUsed(n_unuse[0]));
+        used(checkUsed(unuse[0]));
 
         // チェインセクタへのポインタをセット
         if (isUsed()) {
             chain.clear();
             chain.setBasic(basic);
-            int grp = getStartGroup(0);
-            while (grp != 0) {
-                DiskImageSector sector = basic.getSectorFromGroup(grp);
-                if (sector == null) break;
+            int gourp = getStartGroup(0);
+            while (gourp != 0) {
+                DiskImageSector sectorNum = basic.getSectorFromGroup(gourp);
+                if (sectorNum == null) break;
 
-                byte[] buf = sector.getSectorBuffer();
+                byte[] buf = sectorNum.getSectorBuffer();
                 AppleDosChain c = new AppleDosChain();
                 Serdes.Util.deserialize(new ByteArrayInputStream(buf), c);
                 chain.add(c);
                 AppleDosPointer p = new AppleDosPointer();
                 Serdes.Util.deserialize(new ByteArrayInputStream(buf), p);
-                grp = type.getSectorPosFromNumS((p.nextTrack & 0xff) + basic.getTrackNumberBaseOnDisk(), (p.nextSector & 0xff) + basic.getSectorNumberBase());
+                gourp = type.getSectorPosFromNumS((p.nextTrack & 0xff) + basic.getTrackNumberBaseOnDisk(), (p.nextSector & 0xff) + basic.getSectorNumberBase());
             }
         }
 

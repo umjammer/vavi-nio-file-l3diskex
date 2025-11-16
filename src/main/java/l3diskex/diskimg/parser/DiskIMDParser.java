@@ -38,8 +38,14 @@ public class DiskIMDParser extends DiskImageParser {
         public static final int SIZE = 5;
     }
 
-    public DiskIMDParser(DiskImageFile file, short modFlags, DiskResult result) {
-        super(file, modFlags, result);
+    @Override
+    public boolean isSupported(String type) {
+        return "imd".equalsIgnoreCase(type);
+    }
+
+    @Override
+    public void init(DiskImageFile file, short modFlags, DiskResult result) {
+        super.init(file, modFlags, result);
     }
 
     /**
@@ -263,8 +269,8 @@ public class DiskIMDParser extends DiskImageParser {
     }
 
     @Override
-    public int check(InputStream iStream, List<DiskTypeHint> hints, DiskParam diskParam, List<DiskParam> diskParams, DiskParam manualParam) {
-        return -1;
+    public int check(InputStream iStream, List<DiskTypeHint> hints, DiskParam diskParam, List<DiskParam> diskParams, DiskParam manualParam) throws IOException {
+        return check(iStream);
     }
 
     /**

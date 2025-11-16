@@ -89,8 +89,14 @@ public class DiskD88Parser extends DiskImageParser {
         public static Comparator<DiskD88ParseOffset> CmpByOffset = Comparator.comparingInt(item -> item.offset);
     }
 
-    public DiskD88Parser(DiskImageFile file, short mod_flags, DiskResult result) {
-        super(file, mod_flags, result);
+    @Override
+    public boolean isSupported(String type) {
+        return "d88".equalsIgnoreCase(type);
+    }
+
+    @Override
+    public void init(DiskImageFile file, short mod_flags, DiskResult result) {
+        super.init(file, mod_flags, result);
     }
 
     /**
@@ -482,8 +488,8 @@ logger.log(Level.TRACE, "streamSize: %d, diskSize: %d".formatted(streamSize, dis
     }
 
     @Override
-    public int check(InputStream iStream, List<DiskTypeHint> diskHints, DiskParam diskParam, List<DiskParam> diskParams, DiskParam manualParam) {
-        return -1;
+    public int check(InputStream iStream, List<DiskTypeHint> diskHints, DiskParam diskParam, List<DiskParam> diskParams, DiskParam manualParam) throws IOException {
+        return check(iStream);
     }
 
     /**

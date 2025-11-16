@@ -13,6 +13,7 @@ import java.util.Arrays;
 
 import l3diskex.Common;
 import l3diskex.Utils;
+import l3diskex.basicfmt.BasicCommon.DiskBasicFormatType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasic.DiskBasicIdentifiedData;
@@ -29,6 +30,7 @@ import vavi.util.serdes.Serdes;
 
 import static l3diskex.Common.copyMemory;
 import static l3diskex.Utils.TEMP_DATA_SIZE;
+import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_CDOS;
 
 
 /**
@@ -73,9 +75,15 @@ public class DiskBasicTypeCDOS extends DiskBasicTypeMZBase<DirectoryCDos> {
         public byte[] reserved1 = new byte[0x20];
     }
 
+    @Override
+    public boolean isSupported(DiskBasicFormatType typeNumber) {
+        return typeNumber == FORMAT_TYPE_CDOS;
+    }
+
     /** */
-    public DiskBasicTypeCDOS(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryCDos> dir) {
-        super(basic, fat, dir);
+    @Override
+    public void init(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryCDos> dir) {
+        super.init(basic, fat, dir);
     }
 
     /**

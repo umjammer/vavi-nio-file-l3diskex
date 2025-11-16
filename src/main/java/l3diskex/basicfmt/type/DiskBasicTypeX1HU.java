@@ -6,6 +6,7 @@ package l3diskex.basicfmt.type;
 
 import java.util.List;
 
+import l3diskex.basicfmt.BasicCommon.DiskBasicFormatType;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasicDir;
 import l3diskex.basicfmt.DiskBasicFat;
@@ -16,6 +17,7 @@ import l3diskex.basicfmt.DiskBasicType;
 import l3diskex.basicfmt.diritem.DiskBasicDirItemX1HU.DirectoryX1Hu;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 
+import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_X1HU;
 import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_FREE;
 import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_MISSING;
 import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_USED;
@@ -33,9 +35,14 @@ import static l3diskex.basicfmt.diritem.DiskBasicDirItemX1HU.EXTERNAL_X1_SWORD;
  */
 public class DiskBasicTypeX1HU extends DiskBasicType<DirectoryX1Hu> {
 
-    /** Public constructor */
-    public DiskBasicTypeX1HU(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryX1Hu> dir) {
-        super(basic, fat, dir);
+    @Override
+    public boolean isSupported(DiskBasicFormatType typeNumber) {
+        return typeNumber == FORMAT_TYPE_X1HU;
+    }
+
+    @Override
+    public void init(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryX1Hu> dir) {
+        super.init(basic, fat, dir);
     }
 
     /** FAT位置をセット */

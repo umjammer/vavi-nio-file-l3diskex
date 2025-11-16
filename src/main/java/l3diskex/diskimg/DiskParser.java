@@ -10,27 +10,12 @@ import java.lang.System.Logger;
 import java.lang.System.Logger.Level;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.ServiceLoader;
 
 import l3diskex.Utils;
 import l3diskex.diskimg.DiskImage.DiskImageFile;
 import l3diskex.diskimg.FileParam.DiskTypeHint;
 import l3diskex.diskimg.FileParam.FileParamFormat;
-import l3diskex.diskimg.parser.Disk2MGParser;
-import l3diskex.diskimg.parser.DiskADCParser;
-import l3diskex.diskimg.parser.DiskCQMParser;
-import l3diskex.diskimg.parser.DiskD88Parser;
-import l3diskex.diskimg.parser.DiskDIMParser;
-import l3diskex.diskimg.parser.DiskDmkParser;
-import l3diskex.diskimg.parser.DiskDskParser;
-import l3diskex.diskimg.parser.DiskFDIParser;
-import l3diskex.diskimg.parser.DiskG64Parser;
-import l3diskex.diskimg.parser.DiskHfeParser;
-import l3diskex.diskimg.parser.DiskIMDParser;
-import l3diskex.diskimg.parser.DiskJV3Parser;
-import l3diskex.diskimg.parser.DiskPlainParser;
-import l3diskex.diskimg.parser.DiskSTRParser;
-import l3diskex.diskimg.parser.DiskTD0Parser;
-import l3diskex.diskimg.parser.DiskVFDParser;
 
 import static l3diskex.diskimg.FileParam.fileTypes;
 
@@ -189,79 +174,26 @@ logger.log(Level.TRACE, "selectChecker: %d, %s".formatted(rc, format.getType()))
      */
     private int selectParser(String type, DiskParam diskParam,
                              short modFlags, boolean[] support) throws IOException {
-        int rc = -1;
-        if ("d88".equalsIgnoreCase(type)) {
-            DiskD88Parser parser = new DiskD88Parser(file, modFlags, result);
-            rc = parser.parse(stream, null);
-            support[0] = true;
-        } else if ("cpcdsk".equalsIgnoreCase(type)) {
-            DiskDskParser parser = new DiskDskParser(file, modFlags, result);
-            if (parser.check(stream) != 0) {
-                rc = parser.parse(stream, diskParam);
+
+        ServiceLoader<DiskImageParser> serviceLoader = ServiceLoader.load(DiskImageParser.class);
+        for (DiskImageParser parser : serviceLoader) {
+            if (parser.isSupported(type)) {
+                parser.init(file, modFlags, result);
+                int rc = -1;
+                if (parser.needsCheck()) {
+                    if (parser.check(stream) != 0) {
+                        rc = parser.parse(stream, diskParam);
+                    }
+                } else {
+                    rc = parser.parse(stream, diskParam);
+                }
+                support[0] = true;
+                return rc;
             }
-            support[0] = true;
-        } else if ("fdi".equalsIgnoreCase(type)) {
-            DiskFDIParser parser = new DiskFDIParser(file, modFlags, result);
-            rc = parser.parse(stream, diskParam);
-            support[0] = true;
-        } else if ("cqmimg".equalsIgnoreCase(type)) {
-            DiskCQMParser parser = new DiskCQMParser(file, modFlags, result);
-            rc = parser.parse(stream, diskParam);
-            support[0] = true;
-        } else if ("teletd0".equalsIgnoreCase(type)) {
-            DiskTD0Parser parser = new DiskTD0Parser(file, modFlags, result);
-            rc = parser.parse(stream, null);
-            support[0] = true;
-        } else if ("difcdim".equalsIgnoreCase(type)) {
-            DiskDIMParser parser = new DiskDIMParser(file, modFlags, result);
-            rc = parser.parse(stream, diskParam);
-            support[0] = true;
-        } else if ("v98fdd".equalsIgnoreCase(type)) {
-            DiskVFDParser parser = new DiskVFDParser(file, modFlags, result);
-            rc = parser.parse(stream, null);
-            support[0] = true;
-        } else if ("imd".equalsIgnoreCase(type)) {
-            DiskIMDParser parser = new DiskIMDParser(file, modFlags, result);
-            rc = parser.parse(stream, null);
-            support[0] = true;
-        } else if ("dskstr".equalsIgnoreCase(type)) {
-            DiskSTRParser parser = new DiskSTRParser(file, modFlags, result);
-            rc = parser.parse(stream, null);
-            support[0] = true;
-        } else if ("g64".equalsIgnoreCase(type)) {
-            DiskG64Parser parser = new DiskG64Parser(file, modFlags, result);
-            rc = parser.parse(stream, null);
-            support[0] = true;
-        } else if ("2mg".equalsIgnoreCase(type)) {
-            Disk2MGParser parser = new Disk2MGParser(file, modFlags, result);
-            rc = parser.parse(stream, diskParam);
-            support[0] = true;
-        } else if ("adc".equalsIgnoreCase(type)) {
-            DiskADCParser parser = new DiskADCParser(file, modFlags, result);
-            rc = parser.parse(stream, diskParam);
-            support[0] = true;
-        } else if ("dmk".equalsIgnoreCase(type)) {
-            DiskDmkParser parser = new DiskDmkParser(file, modFlags, result);
-            if (parser.check(stream) >= 0) {
-                rc = parser.parse(stream, null);
-            }
-            support[0] = true;
-        } else if ("jv3".equalsIgnoreCase(type)) {
-            DiskJV3Parser parser = new DiskJV3Parser(file, modFlags, result);
-            rc = parser.parse(stream, null);
-            support[0] = true;
-        } else if ("hfe".equalsIgnoreCase(type)) {
-            DiskHfeParser parser = new DiskHfeParser(file, modFlags, result);
-            rc = parser.parse(stream, null);
-            support[0] = true;
-        } else if ("plain".equalsIgnoreCase(type)) {
-            DiskPlainParser parser = new DiskPlainParser(file, modFlags, result);
-            rc = parser.parse(stream, diskParam);
-            support[0] = true;
-        } else {
-            logger.log(Level.INFO, type + " is not supported");
         }
-        return rc;
+
+        logger.log(Level.WARNING, type + " is not supported");
+        return -1;
     }
 
     /**
@@ -280,73 +212,20 @@ logger.log(Level.TRACE, "selectChecker: %d, %s".formatted(rc, format.getType()))
                               DiskParam diskParam, List<DiskParam> diskParams,
                               DiskParam manualParam, short modFlags,
                               boolean[] support) throws IOException {
-        int rc = -1;
-        if ("d88".equalsIgnoreCase(type)) {
-            DiskD88Parser parser = new DiskD88Parser(file, modFlags, result);
-            rc = parser.check(stream);
-            support[0] = true;
-        } else if ("cpcdsk".equalsIgnoreCase(type)) {
-            DiskDskParser parser = new DiskDskParser(file, modFlags, result);
-            rc = parser.check(stream);
-            support[0] = true;
-        } else if ("fdi".equalsIgnoreCase(type)) {
-            DiskFDIParser parser = new DiskFDIParser(file, modFlags, result);
-            rc = parser.check(stream, diskHints, diskParam, diskParams, manualParam);
-            support[0] = true;
-        } else if ("cqmimg".equalsIgnoreCase(type)) {
-            DiskCQMParser parser = new DiskCQMParser(file, modFlags, result);
-            rc = parser.check(stream, diskHints, diskParam, diskParams, manualParam);
-            support[0] = true;
-        } else if ("teletd0".equalsIgnoreCase(type)) {
-            DiskTD0Parser parser = new DiskTD0Parser(file, modFlags, result);
-            rc = parser.check(stream);
-            support[0] = true;
-        } else if ("difcdim".equalsIgnoreCase(type)) {
-            DiskDIMParser parser = new DiskDIMParser(file, modFlags, result);
-            rc = parser.check(stream, diskHints, diskParam, diskParams, manualParam);
-            support[0] = true;
-        } else if ("v98fdd".equalsIgnoreCase(type)) {
-            DiskVFDParser parser = new DiskVFDParser(file, modFlags, result);
-            rc = parser.check(stream);
-            support[0] = true;
-        } else if ("imd".equalsIgnoreCase(type)) {
-            DiskIMDParser parser = new DiskIMDParser(file, modFlags, result);
-            rc = parser.check(stream);
-            support[0] = true;
-        } else if ("dskstr".equalsIgnoreCase(type)) {
-            DiskSTRParser parser = new DiskSTRParser(file, modFlags, result);
-            rc = parser.check(stream);
-            support[0] = true;
-        } else if ("g64".equalsIgnoreCase(type)) {
-            DiskG64Parser parser = new DiskG64Parser(file, modFlags, result);
-            rc = parser.check(stream);
-            support[0] = true;
-        } else if ("2mg".equalsIgnoreCase(type)) {
-            Disk2MGParser parser = new Disk2MGParser(file, modFlags, result);
-            rc = parser.check(stream, diskHints, diskParam, diskParams, manualParam);
-            support[0] = true;
-        } else if ("adc".equalsIgnoreCase(type)) {
-            DiskADCParser parser = new DiskADCParser(file, modFlags, result);
-            rc = parser.check(stream, diskHints, diskParam, diskParams, manualParam);
-            support[0] = true;
-        } else if ("dmk".equalsIgnoreCase(type)) {
-            DiskDmkParser parser = new DiskDmkParser(file, modFlags, result);
-            rc = parser.check(stream);
-            support[0] = true;
-        } else if ("jv3".equalsIgnoreCase(type)) {
-            DiskJV3Parser parser = new DiskJV3Parser(file, modFlags, result);
-            rc = parser.check(stream);
-            support[0] = true;
-        } else if ("hfe".equalsIgnoreCase(type)) {
-            DiskHfeParser parser = new DiskHfeParser(file, modFlags, result);
-            rc = parser.check(stream);
-            support[0] = true;
-        } else if ("plain".equalsIgnoreCase(type)) {
-            DiskPlainParser parser = new DiskPlainParser(file, modFlags, result);
-            rc = parser.check(stream, diskHints, diskParam, diskParams, manualParam);
-            support[0] = true;
+
+        ServiceLoader<DiskImageParser> serviceLoader = ServiceLoader.load(DiskImageParser.class);
+        for (DiskImageParser parser : serviceLoader) {
+logger.log(Level.TRACE, type + " is supported: " + parser.isSupported(type));
+            if (parser.isSupported(type)) {
+                parser.init(file, modFlags, result);
+                int rc = parser.check(stream, diskHints, diskParam, diskParams, manualParam);
+                support[0] = true;
+                return rc;
+            }
         }
-        return rc;
+
+logger.log(Level.WARNING, type + " is not supported");
+        return -1;
     }
 
     /** ディスクパーサー */
@@ -356,7 +235,20 @@ logger.log(Level.TRACE, "selectChecker: %d, %s".formatted(rc, format.getType()))
         protected short modFlags;
         protected DiskResult result;
 
-        public DiskImageParser(DiskImageFile file, short modFlags, DiskResult result) {
+        /** type string is supported nor not */
+        public abstract boolean isSupported(String type);
+
+        /** does check need before parse */
+        public boolean needsCheck() {
+            return false;
+        }
+
+        /** returns teh condition if the check is needed */
+        public boolean checkCondition(InputStream iStream) throws IOException {
+            return false;
+        }
+
+        public void init(DiskImageFile file, short modFlags, DiskResult result) {
             this.file = file;
             this.modFlags = modFlags;
             this.result = result;

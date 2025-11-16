@@ -7,6 +7,7 @@ import java.io.OutputStream;
 import java.util.Arrays;
 
 import l3diskex.Common;
+import l3diskex.basicfmt.BasicCommon.DiskBasicFormatType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasic.DiskBasicIdentifiedData;
@@ -19,6 +20,8 @@ import l3diskex.basicfmt.diritem.DiskBasicDirItemMZFDOS.DirectoryMzFDos;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import vavi.util.serdes.Element;
 import vavi.util.serdes.Serdes;
+
+import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_MZ_FDOS;
 
 
 /**
@@ -49,8 +52,14 @@ public class DiskBasicTypeMZFDOS extends DiskBasicTypeMZBase<DirectoryMzFDos> {
         public byte[] map = new byte[203];
     }
 
-    public DiskBasicTypeMZFDOS(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryMzFDos> dir) {
-        super(basic, fat, dir);
+    @Override
+    public boolean isSupported(DiskBasicFormatType typeNumber) {
+        return typeNumber == FORMAT_TYPE_MZ_FDOS;
+    }
+
+    @Override
+    public void init(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryMzFDos> dir) {
+        super.init(basic, fat, dir);
     }
 
     /**

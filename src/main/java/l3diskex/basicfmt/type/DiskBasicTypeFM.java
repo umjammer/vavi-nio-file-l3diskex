@@ -4,12 +4,15 @@
 
 package l3diskex.basicfmt.type;
 
+import l3diskex.basicfmt.BasicCommon.DiskBasicFormatType;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasic.DiskBasicIdentifiedData;
 import l3diskex.basicfmt.DiskBasicDir;
 import l3diskex.basicfmt.DiskBasicFat;
 import l3diskex.basicfmt.diritem.DiskBasicDirItemFP.DirectoryFp;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
+
+import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_FM;
 
 
 /**
@@ -22,9 +25,14 @@ import l3diskex.diskimg.DiskImage.DiskImageSector;
  */
 public class DiskBasicTypeFM extends DiskBasicTypeFAT8<DirectoryFp> {
 
-    /** */
-    public DiskBasicTypeFM(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryFp> dir) {
-        super(basic, fat, dir);
+    @Override
+    public boolean isSupported(DiskBasicFormatType typeNumber) {
+        return typeNumber == FORMAT_TYPE_FM;
+    }
+
+    @Override
+    public void init(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryFp> dir) {
+        super.init(basic, fat, dir);
     }
 
     /**

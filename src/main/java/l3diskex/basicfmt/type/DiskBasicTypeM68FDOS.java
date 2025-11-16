@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import l3diskex.Common;
+import l3diskex.basicfmt.BasicCommon.DiskBasicFormatType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.DiskBasic;
@@ -26,6 +27,7 @@ import l3diskex.basicfmt.diritem.DiskBasicDirItemM68FDOS.DirectoryM68FDos;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import vavi.util.ByteUtil;
 
+import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_M68FDOS;
 import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_FREE;
 import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_SYSTEM;
 import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_USED;
@@ -44,8 +46,14 @@ public class DiskBasicTypeM68FDOS extends DiskBasicTypeMZBase<DirectoryM68FDos> 
     /** 使用状況テーブル */
     private final DiskBasicBitMLMap bitmap = new DiskBasicBitMLMap();
 
-    public DiskBasicTypeM68FDOS(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryM68FDos> dir) {
-        super(basic, fat, dir);
+    @Override
+    public boolean isSupported(DiskBasicFormatType typeNumber) {
+        return typeNumber == FORMAT_TYPE_M68FDOS;
+    }
+
+    @Override
+    public void init(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryM68FDos> dir) {
+        super.init(basic, fat, dir);
     }
 
     /** 使用しているグループの位置を得る */

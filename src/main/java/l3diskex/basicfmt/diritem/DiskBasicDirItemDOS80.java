@@ -10,9 +10,9 @@ import java.util.ResourceBundle;
 
 import l3diskex.basicfmt.BasicCommon.Directory;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
+import l3diskex.basicfmt.BasicCommon.DiskBasicFormatType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
-import l3diskex.basicfmt.BasicCommon.KeyValArray;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasicDirItem;
 import l3diskex.basicfmt.diritem.DiskBasicDirItemDOS80.DirectoryDos80;
@@ -22,6 +22,7 @@ import vavi.util.serdes.Element;
 import vavi.util.serdes.Serdes;
 
 import static l3diskex.Config.config;
+import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_DOS80;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_BASIC_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_BINARY_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_MACHINE_MASK;
@@ -104,8 +105,14 @@ public class DiskBasicDirItemDOS80 extends DiskBasicDirItemFAT8<DirectoryDos80> 
     private final DiskBasicGroups[] fileUnit = new DiskBasicGroups[2];
     private int cachedType = 0;
 
-    public DiskBasicDirItemDOS80(DiskBasic basic) {
-        super(basic);
+    @Override
+    public boolean isSupported(DiskBasicFormatType formatType) {
+        return formatType == FORMAT_TYPE_DOS80;
+    }
+
+    @Override
+    public void init(DiskBasic basic) throws IOException {
+        super.init(basic);
 
         cachedType = 0;
         data.alloc(DirectoryDos80.class);
@@ -113,11 +120,11 @@ public class DiskBasicDirItemDOS80 extends DiskBasicDirItemFAT8<DirectoryDos80> 
         data2.fill(0);
     }
 
-    public DiskBasicDirItemDOS80(DiskBasic basic,
-                                 DiskImageSector sector,
-                                 int secPos,
-                                 byte[] data, int dataP) {
-        super(basic, sector, secPos, data, dataP);
+    @Override
+    public void init(DiskBasic basic,
+                     DiskImageSector sector, int sectorPos,
+                     byte[] data, int dataP) throws IOException {
+        super.init(basic, sector, sectorPos, data, dataP);
 
         cachedType = 0;
         this.data.attach(DirectoryDos80.class, data, dataP);
@@ -125,24 +132,24 @@ public class DiskBasicDirItemDOS80 extends DiskBasicDirItemFAT8<DirectoryDos80> 
         data2.fill(0);
     }
 
-    public DiskBasicDirItemDOS80(DiskBasic basic,
-                                 int num,
-                                 DiskBasicGroupItem groupItem,
-                                 DiskImageSector sector,
-                                 int secPos,
-                                 byte[] data, int dataP,
-                                 SectorParam next,
-                                 boolean[] unuse) throws IOException {
-        super(basic, num, groupItem, sector, secPos, data, dataP, next, unuse);
+    @Override
+    public void init(DiskBasic basic,
+                     int num,
+                     DiskBasicGroupItem groupItem,
+                     DiskImageSector sector, int sectorPos,
+                     byte[] data, int dataPos,
+                     SectorParam next,
+                     boolean[] unuse) throws IOException {
+        super.init(basic, num, groupItem, sector, sectorPos, data, dataPos, next, unuse);
 
         cachedType = 0;
-        this.data.attach(DirectoryDos80.class, data, dataP);
+        this.data.attach(DirectoryDos80.class, data, dataPos);
 
         // 2セクタ後に属性などがある
         DiskImageSector sector2 = basic.getSector(groupItem.track, groupItem.side, sector.getSectorNumber() + 2);
         if (sector2 != null) {
             byte[] buffer2 = sector2.getSectorBuffer();
-            data2.attach(DirectoryDos80_2.class, buffer2, secPos);
+            data2.attach(DirectoryDos80_2.class, buffer2, sectorPos);
         }
 
         used(checkUsed(unuse[0]));
@@ -234,11 +241,11 @@ public class DiskBasicDirItemDOS80 extends DiskBasicDirItemFAT8<DirectoryDos80> 
      */
     private int convFileAttrFromTypePos(int t1) {
         return switch (t1) {
-                // Machine
+            // Machine
             case TYPE_NAME_DOS80_MACHINE -> FILE_TYPE_MACHINE_MASK.getValue() | FILE_TYPE_BINARY_MASK.getValue();
-                // BASIC + Machine
+            // BASIC + Machine
             case TYPE_NAME_DOS80_BASIC_MACHINE -> FILE_TYPE_BASIC_MASK.getValue() | FILE_TYPE_MACHINE_MASK.getValue() | FILE_TYPE_BINARY_MASK.getValue();
-                // BASIC
+            // BASIC
             default -> FILE_TYPE_BASIC_MASK.getValue() | FILE_TYPE_BINARY_MASK.getValue();
         };
     }

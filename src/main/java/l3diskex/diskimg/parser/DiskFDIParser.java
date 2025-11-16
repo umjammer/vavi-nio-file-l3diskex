@@ -48,8 +48,14 @@ public class DiskFDIParser extends DiskPlainParser {
     //
     //
 
-    public DiskFDIParser(DiskImageFile file, short modFlags, DiskResult result) {
-        super(file, modFlags, result);
+    @Override
+    public boolean isSupported(String type) {
+        return "fdi".equalsIgnoreCase(type);
+    }
+
+    @Override
+    public void init(DiskImageFile file, short modFlags, DiskResult result) {
+        super.init(file, modFlags, result);
     }
 
     @Override

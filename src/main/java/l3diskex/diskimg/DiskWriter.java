@@ -9,6 +9,7 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.ServiceLoader;
 
 import l3diskex.Utils;
 import l3diskex.diskimg.FileParam.FileParamFormat;
@@ -74,22 +75,16 @@ public class DiskWriter extends DiskWriteOptions {
      * @param sideNumber サイド番号
      */
     private int selectCanSaveDisk(String fileFormat, int diskNumber, int sideNumber) {
-        int rc = -1;
-        // C++: wxT("d88") -> "d88" (assuming wxT converts to String)
-        if (fileFormat.equals("d88")) {
-            // d88形式
-            DiskD88Writer writer = new DiskD88Writer(this, result);
-            rc = writer.validateDisk(image, diskNumber, sideNumber);
-//        } else if (fileFormat.equals("cpcdsk")) {
-//            // CPC DSK形式
-//            DiskDskWriter writer (result);
-//            rc = wr.ValidateDisk(image, diskNumber, sideNumber);
-        } else if (fileFormat.equals("plain")) {
-            // ベタ
-            DiskPlainWriter writer = new DiskPlainWriter(this, result);
-            rc = writer.validateDisk(image, diskNumber, sideNumber);
+        ServiceLoader<DiskImageWriter> serviceLoader = ServiceLoader.load(DiskImageWriter.class);
+        for (DiskImageWriter writer : serviceLoader) {
+            if (writer.isSupported(fileFormat)) {
+                writer.init(this, result);
+                int rc = writer.validateDisk(image, diskNumber, sideNumber);
+                return rc;
+            }
         }
-        return rc;
+
+        return -1;
     }
 
     /**
@@ -129,29 +124,21 @@ public class DiskWriter extends DiskWriteOptions {
 
     /** 拡張子で保存形式を判定 */
     private int selectSaveDisk(String fileFormat, int diskNumber, int sideNumber, boolean[] support) throws IOException {
-        int rc = -1;
-        if (fileFormat.equals("d88")) {
-            // d88形式
-            DiskD88Writer writer = new DiskD88Writer(this, result);
-            rc = writer.saveDisk(image, diskNumber, sideNumber, oStream);
-            support[0] = true;
-//        } else if (fileFormat.equals("cpcdsk")) {
-//            // CPC DSK形式
-//            DiskDskWriter writer = new DiskDskWriter(result);
-//            rc = writer.SaveDisk(image, diskNumber, sideNumber, oStream);
-//            support[0] = true;
-        } else if (fileFormat.equals("plain")) {
-            // ベタ
-            DiskPlainWriter writer = new DiskPlainWriter(this, result);
-            rc = writer.saveDisk(image, diskNumber, sideNumber, oStream);
-            support[0] = true;
+        ServiceLoader<DiskImageWriter> serviceLoader = ServiceLoader.load(DiskImageWriter.class);
+        for (DiskImageWriter writer : serviceLoader) {
+            if (writer.isSupported(fileFormat)) {
+                writer.init(this, result);
+                int rc = writer.saveDisk(image, diskNumber, sideNumber, oStream);
+                support[0] = true;
+                if (rc >= 0) {
+                    // 保存したファイル名を持っておく
+                    image.setFileName(filePath);
+                }
+                return rc;
+            }
         }
 
-        if (support[0] && rc >= 0) {
-            // 保存したファイル名を持っておく
-            image.setFileName(filePath);
-        }
-        return rc;
+        return -1;
     }
 
     //
@@ -296,12 +283,15 @@ public class DiskWriter extends DiskWriteOptions {
     }
 
     /** 形式ごとのディスクライター */
-    public static class DiskImageWriter {
+    public abstract static class DiskImageWriter {
 
         protected DiskWriter writer;
         protected DiskResult result;
 
-        public DiskImageWriter(DiskWriter writer, DiskResult result) {
+        /** type string is supported nor not */
+        public abstract boolean isSupported(String type);
+
+        public void init(DiskWriter writer, DiskResult result) {
             this.writer = writer;
             this.result = result;
         }

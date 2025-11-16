@@ -6,61 +6,44 @@ package l3diskex.basicfmt.diritem;
 
 import java.io.IOException;
 
+import l3diskex.basicfmt.BasicCommon.DiskBasicFormatType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.diritem.DiskBasicDirItemFAT8.DiskBasicDirItemFAT8F;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
 
+import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_L3_1S;
+
 
 /** ディレクトリ１アイテム L3 BASIC 単密度 1S */
 public class DiskBasicDirItemL31S extends DiskBasicDirItemFAT8F {
 
-    /**
-     * Construct with only the DiskBasic pointer.
-     *
-     * @param basic The disk basic object.
-     */
-    public DiskBasicDirItemL31S(DiskBasic basic) {
-        super(basic);
+    @Override
+    public boolean isSupported(DiskBasicFormatType formatType) {
+        return formatType == FORMAT_TYPE_L3_1S;
     }
 
-    /**
-     * Construct with sector information and data buffer.
-     *
-     * @param basic  The disk basic object.
-     * @param sector The sector containing the directory item.
-     * @param secPos Position of the sector within the image.
-     * @param data   Raw byte data of the directory entry.
-     */
-    public DiskBasicDirItemL31S(DiskBasic basic,
-                                DiskImageSector sector,
-                                int secPos,
-                                byte[] data, int dataP) {
-        super(basic, sector, secPos, data, dataP);
+    @Override
+    public void init(DiskBasic basic) throws IOException {
+        super.init(basic);
     }
 
-    /**
-     * Construct with full group information.
-     *
-     * @param basic     The disk basic object.
-     * @param num       The item number.
-     * @param groupItem The group item describing the file chain.
-     * @param sector    The sector containing the directory item.
-     * @param secPos    Position of the sector within the image.
-     * @param data      Raw byte data of the directory entry.
-     * @param next      Parameter for the next sector (may be {@code null}).
-     * @param unuse     Flag indicating whether the item is unused.
-     */
-    public DiskBasicDirItemL31S(DiskBasic basic,
-                                int num,
-                                DiskBasicGroupItem groupItem,
-                                DiskImageSector sector,
-                                int secPos,
-                                byte[] data,
-                                int dataP,
-                                SectorParam next,
-                                boolean[] unuse) throws IOException {
-        super(basic, num, groupItem, sector, secPos, data, dataP, next, unuse);
+    @Override
+    public void init(DiskBasic basic,
+                     DiskImageSector sector, int sectorPos,
+                     byte[] data, int dataPos) throws IOException {
+        super.init(basic, sector, sectorPos, data, dataPos);
+    }
+
+    @Override
+    public void init(DiskBasic basic,
+                     int num,
+                     DiskBasicGroupItem groupItem,
+                     DiskImageSector sector, int sectorPos,
+                     byte[] data, int dataPos,
+                     SectorParam next,
+                     boolean[] unuse) throws IOException {
+        super.init(basic, num, groupItem, sector, sectorPos, data, dataPos, next, unuse);
     }
 }

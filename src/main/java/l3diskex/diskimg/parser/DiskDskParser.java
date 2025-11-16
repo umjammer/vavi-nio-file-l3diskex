@@ -7,6 +7,7 @@ package l3diskex.diskimg.parser;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.List;
 
 import l3diskex.diskimg.DiskImage.DiskImageDisk;
 import l3diskex.diskimg.DiskImage.DiskImageFile;
@@ -15,6 +16,7 @@ import l3diskex.diskimg.DiskImage.DiskImageTrack;
 import l3diskex.diskimg.DiskParam;
 import l3diskex.diskimg.DiskParser.DiskImageParser;
 import l3diskex.diskimg.DiskResult;
+import l3diskex.diskimg.FileParam.DiskTypeHint;
 import vavi.io.SeekableDataInputStream;
 import vavi.util.serdes.Element;
 import vavi.util.serdes.Serdes;
@@ -101,14 +103,31 @@ public class DiskDskParser extends DiskImageParser {
         public CPCDSKSector[] sectors = new CPCDSKSector[29];
     }
 
-    /* 0 = normal, 1 = extended */
-    private int isExtended;
-
     //
     // CPC DSK形式をD88形式にする
     //
-    public DiskDskParser(DiskImageFile file, short modFlags, DiskResult result) {
-        super(file, modFlags, result);
+
+    /* 0 = normal, 1 = extended */
+    private int isExtended;
+
+    @Override
+    public boolean isSupported(String type) {
+        return "cpcdsk".equalsIgnoreCase(type);
+    }
+
+    @Override
+    public boolean needsCheck() {
+        return true;
+    }
+
+    @Override
+    public boolean checkCondition(InputStream stream) throws IOException {
+        return check(stream) != 0;
+    }
+
+    @Override
+    public void init(DiskImageFile file, short modFlags, DiskResult result) {
+        super.init(file, modFlags, result);
         this.isExtended = 0; // normal
     }
 
@@ -261,6 +280,11 @@ public class DiskDskParser extends DiskImageParser {
             valid = 0;
         }
         return valid;
+    }
+
+    @Override
+    public int check(InputStream iStream, List<DiskTypeHint> diskHints, DiskParam diskParam, List<DiskParam> diskParams, DiskParam manualParam) throws IOException {
+        return check(iStream);
     }
 
     @Override

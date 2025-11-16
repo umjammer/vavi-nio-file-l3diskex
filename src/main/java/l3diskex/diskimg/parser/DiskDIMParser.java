@@ -52,8 +52,14 @@ public class DiskDIMParser extends DiskPlainParser {
         byte overtrack;
     }
 
-    public DiskDIMParser(DiskImageFile file, short modFlags, DiskResult result) {
-        super(file, modFlags, result);
+    @Override
+    public boolean isSupported(String type) {
+        return "difcdim".equalsIgnoreCase(type);
+    }
+
+    @Override
+    public void init(DiskImageFile file, short modFlags, DiskResult result) {
+        super.init(file, modFlags, result);
     }
 
     /**

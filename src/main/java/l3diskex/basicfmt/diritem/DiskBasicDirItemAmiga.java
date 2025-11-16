@@ -18,6 +18,7 @@ import java.util.Map;
 import l3diskex.Utils;
 import l3diskex.basicfmt.BasicCommon.Directory;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
+import l3diskex.basicfmt.BasicCommon.DiskBasicFormatType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupUserData;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
@@ -31,6 +32,7 @@ import vavi.util.ByteUtil;
 import vavi.util.serdes.Element;
 import vavi.util.serdes.Serdes;
 
+import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_AMIGA;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_DATA_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_DIRECTORY_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_HARDLINK_MASK;
@@ -433,8 +435,14 @@ public class DiskBasicDirItemAmiga extends DiskBasicDirItem<DirectoryAmiga> {
     /** チェイン情報 */
     private AmigaChain chain = new AmigaChain();
 
-    public DiskBasicDirItemAmiga(DiskBasic basic) throws IOException {
-        super(basic);
+    @Override
+    public boolean isSupported(DiskBasicFormatType formatType) {
+        return formatType == FORMAT_TYPE_AMIGA;
+    }
+
+    @Override
+    public void init(DiskBasic basic) throws IOException {
+        super.init(basic);
 
         tempPre = null;
         tempPost = null;
@@ -443,8 +451,10 @@ public class DiskBasicDirItemAmiga extends DiskBasicDirItem<DirectoryAmiga> {
         allocTemp();
     }
 
-    public DiskBasicDirItemAmiga(DiskBasic basic, DiskImageSector sector, int secPos, byte[] data, int dataP) throws IOException {
-        super(basic, sector, secPos, data, dataP);
+    @Override
+    public void init(DiskBasic basic, DiskImageSector sector, int sectorPos,
+                     byte[] data, int dataP) throws IOException {
+        super.init(basic, sector, sectorPos, data, dataP);
 
         tempPre = null;
         tempPost = null;
@@ -452,14 +462,18 @@ public class DiskBasicDirItemAmiga extends DiskBasicDirItem<DirectoryAmiga> {
         allocData(sector, data, dataP);
     }
 
-    public DiskBasicDirItemAmiga(DiskBasic basic, int num, DiskBasicGroupItem gItem, DiskImageSector sector, int secPos, byte[] data, int dataP, SectorParam next, boolean[] unuse) throws IOException {
-        super(basic, num, gItem, sector, secPos, data, dataP, next, unuse);
+    @Override
+    public void init(DiskBasic basic, int num, DiskBasicGroupItem groupItem,
+                     DiskImageSector sector, int sectorPos,
+                     byte[] data, int dataPos,
+                     SectorParam next, boolean[] unuse) throws IOException {
+        super.init(basic, num, groupItem, sector, sectorPos, data, dataPos, next, unuse);
 
         tempPre = null;
         tempPost = null;
-        if (gItem != null) chain = chain.operator_assign(gItem.userData);
+        if (groupItem != null) chain = chain.operator_assign(groupItem.userData);
 
-        allocData(sector, data, dataP);
+        allocData(sector, data, dataPos);
 
         used(checkUsed(unuse[0]));
 
@@ -467,14 +481,14 @@ public class DiskBasicDirItemAmiga extends DiskBasicDirItem<DirectoryAmiga> {
     }
 
     /** ディレクトリ情報をアロケート */
-    private void allocData(DiskImageSector sector, byte[] data, int dataP) throws IOException {
+    private void allocData(DiskImageSector sector, byte[] data, int dataPos) throws IOException {
         this.data.alloc(DirectoryAmiga.class);
 
         if (sector != null && data != null) {
             int num = type.getSectorPosFromNum(sector.getIDC(), sector.getIDH(), sector.getIDR());
             this.data.data().blockNum = num;
             this.data.data().pre = new AmigaBlockPre();
-            Serdes.Util.deserialize(new ByteArrayInputStream(data, dataP, AmigaBlockPre.SIZE), this.data.data().pre);
+            Serdes.Util.deserialize(new ByteArrayInputStream(data, dataPos, AmigaBlockPre.SIZE), this.data.data().pre);
             this.data.data().post = new AmigaBlockPost();
             Serdes.Util.deserialize(new ByteArrayInputStream(data, sector.getSectorSize() - AmigaBlockPost.SIZE, AmigaBlockPost.SIZE), this.data.data().post);
         } else {
@@ -494,11 +508,12 @@ public class DiskBasicDirItemAmiga extends DiskBasicDirItem<DirectoryAmiga> {
     }
 
     @Override
-    public void setData(int num, DiskBasicGroupItem gItem, DiskImageSector sector, int secPos, byte[] data, int dataP, SectorParam next) throws IOException {
-        super.setData(num, gItem, sector, secPos, data, dataP, next);
+    public void setData(int num, DiskBasicGroupItem groupItem, DiskImageSector sector, int sectorPos,
+                        byte[] data, int dataPos, SectorParam next) throws IOException {
+        super.setData(num, groupItem, sector, sectorPos, data, dataPos, next);
 
-        if (gItem != null) chain = chain.operator_assign(gItem.userData); // TODO assign op
-        allocData(sector, data, dataP);
+        if (groupItem != null) chain = chain.operator_assign(groupItem.userData); // TODO assign op
+        allocData(sector, data, dataPos);
     }
 
     @Override

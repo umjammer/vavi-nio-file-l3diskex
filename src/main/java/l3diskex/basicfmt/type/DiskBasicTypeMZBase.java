@@ -31,8 +31,9 @@ import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailabili
  */
 public abstract class DiskBasicTypeMZBase<T extends Directory> extends DiskBasicType<T> {
 
-    public DiskBasicTypeMZBase(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<T> dir) {
-        super(basic, fat, dir);
+    @Override
+    public void init(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<T> dir) {
+        super.init(basic, fat, dir);
     }
 
     /** FAT 位置をセット */

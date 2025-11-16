@@ -15,6 +15,7 @@ import l3diskex.diskimg.DiskImage.DiskImageTrack;
 import l3diskex.diskimg.DiskParam;
 import l3diskex.diskimg.DiskParser.DiskImageParser;
 import l3diskex.diskimg.DiskResult;
+import l3diskex.diskimg.FileParam.DiskTypeHint;
 import vavi.io.SeekableDataInputStream;
 import vavi.util.serdes.Element;
 import vavi.util.serdes.Serdes;
@@ -85,8 +86,14 @@ public class DiskJV3Parser extends DiskImageParser {
     //
     //
 
-    public DiskJV3Parser(DiskImageFile file, short modFlags, DiskResult result) {
-        super(file, modFlags, result);
+    @Override
+    public boolean isSupported(String type) {
+        return "jv3".equalsIgnoreCase(type);
+    }
+
+    @Override
+    public void init(DiskImageFile file, short modFlags, DiskResult result) {
+        super.init(file, modFlags, result);
     }
 
     /**
@@ -205,13 +212,19 @@ public class DiskJV3Parser extends DiskImageParser {
      * @param iStream 解析対象データ
      * @return 0: 正常, -1: エラーあり, 1: 警告あり
      */
-    public int parse(InputStream iStream) throws IOException {
+    @Override
+    public int parse(InputStream iStream, DiskParam diskParam) throws IOException {
         result.clear();
         ((SeekableDataInputStream) iStream).position(0);
 
         parseDisk(iStream);
 
         return result.getValid();
+    }
+
+    @Override
+    public int check(InputStream iStream, List<DiskTypeHint> hints, DiskParam diskParam, List<DiskParam> diskParams, DiskParam manualParam) throws IOException {
+        return check(iStream);
     }
 
     /**

@@ -7,6 +7,7 @@ package l3diskex.basicfmt.diritem;
 import java.io.IOException;
 
 import l3diskex.basicfmt.BasicCommon.Directory;
+import l3diskex.basicfmt.BasicCommon.DiskBasicFormatType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
 import l3diskex.basicfmt.DiskBasic;
@@ -14,6 +15,8 @@ import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
 import vavi.util.serdes.Element;
 import vavi.util.serdes.Serdes;
+
+import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_HU68K;
 
 
 /**
@@ -47,26 +50,34 @@ public class DiskBasicDirItemHU68K extends DiskBasicDirItemMSDOS {
         public static final int SIZE = 32;
     }
 
-    public DiskBasicDirItemHU68K(DiskBasic basic) {
-        super(basic);
+    @Override
+    public boolean isSupported(DiskBasicFormatType formatType) {
+        return formatType == FORMAT_TYPE_HU68K;
     }
 
-    public DiskBasicDirItemHU68K(DiskBasic basic,
-                                 DiskImageSector sector,
-                                 int secPos,
-                                 byte[] data, int dataP) {
-        super(basic, sector, secPos, data, dataP);
+    @Override
+    public void init(DiskBasic basic) throws IOException {
+        super.init(basic);
     }
 
-    public DiskBasicDirItemHU68K(DiskBasic basic,
-                                 int num,
-                                 DiskBasicGroupItem groupItem,
-                                 DiskImageSector sector,
-                                 int secPos,
-                                 byte[] data, int dataP,
-                                 SectorParam next,
-                                 boolean[] unuse) throws IOException {
-        super(basic, num, groupItem, sector, secPos, data, dataP, next, unuse);
+    @Override
+    public void init(DiskBasic basic,
+                     DiskImageSector sector,
+                     int sectorPos,
+                     byte[] data, int dataPos) throws IOException {
+        super.init(basic, sector, sectorPos, data, dataPos);
+    }
+
+    @Override
+    public void init(DiskBasic basic,
+                     int num,
+                     DiskBasicGroupItem groupItem,
+                     DiskImageSector sector,
+                     int sectorPos,
+                     byte[] data, int dataPos,
+                     SectorParam next,
+                     boolean[] unuse) throws IOException {
+        super.init(basic, num, groupItem, sector, sectorPos, data, dataPos, next, unuse);
     }
 
     @Override
@@ -93,7 +104,7 @@ public class DiskBasicDirItemHU68K extends DiskBasicDirItemMSDOS {
             default -> {
                 size[0] = len[0] = 0;
                 yield null;
-        }
+            }
         };
     }
 

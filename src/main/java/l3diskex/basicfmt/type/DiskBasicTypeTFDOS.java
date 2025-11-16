@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import l3diskex.Common;
+import l3diskex.basicfmt.BasicCommon.DiskBasicFormatType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasic.DiskBasicIdentifiedData;
@@ -27,6 +28,7 @@ import vavi.util.serdes.Element;
 import vavi.util.serdes.Serdes;
 
 import static l3diskex.Utils.TEMP_DATA_SIZE;
+import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_TFDOS;
 
 
 /**
@@ -86,8 +88,14 @@ public class DiskBasicTypeTFDOS extends DiskBasicTypeMZBase<DirectoryTfDos> {
     /** BASEコンパチファイルかどうか */
     private boolean isBaseCompatible;
 
-    public DiskBasicTypeTFDOS(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryTfDos> dir) {
-        super(basic, fat, dir);
+    @Override
+    public boolean isSupported(DiskBasicFormatType typeNumber) {
+        return typeNumber == FORMAT_TYPE_TFDOS;
+    }
+
+    @Override
+    public void init(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryTfDos> dir) {
+        super.init(basic, fat, dir);
 
         this.isBaseCompatible = false;
     }

@@ -15,6 +15,7 @@ import java.util.ResourceBundle;
 import l3diskex.Utils;
 import l3diskex.basicfmt.BasicCommon.Directory;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
+import l3diskex.basicfmt.BasicCommon.DiskBasicFormatType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
 import l3diskex.basicfmt.DiskBasic;
@@ -28,6 +29,7 @@ import vavi.util.serdes.Serdes;
 import static l3diskex.Config.config;
 import static l3diskex.Parambase.MyAttributes.findValue;
 import static l3diskex.Parambase.MyAttributes.getTypeByValue;
+import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_CDOS;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_ASCII_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_BINARY_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_DATA_MASK;
@@ -116,23 +118,34 @@ public class DiskBasicDirItemCDOS extends DiskBasicDirItemMZBase<DirectoryCDos> 
     /** directory data */
     private final DiskBasicDirData<DirectoryCDos> data = new DiskBasicDirData<>();
 
-    public DiskBasicDirItemCDOS(DiskBasic basic) {
-        super(basic);
+    @Override
+    public boolean isSupported(DiskBasicFormatType formatType) {
+        return formatType == FORMAT_TYPE_CDOS;
+    }
+
+    @Override
+    public void init(DiskBasic basic) throws IOException {
+        super.init(basic);
 
         data.alloc(DirectoryCDos.class);
     }
 
-    public DiskBasicDirItemCDOS(DiskBasic basic, DiskImageSector sector, int secPos, byte[] data, int dataP) throws IOException {
-        super(basic, sector, secPos, data, dataP);
+    @Override
+    public void init(DiskBasic basic, DiskImageSector sector, int sectorPos,
+                     byte[] data, int dataPos) throws IOException {
+        super.init(basic, sector, sectorPos, data, dataPos);
 
-        this.data.attach(DirectoryCDos.class, data, dataP);
+        this.data.attach(DirectoryCDos.class, data, dataPos);
     }
 
-    public DiskBasicDirItemCDOS(DiskBasic basic, int num, DiskBasicGroupItem groupItem, DiskImageSector sector,
-                                int secPos, byte[] data, int dataP, SectorParam next, boolean[] unuse) throws IOException {
-        super(basic, num, groupItem, sector, secPos, data, dataP, next, unuse);
+    @Override
+    public void init(DiskBasic basic, int num, DiskBasicGroupItem groupItem,
+                     DiskImageSector sector, int sectorPos,
+                     byte[] data, int dataPos,
+                     SectorParam next, boolean[] unuse) throws IOException {
+        super.init(basic, num, groupItem, sector, sectorPos, data, dataPos, next, unuse);
 
-        this.data.attach(DirectoryCDos.class, data, dataP);
+        this.data.attach(DirectoryCDos.class, data, dataPos);
 
         used(checkUsed(unuse[0]));
         if (getFileType1() == 0xfe) {

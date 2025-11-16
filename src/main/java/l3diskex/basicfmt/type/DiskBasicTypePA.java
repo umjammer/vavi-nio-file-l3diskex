@@ -4,10 +4,13 @@
 
 package l3diskex.basicfmt.type;
 
+import l3diskex.basicfmt.BasicCommon.DiskBasicFormatType;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasicDir;
 import l3diskex.basicfmt.DiskBasicFat;
 import l3diskex.basicfmt.diritem.DiskBasicDirItemN88.DirectoryN88;
+
+import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_PA;
 
 
 /**
@@ -19,8 +22,14 @@ import l3diskex.basicfmt.diritem.DiskBasicDirItemN88.DirectoryN88;
  */
 public class DiskBasicTypePA extends DiskBasicTypeN88 {
 
-    public DiskBasicTypePA(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryN88> dir) {
-        super(basic, fat, dir);
+    @Override
+    public boolean isSupported(DiskBasicFormatType typeNumber) {
+        return typeNumber == FORMAT_TYPE_PA;
+    }
+
+    @Override
+    public void init(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryN88> dir) {
+        super.init(basic, fat, dir);
     }
 
     /**
