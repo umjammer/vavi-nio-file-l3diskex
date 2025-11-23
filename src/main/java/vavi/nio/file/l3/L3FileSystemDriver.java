@@ -15,7 +15,6 @@ import java.lang.System.Logger;
 import java.lang.System.Logger.Level;
 import java.nio.file.CopyOption;
 import java.nio.file.FileStore;
-import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
@@ -23,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.function.BiFunction;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 import com.github.fge.filesystem.driver.ExtendedFileSystemDriver;
@@ -77,6 +77,10 @@ public final class L3FileSystemDriver extends ExtendedFileSystemDriver<DiskBasic
         return !entry.isUsed();
     }
 
+    /** */
+    private final BiFunction<Path, DiskBasicDirItem<? extends Directory>, DiskBasicDirItem> findNameOfDir = (name, dir) ->
+            dir.getChildren().stream().filter(e -> e.getFileNameStr().equals(name.toString())).findFirst().orElseThrow();
+
     @Override
     protected DiskBasicDirItem<? extends Directory> getEntry(Path path) throws IOException {
         if (ignoreAppleDouble && path.getFileName() != null && isAppleDouble(path)) {
@@ -85,17 +89,19 @@ public final class L3FileSystemDriver extends ExtendedFileSystemDriver<DiskBasic
 
         try {
             DiskBasicDirItem<? extends Directory> currentDir = disk.getRootDirectory();
-            if (path.getNameCount() == 0) return currentDir;
+
+            if (path.getNameCount() == 0) {
+                return currentDir;
+            }
             for (int i = 0; i < path.getNameCount(); i++) {
                 Path name = path.getName(i);
                 if (i == path.getNameCount() - 1) {
-                    if (Files.isDirectory(name)) break;
-                    else
-                        return currentDir.getChildren().stream().filter(e -> e.getFileNameStr().equals(name.toString())).findFirst().orElseThrow();
+                    var file = findNameOfDir.apply(name, currentDir);
+                    if (file.isDirectory()) break;
+                    return file;
                 } else {
-                    if (Files.isDirectory(name)) {
-                        currentDir.getChildren().stream().filter(e -> e.getFileNameStr().equals(name.toString())).findFirst().orElseThrow();
-                    } else break;
+                    currentDir = findNameOfDir.apply(name, currentDir);
+                    if (!currentDir.isDirectory()) break;
                 }
             }
         } catch (NoSuchElementException ignore) {
@@ -128,8 +134,7 @@ logger.log(Level.TRACE, "not found: " + path);
     @Override
     @SuppressWarnings({"unchecked", "rawtypes"})
     protected List<DiskBasicDirItem<? extends Directory>> getDirectoryEntries(DiskBasicDirItem<? extends Directory> dirEntry, Path dir) throws IOException {
-        var list = (List) dirEntry.getChildren().stream().toList();
-logger.log(Level.TRACE, list);
+        List<DiskBasicDirItem<? extends Directory>> list = (List) dirEntry.getChildren().stream().filter(DiskBasicDirItem::isUsed).toList();
         return list;
     }
 

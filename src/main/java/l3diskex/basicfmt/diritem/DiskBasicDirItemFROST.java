@@ -29,6 +29,7 @@ import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_FROS
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_BASIC_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_BINARY_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_DATA_MASK;
+import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_DIRECTORY_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_MACHINE_MASK;
 
 
@@ -101,18 +102,18 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
     }
 
     @Override
-    public void init(DiskBasic basic, DiskImageSector sector, int sectorPos, byte[] data, int dataP) throws IOException {
-        super.init(basic, sector, sectorPos, data, dataP);
+    public void init(DiskBasic basic, DiskImageSector sector, int sectorPos, byte[] data, int dataPos) throws IOException {
+        super.init(basic, sector, sectorPos, data, dataPos);
 
-        this.data.attach(DirectoryFrost.class, data, dataP);
+        this.data.attach(DirectoryFrost.class, data, dataPos);
     }
 
     @Override
     public void init(DiskBasic basic, int num, DiskBasicGroupItem groupItem, DiskImageSector sector, int sectorPos,
-                     byte[] data, int dataP, SectorParam next, boolean[] unuse) throws IOException {
-        super.init(basic, num, groupItem, sector, sectorPos, data, dataP, next, unuse);
+                     byte[] data, int dataPos, SectorParam next, boolean[] unuse) throws IOException {
+        super.init(basic, num, groupItem, sector, sectorPos, data, dataPos, next, unuse);
 
-        this.data.attach(DirectoryFrost.class, data, dataP);
+        this.data.attach(DirectoryFrost.class, data, dataPos);
 
         used(checkUsed(unuse[0]));
         unuse[0] = (unuse[0] || (this.data.data().name[0] == (byte) 0xff));
@@ -270,23 +271,27 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
     @Override
     public DiskBasicFileType getFileAttr() {
         int t1 = getFileType1();
-        int val = 0;
+        int type = 0;
         switch (t1) {
             case FILETYPE_FROST_BIN:
-                val = FILE_TYPE_MACHINE_MASK.getValue();    // machine
-                val |= FILE_TYPE_BINARY_MASK.getValue();    // binary
+                type = FILE_TYPE_MACHINE_MASK.getValue();    // machine
+                type |= FILE_TYPE_BINARY_MASK.getValue();    // binary
                 break;
             case FILETYPE_FROST_RGB:
-                val = FILE_TYPE_DATA_MASK.getValue();       // data
-                val |= FILE_TYPE_BINARY_MASK.getValue();    // binary
+                type = FILE_TYPE_DATA_MASK.getValue();       // data
+                type |= FILE_TYPE_BINARY_MASK.getValue();    // binary
                 break;
             default:
-                val = FILE_TYPE_BASIC_MASK.getValue();      // basic
-                val |= FILE_TYPE_BINARY_MASK.getValue();    // binary
+                type = FILE_TYPE_BASIC_MASK.getValue();      // basic
+                type |= FILE_TYPE_BINARY_MASK.getValue();    // binary
                 break;
         }
 
-        return new DiskBasicFileType(basic.getFormatTypeNumber(), val, t1);
+        if (isValidDirectory()) { // TODO ad-hoc if this is a root directory set directory type bit
+            type |= FILE_TYPE_DIRECTORY_MASK.getValue();
+        }
+
+        return new DiskBasicFileType(basic.getFormatTypeNumber(), type, t1);
     }
 
     /**
@@ -375,7 +380,7 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
         groupItems.setSizePerGroup(FROST_GROUP_SIZE);
 
         if (limit < 0) {
-            // too large or infinit loop
+            // too large or infinite loop
             rc = false;
         }
     }
@@ -427,7 +432,7 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
      */
     @Override
     public int getStartAddress() {
-        return basic.orderUint16(data.data().loadAddress);
+        return basic.orderUint16(data.data().loadAddress) & 0xffff;
     }
 
     /**

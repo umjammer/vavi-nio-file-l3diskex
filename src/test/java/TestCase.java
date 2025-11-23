@@ -130,7 +130,7 @@ Debug.println("ASSIGN: done");
 
         DiskBasicDirItem<?> root = diskBasic.getRootDirectory();
         assert root != null : "root is null";
-Debug.println("files at dir: " + root.getChildren().size());
+Debug.printf("files at dir: %d, %s, %08x", root.getChildren().size(), root.isDirectory(), root.getFileAttr().getType());
         // List files and directories
         for (DiskBasicDirItem<?> dir : root.getChildren()) {
             if (dir.isUsed()) {

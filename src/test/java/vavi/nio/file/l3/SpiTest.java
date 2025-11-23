@@ -65,7 +65,7 @@ Debug.print("uri: " + uri);
         Path root = fs.getRootDirectories().iterator().next();
         Files.walk(root).forEach(p -> {try { System.err.printf("%-48s  %s%n", p, Files.getLastModifiedTime(p)); } catch (
                 IOException ignore) {}});
-        assertEquals(64, Files.walk(root).count());
+        assertEquals(100, Files.walk(root).count());
 
         fs.close();
     }

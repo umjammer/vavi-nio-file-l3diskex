@@ -1817,9 +1817,9 @@ public class DiskBasic extends DiskParam {
     }
 
     /**
-    /// ルートディレクトリ内の一覧を返す
-    ///
-    /// @param dirItem nullable
+     * ルートディレクトリ内の一覧を返す
+     *
+     * @param dirItem nullable
      */
     public <T extends Directory> List<DiskBasicDirItem<T>> getRootDirectoryItems(DiskBasicDirItem<T>[] dirItem) {
         return dir.getRootItems(dirItem);
