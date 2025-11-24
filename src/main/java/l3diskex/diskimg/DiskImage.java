@@ -1232,7 +1232,7 @@ public abstract class DiskImage {
         }
 
         public DiskImageSector getSector(int trackNumber, int sideNumber, int sectorNumber) {
-            return getSector(trackNumber, sideNumber, sideNumber, -1);
+            return getSector(trackNumber, sideNumber, sectorNumber, -1);
         }
 
         /**
