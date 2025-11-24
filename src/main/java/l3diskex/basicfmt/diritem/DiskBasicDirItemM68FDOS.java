@@ -16,7 +16,6 @@ import java.util.ResourceBundle;
 import l3diskex.Utils;
 import l3diskex.basicfmt.BasicCommon.Directory;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
-import l3diskex.basicfmt.BasicCommon.DiskBasicFormatType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
 import l3diskex.basicfmt.DiskBasic;
@@ -25,15 +24,16 @@ import l3diskex.basicfmt.DiskBasicError;
 import l3diskex.basicfmt.diritem.DiskBasicDirItemM68FDOS.DirectoryM68FDos;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
+import vavi.util.ByteUtil;
 import vavi.util.serdes.Element;
 import vavi.util.serdes.Serdes;
 
-import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_M68FDOS;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_HIDDEN_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_READONLY_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_SYSTEM_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_WRITEONLY_MASK;
 import static l3diskex.basicfmt.DiskBasicType.INVALID_GROUP_NUMBER;
+import static l3diskex.basicfmt.type.DiskBasicTypeM68FDOS.FORMAT_TYPE_M68FDOS;
 
 
 /**
@@ -48,6 +48,8 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
      */
     @Serdes
     public static class DirectoryM68FDos implements Directory {
+
+        public static final int SIZE = 4 + 2 + 2 + 2 + 2 + 1 + 2 + 2 + 2 + 2 + 1 + 2 + 2 + 2 + 3;
 
         @Element(sequence = 1)
         public M68FDosName name = new M68FDosName();
@@ -83,31 +85,53 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
         @Serdes
         public static class M68FDosName {
 
+            static final int SIZE = 4;
+
+            short getW(int index) {
+                return ByteUtil.readBeShort(b, index * 2);
+            }
+
+            void setW(int index, short value) {
+                ByteUtil.writeBeShort(value, b, index * 2);
+            }
+
             @Element(sequence = 1)
-            public short[] w = new short[2]; // big endien
-            @Element(sequence = 2)
             public byte[] b = new byte[4];
         }
 
         @Serdes
         public static class M68FDosExt {
 
+            static final int SIZE = 2;
+
+            short getW() {
+                return ByteUtil.readBeShort(b);
+            }
+
+            public void setW(short value) {
+                ByteUtil.writeBeShort(value, b);
+            }
+
             @Element(sequence = 1)
-            public short w; // big endien
-            @Element(sequence = 2)
             public byte[] b = new byte[2];
         }
 
         @Serdes
         public static class M68fdosRev {
 
+            static final int SIZE = 2;
+
+            short getW() {
+                return ByteUtil.readBeShort(b);
+            }
+
+            public void setW(short value) {
+                ByteUtil.writeBeShort(value, b);
+            }
+
             @Element(sequence = 1)
-            public short w; // big endien
-            @Element(sequence = 2)
             public byte[] b = new byte[2];
         }
-
-        public static final int SIZE = 31;
     }
 
     public static final int FILETYPE_M68_FDOS_D = 0x0001;
@@ -219,8 +243,8 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
         int[] ns = {0};
         byte[] n = getFileNamePos(0, ns, nl);
         if (n != null && ns[0] > 0) {
-            data.data().name.w[0] = basic.orderUint16(encodeName(Arrays.copyOfRange(filename, 0, size), 0, size));
-            data.data().name.w[1] = basic.orderUint16(encodeName(Arrays.copyOfRange(filename, 3, size), 0, size - 3));
+            data.data().name.setW(0, basic.orderUint16(encodeName(Arrays.copyOfRange(filename, 0, size), 0, size)));
+            data.data().name.setW(1, basic.orderUint16(encodeName(Arrays.copyOfRange(filename, 3, size), 0, size - 3)));
         }
     }
 
@@ -230,7 +254,7 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
         int[] el = {0};
         byte[] e = getFileExtPos(el);
         if (e != null && el[0] > 0) {
-            data.data().ext.w = basic.orderUint16(encodeName(fileExt, 0, size));
+            data.data().ext.setW(basic.orderUint16(encodeName(fileExt, 0, size)));
         }
     }
 
@@ -244,8 +268,8 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
         if (n != null && s[0] > 0) {
             int copySize = s[0];
             if (copySize > size) copySize = size;
-            decodeName(basic.orderUint16(data.data().name.w[0]), filename, 0, size);
-            decodeName(basic.orderUint16(data.data().name.w[1]), filename, 3, size - 3);
+            decodeName(basic.orderUint16(data.data().name.getW(0)), filename, 0, size);
+            decodeName(basic.orderUint16(data.data().name.getW(1)), filename, 3, size - 3);
         }
 
         length[0] = l[0];
@@ -258,7 +282,7 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
 
         byte[] e = getFileExtPos(l);
         if (e != null && l[0] > 0) {
-            decodeName(basic.orderUint16(data.data().ext.w), fileExt, 0, size);
+            decodeName(basic.orderUint16(data.data().ext.getW()), fileExt, 0, size);
         }
 
         length[0] = l[0];
@@ -303,7 +327,7 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
     /** 使用しているアイテムか */
     @Override
     public boolean checkUsed(boolean unuse) {
-        return !(data.data().name.w[0] == 0 && data.data().name.w[1] == 0 && data.data().ext.w == 0);
+        return !(data.data().name.getW(0) == 0 && data.data().name.getW(1) == 0 && data.data().ext.getW() == 0);
     }
 
     /** リビジョンを返す */
@@ -321,12 +345,12 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
 
     /** リビジョンを返す */
     public short getRevision() {
-        return basic.orderUint16(data.data().rev.w);
+        return basic.orderUint16(data.data().rev.getW());
     }
 
     /** リビジョンをセット */
     private void setRevision(short val) {
-        data.data().rev.w = basic.orderUint16(val);
+        data.data().rev.setW(basic.orderUint16(val));
     }
 
     /** 属性を変換 */
@@ -446,7 +470,7 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
     public boolean check(boolean[] last) {
         if (!data.isValid()) return false;
 
-        short val = basic.orderUint16(data.data().name.w[0]);
+        short val = basic.orderUint16(data.data().name.getW(0));
         if ((val & 0xffff) >= 0xed80) {
             return false;
         }
@@ -457,9 +481,9 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
     @Override
     public boolean delete() throws IOException {
         // ファイル名をクリア
-        data.data().name.w[0] = 0;
-        data.data().name.w[1] = 0;
-        data.data().ext.w = 0;
+        data.data().name.setW(0, (short) 0);
+        data.data().name.setW(1, (short) 0);
+        data.data().ext.setW((short) 0);
         used(false);
         // 開始グループを未使用にする
         type.setGroupNumber(getStartGroup(0), 0);
