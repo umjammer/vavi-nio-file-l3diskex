@@ -50,7 +50,7 @@ public class DiskBasicDirItemHU68K extends DiskBasicDirItemMSDOS {
     }
 
     @Override
-    public boolean isSupported(DiskBasicFormatType formatType) {
+    public boolean isSupported(int formatType) {
         return formatType == FORMAT_TYPE_HU68K;
     }
 
@@ -93,12 +93,12 @@ public class DiskBasicDirItemHU68K extends DiskBasicDirItemMSDOS {
     public byte[] getFileNamePos(int num, int[] size, int[] len) {
         return switch (num) {
             case 0 -> {
-                size[0] = len[0] = data.data().hu68k.name.length;
-                yield data.data().hu68k.name;
+                size[0] = len[0] = data.data().hu68k().name.length;
+                yield data.data().hu68k().name;
             }
             case 1 -> {
-                size[0] = len[0] = data.data().hu68k.name2.length;
-                yield data.data().hu68k.name2;
+                size[0] = len[0] = data.data().hu68k().name2.length;
+                yield data.data().hu68k().name2;
             }
             default -> {
                 size[0] = len[0] = 0;
@@ -109,13 +109,13 @@ public class DiskBasicDirItemHU68K extends DiskBasicDirItemMSDOS {
 
     @Override
     public byte[] getFileExtPos(int[] len) {
-        len[0] = data.data().hu68k.ext.length;
-        return data.data().hu68k.ext;
+        len[0] = data.data().hu68k().ext.length;
+        return data.data().hu68k().ext;
     }
 
     @Override
     public int getDataSize() {
-        return DirectoryHu68k.SIZE;
+        return data.getDataSize();
     }
 
     //
@@ -124,13 +124,13 @@ public class DiskBasicDirItemHU68K extends DiskBasicDirItemMSDOS {
 
     @Override
     public void setInternalDataInAttrDialog(KeyValArray vals) {
-        vals.add("NAME", data.data().hu68k.name, data.data().hu68k.name.length);
-        vals.add("EXT", data.data().hu68k.ext, data.data().hu68k.ext.length);
-        vals.add("TYPE", data.data().hu68k.type);
-        vals.add("NAME2", data.data().hu68k.name2, data.data().hu68k.name2.length);
-        vals.add("WTIME", data.data().hu68k.wTime);
-        vals.add("WDATE", data.data().hu68k.wDate);
-        vals.add("START_GROUP", data.data().hu68k.startGroup);
-        vals.add("FILE_SIZE", data.data().hu68k.fileSize);
+        vals.add("NAME", data.data().hu68k().name, data.data().hu68k().name.length);
+        vals.add("EXT", data.data().hu68k().ext, data.data().hu68k().ext.length);
+        vals.add("TYPE", data.data().hu68k().type);
+        vals.add("NAME2", data.data().hu68k().name2, data.data().hu68k().name2.length);
+        vals.add("WTIME", data.data().hu68k().wTime);
+        vals.add("WDATE", data.data().hu68k().wDate);
+        vals.add("START_GROUP", data.data().hu68k().startGroup);
+        vals.add("FILE_SIZE", data.data().hu68k().fileSize);
     }
 }

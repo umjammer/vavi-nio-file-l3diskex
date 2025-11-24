@@ -9,7 +9,6 @@ import java.util.ResourceBundle;
 
 import l3diskex.basicfmt.BasicCommon.Directory;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
-import l3diskex.basicfmt.BasicCommon.DiskBasicFormatType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
 import l3diskex.basicfmt.DiskBasic;
@@ -18,7 +17,7 @@ import l3diskex.diskimg.DiskParam.SectorParam;
 import vavi.util.serdes.Element;
 import vavi.util.serdes.Serdes;
 
-import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_LOSA;
+import static l3diskex.basicfmt.type.DiskBasicTypeMSDOS.FORMAT_TYPE_LOSA;
 
 
 /**
@@ -73,7 +72,7 @@ public class DiskBasicDirItemLOSA extends DiskBasicDirItemMSDOS {
     //
 
     @Override
-    public boolean isSupported(DiskBasicFormatType formatType) {
+    public boolean isSupported(int formatType) {
         return formatType == FORMAT_TYPE_LOSA;
     }
 
@@ -107,8 +106,8 @@ public class DiskBasicDirItemLOSA extends DiskBasicDirItemMSDOS {
     protected byte[] getFileNamePos(int num, int[] size, int[] len) {
         return switch (num) {
             case 0 -> {
-                size[0] = len[0] = data.data().losa.name.length;
-                yield data.data().losa.name;
+                size[0] = len[0] = data.data().losa().name.length;
+                yield data.data().losa().name;
             }
             default -> {
                 size[0] = len[0] = 0;
@@ -119,19 +118,19 @@ public class DiskBasicDirItemLOSA extends DiskBasicDirItemMSDOS {
 
     @Override
     protected byte[] getFileExtPos(int[] len) {
-        len[0] = data.data().losa.ext.length;
-        return data.data().losa.ext;
+        len[0] = data.data().losa().ext.length;
+        return data.data().losa().ext;
     }
 
     /** File type (attribute 2) */
     @Override
     public int getFileType2() {
-        return data.data().losa.binaryType & 0xff;
+        return data.data().losa().binaryType & 0xff;
     }
 
     @Override
     protected void setFileType2(int val) {
-        data.data().losa.binaryType = (byte) (val & 0xff);
+        data.data().losa().binaryType = (byte) (val & 0xff);
     }
 
     /** Generic attribute handling */
@@ -180,14 +179,14 @@ public class DiskBasicDirItemLOSA extends DiskBasicDirItemMSDOS {
 
     @Override
     public int getStartAddress() {
-        String address = new String(data.data().losa.startAddress);
+        String address = new String(data.data().losa().startAddress);
         int lVal = Integer.parseInt(address, 16);
         return lVal;
     }
 
     @Override
     public int getExecuteAddress() {
-        String address = new String(data.data().losa.execAddress);
+        String address = new String(data.data().losa().execAddress);
         int lVal = Integer.parseInt(address, 16);
         return lVal;
     }
@@ -196,14 +195,14 @@ public class DiskBasicDirItemLOSA extends DiskBasicDirItemMSDOS {
     public void setStartAddress(int val) {
         String address = String.format("%04X", val);
         byte[] b = address.getBytes();
-        System.arraycopy(b, 0, data.data().losa.startAddress, 0, 4);
+        System.arraycopy(b, 0, data.data().losa().startAddress, 0, 4);
     }
 
     @Override
     public void setExecuteAddress(int val) {
         String address = String.format("%04X", val);
         byte[] b = address.getBytes();
-        System.arraycopy(b, 0, data.data().losa.execAddress, 0, 4);
+        System.arraycopy(b, 0, data.data().losa().execAddress, 0, 4);
     }
 
     @Override
@@ -217,16 +216,16 @@ public class DiskBasicDirItemLOSA extends DiskBasicDirItemMSDOS {
 
     @Override
     public void setInternalDataInAttrDialog(KeyValArray vals) {
-        vals.add("NAME", data.data().losa.name, data.data().losa.name.length);
-        vals.add("EXT", data.data().losa.ext, data.data().losa.ext.length);
-        vals.add("TYPE", data.data().losa.type);
-        vals.add("START_ADDR", data.data().losa.startAddress, data.data().losa.startAddress.length);
-        vals.add("BINARY_TYPE", data.data().losa.binaryType);
-        vals.add("EXEC_ADDR", data.data().losa.execAddress, data.data().losa.execAddress.length);
-        vals.add("RESERVED", data.data().losa.reserved);
-        vals.add("WTIME", data.data().losa.wTime);
-        vals.add("WDATE", data.data().losa.wDate);
-        vals.add("START_GROUP", data.data().losa.startGroup);
-        vals.add("FILE_SIZE", data.data().losa.fileSize);
+        vals.add("NAME", data.data().losa().name, data.data().losa().name.length);
+        vals.add("EXT", data.data().losa().ext, data.data().losa().ext.length);
+        vals.add("TYPE", data.data().losa().type);
+        vals.add("START_ADDR", data.data().losa().startAddress, data.data().losa().startAddress.length);
+        vals.add("BINARY_TYPE", data.data().losa().binaryType);
+        vals.add("EXEC_ADDR", data.data().losa().execAddress, data.data().losa().execAddress.length);
+        vals.add("RESERVED", data.data().losa().reserved);
+        vals.add("WTIME", data.data().losa().wTime);
+        vals.add("WDATE", data.data().losa().wDate);
+        vals.add("START_GROUP", data.data().losa().startGroup);
+        vals.add("FILE_SIZE", data.data().losa().fileSize);
     }
 }
