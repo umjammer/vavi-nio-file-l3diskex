@@ -286,6 +286,12 @@ public class DiskBasicDirItemN88 extends DiskBasicDirItemFAT8<DirectoryN88> {
         if ((t1 & DATATYPE_MASK_N88_READ_WRITE) != 0) {
             type |= FILE_TYPE_READWRITE_MASK.getValue();
         }
+
+        if (isValidDirectory()) { // TODO ad-hoc if this is a root directory set directory type bit
+            type |= FILE_TYPE_DIRECTORY_MASK.getValue();
+        }
+
+        return new DiskBasicFileType(basic.getFormatTypeNumber(), type, t1);
     }
 
     @Override
