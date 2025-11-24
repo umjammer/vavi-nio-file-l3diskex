@@ -110,13 +110,13 @@ logger.log(Level.TRACE, "diskBasic.diskNumber: " + diskBasic.getDiskNumber());
         int r3 = diskBasic.parseBasic(disk, 0, null, false);
         if (r3 != 0)
             throw new IllegalArgumentException("diskBasic.parseBasic: " + diskBasic.getErrorMessage(r3));
-logger.log(Level.DEBUG, "FORMAT: " + diskBasic.getFormatTypeNumber());
+logger.log(Level.DEBUG, "FORMAT: " + diskBasic.getType().getClass().getSimpleName());
 
         // Assign FAT and directory
         boolean r = diskBasic.assignRootDirectory(); // w/o this diskBasic#getRootDirectory returns null
         if (!r)
             throw new IllegalStateException("diskBasic.assignRootDirectory");
-logger.log(Level.TRACE, "ASSIGN: done");
+logger.log(Level.TRACE, "ASSIGN: root: %s, children: %d, isDir: %s, attr: %08x".formatted(diskBasic.getRootDirectory().getClass().getSimpleName(), diskBasic.getRootDirectory().getChildren().size(), diskBasic.getRootDirectory().isDirectory(), diskBasic.getRootDirectory().getFileAttr().getType()));
 
         L3FileStore fileStore = new L3FileStore(diskBasic, factoryProvider.getAttributesFactory());
         return new L3FileSystemDriver(fileStore, factoryProvider, diskBasic, env);

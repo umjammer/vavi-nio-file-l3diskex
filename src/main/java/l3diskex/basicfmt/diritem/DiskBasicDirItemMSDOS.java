@@ -390,18 +390,22 @@ public class DiskBasicDirItemMSDOS extends DiskBasicDirItem<DirectoryMs> {
     /** 日付を変換 */
     protected static LocalDate convDateToTm(short date) {
         int yy = ((date & 0xfe00) >> 9) + 80;
+        int mm = ((date & 0x01e0) >> 5);
         return LocalDate.of(
                 yy,
-                ((date & 0x01e0) >> 5) + 1, // 1-12 for DateTime month
+                mm < 1 || mm > 12 ? 1 : mm, // 1-12 for DateTime month
                 (date & 0x001f) + 1);
     }
 
     /** 時間を変換 */
     protected static LocalTime convTimeToTm(short time) {
+        int hh = (time & 0xf800) >> 11;
+        int mm = (time & 0x07e0) >> 5;
+        int ss = (time & 0x001f) << 1;
         return LocalTime.of(
-                (time & 0xf800) >> 11,
-                (time & 0x07e0) >> 5,
-                (time & 0x001f) << 1);
+                hh < 0 || hh > 23 ? 0 : hh,
+                mm < 0 || mm > 59 ? 0 : mm,
+                ss < 0 || ss > 59 ? 0 : ss);
     }
 
     /** 日付に変換 */
@@ -510,6 +514,11 @@ public class DiskBasicDirItemMSDOS extends DiskBasicDirItem<DirectoryMs> {
     @Override
     public DiskBasicFileType getFileAttr() {
         int t1 = getFileType1();
+
+        if (isValidDirectory() && (t1 & FILETYPE_MASK_MS_DIRECTORY) == 0) { // TODO ad-hoc if this is a root directory set directory type bit
+            t1 |= FILETYPE_MASK_MS_DIRECTORY;
+        }
+
         return new DiskBasicFileType(basic.getFormatTypeNumber(), t1 << 8, t1);
     }
 
