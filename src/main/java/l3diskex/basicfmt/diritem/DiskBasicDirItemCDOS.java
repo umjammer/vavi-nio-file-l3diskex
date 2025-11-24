@@ -37,7 +37,7 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_SYSTEM_MASK;
 import static l3diskex.basicfmt.type.DiskBasicTypeCDOS.FORMAT_TYPE_CDOS;
 
 
-/// ディレクトリ１アイテム C-DOS
+/** ディレクトリ１アイテム C-DOS */
 public class DiskBasicDirItemCDOS extends DiskBasicDirItemMZBase<DirectoryCDos> {
 
     private static final ResourceBundle rb = ResourceBundle.getBundle("messages");

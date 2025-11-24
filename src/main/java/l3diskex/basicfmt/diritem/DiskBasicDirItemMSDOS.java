@@ -122,7 +122,7 @@ public class DiskBasicDirItemMSDOS extends DiskBasicDirItem<DirectoryMs> {
     public static final int FILETYPE_MASK_MS_ARCHIVE = 0x20;
     public static final int FILETYPE_MASK_MS_LFN = 0x0f; // long file name
 
-    /// MS-DOS (MSX-DOS)
+    /** MS-DOS (MSX-DOS) */
     static final Map<String, Object> typeNameMS = new LinkedHashMap<>() {{
         put("Read Only", FILE_TYPE_READONLY_MASK.getValue());
         put("Hidden", FILE_TYPE_HIDDEN_MASK.getValue());
@@ -133,7 +133,7 @@ public class DiskBasicDirItemMSDOS extends DiskBasicDirItem<DirectoryMs> {
         put("(LFN)", FILE_TYPE_READONLY_MASK.getValue() | FILE_TYPE_HIDDEN_MASK.getValue() | FILE_TYPE_SYSTEM_MASK.getValue() | FILE_TYPE_VOLUME_MASK.getValue());
     }};
 
-    /// MS-DOS (MSX-DOS)
+    /** MS-DOS (MSX-DOS) */
     static final Map<String, Object> typeNameMSl = new LinkedHashMap<>() {{
         put("Read Only", FILE_TYPE_READONLY_MASK.getValue());
         put("Hidden", FILE_TYPE_HIDDEN_MASK.getValue());
