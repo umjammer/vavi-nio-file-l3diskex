@@ -19,7 +19,6 @@ import l3diskex.Parambase.MyAttribute;
 import l3diskex.Utils;
 import l3diskex.basicfmt.BasicCommon.Directory;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
-import l3diskex.basicfmt.BasicCommon.DiskBasicFormatType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
@@ -28,6 +27,7 @@ import l3diskex.basicfmt.DiskBasicDirItem;
 import l3diskex.basicfmt.diritem.DiskBasicDirItemHU68K.DirectoryHu68k;
 import l3diskex.basicfmt.diritem.DiskBasicDirItemLOSA.DirectoryLosa;
 import l3diskex.basicfmt.diritem.DiskBasicDirItemMSDOS.DirectoryMs;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemMSDOS.DiskBasicDirItemVFAT.DirectoryMsLfn;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
 import vavi.io.SeekableDataInputStream;
@@ -35,9 +35,6 @@ import vavi.util.serdes.Element;
 import vavi.util.serdes.Serdes;
 
 import static l3diskex.Parambase.MyAttributes.findUpperCase;
-import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_CDOS2;
-import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_L3_1S;
-import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_MSDOS;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_ARCHIVE_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_ASCII_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_DIRECTORY_MASK;
@@ -45,6 +42,10 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_HIDDEN_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_READONLY_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_SYSTEM_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_VOLUME_MASK;
+import static l3diskex.basicfmt.type.DiskBasicTypeHU68K.FORMAT_TYPE_HU68K;
+import static l3diskex.basicfmt.type.DiskBasicTypeMSDOS.FORMAT_TYPE_CDOS2;
+import static l3diskex.basicfmt.type.DiskBasicTypeMSDOS.FORMAT_TYPE_LOSA;
+import static l3diskex.basicfmt.type.DiskBasicTypeMSDOS.FORMAT_TYPE_MSDOS;
 
 
 /** ディレクトリ１アイテム MS-DOS */
@@ -88,31 +89,6 @@ public class DiskBasicDirItemMSDOS extends DiskBasicDirItem<DirectoryMs> {
         public static final int SIZE = 32;
     }
 
-    /**
-     * ディレクトリエントリ MS-DOS LFN (32bytes)
-     */
-    @Serdes(bigEndian = false)
-    public static class DirectoryMsLfn implements Directory {
-
-        @Element(sequence = 1)
-        public byte order;
-        @Element(sequence = 2)
-        public byte[] name = new byte[10];
-        @Element(sequence = 3)
-        public byte type;
-        @Element(sequence = 4)
-        public byte type2;
-        @Element(sequence = 5)
-        public byte checksum;
-        @Element(sequence = 6)
-        public byte[] name2 = new byte[12];
-        @Element(sequence = 7)
-        public short dummyGroup;
-        @Element(sequence = 8)
-        public byte[] name3 = new byte[4];
-
-        public static final int SIZE = 32;
-    }
 
     /**
      * ディレクトリエントリ MS-DOS compatible (32bytes)
@@ -762,6 +738,32 @@ public class DiskBasicDirItemMSDOS extends DiskBasicDirItem<DirectoryMs> {
 
     /** ディレクトリ１アイテム MS-DOS VFAT */
     public static class DiskBasicDirItemVFAT extends DiskBasicDirItemMSDOS {
+
+        /**
+         * ディレクトリエントリ MS-DOS LFN (32bytes)
+         */
+        @Serdes(bigEndian = false)
+        public static class DirectoryMsLfn implements Directory {
+
+            @Element(sequence = 1)
+            public byte order;
+            @Element(sequence = 2)
+            public byte[] name = new byte[10];
+            @Element(sequence = 3)
+            public byte type;
+            @Element(sequence = 4)
+            public byte type2;
+            @Element(sequence = 5)
+            public byte checksum;
+            @Element(sequence = 6)
+            public byte[] name2 = new byte[12];
+            @Element(sequence = 7)
+            public short dummyGroup;
+            @Element(sequence = 8)
+            public byte[] name3 = new byte[4];
+
+            public static final int SIZE = 32;
+        }
 
         @Override
         public boolean isSupported(DiskBasicFormatType formatType) {

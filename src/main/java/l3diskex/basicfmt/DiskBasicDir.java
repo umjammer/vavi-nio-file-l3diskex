@@ -6,46 +6,13 @@ import java.util.ServiceLoader;
 
 import l3diskex.basicfmt.BasicCommon.Directory;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileName;
-import l3diskex.basicfmt.BasicCommon.DiskBasicFormatType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
-import l3diskex.basicfmt.diritem.DiskBasicDirItemAmiga;
-import l3diskex.basicfmt.diritem.DiskBasicDirItemAppleDOS;
-import l3diskex.basicfmt.diritem.DiskBasicDirItemC1541;
-import l3diskex.basicfmt.diritem.DiskBasicDirItemCDOS;
-import l3diskex.basicfmt.diritem.DiskBasicDirItemCPM;
-import l3diskex.basicfmt.diritem.DiskBasicDirItemDOS80;
-import l3diskex.basicfmt.diritem.DiskBasicDirItemFLEX;
-import l3diskex.basicfmt.diritem.DiskBasicDirItemFM;
-import l3diskex.basicfmt.diritem.DiskBasicDirItemFP;
-import l3diskex.basicfmt.diritem.DiskBasicDirItemFROST;
-import l3diskex.basicfmt.diritem.DiskBasicDirItemFalcom;
-import l3diskex.basicfmt.diritem.DiskBasicDirItemHU68K;
-import l3diskex.basicfmt.diritem.DiskBasicDirItemL31S;
-import l3diskex.basicfmt.diritem.DiskBasicDirItemL32D;
-import l3diskex.basicfmt.diritem.DiskBasicDirItemLOSA;
-import l3diskex.basicfmt.diritem.DiskBasicDirItemM68FDOS;
-import l3diskex.basicfmt.diritem.DiskBasicDirItemMAGICAL;
-import l3diskex.basicfmt.diritem.DiskBasicDirItemMDOS;
-import l3diskex.basicfmt.diritem.DiskBasicDirItemMSDOS;
-import l3diskex.basicfmt.diritem.DiskBasicDirItemMSDOS.DiskBasicDirItemVFAT;
-import l3diskex.basicfmt.diritem.DiskBasicDirItemMSX;
-import l3diskex.basicfmt.diritem.DiskBasicDirItemMZ;
-import l3diskex.basicfmt.diritem.DiskBasicDirItemMZFDOS;
-import l3diskex.basicfmt.diritem.DiskBasicDirItemN88;
-import l3diskex.basicfmt.diritem.DiskBasicDirItemOS9;
-import l3diskex.basicfmt.diritem.DiskBasicDirItemProDOS;
-import l3diskex.basicfmt.diritem.DiskBasicDirItemSDOS;
-import l3diskex.basicfmt.diritem.DiskBasicDirItemTFDOS;
-import l3diskex.basicfmt.diritem.DiskBasicDirItemTRSDOS.DiskBasicDirItemTRSD13;
-import l3diskex.basicfmt.diritem.DiskBasicDirItemTRSDOS.DiskBasicDirItemTRSD23;
 import l3diskex.basicfmt.DiskBasicParam.DiskBasicFormat;
-import l3diskex.basicfmt.diritem.DiskBasicDirItemX1HU;
-import l3diskex.basicfmt.diritem.DiskBasicDirItemXDOS;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
 
-import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_UNKNOWN;
+import static l3diskex.basicfmt.BasicCommon.FORMAT_TYPE_UNKNOWN;
 
 
 /** ディレクトリアクセス */
@@ -77,7 +44,7 @@ public class DiskBasicDir<T extends Directory> {
      */
     public DiskBasicDirItem<T> newItem() throws IOException {
 
-        DiskBasicFormatType formatType = FORMAT_TYPE_UNKNOWN;
+        int formatType = FORMAT_TYPE_UNKNOWN;
         if (this.formatType != null) formatType = this.formatType.getTypeNumber();
 
         ServiceLoader<DiskBasicDirItem> serviceLoader = ServiceLoader.load(DiskBasicDirItem.class);
@@ -106,7 +73,7 @@ public class DiskBasicDir<T extends Directory> {
     public DiskBasicDirItem<T> newItem(DiskImageSector sector, int sectorPos,
                                        byte[] data, int dataPos) throws IOException {
 
-        DiskBasicFormatType formatType = FORMAT_TYPE_UNKNOWN;
+        int formatType = FORMAT_TYPE_UNKNOWN;
         if (this.formatType != null) formatType = this.formatType.getTypeNumber();
 
         ServiceLoader<DiskBasicDirItem> serviceLoader = ServiceLoader.load(DiskBasicDirItem.class);
@@ -139,7 +106,7 @@ public class DiskBasicDir<T extends Directory> {
                                        DiskImageSector sector, int sectorPos,
                                        byte[] data, int dataPos,
                                        SectorParam next, boolean[] unuse) throws IOException {
-        DiskBasicFormatType formatType = FORMAT_TYPE_UNKNOWN;
+        int formatType = FORMAT_TYPE_UNKNOWN;
         if (this.formatType != null) formatType = this.formatType.getTypeNumber();
 
         ServiceLoader<DiskBasicDirItem> serviceLoader = ServiceLoader.load(DiskBasicDirItem.class);

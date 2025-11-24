@@ -9,7 +9,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 
-import l3diskex.basicfmt.BasicCommon.DiskBasicFormatType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.DiskBasic;
@@ -20,7 +19,6 @@ import l3diskex.basicfmt.DiskBasicFat;
 import l3diskex.basicfmt.DiskBasicType;
 import l3diskex.basicfmt.diritem.DiskBasicDirItemFalcom.DirectoryFalcom;
 
-import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_FALCOM;
 import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_FREE;
 import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_SYSTEM;
 import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_USED;
@@ -32,8 +30,10 @@ import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailabili
  */
 public class DiskBasicTypeFalcom extends DiskBasicType<DirectoryFalcom> {
 
+    public static final int FORMAT_TYPE_FALCOM = 91;
+
     @Override
-    public boolean isSupported(DiskBasicFormatType typeNumber) {
+    public boolean isSupported(int typeNumber) {
         return typeNumber == FORMAT_TYPE_FALCOM;
     }
 
@@ -42,7 +42,7 @@ public class DiskBasicTypeFalcom extends DiskBasicType<DirectoryFalcom> {
         super.init(basic, fat, dir);
     }
 
-    /// FATエリアをチェック
+    /** FATエリアをチェック */
     @Override
     public double checkFat(boolean isFormatting) {
         return 1.0;

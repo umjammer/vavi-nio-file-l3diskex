@@ -40,7 +40,7 @@ class SpiTest {
         return java.nio.file.Files.exists(Paths.get("local.properties"));
     }
 
-    @Property
+    @Property(name = "test.d88")
     String disk = "src/test/resources/test.d88";
 
     @BeforeEach

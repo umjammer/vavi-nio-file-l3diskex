@@ -13,10 +13,11 @@ import l3diskex.Parambase.MyAttribute;
 import l3diskex.Parambase.TemplatesBase;
 import l3diskex.Parambase.ValidNameRule;
 import l3diskex.Utils;
-import l3diskex.basicfmt.BasicCommon.DiskBasicFormatType;
 import l3diskex.diskimg.DiskParam.DiskParamName;
 import l3diskex.diskimg.DiskParam.NumSectorsParam;
 import l3diskex.diskimg.DiskParam.SectorInterleave;
+
+import static l3diskex.basicfmt.BasicCommon.FORMAT_TYPE_UNKNOWN;
 
 
 /** DISK BASICのパラメータを保持するクラス */
@@ -115,7 +116,7 @@ public class DiskBasicParam extends DiskBasicParamBase {
     public static class DiskBasicFormat extends DiskBasicParamBase {
 
         /** フォーマットタイプ番号 */
-        private DiskBasicFormatType typeNumber;
+        private int typeNumber;
         /** ボリューム名 */
         private boolean hasVolumeName;
         /** ボリューム番号 */
@@ -125,7 +126,7 @@ public class DiskBasicParam extends DiskBasicParamBase {
 
         /** 初期化 */
         private void clearBasicFormatPrivate() {
-            typeNumber = DiskBasicFormatType.FORMAT_TYPE_UNKNOWN;
+            typeNumber = FORMAT_TYPE_UNKNOWN;
             hasVolumeName = false;
             hasVolumeNumber = false;
             hasVolumeDate = false;
@@ -142,7 +143,7 @@ public class DiskBasicParam extends DiskBasicParamBase {
         }
 
         /** フォーマットタイプ番号 */
-        public DiskBasicFormatType getTypeNumber() {
+        public int getTypeNumber() {
             return typeNumber;
         }
 
@@ -162,10 +163,10 @@ public class DiskBasicParam extends DiskBasicParamBase {
         }
 
 //        /** ファイル名が必須か */
-//        public bool isFileNameRequired() { return filename_require; }
+//        public bool isFileNameRequired() { return filenameRequire; }
 
         /** フォーマットタイプ番号 */
-        public void setTypeNumber(DiskBasicFormatType val) {
+        public void setTypeNumber(int val) {
             typeNumber = val;
         }
 
@@ -220,7 +221,7 @@ public class DiskBasicParam extends DiskBasicParamBase {
                     DiskBasicParamBases paramBases = new DiskBasicParamBases();
                     String sTypeNumber = ((Element) item).getAttribute("type");
                     int typeNumber = Utils.toInt(sTypeNumber);
-                    f.setTypeNumber(DiskBasicFormatType.valueOf(typeNumber));
+                    f.setTypeNumber(typeNumber);
 
                     Node itemnode = item.getFirstChild();
                     while (itemnode != null) {
@@ -238,7 +239,7 @@ public class DiskBasicParam extends DiskBasicParamBase {
                         itemnode = itemnode.getNextSibling();
                     }
 
-                    if (find(DiskBasicFormatType.valueOf(typeNumber)) == null) {
+                    if (find(typeNumber) == null) {
                         list.add(f);
                     } else {
                         errMsgs.append("\n");
@@ -254,11 +255,11 @@ public class DiskBasicParam extends DiskBasicParamBase {
             return valid;
         }
 
-        /** @param format_type フォーマット種類 */
-        public DiskBasicFormat find(DiskBasicFormatType format_type) {
+        /** @param formatType フォーマット種類 */
+        public DiskBasicFormat find(int formatType) {
             DiskBasicFormat match = null;
             for (DiskBasicFormat item : list) {
-                if (item.getTypeNumber() == format_type) {
+                if (item.getTypeNumber() == formatType) {
                     match = item;
                     break;
                 }
@@ -946,7 +947,7 @@ public class DiskBasicParam extends DiskBasicParamBase {
                     p.setBasicTypeName(typeName);
 
                     String formatName = ((Element) item).getAttribute("type");
-                    DiskBasicFormat formatType = formats.find(DiskBasicFormatType.valueOf(Utils.toInt(formatName))); // Placeholder for enum conversion
+                    DiskBasicFormat formatType = formats.find(Utils.toInt(formatName));
                     if (!formatName.isEmpty() && formatType != null) {
                         // フォーマットパラメータを初期値とする
                         p.setFormatType(formatType);
@@ -1126,7 +1127,7 @@ public class DiskBasicParam extends DiskBasicParamBase {
             for (DiskBasicParam item : this.list) {
                 for (int formatTypeVal : formatTypes) {
                     DiskBasicFormat fmt = item.getFormatType();
-                    if (fmt != null && formatTypeVal == fmt.getTypeNumber().ordinal()) {
+                    if (fmt != null && formatTypeVal == fmt.getTypeNumber()) {
                         types.list.add(item);
                     }
                 }

@@ -4,13 +4,10 @@
 
 package l3diskex.basicfmt.type;
 
-import l3diskex.basicfmt.BasicCommon.DiskBasicFormatType;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasicDir;
 import l3diskex.basicfmt.DiskBasicFat;
 import l3diskex.basicfmt.diritem.DiskBasicDirItemCPM.DirectoryCpm;
-
-import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_SMC;
 
 
 /**
@@ -18,8 +15,10 @@ import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_SMC;
  */
 public class DiskBasicTypeSMC extends DiskBasicTypeCPM {
 
+    public static final int FORMAT_TYPE_SMC = 12;
+
     @Override
-    public boolean isSupported(DiskBasicFormatType typeNumber) {
+    public boolean isSupported(int typeNumber) {
         return typeNumber == FORMAT_TYPE_SMC;
     }
 

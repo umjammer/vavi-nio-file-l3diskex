@@ -10,7 +10,6 @@ import java.util.List;
 
 import l3diskex.Utils;
 import l3diskex.basicfmt.BasicCommon.Directory;
-import l3diskex.basicfmt.BasicCommon.DiskBasicFormatType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasic.DiskBasicIdentifiedData;
@@ -25,8 +24,6 @@ import l3diskex.diskimg.DiskImage.DiskImageSector;
 import vavi.util.serdes.Element;
 import vavi.util.serdes.Serdes;
 
-import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_TRSD13;
-import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_TRSD23;
 import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_FREE;
 import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_SYSTEM;
 import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_USED;
@@ -467,8 +464,10 @@ public abstract class DiskBasicTypeTRSDOS<T extends Directory> extends DiskBasic
     //
     public static class DiskBasicTypeTRSD23 extends DiskBasicTypeTRSDOS<DirectoryTrsD23> {
 
+        public static final int FORMAT_TYPE_TRSD23 = 17;
+
         @Override
-        public boolean isSupported(DiskBasicFormatType typeNumber) {
+        public boolean isSupported(int typeNumber) {
             return typeNumber == FORMAT_TYPE_TRSD23;
         }
 
@@ -730,8 +729,10 @@ public abstract class DiskBasicTypeTRSDOS<T extends Directory> extends DiskBasic
      */
     public static class DiskBasicTypeTRSD13 extends DiskBasicTypeTRSDOS<DirectoryTrsD13> {
 
+        public static final int FORMAT_TYPE_TRSD13 = 18;
+
         @Override
-        public boolean isSupported(DiskBasicFormatType typeNumber) {
+        public boolean isSupported(int typeNumber) {
             return typeNumber == FORMAT_TYPE_TRSD13;
         }
 

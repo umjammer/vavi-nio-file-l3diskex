@@ -33,7 +33,7 @@ import static l3diskex.basicfmt.diritem.DiskBasicDirItemMAGICAL.typeNameMagicalM
  */
 public class UiDirItemMAGICAL extends UiDirItem {
 
-    static final ResourceBundle rb = ResourceBundle.getBundle("message");
+    static final ResourceBundle rb = ResourceBundle.getBundle("messages");
 
     DiskBasicDirItemMAGICAL dirItem;
 

@@ -10,7 +10,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
 
-import l3diskex.basicfmt.BasicCommon.DiskBasicFormatType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasic.DiskBasicIdentifiedData;
@@ -18,21 +17,20 @@ import l3diskex.basicfmt.DiskBasicDir;
 import l3diskex.basicfmt.DiskBasicDirItem;
 import l3diskex.basicfmt.DiskBasicError;
 import l3diskex.basicfmt.DiskBasicFat;
+import l3diskex.basicfmt.DiskBasicParam.DiskBasicFormat;
 import l3diskex.basicfmt.DiskBasicType;
 import l3diskex.basicfmt.diritem.DiskBasicDirItemAppleDOS;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemAppleDOS.AppleDosChain;
 import l3diskex.basicfmt.diritem.DiskBasicDirItemAppleDOS.AppleDosPointer;
 import l3diskex.basicfmt.diritem.DiskBasicDirItemAppleDOS.DirectoryAppleDos;
-import l3diskex.basicfmt.diritem.DiskBasicDirItemAppleDOS.AppleDosChain;
-import l3diskex.basicfmt.DiskBasicParam.DiskBasicFormat;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import vavi.util.serdes.Element;
 import vavi.util.serdes.Serdes;
 
-import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_APLEDOS;
-import static l3diskex.basicfmt.diritem.DiskBasicDirItemAppleDOS.AppleDosChain.APLEDOS_TRACK_LIST_MAX;
 import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_FREE;
 import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_SYSTEM;
 import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_USED;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemAppleDOS.AppleDosChain.APLEDOS_TRACK_LIST_MAX;
 
 
 /**
@@ -81,8 +79,10 @@ public class DiskBasicTypeAppleDOS extends DiskBasicType<DirectoryAppleDos> {
     /** */
     private AppleDosVToc appleDosVToc;
 
+    public static final int FORMAT_TYPE_APLEDOS = 15;
+
     @Override
-    public boolean isSupported(DiskBasicFormatType typeNumber) {
+    public boolean isSupported(int typeNumber) {
         return typeNumber == FORMAT_TYPE_APLEDOS;
     }
 

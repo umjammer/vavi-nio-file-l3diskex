@@ -542,7 +542,7 @@ public class DiskD88 {
 
         @Override
         public boolean isSameSector(int sectorNumber, int density, boolean deletedMark) {
-            return sectorNumber == mNum &&
+            return sectorNumber == num &&
                     (density < 0 || (density == (isSingleDensity() ? 1 : 0))) &&
                     deletedMark == isDeleted();
         }

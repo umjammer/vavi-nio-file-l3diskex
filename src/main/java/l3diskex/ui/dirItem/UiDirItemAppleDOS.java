@@ -43,7 +43,7 @@ import static l3diskex.basicfmt.diritem.DiskBasicDirItemAppleDOS.typeNameAppleDO
  */
 public class UiDirItemAppleDOS extends UiDirItem {
 
-    static final ResourceBundle rb = ResourceBundle.getBundle("message");
+    static final ResourceBundle rb = ResourceBundle.getBundle("messages");
 
     DiskBasicDirItemAppleDOS dirItem;
 

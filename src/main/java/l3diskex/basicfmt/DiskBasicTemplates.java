@@ -17,7 +17,6 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.w3c.dom.Document;
 
 import l3diskex.Parambase.TemplatesBase;
-import l3diskex.basicfmt.BasicCommon.DiskBasicFormatType;
 import l3diskex.basicfmt.DiskBasicParam.DiskBasicFormat;
 import l3diskex.basicfmt.DiskBasicParam.DiskBasicFormats;
 import l3diskex.basicfmt.DiskBasicParam.DiskBasicParams;
@@ -178,7 +177,7 @@ logger.log(Level.INFO, "categories: " + categories.size());
      *
      * @param formatType フォーマット種類
      */
-    public DiskBasicFormat findFormat(DiskBasicFormatType formatType) {
+    public DiskBasicFormat findFormat(int formatType) {
         return formats.find(formatType);
     }
 

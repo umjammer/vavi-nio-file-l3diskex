@@ -10,7 +10,6 @@ import java.util.List;
 
 import l3diskex.Common;
 import l3diskex.basicfmt.BasicCommon.Directory;
-import l3diskex.basicfmt.BasicCommon.DiskBasicFormatType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.DiskBasic.DiskBasicIdentifiedData;
@@ -40,7 +39,7 @@ public abstract class DiskBasicType<T extends Directory> {
 
     public static final int INVALID_GROUP_NUMBER = -1;
 
-    public abstract boolean isSupported(DiskBasicFormatType typeNumber);
+    public abstract boolean isSupported(int typeNumber);
 
     /** セクタを確保する時のフラグ */
     public enum AllocateGroupFlags {

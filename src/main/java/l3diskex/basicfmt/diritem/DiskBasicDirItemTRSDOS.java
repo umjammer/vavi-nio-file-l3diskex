@@ -14,7 +14,6 @@ import java.util.ResourceBundle;
 import l3diskex.Utils;
 import l3diskex.basicfmt.BasicCommon.Directory;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
-import l3diskex.basicfmt.BasicCommon.DiskBasicFormatType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
@@ -30,10 +29,10 @@ import l3diskex.diskimg.DiskParam.SectorParam;
 import vavi.util.serdes.Element;
 import vavi.util.serdes.Serdes;
 
-import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_L3_1S;
-import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_TRSD23;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_HIDDEN_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_SYSTEM_MASK;
+import static l3diskex.basicfmt.type.DiskBasicTypeL31S.FORMAT_TYPE_L3_1S;
+import static l3diskex.basicfmt.type.DiskBasicTypeTRSDOS.DiskBasicTypeTRSD23.FORMAT_TYPE_TRSD23;
 
 
 /**
@@ -185,7 +184,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
         int fType = fileType.getType();
         if (fType == -1) return;
 
-        if (fileType.getFormat().getValue() == basic.getFormatTypeNumber().getValue()) {
+        if (fileType.getFormat() == basic.getFormatTypeNumber()) {
             // 同じOSから
             int t1 = fileType.getOrigin(0);
 
@@ -457,7 +456,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
         protected DiskBasicDirData<DirectoryTrsD23> data = new DiskBasicDirData<>();
 
         @Override
-        public boolean isSupported(DiskBasicFormatType formatType) {
+        public boolean isSupported(int formatType) {
             return formatType == FORMAT_TYPE_TRSD23;
         }
 
@@ -855,7 +854,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
         }
 
         @Override
-        public boolean isSupported(DiskBasicFormatType formatType) {
+        public boolean isSupported(int formatType) {
             return formatType == FORMAT_TYPE_L3_1S;
         }
 

@@ -16,7 +16,6 @@ import java.util.ResourceBundle;
 
 import l3diskex.Utils;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
-import l3diskex.basicfmt.BasicCommon.DiskBasicFormatType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
 import l3diskex.basicfmt.DiskBasic;
@@ -28,7 +27,6 @@ import vavi.util.serdes.Element;
 import vavi.util.serdes.Serdes;
 
 import static l3diskex.Config.config;
-import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_MAGICAL;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_ASCII_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_BASIC_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_BINARY_MASK;
@@ -38,12 +36,13 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_HIDDEN_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_MACHINE_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_READONLY_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_SYSTEM_MASK;
+import static l3diskex.basicfmt.type.DiskBasicTypeMAGICAL.FORMAT_TYPE_MAGICAL;
 
 
 /** ディレクトリ１アイテム Magical DOS */
 public class DiskBasicDirItemMAGICAL extends DiskBasicDirItemXDOSBase<DirectoryMagical> {
 
-    static final ResourceBundle rb = ResourceBundle.getBundle("message");
+    static final ResourceBundle rb = ResourceBundle.getBundle("messages");
 
     /**
      * Magical DOS セグメント情報
@@ -228,10 +227,10 @@ public class DiskBasicDirItemMAGICAL extends DiskBasicDirItemXDOSBase<DirectoryM
     };
 
     public static final String[] typeNameMagical2 = {
-            rb.getString("Write Protected"),
-            rb.getString("Hidden"),
-            rb.getString("System"),
-            rb.getString("Super User"),
+            /*rb.getString(*/"Write Protected"/*)*/,
+            /*rb.getString(*/"Hidden"/*)*/,
+            /*rb.getString(*/"System"/*)*/,
+            /*rb.getString(*/"Super User"/*)*/,
     };
 
     private static final String typeNameMagical3s = "brgmABCDEFGHIJKL";
@@ -245,7 +244,7 @@ public class DiskBasicDirItemMAGICAL extends DiskBasicDirItemXDOSBase<DirectoryM
             "ERAM B",
             "ERAM C",
             "ERAM D",
-            rb.getString("Unknown"),
+            /*rb.getString(*/"Unknown"/*)*/,
     };
 
     /** ディレクトリデータ */
@@ -255,7 +254,7 @@ public class DiskBasicDirItemMAGICAL extends DiskBasicDirItemXDOSBase<DirectoryM
     private final DirItemSectorBoundary sectorData = new DirItemSectorBoundary();
 
     @Override
-    public boolean isSupported(DiskBasicFormatType formatType) {
+    public boolean isSupported(int formatType) {
         return formatType == FORMAT_TYPE_MAGICAL;
     }
 

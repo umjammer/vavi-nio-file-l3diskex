@@ -7,7 +7,6 @@ package l3diskex.basicfmt.type;
 import java.io.IOException;
 
 import l3diskex.basicfmt.BasicCommon.Directory;
-import l3diskex.basicfmt.BasicCommon.DiskBasicFormatType;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasicDir;
 import l3diskex.basicfmt.DiskBasicFat;

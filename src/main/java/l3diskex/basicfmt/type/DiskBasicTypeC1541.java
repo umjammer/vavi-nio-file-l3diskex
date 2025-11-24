@@ -8,7 +8,6 @@ import java.io.OutputStream;
 import java.util.Arrays;
 
 import l3diskex.Common;
-import l3diskex.basicfmt.BasicCommon.DiskBasicFormatType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasic.DiskBasicIdentifiedData;
@@ -25,7 +24,6 @@ import vavi.util.serdes.Element;
 import vavi.util.serdes.Serdes;
 import vavi.util.serdes.Serdes.Util;
 
-import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_C1541;
 import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_FREE;
 import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_SYSTEM;
 import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_USED;
@@ -257,8 +255,10 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
     /** 可変数セクタマップ */
     private final C1541SectorPosTrans sectorMap = new C1541SectorPosTrans();
 
+    public static final int FORMAT_TYPE_C1541 = 20;
+
     @Override
-    public boolean isSupported(DiskBasicFormatType typeNumber) {
+    public boolean isSupported(int typeNumber) {
         return typeNumber == FORMAT_TYPE_C1541;
     }
 

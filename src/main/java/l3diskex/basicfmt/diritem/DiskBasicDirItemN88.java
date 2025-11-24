@@ -13,7 +13,6 @@ import l3diskex.Parambase.MyAttribute;
 import l3diskex.Utils;
 import l3diskex.basicfmt.BasicCommon.Directory;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
-import l3diskex.basicfmt.BasicCommon.DiskBasicFormatType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
 import l3diskex.basicfmt.DiskBasic;
@@ -26,16 +25,17 @@ import vavi.util.serdes.Element;
 import vavi.util.serdes.Serdes;
 
 import static l3diskex.Parambase.MyAttributes.findUpperCase;
-import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_N88;
-import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_PA;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_ASCII_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_BASIC_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_BINARY_MASK;
+import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_DIRECTORY_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_ENCRYPTED_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_MACHINE_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_RANDOM_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_READONLY_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_READWRITE_MASK;
+import static l3diskex.basicfmt.type.DiskBasicTypeN88.FORMAT_TYPE_N88;
+import static l3diskex.basicfmt.type.DiskBasicTypePA.FORMAT_TYPE_PA;
 
 
 /**
@@ -113,7 +113,7 @@ public class DiskBasicDirItemN88 extends DiskBasicDirItemFAT8<DirectoryN88> {
     protected DiskBasicDirData<DirectoryN88> data = new DiskBasicDirData<>();
 
     @Override
-    public boolean isSupported(DiskBasicFormatType formatType) {
+    public boolean isSupported(int formatType) {
         return formatType == FORMAT_TYPE_N88 ||
                 formatType == FORMAT_TYPE_PA;
     }
@@ -126,19 +126,19 @@ public class DiskBasicDirItemN88 extends DiskBasicDirItemFAT8<DirectoryN88> {
     }
 
     @Override
-    public void init(DiskBasic basic, DiskImageSector sector, int sectorPos, byte[] data, int dataP) throws IOException {
-        super.init(basic, sector, sectorPos, data, dataP);
+    public void init(DiskBasic basic, DiskImageSector sector, int sectorPos, byte[] data, int dataPos) throws IOException {
+        super.init(basic, sector, sectorPos, data, dataPos);
 
-        this.data.attach(DirectoryN88.class, data, dataP);
+        this.data.attach(DirectoryN88.class, data, dataPos);
     }
 
     @Override
     public void init(DiskBasic basic, int num, DiskBasicGroupItem groupItem, DiskImageSector sector, int sectorPos,
-                     byte[] data, int dataP, SectorParam next, boolean[] unuse) throws IOException {
-        super.init(basic, num, groupItem, sector, sectorPos, data, dataP, next, unuse);
+                     byte[] data, int dataPos, SectorParam next, boolean[] unuse) throws IOException {
+        super.init(basic, num, groupItem, sector, sectorPos, data, dataPos, next, unuse);
 
         // n88
-        this.data.attach(DirectoryN88.class, data, dataP);
+        this.data.attach(DirectoryN88.class, data, dataPos);
 //Debug.printStackTrace(new Exception());
 
         used(checkUsed(unuse[0]));
@@ -152,12 +152,12 @@ public class DiskBasicDirItemN88 extends DiskBasicDirItemFAT8<DirectoryN88> {
     /**
      * アイテムへのポインタを設定
      *
-     * @param num    通し番号
-     * @param groupItem  トラック番号などのデータ
-     * @param sector セクタ
+     * @param num       通し番号
+     * @param groupItem トラック番号などのデータ
+     * @param sector    セクタ
      * @param sectorPos セクタ内のディレクトリエントリの位置
-     * @param data   ディレクトリアイテム
-     * @param next   [out] 次のセクタ
+     * @param data      ディレクトリアイテム
+     * @param next      [out] 次のセクタ
      * @see DiskBasicType#checkDirectory
      */
     @Override
@@ -265,28 +265,27 @@ public class DiskBasicDirItemN88 extends DiskBasicDirItemFAT8<DirectoryN88> {
     @Override
     public DiskBasicFileType getFileAttr() {
         int t1 = getFileType1();
-        int val = 0;
+        int type = 0;
         if ((t1 & FILETYPE_N88_MACHINE) != 0) {
-            val = FILE_TYPE_MACHINE_MASK.getValue();     // machine
-            val |= FILE_TYPE_BINARY_MASK.getValue();     // binary
+            type = FILE_TYPE_MACHINE_MASK.getValue();     // machine
+            type |= FILE_TYPE_BINARY_MASK.getValue();     // binary
         } else {
-            val = FILE_TYPE_BASIC_MASK.getValue();       // basic
+            type = FILE_TYPE_BASIC_MASK.getValue();       // basic
             if ((t1 & FILETYPE_N88_BINARY) != 0) {
-                val |= FILE_TYPE_BINARY_MASK.getValue(); // binary
+                type |= FILE_TYPE_BINARY_MASK.getValue(); // binary
             } else {
-                val |= FILE_TYPE_ASCII_MASK.getValue();  // ascii
+                type |= FILE_TYPE_ASCII_MASK.getValue();  // ascii
             }
         }
         if ((t1 & DATATYPE_MASK_N88_READ_ONLY) != 0) {
-            val |= FILE_TYPE_READONLY_MASK.getValue();
+            type |= FILE_TYPE_READONLY_MASK.getValue();
         }
         if ((t1 & DATATYPE_MASK_N88_ENCRYPTED) != 0) {
-            val |= FILE_TYPE_ENCRYPTED_MASK.getValue();
+            type |= FILE_TYPE_ENCRYPTED_MASK.getValue();
         }
         if ((t1 & DATATYPE_MASK_N88_READ_WRITE) != 0) {
-            val |= FILE_TYPE_READWRITE_MASK.getValue();
+            type |= FILE_TYPE_READWRITE_MASK.getValue();
         }
-        return new DiskBasicFileType(basic.getFormatTypeNumber(), val, t1);
     }
 
     @Override
@@ -307,6 +306,7 @@ public class DiskBasicDirItemN88 extends DiskBasicDirItemFAT8<DirectoryN88> {
             attr += ", ";
             attr += TYPE_NAME_N88_2[TYPE_NAME_N88_ENCRYPTED];
         }
+
         return attr;
     }
 

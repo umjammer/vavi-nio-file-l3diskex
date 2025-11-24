@@ -18,7 +18,6 @@ import java.util.function.IntFunction;
 import l3diskex.Utils;
 import l3diskex.basicfmt.BasicCommon.Directory;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
-import l3diskex.basicfmt.BasicCommon.DiskBasicFormatType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
 import l3diskex.basicfmt.DiskBasic;
@@ -31,12 +30,12 @@ import vavi.util.serdes.Serdes;
 
 import static l3diskex.Config.config;
 import static l3diskex.Parambase.MyAttributes.getTypeByValue;
-import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_MZ_FDOS;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_ASCII_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_BINARY_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_LIBRARY_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_MACHINE_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_SYSTEM_MASK;
+import static l3diskex.basicfmt.type.DiskBasicTypeMZFDOS.FORMAT_TYPE_MZ_FDOS;
 
 
 /// ディレクトリ１アイテム MZ Floppy DOS
@@ -247,7 +246,7 @@ public class DiskBasicDirItemMZFDOS extends DiskBasicDirItemMZBase<DirectoryMzFD
     private final DiskBasicDirItemMzFDosChain chain = new DiskBasicDirItemMzFDosChain();
 
     @Override
-    public boolean isSupported(DiskBasicFormatType formatType) {
+    public boolean isSupported(int formatType) {
         return formatType == FORMAT_TYPE_MZ_FDOS;
     }
 

@@ -7,7 +7,6 @@ package l3diskex.basicfmt.type;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
-import l3diskex.basicfmt.BasicCommon.DiskBasicFormatType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.DiskBasic;
@@ -22,8 +21,6 @@ import l3diskex.basicfmt.diritem.DiskBasicDirItemXDOS.XDosSeg;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import vavi.util.serdes.Serdes;
 
-import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_MAGICAL;
-
 
 /**
  Magical DOSの処理
@@ -37,8 +34,10 @@ public class DiskBasicTypeMAGICAL extends DiskBasicTypeXDOS<DirectoryMagical> {
 
     private static final int MAGICAL_FAT_START = 0xa8;
 
+    public static final int FORMAT_TYPE_MAGICAL = 53;
+
     @Override
-    public boolean isSupported(DiskBasicFormatType typeNumber) {
+    public boolean isSupported(int typeNumber) {
         return typeNumber == FORMAT_TYPE_MAGICAL;
     }
 

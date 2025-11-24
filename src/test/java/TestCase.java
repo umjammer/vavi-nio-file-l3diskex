@@ -24,6 +24,8 @@ import vavi.util.properties.annotation.Property;
 import vavi.util.properties.annotation.PropsEntity;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIf;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
@@ -61,6 +63,8 @@ class TestCase {
     }
 
     @Test
+    @Disabled("for c++ to java porting")
+    @DisplayName("find java file in the directory")
     @EnabledIfSystemProperty(named = "vavi.test", matches = "ide")
     void test1() throws Exception {
         Files.walk(Path.of(System.getProperty("user.dir"), "src/main/java"))

@@ -29,7 +29,6 @@ import l3diskex.ResultInfo;
 import l3diskex.Utils;
 import l3diskex.basicfmt.BasicCommon.Directory;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileName;
-import l3diskex.basicfmt.BasicCommon.DiskBasicFormatType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.DiskBasicDirItem.DiskBasicDirItemAttr;
@@ -43,7 +42,7 @@ import vavi.io.SeekableDataInputStream;
 import vavi.io.SeekableDataOutputStream;
 
 import static java.lang.System.getLogger;
-import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_UNKNOWN;
+import static l3diskex.basicfmt.BasicCommon.FORMAT_TYPE_UNKNOWN;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_DIRECTORY_MASK;
 import static l3diskex.basicfmt.DiskBasicDirItem.DATETIME_ACCESS;
 import static l3diskex.basicfmt.DiskBasicDirItem.DATETIME_CREATE;
@@ -764,22 +763,28 @@ public class DiskBasic extends DiskParam {
 
         dir.setFormatType(getFormatType());
 
+        // セクタ数はBASICで指定している側を優先
         if (getSectorsPerTrackOnBasic() < 0) setSectorsPerTrackOnBasic(getSectorsPerTrack());
+        //sectorsOnBasic = getSectorsOnBasic() >= 0 ? getSectorsOnBasic() : getSectorsPerTrack();
+        // トラック数はBASICで指定している側を優先
         if (getTracksPerSideOnBasic() < 0) setTracksPerSideOnBasic(getTracksPerSide());
+        // サイド数はBASICで指定している側を優先
         if (getSidesPerDiskOnBasic() <= 0) setSidesPerDiskOnBasic(getSidesPerDisk());
 
-        if (getSectorSize() <= 0) {
-            logger.log(Level.WARNING, "sectorSize is 0");
-            return -1.0;
-        }
+//        if (getSectorSize() <= 0) { // TODO what this (by me)???
+//            logger.log(Level.WARNING, "sectorSize is 0");
+//            return -1.0;
+//        }
         calcDirStartEndSector(getSectorSize());
         createType();
         if (type == null) {
             return -1.0;
         }
+logger.log(Level.TRACE, "type: " + type.getClass().getSimpleName());
 
         assignParameter();
 
+        // 必要ならディスク上のパラメータを解析
         double prmValidRatio = type.parseParamOnDisk(isFormatting);
         if (prmValidRatio < 0.0) {
             errInfo.setError(DiskBasicError.ERR_IN_PARAMETER_AREA);
@@ -788,6 +793,7 @@ public class DiskBasic extends DiskParam {
         }
         validRatio += prmValidRatio;
 
+        // FATのチェック
         double fatValidRatio = 0.0;
         if (validRatio >= 0.0) {
             fatValidRatio = assignFat(isFormatting);
@@ -797,6 +803,7 @@ public class DiskBasic extends DiskParam {
             validRatio += fatValidRatio;
         }
 
+        // ディレクトリのチェック
         double dirValidRatio = 0.0;
         if (validRatio >= 0.0) {
             dirValidRatio = checkRootDirectory(isFormatting);
@@ -807,6 +814,7 @@ public class DiskBasic extends DiskParam {
         }
 
         if ((prmValidRatio >= 0.0 && fatValidRatio >= 0.0 && dirValidRatio >= 0.0) || isFormatting || forcefully) {
+            // フォーマット完了
             formatted = true;
         }
 
@@ -826,6 +834,8 @@ public class DiskBasic extends DiskParam {
 
         clearDiskParam();
         clearBasicParam();
+
+        //dir.clear();
 
         if (type != null) type.clearDiskFreeSize();
     }
@@ -2474,7 +2484,7 @@ public class DiskBasic extends DiskParam {
     }
 
     /** DISK BASIC種類番号を返す */
-    public DiskBasicFormatType getFormatTypeNumber() {
+    public int getFormatTypeNumber() {
         return getFormatType().getTypeNumber();
     }
 

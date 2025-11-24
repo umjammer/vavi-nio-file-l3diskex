@@ -46,10 +46,10 @@ public final class L3FileSystemDriver extends ExtendedFileSystemDriver<DiskBasic
 
     private static final Logger logger = System.getLogger(L3FileSystemDriver.class.getName());
 
-    private DiskBasic disk;
+    private final DiskBasic disk;
 
     /**
-     * @param disk
+     * @param disk disk object
      * @param env  { "ignoreAppleDouble": boolean }
      */
     public L3FileSystemDriver(FileStore fileStore,
@@ -77,7 +77,7 @@ public final class L3FileSystemDriver extends ExtendedFileSystemDriver<DiskBasic
         return !entry.isUsed();
     }
 
-    /** */
+    /** finds a dir item of the given {@code name} in the {@code dir} list */
     private final BiFunction<Path, DiskBasicDirItem<? extends Directory>, DiskBasicDirItem> findNameOfDir = (name, dir) ->
             dir.getChildren().stream().filter(e -> e.getFileNameStr().equals(name.toString())).findFirst().orElseThrow();
 

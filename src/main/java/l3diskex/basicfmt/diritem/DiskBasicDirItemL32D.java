@@ -8,7 +8,6 @@ import java.io.IOException;
 
 import l3diskex.Parambase.MyAttribute;
 import l3diskex.basicfmt.BasicCommon.Directory;
-import l3diskex.basicfmt.BasicCommon.DiskBasicFormatType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
@@ -21,7 +20,7 @@ import vavi.util.serdes.Serdes;
 
 import static l3diskex.Parambase.MyAttributes.findType;
 import static l3diskex.Parambase.MyAttributes.findUpperCase;
-import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_L3S1_2D;
+import static l3diskex.basicfmt.type.DiskBasicTypeL32D.FORMAT_TYPE_L3S1_2D;
 
 
 /**
@@ -60,7 +59,7 @@ public class DiskBasicDirItemL32D extends DiskBasicDirItemFAT8<DirectoryL32d> {
     private final DiskBasicDirData<DirectoryL32d> data = new DiskBasicDirData<>();
 
     @Override
-    public boolean isSupported(DiskBasicFormatType formatType) {
+    public boolean isSupported(int formatType) {
         return formatType == FORMAT_TYPE_L3S1_2D;
     }
 

@@ -13,7 +13,7 @@ import l3diskex.Common;
 import vavi.util.ByteUtil;
 
 
-/// disk basic common
+/** disk basic common */
 public class BasicCommon {
 
     /**
@@ -72,57 +72,7 @@ public class BasicCommon {
     /**
      * DISK BASIC種類 番号
      */
-    public enum DiskBasicFormatType {
-        FORMAT_TYPE_UNKNOWN(-1),
-        FORMAT_TYPE_L3_1S(0),
-        FORMAT_TYPE_L3S1_2D(1),
-        FORMAT_TYPE_FM(2),
-        FORMAT_TYPE_MSDOS(3),
-        FORMAT_TYPE_MSX(4),
-        FORMAT_TYPE_N88(5),
-        FORMAT_TYPE_X1HU(6),
-        FORMAT_TYPE_MZ(7),
-        FORMAT_TYPE_FLEX(8),
-        FORMAT_TYPE_OS9(9),
-        FORMAT_TYPE_CPM(10),
-        FORMAT_TYPE_PA(11),
-        FORMAT_TYPE_SMC(12),
-        FORMAT_TYPE_FP(13),
-        FORMAT_TYPE_HU68K(14),
-        FORMAT_TYPE_APLEDOS(15),
-        FORMAT_TYPE_PRODOS(16),
-        FORMAT_TYPE_TRSD23(17),
-        FORMAT_TYPE_TRSD13(18),
-        FORMAT_TYPE_C1541(20),
-        FORMAT_TYPE_AMIGA(21),
-        FORMAT_TYPE_LOSA(31),
-        FORMAT_TYPE_CDOS2(32),
-        FORMAT_TYPE_DOS80(51),
-        FORMAT_TYPE_FROST(52),
-        FORMAT_TYPE_MAGICAL(53),
-        FORMAT_TYPE_SDOS(54),
-        FORMAT_TYPE_MDOS(55),
-        FORMAT_TYPE_XDOS(61),
-        FORMAT_TYPE_TFDOS(71),
-        FORMAT_TYPE_CDOS(72),
-        FORMAT_TYPE_MZ_FDOS(73),
-        FORMAT_TYPE_M68FDOS(81),
-        FORMAT_TYPE_FALCOM(91);
-
-        private final int value;
-
-        DiskBasicFormatType(int value) {
-            this.value = value;
-        }
-
-        public int getValue() {
-            return value;
-        }
-
-        static DiskBasicFormatType valueOf(int v) {
-            return Arrays.stream(values()).filter(e -> e.value == v).findFirst().orElseThrow();
-        }
-    }
+    public static final int FORMAT_TYPE_UNKNOWN = -1;
 
     /**
      * ファイルプロパティでファイル名変更した時に渡す値
@@ -171,14 +121,14 @@ public class BasicCommon {
     public static class DiskBasicFileType {
 
         /** DISK BASIC種類 */
-        private DiskBasicFormatType format;
+        private int format;
         /** 共通属性 enum #en_file_type_mask の値の組み合わせ */
         private int type;
         /** 本来の属性 */
         private final int[] origin = new int[3];
 
         public DiskBasicFileType() {
-            format = DiskBasicFormatType.FORMAT_TYPE_UNKNOWN;
+            format = FORMAT_TYPE_UNKNOWN;
             type = 0;
             Arrays.fill(origin, 0);
         }
@@ -190,7 +140,7 @@ public class BasicCommon {
          * @param origin1 本来の属性 つづき1
          * @param origin2 本来の属性 つづき2
          */
-        public DiskBasicFileType(DiskBasicFormatType format, int type, int origin0, int origin1, int origin2) {
+        public DiskBasicFileType(int format, int type, int origin0, int origin1, int origin2) {
             this.format = format;
             this.type = type;
             origin[0] = origin0;
@@ -198,17 +148,17 @@ public class BasicCommon {
             origin[2] = origin2;
         }
 
-        public DiskBasicFileType(DiskBasicFormatType format, int type, int origin0) {
+        public DiskBasicFileType(int format, int type, int origin0) {
             this(format, type, origin0, 0, 0);
         }
 
         /** DISK BASIC種類 */
-        public DiskBasicFormatType getFormat() {
+        public int getFormat() {
             return format;
         }
 
         /** DISK BASIC種類 */
-        public void setFormat(DiskBasicFormatType val) {
+        public void setFormat(int val) {
             format = val;
         }
 

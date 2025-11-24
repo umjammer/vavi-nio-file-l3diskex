@@ -6,7 +6,6 @@ import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-import l3diskex.basicfmt.BasicCommon.DiskBasicFormatType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.DiskBasic;
@@ -21,12 +20,11 @@ import l3diskex.basicfmt.diritem.DiskBasicDirItemCPM.DirectoryCpm;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskImage.DiskImageTrack;
 
-import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_CPM;
-import static l3diskex.basicfmt.diritem.DiskBasicDirItemCPM.SECTOR_UNIT_CPM;
 import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_FREE;
 import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_SYSTEM;
 import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_USED;
 import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_USED_LAST;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemCPM.SECTOR_UNIT_CPM;
 
 
 /**
@@ -36,11 +34,13 @@ import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailabili
  */
 public class DiskBasicTypeCPM extends DiskBasicType<DirectoryCpm> {
 
+    public static final int FORMAT_TYPE_CPM = 10;
+
     /** ソフトセクタスキュー */
     protected DiskBasicSectorSkew sectorSkew = new DiskBasicSectorSkew();
 
     @Override
-    public boolean isSupported(DiskBasicFormatType typeNumber) {
+    public boolean isSupported(int typeNumber) {
         return typeNumber == FORMAT_TYPE_CPM;
     }
 

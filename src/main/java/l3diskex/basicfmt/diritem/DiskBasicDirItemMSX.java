@@ -8,14 +8,13 @@ import java.io.IOException;
 import java.util.ResourceBundle;
 
 import l3diskex.Utils;
-import l3diskex.basicfmt.BasicCommon.DiskBasicFormatType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
 
-import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_MSX;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_HIDDEN_MASK;
+import static l3diskex.basicfmt.type.DiskBasicTypeMSX.FORMAT_TYPE_MSX;
 
 
 /** ディレクトリ１アイテム MSX-DOS */
@@ -24,7 +23,7 @@ public class DiskBasicDirItemMSX extends DiskBasicDirItemMSDOS {
     static final ResourceBundle rb = ResourceBundle.getBundle("messages");
 
     @Override
-    public boolean isSupported(DiskBasicFormatType formatType) {
+    public boolean isSupported(int formatType) {
         return formatType == FORMAT_TYPE_MSX;
     }
 

@@ -33,7 +33,6 @@ import l3diskex.Utils;
 import l3diskex.basicfmt.BasicCommon.Directory;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileName;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
-import l3diskex.basicfmt.BasicCommon.DiskBasicFormatType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
@@ -230,7 +229,7 @@ public abstract class DiskBasicDirItem<T extends Directory> {
         groups = new DiskBasicGroups();
     }
 
-    public abstract boolean isSupported(DiskBasicFormatType formatType);
+    public abstract boolean isSupported(int formatType);
 
     /**
      * ディレクトリアイテムを作成 DATAは内部で確保
@@ -1027,10 +1026,10 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     public void setFileNameStr(String filename) {
         byte[] name = new byte[256];
         byte[] ext = new byte[256];
-        int[] nlen = new int[] {name.length};
-        int[] elen = new int[] {ext.length};
-        toNativeFileName(filename, name, nlen, ext, elen);
-        setNativeFileName(name, name.length, nlen[0], ext, ext.length, elen[0]);
+        int[] nLen = new int[] {name.length};
+        int[] eLen = new int[] {ext.length};
+        toNativeFileName(filename, name, nLen, ext, eLen);
+        setNativeFileName(name, name.length, nLen[0], ext, ext.length, eLen[0]);
     }
 
     /**
@@ -1456,11 +1455,11 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     public void setFileAttr(DiskBasicFileType fileType) {
     }
 
-    public void setFileAttr(DiskBasicFormatType formatType, int fileType, int originalType0) {
+    public void setFileAttr(int formatType, int fileType, int originalType0) {
         setFileAttr(formatType, fileType, originalType0, 0, 0);
     }
 
-    public void setFileAttr(DiskBasicFormatType formatType, int fileType, int originalType0, int originalType1) {
+    public void setFileAttr(int formatType, int fileType, int originalType0, int originalType1) {
         setFileAttr(formatType, fileType, originalType0, originalType1, 0);
     }
 
@@ -1473,7 +1472,7 @@ public abstract class DiskBasicDirItem<T extends Directory> {
      * @param originalType1 本来の属性 つづき1
      * @param originalType2 本来の属性 つづき2
      */
-    public void setFileAttr(DiskBasicFormatType formatType, int fileType, int originalType0, int originalType1, int originalType2) {
+    public void setFileAttr(int formatType, int fileType, int originalType0, int originalType1, int originalType2) {
         setFileAttr(new DiskBasicFileType(formatType, fileType, originalType0, originalType1, originalType2));
     }
 
@@ -2487,7 +2486,7 @@ public abstract class DiskBasicDirItem<T extends Directory> {
             fileNameLen = Common.getStringLength(fileName, fileNameLen, (byte) 0);
             fileExtLen = Common.getStringLength(fileExt, fileExtLen, (byte) 0);
             setNativeFileName(fileName, fileName.length, fileNameLen, fileExt, fileExt.length, fileExtLen);
-            setFileAttr(DiskBasicFormatType.valueOf(formatType), fileType, originalType0, originalType1, originalType2);
+            setFileAttr(formatType, fileType, originalType0, originalType1, originalType2);
             setFileSize(fileSize);
             setStartAddress(startAddr);
             setEndAddress(endAddr);
@@ -2641,53 +2640,53 @@ public abstract class DiskBasicDirItem<T extends Directory> {
             type = val;
         }
 
-        public void setFileAttr(DiskBasicFormatType nFormat, int nType, int nOrigin0 /* = 0 */) {
-            setFileAttr(nFormat, nType, nOrigin0, 0, 0);
+        public void setFileAttr(int nFormat, int type, int origin0 /* = 0 */) {
+            setFileAttr(nFormat, type, origin0, 0, 0);
         }
 
         /**
          * 属性をセット
          *
-         * @param nFormat  フォーマットタイプ
-         * @param nType    共通属性
-         * @param nOrigin0 独自属性
-         * @param nOrigin1 独自属性 つづき1
-         * @param nOrigin2 独自属性 つづき2
+         * @param dormat  フォーマットタイプ
+         * @param type    共通属性
+         * @param origin0 独自属性
+         * @param origin1 独自属性 つづき1
+         * @param origin2 独自属性 つづき2
          */
-        public void setFileAttr(DiskBasicFormatType nFormat, int nType, int nOrigin0, int nOrigin1, int nOrigin2 /* = 0 */) {
-            type.setFormat(nFormat);
-            type.setType(nType);
-            type.setOrigin(0, nOrigin0);
-            type.setOrigin(1, nOrigin1);
-            type.setOrigin(2, nOrigin2);
+        public void setFileAttr(int dormat, int type, int origin0, int origin1, int origin2 /* = 0 */) {
+            this.type.setFormat(dormat);
+            this.type.setType(type);
+            this.type.setOrigin(0, origin0);
+            this.type.setOrigin(1, origin1);
+            this.type.setOrigin(2, origin2);
         }
 
         /**
          * 共通属性をセット
          *
-         * @param nType 共通属性
+         * @param type 共通属性
          */
-        public void setFileType(int nType) {
-            type.setType(nType);
+        public void setFileType(int type) {
+            this.type.setType(type);
         }
 
         /**
          * 独自属性をセット
          *
          * @param idx     0..2
-         * @param nOrigin 独自属性
+         * @param origin 独自属性
          */
-        public void setFileOriginAttr(int idx, int nOrigin) {
-            type.setOrigin(idx, nOrigin);
+        public void setFileOriginAttr(int idx, int origin) {
+            type.setOrigin(idx, origin);
         }
 
         /**
          * 独自属性をセット
          *
-         * @param nOrigin 独自属性
+         * @param origin 独自属性
          */
-        public void setFileOriginAttr(int nOrigin) {
-            type.setOrigin(nOrigin);
+        public void setFileOriginAttr(int origin) {
+            type.setOrigin(origin);
         }
 
         public void setStartAddress(int val) {

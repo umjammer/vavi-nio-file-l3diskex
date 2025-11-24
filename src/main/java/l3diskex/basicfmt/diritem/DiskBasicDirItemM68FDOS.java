@@ -122,7 +122,7 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
     public static final int EXT_NAME_M68_FDOS_SAV = 0;
     public static final int EXT_NAME_M68_FDOS_END = 1;
 
-    /// M68 FDOS属性名
+    /** M68 FDOS属性名 */
     public static final Map<String, Object> typeNameM68FDos = new HashMap<>() {{
         put("A - Attribute Protected", FILETYPE_M68_FDOS_A);
         put("P - Permanent", FILETYPE_M68_FDOS_P);
@@ -134,7 +134,7 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
         put("D - Device", FILETYPE_M68_FDOS_D);
     }};
 
-    /// M68 FDOS属性名(リスト用)
+    /** M68 FDOS属性名(リスト用) */
     public static final Map<String, Object> typeNameShortM68FDos = new HashMap<>() {{
         put("A", FILETYPE_M68_FDOS_A);
         put("P", FILETYPE_M68_FDOS_P);
@@ -146,7 +146,7 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
         put("D", FILETYPE_M68_FDOS_D);
     }};
 
-    /// M68 FDOS ファイル名マッピングテーブル
+    /** M68 FDOS ファイル名マッピングテーブル */
     public static final char[] m68FDosCharMap = {
             ' ', '?', '0', '1', '2', '3', '4', '5', '6', '7',
             '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
@@ -154,7 +154,7 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
             'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '+', '-',
     };
 
-    /// M68 FDOS拡張子から属性を設定
+    /** M68 FDOS拡張子から属性を設定 */
     public static final Map<String, Object> extNameM68FDos = new LinkedHashMap<>() {{
         put("SAV", FILETYPE_M68_FDOS_C);
     }};
@@ -163,7 +163,7 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
     private final DiskBasicDirData<DirectoryM68FDos> data = new DiskBasicDirData<>();
 
     @Override
-    public boolean isSupported(DiskBasicFormatType formatType) {
+    public boolean isSupported(int formatType) {
         return formatType == FORMAT_TYPE_M68FDOS;
     }
 
@@ -476,7 +476,7 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
         int t2 = 0;
         int t3 = 0;
         short rev = 0;
-        if (fileType.getFormat().getValue() == basic.getFormatTypeNumber().getValue()) {
+        if (fileType.getFormat() == basic.getFormatTypeNumber()) {
             t1 = fileType.getOrigin(0);
             t2 = fileType.getOrigin(1);
             int t3_rev = fileType.getOrigin(2);

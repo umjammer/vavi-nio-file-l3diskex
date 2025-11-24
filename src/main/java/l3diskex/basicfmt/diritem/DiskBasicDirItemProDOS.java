@@ -18,7 +18,6 @@ import java.util.Map;
 import l3diskex.Common;
 import l3diskex.Utils;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
-import l3diskex.basicfmt.BasicCommon.DiskBasicFormatType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
@@ -31,7 +30,6 @@ import vavi.util.serdes.Element;
 import vavi.util.serdes.Serdes;
 
 import static l3diskex.Config.config;
-import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_PRODOS;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_BASIC_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_DIRECTORY_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_HIDDEN_MASK;
@@ -41,6 +39,7 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_UNDELETE_MASK
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_VOLUME_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_WRITEONLY_MASK;
 import static l3diskex.basicfmt.DiskBasicType.INVALID_GROUP_NUMBER;
+import static l3diskex.basicfmt.type.DiskBasicTypeProDOS.FORMAT_TYPE_PRODOS;
 
 
 /// Apple ProDOS インデックス ProDOSOneIndex の配列
@@ -256,7 +255,7 @@ public class DiskBasicDirItemProDOS extends DiskBasicDirItem<DirectoryProDos> {
     private final List<ProDosOneIndex> index = new ArrayList<>();
 
     @Override
-    public boolean isSupported(DiskBasicFormatType formatType) {
+    public boolean isSupported(int formatType) {
         return formatType == FORMAT_TYPE_PRODOS;
     }
 

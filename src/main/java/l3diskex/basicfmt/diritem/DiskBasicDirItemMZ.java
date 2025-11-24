@@ -22,7 +22,6 @@ import l3diskex.Utils;
 import l3diskex.basicfmt.BasicCommon.Directory;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileName;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
-import l3diskex.basicfmt.BasicCommon.DiskBasicFormatType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
 import l3diskex.basicfmt.DiskBasic;
@@ -36,7 +35,6 @@ import vavi.util.serdes.Serdes;
 import static l3diskex.Config.config;
 import static l3diskex.Parambase.MyAttributes.findValue;
 import static l3diskex.Parambase.MyAttributes.getTypeByValue;
-import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_MZ;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_ASCII_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_BINARY_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_DIRECTORY_MASK;
@@ -48,6 +46,7 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_VOLUME_MASK;
 import static l3diskex.basicfmt.DiskBasicError.ERR_FILENAME_EMPTY;
 import static l3diskex.basicfmt.DiskBasicError.gDiskBasicErrorMsgs;
 import static l3diskex.basicfmt.DiskBasicType.INVALID_GROUP_NUMBER;
+import static l3diskex.basicfmt.type.DiskBasicTypeMZ.FORMAT_TYPE_MZ;
 
 
 /** ディレクトリ１アイテム MZ DISK BASIC */
@@ -139,7 +138,7 @@ public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
     //
 
     @Override
-    public boolean isSupported(DiskBasicFormatType formatType) {
+    public boolean isSupported(int formatType) {
         return formatType == FORMAT_TYPE_MZ;
     }
 
