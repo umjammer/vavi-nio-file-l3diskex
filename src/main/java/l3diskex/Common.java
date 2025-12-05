@@ -8,8 +8,8 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Locale;
 
-import static l3diskex.basicfmt.DiskBasicTemplates.gDiskBasicTemplates;
-import static l3diskex.diskimg.DiskParam.gDiskTemplates;
+import static l3diskex.basicfmt.DiskBasicTemplates.diskBasicTemplates;
+import static l3diskex.diskimg.DiskParam.diskTemplates;
 import static l3diskex.diskimg.FileParam.fileTypes;
 
 
@@ -140,10 +140,10 @@ public class Common {
 
         // load xml
         StringBuilder errmsgs = new StringBuilder();
-        if (!gDiskTemplates.load(resPath + "data/", localeName, errmsgs)) {
+        if (!diskTemplates.load(resPath + "data/", localeName, errmsgs)) {
             throw new IllegalStateException("Cannot load disk types data file. " + errmsgs);
         }
-        if (!gDiskBasicTemplates.load(resPath + "data/", localeName, errmsgs)) {
+        if (!diskBasicTemplates.load(resPath + "data/", localeName, errmsgs)) {
             throw new IllegalStateException("Cannot load disk basic types data file. " + errmsgs);
         }
         if (!CharCodes.load(resPath + "data/", localeName, errmsgs)) {

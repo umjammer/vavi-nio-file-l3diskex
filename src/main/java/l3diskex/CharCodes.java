@@ -862,17 +862,17 @@ logger.log(Level.TRACE, "charCodeChoices: " + gCharCodeChoices.size());
     /**
      * Loads parameters from XML
      *
-     * @param data_path   Folder containing the XML file
-     * @param locale_name Locale name
-     * @param errmsgs     [out] Error messages
+     * @param dataPath      Folder containing the XML file
+     * @param localeName    Locale name
+     * @param errorMessages [out] Error messages
      * @return true / false
      */
-    public static boolean load(String data_path, String locale_name, StringBuilder errmsgs) {
+    public static boolean load(String dataPath, String localeName, StringBuilder errorMessages) {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         Document doc;
         try {
             DocumentBuilder builder = factory.newDocumentBuilder();
-            doc = builder.parse(new File(data_path + "char_codes.xml"));
+            doc = builder.parse(new File(dataPath + "char_codes.xml"));
         } catch (ParserConfigurationException | SAXException | IOException e) {
             logger.log(Level.ERROR, e.getMessage(), e);
             return false;
@@ -888,9 +888,9 @@ logger.log(Level.TRACE, "charCodeChoices: " + gCharCodeChoices.size());
         Node item = doc.getDocumentElement().getFirstChild();
         while (item != null && sts) {
             if (item.getNodeName().equals("Maps")) {
-                sts = loadMaps(item, locale_name, errmsgs);
+                sts = loadMaps(item, localeName, errorMessages);
             } else if (item.getNodeName().equals("Choices")) {
-                sts = loadChoices(item, locale_name, errmsgs);
+                sts = loadChoices(item, localeName, errorMessages);
             }
             item = item.getNextSibling();
         }
@@ -906,11 +906,11 @@ logger.log(Level.TRACE, "charCodeChoices: " + gCharCodeChoices.size());
      * @param src       Character code sequence
      * @param len       src byte count
      * @param dst       [out] String
-     * @param term_code Termination code, -1: for all bytes
+     * @param terminalCode Termination code, -1: for all bytes
      */
-    public void convToString(byte[] src, int offset, int len, StringBuilder dst, int term_code) {
+    public void convToString(byte[] src, int offset, int len, StringBuilder dst, int terminalCode) {
         for (int i = 0; i < len; ) {
-            if (term_code >= 0 && src[offset] == (byte) term_code) break;
+            if (terminalCode >= 0 && src[offset] == (byte) terminalCode) break;
             int remaining = len - i;
             int bytesToInspect = (remaining >= 2) ? 2 : remaining;
             int l = cache.findString(src, offset, bytesToInspect, dst, (byte) '_');

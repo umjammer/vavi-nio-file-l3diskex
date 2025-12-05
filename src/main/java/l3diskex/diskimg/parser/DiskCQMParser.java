@@ -20,7 +20,7 @@ import vavi.util.ByteUtil;
 import vavi.util.serdes.Element;
 import vavi.util.serdes.Serdes;
 
-import static l3diskex.diskimg.DiskParam.gDiskTemplates;
+import static l3diskex.diskimg.DiskParam.diskTemplates;
 
 
 /**
@@ -238,7 +238,7 @@ public class DiskCQMParser extends DiskPlainParser {
 
         // Look for a matching template
         DiskParam dummy = new DiskParam();
-        DiskParam param = gDiskTemplates.findStrict(sidesPerDisk, tracksPerSide, sectorsPerTrack, sectorSize,
+        DiskParam param = diskTemplates.findStrict(sidesPerDisk, tracksPerSide, sectorsPerTrack, sectorSize,
                 interleave, dummy.getTrackNumberBaseOnDisk(), dummy.getSideNumberBaseOnDisk(), dummy.getSectorNumberBaseOnDisk(), 0,
                 dummy.getSingles(), dummy.getParticularTracks());
         if (param != null) {

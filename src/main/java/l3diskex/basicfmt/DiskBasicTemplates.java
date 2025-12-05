@@ -33,7 +33,7 @@ public class DiskBasicTemplates extends TemplatesBase {
 
     private static final Logger logger = System.getLogger(DiskBasicTemplates.class.getName());
 
-    public static final DiskBasicTemplates gDiskBasicTemplates = new DiskBasicTemplates();
+    public static final DiskBasicTemplates diskBasicTemplates = new DiskBasicTemplates();
 
     private final DiskBasicFormats formats = new DiskBasicFormats();
     private final DiskBasicParams types = new DiskBasicParams();

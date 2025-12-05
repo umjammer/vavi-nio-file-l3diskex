@@ -21,7 +21,7 @@ import l3diskex.basicfmt.DiskBasic;
 import vavi.io.SeekableDataInputStream;
 
 import static l3diskex.basicfmt.DiskBasic.clearParseAndAssign;
-import static l3diskex.diskimg.DiskParam.gDiskTemplates;
+import static l3diskex.diskimg.DiskParam.diskTemplates;
 
 
 /** ディスクイメージ入出力 */
@@ -1397,7 +1397,7 @@ logger.log(Level.TRACE, "sidesPerDisk: " + sidesPerDisk);
                 DiskParticular.uniqueTracks(tracksPerSide, sidesPerDisk, false, pTracks);
             }
 
-            DiskParam diskParam = gDiskTemplates.find(sidesPerDisk, tracksPerSide, sectorsPerTrack, sectorSize, interleave, trackNumberMin, sideNumberMin, sectorNumberMinSide0, numberingSector, singles, pTracks);
+            DiskParam diskParam = diskTemplates.find(sidesPerDisk, tracksPerSide, sectorsPerTrack, sectorSize, interleave, trackNumberMin, sideNumberMin, sectorNumberMinSide0, numberingSector, singles, pTracks);
             if (diskParam != null) {
                 setDiskTypeName(diskParam.getDiskTypeName());
                 setReversible(diskParam.isReversible());
@@ -2139,7 +2139,7 @@ logger.log(Level.TRACE, "diskParam: " + diskParam);
         if (file == null) return -1;
         DiskImageDisk disk = file.getDisk(index);
         if (disk == null) return -1;
-        return gDiskTemplates.indexOf(disk.getDiskTypeName());
+        return diskTemplates.indexOf(disk.getDiskTypeName());
     }
 
     /** 作成可能なトラック数を返す */

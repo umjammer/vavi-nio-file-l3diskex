@@ -18,7 +18,7 @@ import vavi.io.SeekableDataInputStream;
 import vavi.util.serdes.Element;
 import vavi.util.serdes.Serdes;
 
-import static l3diskex.diskimg.DiskParam.gDiskTemplates;
+import static l3diskex.diskimg.DiskParam.diskTemplates;
 
 
 /**
@@ -207,7 +207,7 @@ public class DiskDIMParser extends DiskPlainParser {
                         continue;
                     }
                     String hint = diskHint.getHint();
-                    DiskParam param = gDiskTemplates.find(hint);
+                    DiskParam param = diskTemplates.find(hint);
                     if (param != null) {
                         // ファイルサイズが一致
                         // or トラック数が一致
@@ -223,7 +223,7 @@ public class DiskDIMParser extends DiskPlainParser {
         }
 
         // その他に同じパラメータの候補を追加
-        gDiskTemplates.find(sidesPerDisk, tracksPerSide, sectorsPerTrack, sectorSize, diskParams, !diskParams.isEmpty());
+        diskTemplates.find(sidesPerDisk, tracksPerSide, sectorsPerTrack, sectorSize, diskParams, !diskParams.isEmpty());
 
         if (diskParams.isEmpty()) {
             manualParam.setDiskParam(

@@ -19,7 +19,7 @@ import l3diskex.diskimg.DiskParser.DiskImageParser;
 import l3diskex.diskimg.DiskResult;
 import l3diskex.diskimg.FileParam.DiskTypeHint;
 
-import static l3diskex.diskimg.DiskParam.gDiskTemplates;
+import static l3diskex.diskimg.DiskParam.diskTemplates;
 
 
 /**
@@ -270,7 +270,7 @@ public class DiskPlainParser extends DiskImageParser {
             // 優先順位の高い候補
             for (DiskTypeHint diskHint : diskHints) {
                 String hint = diskHint.getHint();
-                DiskParam param = gDiskTemplates.find(hint);
+                DiskParam param = diskTemplates.find(hint);
                 if (param != null) {
                     int diskSizeHint = param.calcDiskSize();
                     if (streamSize == diskSizeHint) {
@@ -284,8 +284,8 @@ public class DiskPlainParser extends DiskImageParser {
         // ディスクテンプレート全体から探す
         for (int mag = 1; mag <= 2; mag++) {
             boolean separator = (diskParams.isEmpty());
-            for (int i = 0; i < gDiskTemplates.size(); i++) {
-                DiskParam param = gDiskTemplates.get(i);
+            for (int i = 0; i < diskTemplates.size(); i++) {
+                DiskParam param = diskTemplates.get(i);
                 if (param != null) {
                     // 同じ候補がある場合スキップ
                     if (diskParams.contains(param)) {

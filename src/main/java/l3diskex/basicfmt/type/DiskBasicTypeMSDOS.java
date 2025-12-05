@@ -28,7 +28,7 @@ import vavi.util.serdes.Serdes;
 import static l3diskex.basicfmt.BasicCommon.FORMAT_TYPE_UNKNOWN;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_DIRECTORY_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_VOLUME_MASK;
-import static l3diskex.basicfmt.DiskBasicTemplates.gDiskBasicTemplates;
+import static l3diskex.basicfmt.DiskBasicTemplates.diskBasicTemplates;
 
 
 /**
@@ -236,7 +236,7 @@ public class DiskBasicTypeMSDOS extends DiskBasicTypeFAT12<DirectoryMsDos> {
         basic.setFatEndGroup(Math.min(maxGroupOnFat, maxGroupOnParam));
 
         // テンプレートに一致するものがあるか
-        DiskBasicParam param = gDiskBasicTemplates.findType(basic.getBasicCategoryName(), basic.getBasicTypeName(), basic.getSidesPerDiskOnBasic(), basic.getSectorsPerTrackOnBasic());
+        DiskBasicParam param = diskBasicTemplates.findType(basic.getBasicCategoryName(), basic.getBasicTypeName(), basic.getSidesPerDiskOnBasic(), basic.getSectorsPerTrackOnBasic());
         if (param != null) {
             basic.setBasicDescription(param.getBasicDescription());
         }

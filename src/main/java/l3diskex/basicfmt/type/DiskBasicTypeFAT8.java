@@ -49,7 +49,6 @@ public abstract class DiskBasicTypeFAT8<T extends Directory> extends DiskBasicTy
     public double checkFat(boolean isFormatting) {
         int end = basic.getFatEndGroup() < 0xff ? basic.getFatEndGroup() : 0xff;
         int[] table = new int[end + 1];
-        Arrays.fill(table, 0);
 
         // 同じグループ番号が重複しているか
         for (int pos = 0; pos <= end; pos++) {

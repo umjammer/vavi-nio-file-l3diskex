@@ -134,7 +134,7 @@ public class Parambase {
         private final int type;
         /** attribute value */
         private final int value;
-        /** マスク */
+        /** mask */
         private final int mask;
         /** name */
         private String name;
@@ -159,27 +159,27 @@ public class Parambase {
             if (this.name == null || this.name.isEmpty()) this.name = "???";
         }
 
-        /** インデックス */
+        /** index */
         public int getIndex() {
             return index;
         }
 
-        /** 属性タイプ */
+        /** attribute type */
         public int getType() {
             return type;
         }
 
-        /** 属性値 */
+        /** attribute value */
         public int getValue() {
             return value;
         }
 
-        /** マスク */
+        /** mask */
         public int getMask() {
             return mask;
         }
 
-        /** 名前 */
+        /** name */
         public String getName() {
             return name;
         }

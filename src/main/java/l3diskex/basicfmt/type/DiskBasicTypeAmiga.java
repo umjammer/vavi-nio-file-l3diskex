@@ -43,7 +43,7 @@ import vavi.util.serdes.Serdes;
 import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_FREE;
 import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_SYSTEM;
 import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_USED;
-import static l3diskex.basicfmt.DiskBasicTemplates.gDiskBasicTemplates;
+import static l3diskex.basicfmt.DiskBasicTemplates.diskBasicTemplates;
 import static l3diskex.basicfmt.diritem.DiskBasicDirItemAmiga.FILETYPE_MASK_AMIGA_DATA;
 import static l3diskex.basicfmt.diritem.DiskBasicDirItemAmiga.FILETYPE_MASK_AMIGA_HEADER;
 import static l3diskex.basicfmt.diritem.DiskBasicDirItemAmiga.FILETYPE_MASK_AMIGA_ROOT;
@@ -829,7 +829,7 @@ logger.log(Level.TRACE, e.getMessage());
             if (isDirectory) boot.type[3] += 2;
         }
 
-        DiskBasicParam defaultParam = gDiskBasicTemplates.findType("", basic.getBasicTypeName());
+        DiskBasicParam defaultParam = diskBasicTemplates.findType("", basic.getBasicTypeName());
         trackNum = defaultParam.getManagedTrackNumber();
         sectorNum = defaultParam.getDirStartSector();
         basic.setManagedTrackNumber(trackNum);

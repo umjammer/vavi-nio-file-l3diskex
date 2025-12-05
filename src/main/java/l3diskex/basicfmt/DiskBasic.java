@@ -47,7 +47,7 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_DIRECTORY_MAS
 import static l3diskex.basicfmt.DiskBasicDirItem.DATETIME_ACCESS;
 import static l3diskex.basicfmt.DiskBasicDirItem.DATETIME_CREATE;
 import static l3diskex.basicfmt.DiskBasicDirItem.DATETIME_MODIFY;
-import static l3diskex.basicfmt.DiskBasicTemplates.gDiskBasicTemplates;
+import static l3diskex.basicfmt.DiskBasicTemplates.diskBasicTemplates;
 import static l3diskex.basicfmt.DiskBasicType.AllocateGroupFlags.ALLOCATE_GROUPS_APPEND;
 import static l3diskex.basicfmt.DiskBasicType.AllocateGroupFlags.ALLOCATE_GROUPS_NEW;
 
@@ -690,7 +690,7 @@ public class DiskBasic extends DiskParam {
             // サポートしているDISK BASICがあるかどうか
             // 手動設定の時はhintもtypesも何も入っていないので
             // テンプレートの中にパラメータが一致するものがあるかをさがす
-            match = gDiskBasicTemplates.findType(hint, types);
+            match = diskBasicTemplates.findType(hint, types);
             if (match != null) {
                 support = true;
             }
@@ -702,7 +702,7 @@ public class DiskBasic extends DiskParam {
             }
 
             for (DiskParamName diskParamName : types) {
-                match = gDiskBasicTemplates.findType(hint, diskParamName.getName());
+                match = diskBasicTemplates.findType(hint, diskParamName.getName());
                 if (match != null) {
                     // フォーマットされているか？
                     logger.log(Level.INFO, "Parsing format: %s".formatted(match.getBasicTypeName()));
@@ -2363,13 +2363,13 @@ logger.log(Level.TRACE, "type: " + type.getClass().getSimpleName());
      *
      * @param sectorPos セクタ位置(トラック0,サイド0,セクタ1を0とした通し番号)
      * @param divNum    [out] 分割番号
-     * @param divNums   [out] 分割数
+     * @param numOfDivs [out] 分割数
      * @return セクタデータ
      */
-    public DiskImageSector getSectorFromSectorPos(int sectorPos, int[] divNum, int[] divNums) {
+    public DiskImageSector getSectorFromSectorPos(int sectorPos, int[] divNum, int[] numOfDivs) {
         int[] trackNum = {0};
         int[] sideNum = {0};
-        return getSectorFromSectorPos(sectorPos, trackNum, sideNum, divNum, divNums);
+        return getSectorFromSectorPos(sectorPos, trackNum, sideNum, divNum, numOfDivs);
     }
 
     /**

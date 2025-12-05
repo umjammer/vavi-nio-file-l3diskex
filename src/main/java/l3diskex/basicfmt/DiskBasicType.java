@@ -1264,7 +1264,7 @@ public abstract class DiskBasicType<T extends Directory> {
     }
 
     /** トラック、サイド、セクタの各番号からセクタ位置(トラック0,サイド0,セクタ1を0とした通し番号)を得る */
-    public int getSectorPosFromNum(int trackNum, int sideNum, int sectorNum, int divNum, int divNums) {
+    public int getSectorPosFromNum(int trackNum, int sideNum, int sectorNum, int divNum, int numOfDivs) {
         int selectedSide = basic.getSelectedSide();
         int numberingSector = basic.getNumberingSector();
         int sectorsPerTrack = basic.getSectorsPerTrackOnBasic();

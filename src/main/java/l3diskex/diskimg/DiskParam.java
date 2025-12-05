@@ -24,7 +24,7 @@ public class DiskParam {
 
     private static final Logger logger = System.getLogger(DiskParam.class.getName());
 
-    public static DiskTemplates gDiskTemplates = new DiskTemplates();
+    public static DiskTemplates diskTemplates = new DiskTemplates();
 
     /** トラック＆サイド＆セクタ番号を保持 */
     public static class SectorParam {

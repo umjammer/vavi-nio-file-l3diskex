@@ -21,7 +21,7 @@ import vavi.io.SeekableDataInputStream;
 import vavi.util.serdes.Element;
 import vavi.util.serdes.Serdes;
 
-import static l3diskex.diskimg.DiskParam.gDiskTemplates;
+import static l3diskex.diskimg.DiskParam.diskTemplates;
 
 
 /**
@@ -184,7 +184,7 @@ public class Disk2MGParser extends DiskPlainParser {
         }
 
         // ディスクテンプレートから探す
-        DiskParam param = gDiskTemplates.findStrict(sidesPerDisk, tracksPerSide, sectorsPerTrack, sectorSize,
+        DiskParam param = diskTemplates.findStrict(sidesPerDisk, tracksPerSide, sectorsPerTrack, sectorSize,
                 1, 0, 0, 0, 0,
                 sd, pt);
         if (param != null) {
