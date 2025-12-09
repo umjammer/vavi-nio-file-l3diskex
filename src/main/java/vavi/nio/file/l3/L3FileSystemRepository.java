@@ -107,7 +107,7 @@ logger.log(Level.TRACE, "sectorSize: " + disk.getSectorSize());
         DiskBasic diskBasic = disk.getDiskBasic(0);
 logger.log(Level.TRACE, "diskBasic.diskNumber: " + diskBasic.getDiskNumber());
 
-        int r3 = diskBasic.parseBasic(disk, 0, null, false);
+        int r3 = diskBasic.parseBasic(disk, disk.getSidesPerDisk() == 2 ? -1 : disk.getSidesPerDisk(), null, false);
         if (r3 != 0)
             throw new IllegalArgumentException("diskBasic.parseBasic: " + diskBasic.getErrorMessage(r3));
 logger.log(Level.DEBUG, "FORMAT: " + diskBasic.getType().getClass().getSimpleName());

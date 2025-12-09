@@ -123,7 +123,7 @@ Debug.println("sectorSize: " + disk.getSectorSize());
         DiskBasic diskBasic = disk.getDiskBasic(0);
 Debug.println(diskBasic.getDiskNumber());
 
-        int r3 = diskBasic.parseBasic(disk, 0, null, false);
+        int r3 = diskBasic.parseBasic(disk, disk.getSidesPerDisk() == 2 ? -1 : disk.getSidesPerDisk(), null, false);
         assert r3 == 0 : "diskBasic.parseBasic: " + diskBasic.getErrorMessage(r3);
 Debug.println("FORMAT: " + diskBasic.getFormatTypeNumber());
 
