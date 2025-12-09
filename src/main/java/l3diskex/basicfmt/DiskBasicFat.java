@@ -334,15 +334,19 @@ public class DiskBasicFat {
         private final int size;
         /** バッファポインタ（セクタ内の開始ポインタ） */
         private final byte[] buffer;
+        /** バッファ内のオフセット */
+        private final int offset;
 
         public DiskBasicFatBuffer() {
             size = 0;
             buffer = null;
+            offset = 0;
         }
 
-        public DiskBasicFatBuffer(byte[] newBuf, int newSize) {
-            size = newSize;
-            this.buffer = newBuf;
+        public DiskBasicFatBuffer(byte[] buffer, int offset, int size) {
+            this.buffer = buffer;
+            this.offset = offset;
+            this.size = size;
         }
 
         /**
@@ -390,7 +394,7 @@ public class DiskBasicFat {
          * @return 値
          */
         public int get(int pos) {
-            return buffer != null ? (buffer[pos] & 0xff) : INVALID_GROUP_NUMBER;
+            return buffer != null ? (buffer[offset + pos] & 0xff) : INVALID_GROUP_NUMBER;
         }
 
         /**
@@ -401,7 +405,7 @@ public class DiskBasicFat {
          */
         public void set(int pos, int val) {
             if (buffer != null) {
-                buffer[pos] = (byte) (val & 0xff);
+                buffer[offset + pos] = (byte) (val & 0xff);
             }
         }
 
@@ -449,8 +453,8 @@ public class DiskBasicFat {
          */
         public int get16LE(int pos) {
             if (buffer == null || pos + 1 >= size) return INVALID_GROUP_NUMBER;
-            int b0 = buffer[pos] & 0xff;
-            int b1 = buffer[pos + 1] & 0xff;
+            int b0 = buffer[offset + pos] & 0xff;
+            int b1 = buffer[offset + pos + 1] & 0xff;
             return (b1 << 8) | b0;
         }
 
@@ -462,8 +466,8 @@ public class DiskBasicFat {
          */
         public void set16LE(int pos, int val) {
             if (buffer != null && pos + 1 < size) {
-                buffer[pos] = (byte) (val & 0xff);
-                buffer[pos + 1] = (byte) ((val >> 8) & 0xff);
+                buffer[offset + pos] = (byte) (val & 0xff);
+                buffer[offset + pos + 1] = (byte) ((val >> 8) & 0xff);
             }
         }
 
@@ -475,8 +479,8 @@ public class DiskBasicFat {
          */
         public int get16BE(int pos) {
             if (buffer == null || pos + 1 >= size) return INVALID_GROUP_NUMBER;
-            int b0 = buffer[pos] & 0xff;
-            int b1 = buffer[pos + 1] & 0xff;
+            int b0 = buffer[offset + pos] & 0xff;
+            int b1 = buffer[offset + pos + 1] & 0xff;
             return (b0 << 8) | b1;
         }
 
@@ -488,8 +492,8 @@ public class DiskBasicFat {
          */
         public void Set16BE(int pos, int val) {
             if (buffer != null && pos + 1 < size) {
-                buffer[pos] = (byte) ((val >> 8) & 0xff);
-                buffer[pos + 1] = (byte) (val & 0xff);
+                buffer[offset + pos] = (byte) ((val >> 8) & 0xff);
+                buffer[offset + pos + 1] = (byte) (val & 0xff);
             }
         }
 
@@ -1068,9 +1072,9 @@ public class DiskBasicFat {
                     }
 
                     int sSize = sector.getSectorSize();
-                    sSize /= divNums[0];
                     byte[] buf = sector.getSectorBuffer();
-                    int offset = sSize * divNum[0];
+                    int offset = (sSize / divNums[0]) * divNum[0];
+                    sSize /= divNums[0];
 
 //                    int sectorSize = sSize;
                     if (secNum == startSector) {
@@ -1078,7 +1082,7 @@ public class DiskBasicFat {
                         offset += startPos;
                         sSize -= startPos;
                     }
-                    DiskBasicFatBuffer fatbuf = new DiskBasicFatBuffer(Arrays.copyOfRange(buf, offset, offset + sSize), sSize);
+                    DiskBasicFatBuffer fatbuf = new DiskBasicFatBuffer(buf, offset, sSize);
                     fatBufs.add(fatbuf);
                 }
                 bufs.add(fatBufs);
