@@ -627,22 +627,22 @@ public abstract class DiskBasicType<T extends Directory> {
     public double checkDirectory(boolean isRoot, DiskBasicGroups groupItems) throws IOException {
         boolean valid = true;
         boolean[] last = {false};
-        int nUsedItems = 0;
-        double nNormals = 0.0;
+        int usedItems = 0;
+        double normals = 0.0;
 
         int indexNumber = 0;
         int[] pos = {0};
         int[] sizeRemain = {groupItems.getSize()};
         int finish = 0;
         int prevGrpNum = -1;
-        DiskBasicDirItem<T> nitem = dir.newItem(null, 0, null, 0);
+        DiskBasicDirItem<T> nItem = dir.newItem(null, 0, null, 0);
         for (int idx = 0; idx < groupItems.size() && finish >= -1; idx++) {
-            DiskBasicGroupItem gitem = groupItems.get(idx);
-            int grpNum = gitem.group;
-            int trkNum = gitem.track;
-            int sidNum = gitem.side;
-            int divNum = gitem.divNum; // 分割番号
-            int divNums = gitem.numOfDivs; // 分割数
+            DiskBasicGroupItem gItem = groupItems.get(idx);
+            int grpNum = gItem.group;
+            int trkNum = gItem.track;
+            int sidNum = gItem.side;
+            int divNum = gItem.divNum; // 分割番号
+            int mumDivs = gItem.numOfDivs; // 分割数
             DiskImageTrack track = basic.getTrack(trkNum, sidNum);
             if (track == null) {
                 valid = false;
@@ -650,7 +650,7 @@ public abstract class DiskBasicType<T extends Directory> {
             }
             DiskBasicGroupItem nextGitem = idx + 1 < groupItems.size() ? groupItems.get(idx + 1) : null;
 
-            for (int secNum = gitem.sectorStart; secNum <= gitem.sectorEnd && finish >= -1; secNum++) {
+            for (int secNum = gItem.sectorStart; secNum <= gItem.sectorEnd && finish >= -1; secNum++) {
                 DiskImageSector sector = track.getSector(secNum);
                 if (sector == null) {
                     valid = false;
@@ -663,9 +663,9 @@ public abstract class DiskBasicType<T extends Directory> {
                     break;
                 }
 
-                int[] size = {sector.getSectorSize() / divNums};
+                int[] size = {sector.getSectorSize() / mumDivs};
 
-                SectorParam nextSec = new SectorParam(trkNum, sidNum, secNum < gitem.sectorEnd ? secNum + 1 : (nextGitem != null ? nextGitem.sectorStart : -1), -1);
+                SectorParam nextSec = new SectorParam(trkNum, sidNum, secNum < gItem.sectorEnd ? secNum + 1 : (nextGitem != null ? nextGitem.sectorStart : -1), -1);
 
                 // オフセットを足す
                 bufferOffset += (size[0] * divNum);
@@ -679,7 +679,7 @@ public abstract class DiskBasicType<T extends Directory> {
                     prevGrpNum = grpNum;
                 }
 
-                if (idx == 0 && secNum == gitem.sectorStart) {
+                if (idx == 0 && secNum == gItem.sectorStart) {
                     // ディレクトリエリア先頭をスキップする位置
                     int skip = isRoot ? basic.getDirStartPosOnRoot() : basic.getDirStartPos();
                     bufferOffset += skip;
@@ -701,17 +701,17 @@ public abstract class DiskBasicType<T extends Directory> {
                         break;
                     }
 //logger.log(Level.DEBUG, "sector buffer: " + bufferOffset + " / " + buffer.length);
-                    nitem.setData(indexNumber, gitem, sector, pos[0], buffer, bufferOffset, nextSec);
-                    valid = nitem.check(last);
+                    nItem.setData(indexNumber, gItem, sector, pos[0], buffer, bufferOffset, nextSec);
+                    valid = nItem.check(last);
                     if (valid) {
-                        if (nitem.checkUsed(false)) {
-                            nNormals += nitem.normalCodesInFileName();
-                            nUsedItems++;
+                        if (nItem.checkUsed(false)) {
+                            normals += nItem.normalCodesInFileName();
+                            usedItems++;
                         }
                     }
-                    pos[0] += nitem.getDataSize();
-                    bufferOffset += nitem.getDataSize();
-                    sizeRemain[0] -= nitem.getDataSize();
+                    pos[0] += nItem.getDataSize();
+                    bufferOffset += nItem.getDataSize();
+                    sizeRemain[0] -= nItem.getDataSize();
                     indexNumber++;
                 }
 
@@ -723,8 +723,8 @@ public abstract class DiskBasicType<T extends Directory> {
         double validRatio = 0.0;
         if (!valid) {
             validRatio = -1.0;
-        } else if (nUsedItems > 0) {
-            validRatio = nNormals / (double) nUsedItems;
+        } else if (usedItems > 0) {
+            validRatio = normals / (double) usedItems;
         }
 
         return validRatio;
@@ -739,15 +739,15 @@ public abstract class DiskBasicType<T extends Directory> {
         int[] sizeRemain = {groupItems.getSize()};
         int finish = 0;
         int prevGrpNum = -1;
-        DiskBasicDirItem<T> nitem = dir.newItem(null, 0, null, 0);
+        DiskBasicDirItem<T> nItem = dir.newItem(null, 0, null, 0);
 
         for (int idx = 0; idx < groupItems.size() && finish >= -1; idx++) {
-            DiskBasicGroupItem gitem = groupItems.get(idx);
-            int grpNum = gitem.group;
-            int trkNum = gitem.track;
-            int sidNum = gitem.side;
-            int divNum = gitem.divNum;
-            int divNums = gitem.numOfDivs;
+            DiskBasicGroupItem gItem = groupItems.get(idx);
+            int grpNum = gItem.group;
+            int trkNum = gItem.track;
+            int sidNum = gItem.side;
+            int divNum = gItem.divNum;
+            int numOfDivs = gItem.numOfDivs;
             DiskImageTrack track = basic.getTrack(trkNum, sidNum);
             if (track == null) {
                 valid = false;
@@ -756,7 +756,7 @@ public abstract class DiskBasicType<T extends Directory> {
             DiskBasicGroupItem nextGitem;
             nextGitem = idx + 1 < groupItems.size() ? groupItems.get(idx + 1) : null;
 
-            for (int secNum = gitem.sectorStart; secNum <= gitem.sectorEnd && valid && !last && finish >= -1; secNum++) {
+            for (int secNum = gItem.sectorStart; secNum <= gItem.sectorEnd && valid && !last && finish >= -1; secNum++) {
                 DiskImageSector sector = track.getSector(secNum);
                 if (sector == null) {
                     valid = false;
@@ -767,8 +767,8 @@ public abstract class DiskBasicType<T extends Directory> {
                     valid = false;
                     break;
                 }
-                int[] size = {sector.getSectorSize() / divNums};
-                SectorParam nextSec = new SectorParam(trkNum, sidNum, secNum < gitem.sectorEnd ? secNum + 1 : (nextGitem != null ? nextGitem.sectorStart : -1), -1);
+                int[] size = {sector.getSectorSize() / numOfDivs};
+                SectorParam nextSec = new SectorParam(trkNum, sidNum, secNum < gItem.sectorEnd ? secNum + 1 : (nextGitem != null ? nextGitem.sectorStart : -1), -1);
 
                 int bufferOffset = (size[0] * divNum) + pos[0];
                 if (grpNum != prevGrpNum) {
@@ -778,7 +778,7 @@ public abstract class DiskBasicType<T extends Directory> {
                     sizeRemain[0] -= skip;
                     prevGrpNum = grpNum;
                 }
-                if (idx == 0 && secNum == gitem.sectorStart) {
+                if (idx == 0 && secNum == gItem.sectorStart) {
                     int skip = isRoot ? basic.getDirStartPosOnRoot() : basic.getDirStartPos();
                     bufferOffset += skip;
                     pos[0] += skip;
@@ -796,13 +796,13 @@ public abstract class DiskBasicType<T extends Directory> {
                         pos = size;
                         break;
                     }
-                    nitem.setData(indexNumber, gitem, sector, pos[0], buffer, bufferOffset, nextSec);
-                    if (nitem.isNormalFile()) {
-                        valid = !nitem.checkUsed(last);
+                    nItem.setData(indexNumber, gItem, sector, pos[0], buffer, bufferOffset, nextSec);
+                    if (nItem.isNormalFile()) {
+                        valid = !nItem.checkUsed(last);
                     }
-                    pos[0] += nitem.getDataSize();
-                    bufferOffset += nitem.getDataSize();
-                    sizeRemain[0] -= nitem.getDataSize();
+                    pos[0] += nItem.getDataSize();
+                    bufferOffset += nItem.getDataSize();
+                    sizeRemain[0] -= nItem.getDataSize();
                     indexNumber++;
                 }
                 pos[0] -= size[0];
