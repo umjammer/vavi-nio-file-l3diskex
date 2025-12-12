@@ -867,7 +867,7 @@ public class DiskBasicDirItemMSDOS extends DiskBasicDirItem<DirectoryMs> {
                     size[0] = len[0] = data.mslfn().name.length;
                     return data.mslfn().name;
                 } else {
-                    // Short file name (SFN entry structure: msdos)
+                    size[0] = len[0] = data.msdos().name.length;
                     return data.msdos().name;
                 }
             } else if (num == 1) {
