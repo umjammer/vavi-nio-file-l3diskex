@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -19,6 +20,7 @@ import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskImage.DiskImageTrack;
 import l3diskex.diskimg.DiskParam.NumSectorsParam;
 import l3diskex.diskimg.DiskParam.SectorParam;
+import vavi.util.StringUtil;
 
 import static l3diskex.basicfmt.DiskBasicError.ERRV_NO_SECTOR;
 import static l3diskex.basicfmt.DiskBasicError.ERRV_NO_TRACK;
@@ -700,7 +702,7 @@ public abstract class DiskBasicType<T extends Directory> {
                         pos[0] = size[0];
                         break;
                     }
-//logger.log(Level.DEBUG, "sector buffer: " + bufferOffset + " / " + buffer.length);
+//logger.log(Level.DEBUG, "sector buffer: " + bufferOffset + " / " + buffer.length + "\n" + StringUtil.getDump(buffer, bufferOffset, 32));
                     nItem.setData(indexNumber, gItem, sector, pos[0], buffer, bufferOffset, nextSec);
                     valid = nItem.check(last);
                     if (valid) {
@@ -720,6 +722,7 @@ public abstract class DiskBasicType<T extends Directory> {
             }
         }
 
+logger.log(Level.INFO, "normals: %.2f, usedItems: %d".formatted(normals, usedItems));
         double validRatio = 0.0;
         if (!valid) {
             validRatio = -1.0;

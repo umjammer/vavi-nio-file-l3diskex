@@ -399,7 +399,7 @@ public class CharCodes {
                 }
 
             } catch (Exception e) {
-logger.log(Level.ERROR, e.getMessage(), e);
+logger.log(Level.TRACE, e);
                 try {
                     decoder = cs.newDecoder().onMalformedInput(REPORT).onUnmappableCharacter(REPORT);
                     String decodedStr = decoder.decode(java.nio.ByteBuffer.wrap(src, offset, 1)).toString();
@@ -413,7 +413,7 @@ logger.log(Level.ERROR, e.getMessage(), e);
                         pos++;
                     }
                 } catch (Exception e2) {
-logger.log(Level.ERROR, e2.getMessage(), e2);
+logger.log(Level.TRACE, e2);
                     // Conversion failed for 1 byte too
                     dst.append((char) (unknownChar & 0xff));
                     pos++;

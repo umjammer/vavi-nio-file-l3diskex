@@ -6,6 +6,8 @@ package l3diskex.basicfmt.type;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
 import java.util.Arrays;
 
 import l3diskex.basicfmt.BasicCommon.Directory;
@@ -24,6 +26,8 @@ import l3diskex.diskimg.DiskImage.DiskImageTrack;
  * FAT8の処理
  */
 public abstract class DiskBasicTypeFAT8<T extends Directory> extends DiskBasicType<T> {
+
+    private static final Logger logger = System.getLogger(DiskBasicTypeFAT8.class.getName());
 
     @Override
     public void init(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<T> dir) {
@@ -62,6 +66,7 @@ public abstract class DiskBasicTypeFAT8<T extends Directory> extends DiskBasicTy
         for (int pos = 0; pos <= end; pos++) {
             if (table[pos] > 4) {
                 validRatio = -1.0;
+logger.log(Level.TRACE, "too many references to group: " + table[pos]);
                 break;
             }
         }

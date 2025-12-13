@@ -165,6 +165,7 @@ public abstract class DiskBasicDirItem<T extends Directory> {
                     this.data = clazz.getDeclaredConstructor().newInstance();
                     Serdes.Util.deserialize(new ByteArrayInputStream(raw), this.data);
                 } catch (Exception e) {
+                    logger.log(Level.TRACE, "clazz: " + clazz + ", " + raw.length);
                     logger.log(Level.ERROR, e.getMessage(), e);
                 }
             }
@@ -1011,6 +1012,7 @@ public abstract class DiskBasicDirItem<T extends Directory> {
                 count++;
             }
         }
+//logger.log(Level.INFO, "%s, %d, %s".formatted(new String(n, 0, l[0]), count, getClass().getSimpleName()));
         return l[0] > 0 ? (double) count / (double) l[0] : 0.0;
     }
 

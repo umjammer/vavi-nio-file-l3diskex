@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.StringJoiner;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
@@ -668,6 +669,9 @@ public class DiskBasicParam extends DiskBasicParamBase {
     /** ファイル管理エリアのあるトラック番号 */
     public void setManagedTrackNumber(int val) {
         managedTrackNumber = val;
+if (basicCategoryNames.contains("N88")) {
+ logger.log(Level.TRACE, "managedTrackNumber: " + managedTrackNumber);
+}
     }
 
     /** トラック当たりのグループ数 */
@@ -1036,6 +1040,7 @@ public class DiskBasicParam extends DiskBasicParamBase {
 
                     if (find("", typeName) == null) {
                         list.add(p);
+//System.out.println(p);
                     } else {
                         // タイプ名が重複している
                         errMsgs.append("\n");
@@ -1151,6 +1156,81 @@ public class DiskBasicParam extends DiskBasicParamBase {
             }
             return typeNames.size();
         }
+    }
+
+    @Override
+    public String toString() {
+//        return new StringJoiner(", ", DiskBasicParam.class.getSimpleName() + "[", "]")
+//                .add("basicTypeName='" + basicTypeName + "'")
+//                .add("basicCategoryNames=" + basicCategoryNames)
+//                .add("formatType=" + formatType)
+//                .add("formatSubtypeNumber=" + formatSubtypeNumber)
+//                .add("sidesOnBasic=" + sidesOnBasic)
+//                .add("sectorsOnBasic=" + sectorsOnBasic)
+//                .add("sectorsOnBasicList=" + sectorsOnBasicList)
+//                .add("sectorNumberBase=" + sectorNumberBase)
+//                .add("tracksOnBasic=" + tracksOnBasic)
+//                .add("managedTrackNumber=" + managedTrackNumber)
+//                .add("groupsPerTrack=" + groupsPerTrack)
+//                .add("groupsPerSector=" + groupsPerSector)
+//                .add("reservedSectors=" + reservedSectors)
+//                .add("numberOfFats=" + numberOfFats)
+//                .add("validNumberOfFats=" + validNumberOfFats)
+//                .add("sectorsPerFat=" + sectorsPerFat)
+//                .add("fatStartPos=" + fatStartPos)
+//                .add("fatEndGroup=" + fatEndGroup)
+//                .add("fatSideNumber=" + fatSideNumber)
+//                .add("reservedGroups=" + reservedGroups)
+//                .add("dirStartSector=" + dirStartSector)
+//                .add("dirEndSector=" + dirEndSector)
+//                .add("dirEntryCount=" + dirEntryCount)
+//                .add("subdirGroupSize=" + subdirGroupSize)
+//                .add("groupWidth=" + groupWidth)
+//                .add("groupsPerDirEntry=" + groupsPerDirEntry)
+//                .add("validDensityType=" + validDensityType)
+//                .add("sectorSkew=" + sectorSkew)
+//                .add("mediaId=" + mediaId)
+//                .add("dataInverted=" + dataInverted)
+//                .add("sideReversed=" + sideReversed)
+//                .add("mountEachSides=" + mountEachSides)
+//                .add("basicDescription='" + basicDescription + "'")
+//                .toString();
+        return new StringJoiner(", ", "", "")
+                .add(basicTypeName)
+                .add("" + basicCategoryNames)
+//                .add("" + formatType)
+                .add("" + formatSubtypeNumber)
+                .add("" + sidesOnBasic)
+                .add("" + sectorsOnBasic)
+                .add("" + sectorsOnBasicList)
+                .add("" + sectorNumberBase)
+                .add("" + tracksOnBasic)
+                .add("" + managedTrackNumber)
+                .add("" + groupsPerTrack)
+                .add("" + groupsPerSector)
+                .add("" + reservedSectors)
+                .add("" + numberOfFats)
+                .add("" + validNumberOfFats)
+                .add("" + sectorsPerFat)
+                .add("" + fatStartPos)
+                .add("" + fatEndGroup)
+                .add("" + fatSideNumber)
+                .add("" + reservedGroups)
+                .add("" + dirStartSector)
+                .add("" + dirEndSector)
+                .add("" + dirEntryCount)
+                .add("" + subdirGroupSize)
+                .add("" + groupWidth)
+                .add("" + groupsPerDirEntry)
+                .add("" + validDensityType)
+                .add("" + sectorSkew)
+                .add("" + mediaId)
+                .add("" + dataInverted)
+                .add("" + sideReversed)
+                .add("" + mountEachSides)
+                .add(basicDescription)
+                .add(super.toString())
+                .toString();
     }
 }
 
@@ -1589,5 +1669,65 @@ logger.log(Level.TRACE, "key: " + key + ", value: " + value);
     /** 固有のパラメータ */
     public void setVariousParams(HashMap<String, Object> val) {
         variousParams = val;
+    }
+
+    @Override
+    public String toString() {
+//        return new StringJoiner(", ", DiskBasicParamBase.class.getSimpleName() + "[", "]")
+//                .add("sectorsPerGroup=" + sectorsPerGroup)
+//                .add("groupFinalCode=" + groupFinalCode)
+//                .add("groupSystemCode=" + groupSystemCode)
+//                .add("groupUnusedCode=" + groupUnusedCode)
+//                .add("dirTerminateCode=" + dirTerminateCode)
+//                .add("dirSpaceCode=" + dirSpaceCode)
+//                .add("dirTrimmingCode=" + dirTrimmingCode)
+//                .add("dirStartPos=" + dirStartPos)
+//                .add("dirStartPosOnRoot=" + dirStartPosOnRoot)
+//                .add("dirStartPosOnSec=" + dirStartPosOnSec)
+//                .add("dirStartPosOnGroup=" + dirStartPosOnGroup)
+//                .add("specialAttrs=" + specialAttrs)
+//                .add("attrsByExtension=" + attrsByExtension)
+//                .add("fillcodeOnFormat=" + fillcodeOnFormat)
+//                .add("fillcodeOnFat=" + fillcodeOnFat)
+//                .add("fillcodeOnDir=" + fillcodeOnDir)
+//                .add("deleteCode=" + deleteCode)
+//                .add("textTerminateCode=" + textTerminateCode)
+//                .add("extensionPreCode=" + extensionPreCode)
+//                .add("validFileName=" + validFileName)
+//                .add("validVolumeName=" + validVolumeName)
+//                .add("compareCaseInsensitive=" + compareCaseInsensitive)
+//                .add("toUpperBeforeDialog=" + toUpperBeforeDialog)
+//                .add("toUpperAfterRenamed=" + toUpperAfterRenamed)
+//                .add("bigEndian=" + bigEndian)
+//                .add("variousParams=" + variousParams)
+//                .toString();
+        return new StringJoiner(", ", "", "")
+                .add("" + sectorsPerGroup)
+                .add("" + groupFinalCode)
+                .add("" + groupSystemCode)
+                .add("" + groupUnusedCode)
+                .add("" + dirTerminateCode)
+                .add("" + dirSpaceCode)
+                .add("" + dirTrimmingCode)
+                .add("" + dirStartPos)
+                .add("" + dirStartPosOnRoot)
+                .add("" + dirStartPosOnSec)
+                .add("" + dirStartPosOnGroup)
+                .add("" + specialAttrs)
+                .add("" + attrsByExtension)
+                .add("" + fillcodeOnFormat)
+                .add("" + fillcodeOnFat)
+                .add("" + fillcodeOnDir)
+                .add("" + deleteCode)
+                .add("" + textTerminateCode)
+                .add("" + extensionPreCode)
+                .add("" + validFileName)
+                .add("" + validVolumeName)
+                .add("" + compareCaseInsensitive)
+                .add("" + toUpperBeforeDialog)
+                .add("" + toUpperAfterRenamed)
+                .add("" + bigEndian)
+                .add("" + variousParams)
+                .toString();
     }
 }

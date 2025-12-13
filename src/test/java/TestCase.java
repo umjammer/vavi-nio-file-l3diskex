@@ -22,7 +22,9 @@ import l3diskex.diskimg.DiskParam;
 import vavi.util.Debug;
 import vavi.util.properties.annotation.Property;
 import vavi.util.properties.annotation.PropsEntity;
+import vavi.util.serdes.Serdes;
 
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
@@ -117,11 +119,11 @@ Debug.printf("name: \"%s\"", disk.getName(true));
 Debug.println("tracks: " + disk.getTracks().size());
 Debug.println("typeName: " + disk.getDiskTypeName());
         disk.setDiskParam(disk.calcMajorNumber());
-Debug.println("sectorSize: " + disk.getSectorSize());
+Debug.println("sectorSize: " + disk.getSectorSize() + ", sidesPerDisk: " + disk.getSidesPerDisk());
 
         // Create a DiskBasic instance to handle the file system
         DiskBasic diskBasic = disk.getDiskBasic(0);
-Debug.println(diskBasic.getDiskNumber());
+Debug.println("diskNumber: " + diskBasic.getDiskNumber() + ", sidesPerDisk: " + diskBasic.getSidesPerDisk());
 
         int r3 = diskBasic.parseBasic(disk, disk.getSidesPerDisk() == 2 ? -1 : disk.getSidesPerDisk(), null, false);
         assert r3 == 0 : "diskBasic.parseBasic: " + diskBasic.getErrorMessage(r3);
@@ -131,9 +133,11 @@ Debug.println("FORMAT: " + diskBasic.getFormatTypeNumber());
         boolean r = diskBasic.assignRootDirectory(); // w/o this diskBasic#getRootDirectory returns null
         assert r : "diskBasic.assignRootDirectory";
 Debug.println("ASSIGN: done");
+        diskBasic.setCharCode("ShiftJIS"); // TODO automate?
 
         DiskBasicDirItem<?> root = diskBasic.getRootDirectory();
         assert root != null : "root is null";
+Debug.println("TYPE: " + root.getClass().getSimpleName());
 Debug.printf("files at dir: %d, %s, %08x", root.getChildren().size(), root.isDirectory(), root.getFileAttr().getType());
         // List files and directories
         for (DiskBasicDirItem<?> dir : root.getChildren()) {
@@ -141,5 +145,11 @@ Debug.printf("files at dir: %d, %s, %08x", root.getChildren().size(), root.isDir
                 System.out.println(dir.getFileNameStr());
             }
         }
+    }
+
+    @AfterAll
+    static void tearDown() throws Exception {
+//        if (Boolean.parseBoolean(System.getProperty("vavi.util.serdes.cache.statistics", "false")))
+//            Serdes.Cacher.printCacheStatistics();
     }
 }

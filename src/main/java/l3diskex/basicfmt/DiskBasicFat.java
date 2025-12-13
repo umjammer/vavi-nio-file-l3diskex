@@ -1,12 +1,15 @@
 package l3diskex.basicfmt;
 
 import java.io.IOException;
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskImage.DiskImageTrack;
+import vavi.util.StringUtil;
 
 import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_FREE;
 import static l3diskex.basicfmt.DiskBasicType.INVALID_GROUP_NUMBER;
@@ -16,6 +19,8 @@ import static l3diskex.basicfmt.DiskBasicType.INVALID_GROUP_NUMBER;
  * FATアクセス
  */
 public class DiskBasicFat {
+
+    private static final Logger logger = System.getLogger(DiskBasicFat.class.getName());
 
     /**
      * 使用状況テーブル
@@ -1066,8 +1071,10 @@ public class DiskBasicFat {
                     int[] divNum = new int[] {0};
                     int[] divNums = new int[] {1};
                     DiskImageSector sector = basic.getSectorFromSectorPos(secNum, divNum, divNums);
+//logger.log(Level.TRACE, "fat sector: " + secNum/* + "\n" + StringUtil.getDump(sector.getSectorBuffer(0), sector.getSize())*/);
                     if (sector == null) {
                         validRatio = -1.0;
+logger.log(Level.TRACE, "sector is null");
                         break;
                     }
 

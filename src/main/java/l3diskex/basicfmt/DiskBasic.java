@@ -627,6 +627,7 @@ public class DiskBasic extends DiskParam {
         type = null;
 
         DiskBasicFormat format = getFormatType();
+logger.log(Level.TRACE, "format: " + format.getTypeNumber());
         if (format == null) return;
 
         ServiceLoader<DiskBasicType> serviceLoader = ServiceLoader.load(DiskBasicType.class);
@@ -706,7 +707,13 @@ public class DiskBasic extends DiskParam {
                 if (match != null) {
                     // フォーマットされているか？
                     logger.log(Level.INFO, "Parsing format: %s".formatted(match.getBasicTypeName()));
+try {
                     validRatio = parseFormattedDisk(newDisk, match, isFormatting);
+} catch (Exception e) {
+ logger.log(Level.TRACE, e.getMessage(), e);
+ logger.log(Level.TRACE, "Result => error");
+ continue;
+}
                     logger.log(Level.INFO, "Result => %.2f".formatted(validRatio));
                     if (validRatio >= 0.0) {
                         // 候補にする
@@ -723,7 +730,7 @@ public class DiskBasic extends DiskParam {
                 if (idx < 0) idx = 0;
                 match = validParams.list.get(idx);
                 // 再度チェックする
-                logger.log(Level.INFO, "Decided format: %s".formatted(match.getBasicTypeName()));
+                logger.log(Level.INFO, "Decided format: %s\t\t\t\t\t🎉🎉🎉".formatted(match.getBasicTypeName()));
                 validRatio = parseFormattedDisk(newDisk, match, isFormatting);
                 logger.log(Level.INFO, "  Result => %.2f".formatted(validRatio));
             }
@@ -791,6 +798,7 @@ logger.log(Level.TRACE, "type: " + type.getClass().getSimpleName());
         } else if (prmValidRatio < 1.0) {
             errInfo.setInfo(DiskBasicError.ERR_INVALID_IN_PARAMETER_AREA);
         }
+logger.log(Level.TRACE, "prmValidRatio: " + prmValidRatio);
         validRatio += prmValidRatio;
 
         // FATのチェック
@@ -800,6 +808,7 @@ logger.log(Level.TRACE, "type: " + type.getClass().getSimpleName());
             if (!isFormatting && fatValidRatio < 0.0) {
                 errInfo.setInfo(DiskBasicError.ERR_IN_FAT_AREA);
             }
+logger.log(Level.TRACE, "fatValidRatio: " + fatValidRatio);
             validRatio += fatValidRatio;
         }
 
@@ -810,6 +819,7 @@ logger.log(Level.TRACE, "type: " + type.getClass().getSimpleName());
             if (!isFormatting && dirValidRatio < 0.0) {
                 errInfo.setInfo(DiskBasicError.ERR_IN_DIRECTORY_AREA);
             }
+logger.log(Level.TRACE, "dirValidRatio: " + dirValidRatio);
             validRatio += dirValidRatio;
         }
 
@@ -972,8 +982,14 @@ logger.log(Level.TRACE, "type: " + type.getClass().getSimpleName());
      * @return 1.0: 正常, <1.0: 警告あり, <0.0: エラーあり
      */
     public double assignFat(boolean isFormatting) throws IOException {
-        if (disk == null) return -1.0;
-        if (assigned) return 0.0;
+        if (disk == null) {
+logger.log(Level.TRACE, "fat: disk is null");
+            return -1.0;
+        }
+        if (assigned) {
+logger.log(Level.TRACE, "fat: assigned");
+            return 0.0;
+        }
 
         fat.empty();
         assignParameter();

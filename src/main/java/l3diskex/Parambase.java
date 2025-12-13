@@ -8,6 +8,7 @@ import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.StringJoiner;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
@@ -119,6 +120,17 @@ public class Parambase {
         public void setMaxLength(int val) {
             maxLength = val;
         }
+
+        @Override public String toString() {
+            return new StringJoiner(", ", ValidNameRule.class.getSimpleName() + "[", "]")
+                    .add("validFirstChars='" + validFirstChars + "'")
+                    .add("validChars='" + validChars + "'")
+                    .add("invalidChars='" + invalidChars + "'")
+                    .add("deduplicateChars='" + deduplicateChars + "'")
+                    .add("nameRequire=" + nameRequire)
+                    .add("maxLength=" + maxLength)
+                    .toString();
+        }
     }
 
     /**
@@ -187,6 +199,17 @@ public class Parambase {
         /** description */
         public String getDescription() {
             return desc;
+        }
+
+        @Override public String toString() {
+            return new StringJoiner(", ", MyAttribute.class.getSimpleName() + "[", "]")
+                    .add("index=" + index)
+                    .add("type=" + type)
+                    .add("value=" + value)
+                    .add("mask=" + mask)
+                    .add("name='" + name + "'")
+                    .add("desc='" + desc + "'")
+                    .toString();
         }
     }
 
