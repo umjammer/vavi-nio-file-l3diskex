@@ -1018,6 +1018,11 @@ public class DiskBasicDirItemMSDOS extends DiskBasicDirItem<DirectoryMs> {
         @Override
         public DiskBasicFileType getFileAttr() {
             int t1 = getFileType1();
+
+            if (isValidDirectory() && (t1 & FILETYPE_MASK_MS_DIRECTORY) == 0) { // TODO ad-hoc if this is a root directory set directory type bit
+                t1 |= FILETYPE_MASK_MS_DIRECTORY;
+            }
+
             return new DiskBasicFileType(basic.getFormatTypeNumber(), t1 << 8, t1);
         }
 
