@@ -1389,6 +1389,8 @@ if (sectorSize == 0) {
          * @see ""disk_types.xml"
          */
         public boolean load(String dataPath, String localeName, StringBuilder errMessages) {
+            params.clear();
+
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             Document doc;
             try {

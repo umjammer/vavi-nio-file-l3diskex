@@ -340,6 +340,9 @@ public class FileParam {
          * @see "file_types.xml"
          */
         public boolean load(String dataPath, String localeName, StringBuilder errMessages) {
+            formats.clear();
+            types.clear();
+
             String xmlFile = dataPath + "file_types.xml";
             File file = new File(xmlFile);
             if (!file.exists()) {

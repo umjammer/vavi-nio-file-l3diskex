@@ -52,6 +52,8 @@ public class DiskBasicTemplates extends TemplatesBase {
      * @see "basicTypes.xml"
      */
     public boolean load(String dataPath, String localeName, StringBuilder errMsgs) {
+        categories.clear();
+
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         Document doc;
         try {

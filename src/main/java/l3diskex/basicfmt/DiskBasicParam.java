@@ -201,6 +201,8 @@ public class DiskBasicParam extends DiskBasicParamBase {
          * @see "basicTypes.xml"
          */
         public boolean load(Node node, String localeName, StringBuilder errMsgs) {
+            list.clear();
+
             boolean valid = false;
             while (node != null && !valid) {
                 if (node.getNodeName().equals("DiskBasicFormats")) {
@@ -930,6 +932,8 @@ if (basicCategoryNames.contains("N88")) {
          * @see "basicTypes.xml"
          */
         public boolean load(Node node, String localeName, DiskBasicFormats formats, StringBuilder errMsgs) {
+            list.clear();
+
             boolean valid = false;
             while (node != null && !valid) {
                 if (node.getNodeName().equals("DiskBasicTypes")) {

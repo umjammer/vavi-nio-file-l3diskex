@@ -764,6 +764,8 @@ logger.log(Level.ERROR, e.getMessage(), e);
      * @return true / false
      */
     private static boolean loadMaps(Node item, String localeName, StringBuilder errorMessages) {
+        charCodeMaps.clear();
+
         item = item.getFirstChild();
         while (item != null) {
             if (item.getNodeName().equals("Map")) {
@@ -841,6 +843,8 @@ logger.log(Level.TRACE, "charCodeMaps: " + charCodeMaps.size() + ", " + charCode
      * @return true / false
      */
     private static boolean loadChoices(Node item, String localeName, StringBuilder errorMessages) {
+        charCodeChoices.clear();
+
         item = item.getFirstChild();
         while (item != null) {
             if (item.getNodeName().equals("Choice")) {
