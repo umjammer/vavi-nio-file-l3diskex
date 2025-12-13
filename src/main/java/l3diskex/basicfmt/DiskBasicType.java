@@ -4,12 +4,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import l3diskex.Utils;
-import l3diskex.basicfmt.BasicCommon.DirectoryT;
+import l3diskex.Common;
+import l3diskex.basicfmt.BasicCommon.Directory;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.DiskBasic.DiskBasicIdentifiedData;
@@ -19,6 +20,7 @@ import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskImage.DiskImageTrack;
 import l3diskex.diskimg.DiskParam.NumSectorsParam;
 import l3diskex.diskimg.DiskParam.SectorParam;
+import vavi.util.StringUtil;
 
 import static l3diskex.basicfmt.DiskBasicError.ERRV_NO_SECTOR;
 import static l3diskex.basicfmt.DiskBasicError.ERRV_NO_TRACK;
@@ -33,22 +35,18 @@ import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailabili
  * <p>
  * 抽象クラス
  */
-public abstract class DiskBasicType<T extends DirectoryT> {
+public abstract class DiskBasicType<T extends Directory> {
 
     private static final Logger logger = System.getLogger(DiskBasicType.class.getName());
 
     public static final int INVALID_GROUP_NUMBER = -1;
 
+    public abstract boolean isSupported(int typeNumber);
+
     /** セクタを確保する時のフラグ */
     public enum AllocateGroupFlags {
         ALLOCATE_GROUPS_NEW,
         ALLOCATE_GROUPS_APPEND
-    }
-
-    /** データの書き出しや読み込みで使用するテンポラリバッファ */
-    @Deprecated
-    public static class DiskBasicTempData extends Utils.TempData {
-
     }
 
     /**
@@ -167,7 +165,7 @@ public abstract class DiskBasicType<T extends DirectoryT> {
         protected void mappingFromParam(DiskBasic basic) {
             int psec = 0;
             for (int lsec = 0; lsec < numSecs; lsec++) {
-                psec = basic.diskBasicParam.getSectorSkewMap(lsec);
+                psec = basic.getSectorSkewMap(lsec);
                 ltopMap[lsec] = psec;
                 if (psec < numSecs) ptolMap[psec] = lsec;
             }
@@ -193,11 +191,11 @@ public abstract class DiskBasicType<T extends DirectoryT> {
         /** スキューマップをマッピング */
         @Override
         public void mapping(DiskBasic basic) {
-            if (basic.diskBasicParam.hasSectorSkewMap()) {
+            if (basic.hasSectorSkewMap()) {
                 mappingFromParam(basic);
             } else {
                 // システムはソフトセクタスキュー(仮想的インターリーブ)を持っている
-                mappingFromCalc(basic, basic.diskBasicParam.getSectorSkew());
+                mappingFromCalc(basic, basic.getSectorSkew());
             }
         }
 
@@ -236,7 +234,7 @@ public abstract class DiskBasicType<T extends DirectoryT> {
         /** スキューマップをマッピング */
         @Override
         public void mapping(DiskBasic basic) {
-            mappingFromCalc(basic, basic.diskBasicParam.getVariousIntegerParam("SectorSkewForSave"));
+            mappingFromCalc(basic, basic.getVariousIntegerParam("SectorSkewForSave"));
         }
     }
 
@@ -319,7 +317,7 @@ public abstract class DiskBasicType<T extends DirectoryT> {
 
         public void create(DiskBasic basic) {
             list.clear();
-            List<NumSectorsParam> sp = basic.diskBasicParam.sectorsPerTrackOnBasicList();
+            List<NumSectorsParam> sp = basic.sectorsPerTrackOnBasicList();
             if (!sp.isEmpty()) {
                 for (NumSectorsParam p : sp) {
                     list.add(new SectorsPerTrack(p.getNumberOfTracks(), p.getSectorsPerTrack() * basic.getSidesPerDiskOnBasic(), p.getNumberOfTracks() * p.getSectorsPerTrack() * basic.getSidesPerDiskOnBasic()));
@@ -329,14 +327,14 @@ public abstract class DiskBasicType<T extends DirectoryT> {
                 int prevNumOfSectors = 0;
                 int totalSectors = 0;
                 int trk = basic.getTrackNumberBaseOnDisk();
-                int trks = basic.diskBasicParam.getTracksPerSideOnBasic() + trk;
+                int trks = basic.getTracksPerSideOnBasic() + trk;
                 for (; trk < trks; trk++) {
-                    for (int sid = 0; sid < basic.diskBasicParam.getSidesPerDiskOnBasic(); sid++) {
+                    for (int sid = 0; sid < basic.getSidesPerDiskOnBasic(); sid++) {
                         DiskImageTrack track = basic.getTrack(trk, sid);
                         if (track == null) {
                             continue;
                         }
-                        int numOfSectors = track.getSectorsPerTrack() * basic.diskBasicParam.getSidesPerDiskOnBasic();
+                        int numOfSectors = track.getSectorsPerTrack() * basic.getSidesPerDiskOnBasic();
                         if (prevNumOfSectors == 0) {
                             totalSectors = 0;
                             prevNumOfSectors = numOfSectors;
@@ -353,7 +351,9 @@ public abstract class DiskBasicType<T extends DirectoryT> {
                 }
                 list.add(new SectorsPerTrack(numOfTracks, prevNumOfSectors, totalSectors));
             } else {
-                list.add(new SectorsPerTrack(basic.diskBasicParam.getTracksPerSideOnBasic(), basic.diskBasicParam.getSectorsPerTrackOnBasic() * basic.getSidesPerDiskOnBasic(), basic.getTracksPerSideOnBasic() * basic.getSectorsPerTrackOnBasic() * basic.getSidesPerDiskOnBasic()));
+                list.add(new SectorsPerTrack(basic.getTracksPerSideOnBasic(),
+                        basic.getSectorsPerTrackOnBasic() * basic.getSidesPerDiskOnBasic(),
+                        basic.getTracksPerSideOnBasic() * basic.getSectorsPerTrackOnBasic() * basic.getSidesPerDiskOnBasic()));
             }
         }
 
@@ -437,13 +437,8 @@ public abstract class DiskBasicType<T extends DirectoryT> {
 
     /** 使用状況(FAT,グループ単位) */
     protected DiskBasicAvailability fatAvailability = new DiskBasicAvailability();
-    /** ファイルアクセス時のテンポラリバッファ */
-    protected DiskBasicTempData temp = new DiskBasicTempData();
 
-    protected DiskBasicType() {
-    }
-
-    public DiskBasicType(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<T> dir) {
+    public void init(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<T> dir) {
         this.basic = basic;
         this.fat = fat;
         this.dir = dir;
@@ -472,9 +467,9 @@ public abstract class DiskBasicType<T extends DirectoryT> {
     /** 空きFAT位置を返す */
     public int getEmptyGroupNumber() throws IOException {
         int newNum = INVALID_GROUP_NUMBER;
-        for (int num = 0; num <= basic.diskBasicParam.getFatEndGroup(); num++) {
+        for (int num = 0; num <= basic.getFatEndGroup(); num++) {
             int gnum = getGroupNumber(num);
-            if (gnum == basic.diskBasicParam.getGroupUnusedCode()) {
+            if (gnum == basic.getGroupUnusedCode()) {
                 newNum = num;
                 break;
             }
@@ -485,13 +480,13 @@ public abstract class DiskBasicType<T extends DirectoryT> {
     /** 次の空きFAT位置を返す */
     public int getNextEmptyGroupNumber(int currGroup) throws IOException {
         int newNum = INVALID_GROUP_NUMBER;
-        int secsPerGrp = basic.diskBasicParam.getSectorsPerGroup();
-        int secsPerTrk = basic.diskBasicParam.getSectorsPerTrackOnBasic();
-        int sides = basic.diskBasicParam.getSidesPerDiskOnBasic();
+        int secsPerGrp = basic.getSectorsPerGroup();
+        int secsPerTrk = basic.getSectorsPerTrackOnBasic();
+        int sides = basic.getSidesPerDiskOnBasic();
 
         int sed = secsPerTrk * sides / secsPerGrp;
         if (sed == 0) return INVALID_GROUP_NUMBER;
-        int groupMax = (basic.diskBasicParam.getFatEndGroup() / sed) + 1;
+        int groupMax = (basic.getFatEndGroup() / sed) + 1;
         int groupManage = managedStartGroup / sed;
         int groupStart = currGroup / sed;
         int groupEnd;
@@ -506,11 +501,11 @@ public abstract class DiskBasicType<T extends DirectoryT> {
             for (int g = groupStart; g != groupEnd; g += dir) {
                 for (int s = sst; s < sed; s++) {
                     int num = g * sed + s;
-                    if (num > basic.diskBasicParam.getFatEndGroup()) {
+                    if (num > basic.getFatEndGroup()) {
                         break;
                     }
                     int gnum = getGroupNumber(num);
-                    if (gnum == basic.diskBasicParam.getGroupUnusedCode()) {
+                    if (gnum == basic.getGroupUnusedCode()) {
                         newNum = num;
                         found = true;
                         break;
@@ -546,12 +541,12 @@ public abstract class DiskBasicType<T extends DirectoryT> {
 
     /** FATの開始位置を得る（ダイアログ用） */
     public void getStartNumOnFat(int[] trackNum, int[] sideNum, int[] sectorNum) {
-        int secPos = basic.diskBasicParam.getFatStartSector() - 1;
-        int secFat = basic.diskBasicParam.getSectorsPerFat();
+        int secPos = basic.getFatStartSector() - 1;
+        int secFat = basic.getSectorsPerFat();
         DiskImageTrack track = null;
         if (secPos >= 0 && secFat > 0) {
-            if (basic.diskBasicParam.getFatSideNumber() >= 0)
-                secPos += basic.diskBasicParam.getFatSideNumber() * basic.diskBasicParam.getSectorsPerTrackOnBasic();
+            if (basic.getFatSideNumber() >= 0)
+                secPos += basic.getFatSideNumber() * basic.getSectorsPerTrackOnBasic();
             track = basic.getManagedTrack(secPos, sideNum, sectorNum);
         }
         if (track != null) {
@@ -563,13 +558,13 @@ public abstract class DiskBasicType<T extends DirectoryT> {
 
     /** FATの終了位置を得る（ダイアログ用） */
     public void getEndNumOnFat(int[] trackNum, int[] sideNum, int[] sectorNum) {
-        int secSta = basic.diskBasicParam.getFatStartSector() - 1;
-        int secPos = secSta + basic.diskBasicParam.getSectorsPerFat() * basic.diskBasicParam.getNumberOfFats() - 1;
-        int secFat = basic.diskBasicParam.getSectorsPerFat();
+        int secSta = basic.getFatStartSector() - 1;
+        int secPos = secSta + basic.getSectorsPerFat() * basic.getNumberOfFats() - 1;
+        int secFat = basic.getSectorsPerFat();
         DiskImageTrack track = null;
         if (secSta >= 0 && secFat > 0) {
-            if (basic.diskBasicParam.getFatSideNumber() >= 0)
-                secPos += basic.diskBasicParam.getFatSideNumber() * basic.diskBasicParam.getSectorsPerTrackOnBasic();
+            if (basic.getFatSideNumber() >= 0)
+                secPos += basic.getFatSideNumber() * basic.getSectorsPerTrackOnBasic();
             track = basic.getManagedTrack(secPos, sideNum, sectorNum);
         }
         if (track != null) {
@@ -587,11 +582,11 @@ public abstract class DiskBasicType<T extends DirectoryT> {
     /** 管理エリアのトラック番号からグループ番号を計算 */
     public int calcManagedStartGroup() {
         int trk = basic.getManagedTrackNumber();
-        int sid = basic.diskBasicParam.getFatSideNumber();
+        int sid = basic.getFatSideNumber();
         if (sid < 0) sid = 0;
-        int sides = basic.diskBasicParam.getSidesPerDiskOnBasic();
-        int secsPerGrp = basic.diskBasicParam.getSectorsPerGroup();
-        int secsPerTrk = basic.diskBasicParam.getSectorsPerTrackOnBasic();
+        int sides = basic.getSidesPerDiskOnBasic();
+        int secsPerGrp = basic.getSectorsPerGroup();
+        int secsPerTrk = basic.getSectorsPerTrackOnBasic();
         managedStartGroup = (trk * sides + sid) * secsPerTrk / secsPerGrp;
         return managedStartGroup;
     }
@@ -634,22 +629,22 @@ public abstract class DiskBasicType<T extends DirectoryT> {
     public double checkDirectory(boolean isRoot, DiskBasicGroups groupItems) throws IOException {
         boolean valid = true;
         boolean[] last = {false};
-        int nUsedItems = 0;
-        double nNormals = 0.0;
+        int usedItems = 0;
+        double normals = 0.0;
 
         int indexNumber = 0;
         int[] pos = {0};
         int[] sizeRemain = {groupItems.getSize()};
         int finish = 0;
         int prevGrpNum = -1;
-        DiskBasicDirItem<T> nitem = dir.newItem(null, 0, null, 0);
+        DiskBasicDirItem<T> nItem = dir.newItem(null, 0, null, 0);
         for (int idx = 0; idx < groupItems.size() && finish >= -1; idx++) {
-            DiskBasicGroupItem gitem = groupItems.get(idx);
-            int grpNum = gitem.group;
-            int trkNum = gitem.track;
-            int sidNum = gitem.side;
-            int divNum = gitem.divNum; // 分割番号
-            int divNums = gitem.divNums; // 分割数
+            DiskBasicGroupItem gItem = groupItems.get(idx);
+            int grpNum = gItem.group;
+            int trkNum = gItem.track;
+            int sidNum = gItem.side;
+            int divNum = gItem.divNum; // 分割番号
+            int mumDivs = gItem.numOfDivs; // 分割数
             DiskImageTrack track = basic.getTrack(trkNum, sidNum);
             if (track == null) {
                 valid = false;
@@ -657,7 +652,7 @@ public abstract class DiskBasicType<T extends DirectoryT> {
             }
             DiskBasicGroupItem nextGitem = idx + 1 < groupItems.size() ? groupItems.get(idx + 1) : null;
 
-            for (int secNum = gitem.sectorStart; secNum <= gitem.sectorEnd && finish >= -1; secNum++) {
+            for (int secNum = gItem.sectorStart; secNum <= gItem.sectorEnd && finish >= -1; secNum++) {
                 DiskImageSector sector = track.getSector(secNum);
                 if (sector == null) {
                     valid = false;
@@ -670,9 +665,9 @@ public abstract class DiskBasicType<T extends DirectoryT> {
                     break;
                 }
 
-                int[] size = {sector.getSectorSize() / divNums};
+                int[] size = {sector.getSectorSize() / mumDivs};
 
-                SectorParam nextSec = new SectorParam(trkNum, sidNum, secNum < gitem.sectorEnd ? secNum + 1 : (nextGitem != null ? nextGitem.sectorStart : -1), -1);
+                SectorParam nextSec = new SectorParam(trkNum, sidNum, secNum < gItem.sectorEnd ? secNum + 1 : (nextGitem != null ? nextGitem.sectorStart : -1), -1);
 
                 // オフセットを足す
                 bufferOffset += (size[0] * divNum);
@@ -680,24 +675,24 @@ public abstract class DiskBasicType<T extends DirectoryT> {
 
                 if (grpNum != prevGrpNum) {
                     // グループ番号が変わるときにスキップする位置
-                    bufferOffset += basic.diskBasicParam.getDirStartPosOnGroup();
-                    pos[0] += basic.diskBasicParam.getDirStartPosOnGroup();
-                    sizeRemain[0] -= basic.diskBasicParam.getDirStartPosOnGroup();
+                    bufferOffset += basic.getDirStartPosOnGroup();
+                    pos[0] += basic.getDirStartPosOnGroup();
+                    sizeRemain[0] -= basic.getDirStartPosOnGroup();
                     prevGrpNum = grpNum;
                 }
 
-                if (idx == 0 && secNum == gitem.sectorStart) {
+                if (idx == 0 && secNum == gItem.sectorStart) {
                     // ディレクトリエリア先頭をスキップする位置
-                    int skip = isRoot ? basic.diskBasicParam.getDirStartPosOnRoot() : basic.diskBasicParam.getDirStartPos();
+                    int skip = isRoot ? basic.getDirStartPosOnRoot() : basic.getDirStartPos();
                     bufferOffset += skip;
                     pos[0] += skip;
                     sizeRemain[0] -= skip;
                 }
 
                 // ディレクトリエリア各セクタの先頭をスキップする位置
-                bufferOffset += basic.diskBasicParam.getDirStartPosOnSector();
-                pos[0] += basic.diskBasicParam.getDirStartPosOnSector();
-                sizeRemain[0] -= basic.diskBasicParam.getDirStartPosOnSector();
+                bufferOffset += basic.getDirStartPosOnSector();
+                pos[0] += basic.getDirStartPosOnSector();
+                sizeRemain[0] -= basic.getDirStartPosOnSector();
 
                 while (valid && !last[0] && pos[0] < size[0]) {
                     finish = finishAssigningDirectory(pos, size, sizeRemain);
@@ -707,18 +702,18 @@ public abstract class DiskBasicType<T extends DirectoryT> {
                         pos[0] = size[0];
                         break;
                     }
-//logger.log(Level.DEBUG, "sector buffer: " + bufferOffset + " / " + buffer.length);
-                    nitem.setDataPtr(indexNumber, gitem, sector, pos[0], buffer, bufferOffset, nextSec);
-                    valid = nitem.check(last);
+//logger.log(Level.DEBUG, "sector buffer: " + bufferOffset + " / " + buffer.length + "\n" + StringUtil.getDump(buffer, bufferOffset, 32));
+                    nItem.setData(indexNumber, gItem, sector, pos[0], buffer, bufferOffset, nextSec);
+                    valid = nItem.check(last);
                     if (valid) {
-                        if (nitem.checkUsed(false)) {
-                            nNormals += nitem.normalCodesInFileName();
-                            nUsedItems++;
+                        if (nItem.checkUsed(false)) {
+                            normals += nItem.normalCodesInFileName();
+                            usedItems++;
                         }
                     }
-                    pos[0] += nitem.getDataSize();
-                    bufferOffset += nitem.getDataSize();
-                    sizeRemain[0] -= nitem.getDataSize();
+                    pos[0] += nItem.getDataSize();
+                    bufferOffset += nItem.getDataSize();
+                    sizeRemain[0] -= nItem.getDataSize();
                     indexNumber++;
                 }
 
@@ -727,11 +722,12 @@ public abstract class DiskBasicType<T extends DirectoryT> {
             }
         }
 
+logger.log(Level.INFO, "normals: %.2f, usedItems: %d".formatted(normals, usedItems));
         double validRatio = 0.0;
         if (!valid) {
             validRatio = -1.0;
-        } else if (nUsedItems > 0) {
-            validRatio = nNormals / (double) nUsedItems;
+        } else if (usedItems > 0) {
+            validRatio = normals / (double) usedItems;
         }
 
         return validRatio;
@@ -746,15 +742,15 @@ public abstract class DiskBasicType<T extends DirectoryT> {
         int[] sizeRemain = {groupItems.getSize()};
         int finish = 0;
         int prevGrpNum = -1;
-        DiskBasicDirItem<T> nitem = dir.newItem(null, 0, null, 0);
+        DiskBasicDirItem<T> nItem = dir.newItem(null, 0, null, 0);
 
         for (int idx = 0; idx < groupItems.size() && finish >= -1; idx++) {
-            DiskBasicGroupItem gitem = groupItems.get(idx);
-            int grpNum = gitem.group;
-            int trkNum = gitem.track;
-            int sidNum = gitem.side;
-            int divNum = gitem.divNum;
-            int divNums = gitem.divNums;
+            DiskBasicGroupItem gItem = groupItems.get(idx);
+            int grpNum = gItem.group;
+            int trkNum = gItem.track;
+            int sidNum = gItem.side;
+            int divNum = gItem.divNum;
+            int numOfDivs = gItem.numOfDivs;
             DiskImageTrack track = basic.getTrack(trkNum, sidNum);
             if (track == null) {
                 valid = false;
@@ -763,7 +759,7 @@ public abstract class DiskBasicType<T extends DirectoryT> {
             DiskBasicGroupItem nextGitem;
             nextGitem = idx + 1 < groupItems.size() ? groupItems.get(idx + 1) : null;
 
-            for (int secNum = gitem.sectorStart; secNum <= gitem.sectorEnd && valid && !last && finish >= -1; secNum++) {
+            for (int secNum = gItem.sectorStart; secNum <= gItem.sectorEnd && valid && !last && finish >= -1; secNum++) {
                 DiskImageSector sector = track.getSector(secNum);
                 if (sector == null) {
                     valid = false;
@@ -774,24 +770,24 @@ public abstract class DiskBasicType<T extends DirectoryT> {
                     valid = false;
                     break;
                 }
-                int[] size = {sector.getSectorSize() / divNums};
-                SectorParam nextSec = new SectorParam(trkNum, sidNum, secNum < gitem.sectorEnd ? secNum + 1 : (nextGitem != null ? nextGitem.sectorStart : -1), -1);
+                int[] size = {sector.getSectorSize() / numOfDivs};
+                SectorParam nextSec = new SectorParam(trkNum, sidNum, secNum < gItem.sectorEnd ? secNum + 1 : (nextGitem != null ? nextGitem.sectorStart : -1), -1);
 
                 int bufferOffset = (size[0] * divNum) + pos[0];
                 if (grpNum != prevGrpNum) {
-                    int skip = basic.diskBasicParam.getDirStartPosOnGroup();
+                    int skip = basic.getDirStartPosOnGroup();
                     bufferOffset += skip;
                     pos[0] += skip;
                     sizeRemain[0] -= skip;
                     prevGrpNum = grpNum;
                 }
-                if (idx == 0 && secNum == gitem.sectorStart) {
-                    int skip = isRoot ? basic.diskBasicParam.getDirStartPosOnRoot() : basic.diskBasicParam.getDirStartPos();
+                if (idx == 0 && secNum == gItem.sectorStart) {
+                    int skip = isRoot ? basic.getDirStartPosOnRoot() : basic.getDirStartPos();
                     bufferOffset += skip;
                     pos[0] += skip;
                     sizeRemain[0] -= skip;
                 }
-                int skip = basic.diskBasicParam.getDirStartPosOnSector();
+                int skip = basic.getDirStartPosOnSector();
                 bufferOffset += skip;
                 pos[0] += skip;
                 sizeRemain[0] -= skip;
@@ -803,13 +799,13 @@ public abstract class DiskBasicType<T extends DirectoryT> {
                         pos = size;
                         break;
                     }
-                    nitem.setDataPtr(indexNumber, gitem, sector, pos[0], buffer, bufferOffset, nextSec);
-                    if (nitem.isNormalFile()) {
-                        valid = !nitem.checkUsed(last);
+                    nItem.setData(indexNumber, gItem, sector, pos[0], buffer, bufferOffset, nextSec);
+                    if (nItem.isNormalFile()) {
+                        valid = !nItem.checkUsed(last);
                     }
-                    pos[0] += nitem.getDataSize();
-                    bufferOffset += nitem.getDataSize();
-                    sizeRemain[0] -= nitem.getDataSize();
+                    pos[0] += nItem.getDataSize();
+                    bufferOffset += nItem.getDataSize();
+                    sizeRemain[0] -= nItem.getDataSize();
                     indexNumber++;
                 }
                 pos[0] -= size[0];
@@ -833,7 +829,7 @@ public abstract class DiskBasicType<T extends DirectoryT> {
             int trkNum = gitem.track;
             int sidNum = gitem.side;
             int divNum = gitem.divNum; // 分割番号
-            int divNums = gitem.divNums; // 分割数
+            int divNums = gitem.numOfDivs; // 分割数
             DiskImageTrack track = basic.getTrack(trkNum, sidNum);
             if (track == null) {
                 continue;
@@ -859,7 +855,7 @@ public abstract class DiskBasicType<T extends DirectoryT> {
 
                 if (grpNum != prevGrpNum) {
                     // グループ番号が変わるときにスキップする位置
-                    int skip = basic.diskBasicParam.getDirStartPosOnGroup();
+                    int skip = basic.getDirStartPosOnGroup();
                     bufferOffset += skip;
                     pos[0] += skip;
                     sizeRemain[0] -= skip;
@@ -868,14 +864,14 @@ public abstract class DiskBasicType<T extends DirectoryT> {
 
                 if (idx == 0 && secNum == gitem.sectorStart) {
                     // ディレクトリエリア先頭をスキップする位置
-                    int skip = isRoot ? basic.diskBasicParam.getDirStartPosOnRoot() : basic.diskBasicParam.getDirStartPos();
+                    int skip = isRoot ? basic.getDirStartPosOnRoot() : basic.getDirStartPos();
                     bufferOffset += skip;
                     pos[0] += skip;
                     sizeRemain[0] -= skip;
                 }
 
                 // ディレクトリエリア各セクタの先頭をスキップする位置
-                int skip = basic.diskBasicParam.getDirStartPosOnSector();
+                int skip = basic.getDirStartPosOnSector();
                 bufferOffset += skip;
                 pos[0] += skip;
                 sizeRemain[0] -= skip;
@@ -917,10 +913,10 @@ public abstract class DiskBasicType<T extends DirectoryT> {
      * @param groupItems 確保したセクタリスト
      * @param fileSize   [in,out] サイズ ディレクトリを拡張した時は既存サイズに加算
      * @param sizeRemain [in,out] 残りサイズ
-     * @param errinfo    [in,out] エラー情報
+     * @param errInfo    [in,out] エラー情報
      * @return 0:正常, <0:エラー
      */
-    public int initializeSectorsAsDirectory(DiskBasicGroups groupItems, int[] fileSize, int[] sizeRemain, DiskBasicError errinfo) throws IOException {
+    public int initializeSectorsAsDirectory(DiskBasicGroups groupItems, int[] fileSize, int[] sizeRemain, DiskBasicError errInfo) throws IOException {
         int rc = 0;
 
         DiskBasicDirItem<?> newitem = basic.createDirItem(null, 0, null, 0);
@@ -931,15 +927,15 @@ public abstract class DiskBasicType<T extends DirectoryT> {
         int prevGrpNum = -1;
         for (int idx = 0; idx < groupItems.size() && finish >= -1 && rc >= 0; idx++) {
             DiskBasicGroupItem gitem = groupItems.get(idx);
-            int grpNum = gitem.group;
-            int trkNum = gitem.track;
-            int sidNum = gitem.side;
+            int groupNum = gitem.group;
+            int trackNum = gitem.track;
+            int sideNum = gitem.side;
             int divNum = gitem.divNum; // 分割番号
-            int divNums = gitem.divNums; // 分割数
-            DiskImageTrack track = basic.getTrack(trkNum, sidNum);
+            int numOfDivs = gitem.numOfDivs; // 分割数
+            DiskImageTrack track = basic.getTrack(trackNum, sideNum);
             if (track == null) {
                 // トラックがない！
-                errinfo.setError(ERRV_NO_TRACK, grpNum, trkNum, sidNum);
+                errInfo.setError(ERRV_NO_TRACK, groupNum, trackNum, sideNum);
                 rc = -2;
                 break;
             }
@@ -947,9 +943,9 @@ public abstract class DiskBasicType<T extends DirectoryT> {
             DiskBasicGroupItem nextGitem = idx + 1 < groupItems.size() ? groupItems.get(idx + 1) : null;
 
             for (int secNum = gitem.sectorStart; secNum <= gitem.sectorEnd && finish >= -1 && rc >= 0; secNum++) {
-                DiskImageSector sector = basic.getSector(trkNum, sidNum, secNum);
+                DiskImageSector sector = basic.getSector(trackNum, sideNum, secNum);
                 if (sector == null) {
-                    errinfo.setError(ERRV_NO_SECTOR, grpNum, trkNum, sidNum, secNum);
+                    errInfo.setError(ERRV_NO_SECTOR, groupNum, trackNum, sideNum, secNum);
                     // セクタがない！
                     rc = -2;
                     break;
@@ -957,38 +953,38 @@ public abstract class DiskBasicType<T extends DirectoryT> {
                 byte[] buffer = sector.getSectorBuffer();
                 int bufferOffset = 0;
                 if (buffer == null) {
-                    errinfo.setError(ERRV_NO_SECTOR, grpNum, trkNum, sidNum, secNum);
+                    errInfo.setError(ERRV_NO_SECTOR, groupNum, trackNum, sideNum, secNum);
                     // セクタがない！
                     rc = -2;
                     break;
                 }
 
-                int[] size = new int[] {sector.getSectorSize() / divNums};
+                int[] size = new int[] {sector.getSectorSize() / numOfDivs};
 
-                SectorParam nextSec = new SectorParam(trkNum, sidNum, secNum < gitem.sectorEnd ? secNum + 1 : (nextGitem != null ? nextGitem.sectorStart : -1), -1);
+                SectorParam nextSec = new SectorParam(trackNum, sideNum, secNum < gitem.sectorEnd ? secNum + 1 : (nextGitem != null ? nextGitem.sectorStart : -1), -1);
                 // オフセットを足す
                 bufferOffset += (size[0] * divNum);
                 bufferOffset += pos[0];
 
-                if (grpNum != prevGrpNum) {
+                if (groupNum != prevGrpNum) {
                     // グループ番号が変わるときにスキップする位置
-                    int skip = basic.diskBasicParam.getDirStartPosOnGroup();
+                    int skip = basic.getDirStartPosOnGroup();
                     bufferOffset += skip;
                     pos[0] += skip;
                     sizeRemain[0] -= skip;
-                    prevGrpNum = grpNum;
+                    prevGrpNum = groupNum;
                 }
 
                 if (idx == 0 && secNum == gitem.sectorStart) {
                     // ディレクトリエリア先頭をスキップする位置
-                    int skip = basic.diskBasicParam.getDirStartPos();
+                    int skip = basic.getDirStartPos();
                     bufferOffset += skip;
                     pos[0] += skip;
                     sizeRemain[0] -= skip;
                 }
 
                 // ディレクトリエリア各セクタの先頭をスキップする位置
-                int skip = basic.diskBasicParam.getDirStartPosOnSector();
+                int skip = basic.getDirStartPosOnSector();
                 bufferOffset += skip;
                 pos[0] += skip;
                 sizeRemain[0] -= skip;
@@ -1003,7 +999,7 @@ public abstract class DiskBasicType<T extends DirectoryT> {
                         break;
                     }
                     // ディスク内に書き込む
-                    newitem.setDataPtr(indexNumber, gitem, sector, pos[0], buffer, bufferOffset, nextSec);
+                    newitem.setData(indexNumber, gitem, sector, pos[0], buffer, bufferOffset, nextSec);
                     // 初期値を入れる
                     newitem.initialData();
 
@@ -1046,7 +1042,7 @@ public abstract class DiskBasicType<T extends DirectoryT> {
 
     /** ルートディレクトリの開始位置を得る */
     public void getStartNumOnRootDirectory(int[] trackNum, int[] sideNum, int[] sectorNum) {
-        DiskImageTrack track = basic.getManagedTrack(basic.diskBasicParam.getDirStartSector() - basic.getSectorNumberBase(), sideNum, sectorNum);
+        DiskImageTrack track = basic.getManagedTrack(basic.getDirStartSector() - basic.getSectorNumberBase(), sideNum, sectorNum);
         if (track != null) {
             trackNum[0] = track.getTrackNumber();
         }
@@ -1054,7 +1050,7 @@ public abstract class DiskBasicType<T extends DirectoryT> {
 
     /** ルートディレクトリの終了位置を得る */
     public void getEndNumOnRootDirectory(int[] trackNum, int[] sideNum, int[] sectorNum) {
-        DiskImageTrack track = basic.getManagedTrack(basic.diskBasicParam.getDirEndSector() - basic.getSectorNumberBase(), sideNum, sectorNum);
+        DiskImageTrack track = basic.getManagedTrack(basic.getDirEndSector() - basic.getSectorNumberBase(), sideNum, sectorNum);
         if (track != null) {
             trackNum[0] = track.getTrackNumber();
         }
@@ -1063,31 +1059,31 @@ public abstract class DiskBasicType<T extends DirectoryT> {
     /** 使用可能なディスクサイズを得る */
     public void getUsableDiskSize(int[] diskSize, int[] groupSize) throws IOException {
         groupSize[0] = 0;
-        for (int pos = 0; pos <= basic.diskBasicParam.getFatEndGroup(); pos++) {
+        for (int pos = 0; pos <= basic.getFatEndGroup(); pos++) {
             int gnum = getGroupNumber(pos);
-            if (gnum != basic.diskBasicParam.getGroupSystemCode()) groupSize[0]++;
+            if (gnum != basic.getGroupSystemCode()) groupSize[0]++;
         }
-        diskSize[0] = groupSize[0] * basic.getSectorSize() * basic.diskBasicParam.getSectorsPerGroup();
+        diskSize[0] = groupSize[0] * basic.getSectorSize() * basic.getSectorsPerGroup();
     }
 
     /** 残りディスクサイズを計算 */
     public void calcDiskFreeSize(boolean wrote) throws IOException {
         fatAvailability.empty();
-        for (int pos = 0; pos <= basic.diskBasicParam.getFatEndGroup(); pos++) {
-            int fsize = 0;
+        for (int pos = 0; pos <= basic.getFatEndGroup(); pos++) {
+            int fSize = 0;
             int grps = 0;
-            int gnum = getGroupNumber(pos);
+            int gNum = getGroupNumber(pos);
             FatAvailability fsts = FAT_AVAIL_USED;
-            if (gnum == basic.diskBasicParam.getGroupUnusedCode()) {
-                fsize = (basic.getSectorSize() * basic.diskBasicParam.getSectorsPerGroup());
+            if (gNum == basic.getGroupUnusedCode()) {
+                fSize = (basic.getSectorSize() * basic.getSectorsPerGroup());
                 grps = 1;
                 fsts = FAT_AVAIL_FREE;
-            } else if (gnum == basic.diskBasicParam.getGroupSystemCode()) {
+            } else if (gNum == basic.getGroupSystemCode()) {
                 fsts = FAT_AVAIL_SYSTEM;
-            } else if (gnum >= basic.diskBasicParam.getGroupFinalCode()) {
+            } else if (gNum >= basic.getGroupFinalCode()) {
                 fsts = FAT_AVAIL_USED_LAST;
             }
-            fatAvailability.add(fsts, fsize, grps);
+            fatAvailability.add(fsts, fSize, grps);
         }
     }
 
@@ -1113,38 +1109,38 @@ public abstract class DiskBasicType<T extends DirectoryT> {
     }
 
     /** FATの空き状況を配列で返す */
-    public void getFatAvailability(int[] offset, List<FatAvailability>[] arr) {
+    public void getFatAvailability(int[] offset, List<FatAvailability>[] result) {
         offset[0] = 0;
-        arr[0] = fatAvailability.list;
+        result[0] = fatAvailability.list;
     }
 
     /** データサイズ分のグループを確保する */
-    public int allocateUnitGroups(int fileunitNum, DiskBasicDirItem<T> item, int dataSize, AllocateGroupFlags flags, DiskBasicGroups[] groupItems) throws IOException {
+    public int allocateUnitGroups(int fileUnitNum, DiskBasicDirItem<T> item, int dataSize, AllocateGroupFlags flags, DiskBasicGroups[] groupItems) throws IOException {
         int groups = 0;
         int rc = 0;
         boolean firstGroup = flags == AllocateGroupFlags.ALLOCATE_GROUPS_NEW;
-        int[] sizeremain = {dataSize};
+        int[] sizeRemain = {dataSize};
         int bytesPerGroup = basic.getSectorsPerGroup() * basic.getSectorSize();
         int groupNum = getEmptyGroupNumber();
         int limit = basic.getFatEndGroup() + 1;
-        while (rc >= 0 && limit >= 0 && sizeremain[0] > 0) {
+        while (rc >= 0 && limit >= 0 && sizeRemain[0] > 0) {
             if (groupNum == INVALID_GROUP_NUMBER) {
                 rc = firstGroup ? -1 : -2;
                 break;
             }
-            setGroupNumber(groupNum, basic.diskBasicParam.getGroupFinalCode());
+            setGroupNumber(groupNum, basic.getGroupFinalCode());
             if (firstGroup) {
-                item.setStartGroup(fileunitNum, groupNum);
+                item.setStartGroup(fileUnitNum, groupNum);
                 firstGroup = false;
             }
             int nextGroupNum = getNextEmptyGroupNumber(groupNum);
-            if (nextGroupNum == INVALID_GROUP_NUMBER || sizeremain[0] <= bytesPerGroup) {
-                nextGroupNum = calcLastGroupNumber(nextGroupNum, sizeremain);
+            if (nextGroupNum == INVALID_GROUP_NUMBER || sizeRemain[0] <= bytesPerGroup) {
+                nextGroupNum = calcLastGroupNumber(nextGroupNum, sizeRemain);
             }
-            basic.getNumsFromGroup(groupNum, nextGroupNum, basic.getSectorSize(), sizeremain[0], groupItems[0]);
+            basic.getNumsFromGroup(groupNum, nextGroupNum, basic.getSectorSize(), sizeRemain[0], groupItems[0]);
             setGroupNumber(groupNum, nextGroupNum);
             groupNum = nextGroupNum;
-            sizeremain[0] -= bytesPerGroup;
+            sizeRemain[0] -= bytesPerGroup;
             groups++;
             limit--;
         }
@@ -1174,7 +1170,7 @@ public abstract class DiskBasicType<T extends DirectoryT> {
         int limit = basic.getFatEndGroup() + 1;
         while (limit >= 0) {
             int nextGroupNum = getGroupNumber(groupNum);
-            if (nextGroupNum >= basic.diskBasicParam.getGroupFinalCode()) {
+            if (nextGroupNum >= basic.getGroupFinalCode()) {
                 setGroupNumber(groupNum, appendGroupNum);
                 break;
             }
@@ -1192,8 +1188,8 @@ public abstract class DiskBasicType<T extends DirectoryT> {
     /** グループ番号から最終セクタ番号を得る */
     public int getEndSectorFromGroup(int groupNum, int nextGroup, int sectorStart, int sectorSize, int remainSize) {
         int sectorEnd = sectorStart + basic.getSectorsPerGroup() - 1;
-        if (nextGroup >= basic.diskBasicParam.getGroupFinalCode()) {
-            sectorEnd = sectorStart + (nextGroup - basic.diskBasicParam.getGroupFinalCode());
+        if (nextGroup >= basic.getGroupFinalCode()) {
+            sectorEnd = sectorStart + (nextGroup - basic.getGroupFinalCode());
         }
         return sectorEnd;
     }
@@ -1271,7 +1267,7 @@ public abstract class DiskBasicType<T extends DirectoryT> {
     }
 
     /** トラック、サイド、セクタの各番号からセクタ位置(トラック0,サイド0,セクタ1を0とした通し番号)を得る */
-    public int getSectorPosFromNum(int trackNum, int sideNum, int sectorNum, int divNum, int divNums) {
+    public int getSectorPosFromNum(int trackNum, int sideNum, int sectorNum, int divNum, int numOfDivs) {
         int selectedSide = basic.getSelectedSide();
         int numberingSector = basic.getNumberingSector();
         int sectorsPerTrack = basic.getSectorsPerTrackOnBasic();
@@ -1355,7 +1351,7 @@ public abstract class DiskBasicType<T extends DirectoryT> {
     }
 
     /** 未使用のディレクトリアイテムを返す */
-    public DiskBasicDirItem<T> getEmptyDirectoryItem(DiskBasicDirItem<T> parent, List<DiskBasicDirItem<T>> items, DiskBasicDirItem<T> pitem, DiskBasicDirItem<T>[] nextItem) throws IOException {
+    public DiskBasicDirItem<T> getEmptyDirectoryItem(DiskBasicDirItem<T> parent, List<DiskBasicDirItem<T>> items, DiskBasicDirItem<T> pItem, DiskBasicDirItem<T>[] nextItem) throws IOException {
         DiskBasicDirItem<T> matchItem = null;
         if (items != null) {
             for (int i = 0; i < items.size(); i++) {
@@ -1397,7 +1393,7 @@ public abstract class DiskBasicType<T extends DirectoryT> {
 
     /** セクタデータを指定コードで埋める */
     public void fillSector(DiskImageTrack track, DiskImageSector sector) throws IOException {
-        sector.fill(basic.diskBasicParam.getFillCodeOnFormat());
+        sector.fill(basic.getFillCodeOnFormat());
     }
 
     /** セクタデータを埋めた後の個別処理 */
@@ -1406,21 +1402,21 @@ public abstract class DiskBasicType<T extends DirectoryT> {
     }
 
     /** ファイルの最終セクタのデータサイズを求める */
-    public int calcDataSizeOnLastSector(DiskBasicDirItem<T> item, InputStream istream, OutputStream ostream, byte[] sectorBuffer, int sectorOffset, int sectorSize, int remainSize) throws IOException {
+    public int calcDataSizeOnLastSector(DiskBasicDirItem<T> item, InputStream iStream, OutputStream oStream, byte[] sectorBuffer, int sectorOffset, int sectorSize, int remainSize) throws IOException {
         return remainSize;
     }
 
     /** データの読み込み/比較の前処理 */
-    public boolean prepareToAccessFile(int fileunitNum, DiskBasicDirItem<T> item, InputStream istream, OutputStream ostream, int[] fileSize, DiskBasicGroups groupItems, DiskBasicError errinfo) {
+    public boolean prepareToAccessFile(int fileUnitNum, DiskBasicDirItem<T> item, InputStream iStream, OutputStream oStream, int[] fileSize, DiskBasicGroups groupItems, DiskBasicError errInfo) {
         return true;
     }
 
     /** データの読み込み/比較処理 */
-    public int accessFile(int fileunitNum, DiskBasicDirItem<T> item, InputStream istream, OutputStream ostream, byte[] sectorBuffer, int sectorSize, int remainSize, int sectorNum, int sectorEnd) throws IOException {
+    public int accessFile(int fileUnitNum, DiskBasicDirItem<T> item, InputStream iStream, OutputStream oStream, byte[] sectorBuffer, int sectorSize, int remainSize, int sectorNum, int sectorEnd) throws IOException {
         int modifiedSize = sectorSize;
         if (remainSize <= sectorSize) {
             // ファイルの最終セクタ
-            modifiedSize = calcDataSizeOnLastSector(item, istream, ostream, sectorBuffer, 0, sectorSize, remainSize);
+            modifiedSize = calcDataSizeOnLastSector(item, iStream, oStream, sectorBuffer, 0, sectorSize, remainSize);
         }
         if (modifiedSize < 0) {
             // セクタなし
@@ -1428,18 +1424,20 @@ public abstract class DiskBasicType<T extends DirectoryT> {
         }
 
         if (modifiedSize > 0) {
-            if (ostream != null) {
+            byte[] temp;
+            if (oStream != null) {
                 // 書き出し
-                temp.setData(sectorBuffer, modifiedSize, basic.isDataInverted());
-                ostream.write(temp.getData(), 0, temp.getSize());
+                temp = Arrays.copyOfRange(sectorBuffer, 0, modifiedSize);
+                if (basic.isDataInverted()) Common.invertMemory(temp, temp.length);
+                oStream.write(temp, 0, temp.length);
             }
-            if (istream != null) {
+            if (iStream != null) {
                 // 読み込んで比較
-                temp.setSize(modifiedSize);
-                istream.read(temp.getData(), 0, temp.getSize());
-                temp.invertData(basic.isDataInverted());
+                temp = new byte[modifiedSize];
+                iStream.readNBytes(temp, 0, temp.length);
+                if (basic.isDataInverted()) Common.invertMemory(temp, temp.length);
 
-                if (!Arrays.equals(Arrays.copyOf(temp.getData(), temp.getSize()), Arrays.copyOf(sectorBuffer, temp.getSize()))) {
+                if (!Arrays.equals(Arrays.copyOf(temp, temp.length), Arrays.copyOf(sectorBuffer, temp.length))) {
                     // データが異なる
                     return -1;
                 }
@@ -1450,18 +1448,18 @@ public abstract class DiskBasicType<T extends DirectoryT> {
     }
 
     /** 内部ファイルをエクスポートする際に内容を変換 */
-    public boolean convertDataForLoad(DiskBasicDirItem<T> item, InputStream istream, OutputStream ostream) throws IOException {
+    public boolean convertDataForLoad(DiskBasicDirItem<T> item, InputStream iStream, OutputStream oStream) throws IOException {
         byte[] buffer = new byte[1024];
         int len;
-        while ((len = istream.read(buffer)) != -1) {
-            ostream.write(buffer, 0, len);
+        while ((len = iStream.read(buffer)) != -1) {
+            oStream.write(buffer, 0, len);
         }
         return true;
     }
 
     /** エクスポートしたファイルをベリファイする際に内容を変換 */
-    public boolean convertDataForVerify(DiskBasicDirItem<T> item, InputStream istream, OutputStream ostream) throws IOException {
-        return convertDataForLoad(item, istream, ostream);
+    public boolean convertDataForVerify(DiskBasicDirItem<T> item, InputStream iStream, OutputStream oStream) throws IOException {
+        return convertDataForLoad(item, iStream, oStream);
     }
 
     /** 書き込み可能か */
@@ -1475,8 +1473,8 @@ public abstract class DiskBasicType<T extends DirectoryT> {
     }
 
     /** ファイルをセーブする前にデータを変換 */
-    public boolean convertDataForSave(DiskBasicDirItem<T> item, InputStream istream, OutputStream ostream) throws IOException {
-        return convertDataForLoad(item, istream, ostream);
+    public boolean convertDataForSave(DiskBasicDirItem<T> item, InputStream iStream, OutputStream oStream) throws IOException {
+        return convertDataForLoad(item, iStream, oStream);
     }
 
     /** グループ確保時に最後のグループ番号を計算する */
@@ -1485,12 +1483,12 @@ public abstract class DiskBasicType<T extends DirectoryT> {
     }
 
     /** ファイルをセーブする前の準備を行う */
-    public boolean prepareToSaveFile(InputStream istream, int[] fileSize, DiskBasicDirItem<T> pitem, DiskBasicDirItem<T> nitem, DiskBasicError errinfo) throws IOException {
+    public boolean prepareToSaveFile(InputStream iStream, int[] fileSize, DiskBasicDirItem<T> pItem, DiskBasicDirItem<T> nItem, DiskBasicError errInfo) throws IOException {
         return true;
     }
 
     /** データの書き込み処理 */
-    public int writeFile(DiskBasicDirItem<T> item, InputStream istream, byte[] buffer, int size, int remain, int sectorNum, int groupNum, int nextGroup, int sectorEnd, int seqNum) throws IOException {
+    public int writeFile(DiskBasicDirItem<T> item, InputStream iStream, byte[] buffer, int size, int remain, int sectorNum, int groupNum, int nextGroup, int sectorEnd, int seqNum) throws IOException {
         boolean needEofCode = item.needCheckEofCode();
         int len = 0;
         if (remain <= size) {
@@ -1498,10 +1496,10 @@ public abstract class DiskBasicType<T extends DirectoryT> {
             if (remain < 0) remain = 0;
             if (needEofCode) {
                 // 最終は終端コード
-                if (remain > 1) istream.read(buffer, 0, remain - 1);
+                if (remain > 1) iStream.read(buffer, 0, remain - 1);
                 if (remain > 0) buffer[remain - 1] = item.getEofCode();
             } else {
-                if (remain > 0) istream.read(buffer, 0, remain);
+                if (remain > 0) iStream.read(buffer, 0, remain);
             }
             if (size > remain) {
                 // バッファの余りは0サプレス
@@ -1510,12 +1508,12 @@ public abstract class DiskBasicType<T extends DirectoryT> {
             len = remain;
         } else {
             // 継続
-            istream.read(buffer, 0, size);
+            iStream.read(buffer, 0, size);
             len = size;
         }
 
         // 反転
-        basic.invertMem(buffer, size);
+        basic.invertMemory(buffer, size);
 
         return len;
     }
@@ -1548,7 +1546,7 @@ public abstract class DiskBasicType<T extends DirectoryT> {
     /** 指定したグループ番号のFAT領域を削除する */
     public void deleteGroupNumber(int groupNum) throws IOException {
         // FATに未使用コードを設定
-        setGroupNumber(groupNum, basic.diskBasicParam.getGroupUnusedCode());
+        setGroupNumber(groupNum, basic.getGroupUnusedCode());
     }
 
     /** ファイル削除後の処理 */

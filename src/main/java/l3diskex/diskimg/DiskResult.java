@@ -5,6 +5,8 @@
 package l3diskex.diskimg;
 
 import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
+import java.util.Arrays;
 
 import l3diskex.ResultInfo;
 
@@ -60,7 +62,7 @@ public class DiskResult extends ResultInfo {
     public static final int ERRV_END = ERRV_UNSUPPORTED_TYPE + 1;
 
     /** Messages corresponding to the error codes above. */
-    private static final String[] gDiskResultMsgs = new String[] {
+    private static final String[] gDiskResultMessages = {
             /* ERR_NONE                     */ "",
             /* ERR_CANNOT_OPEN              */ "Cannot open file.",
             /* ERR_CANNOT_SAVE              */ "Cannot save file.",
@@ -94,9 +96,9 @@ public class DiskResult extends ResultInfo {
             /* ERRV_SHORT_SECTORS           */ "[Disk%d] Number of sector is less than %d. [track:%d side:%d] num of sector:%d",
             /* ERRV_SECTOR_SIZE_HEADER      */ "[Disk%d] Invalid sector size in header. sector size:%d",
             /* ERRV_SECTOR_SIZE_SECTOR      */ "[Disk%d] Invalid sector size in sector. id[C:%d H:%d R:%d N:%d] sector size:%d",
-            /* ERRV_DUPLICATE_TRACK         */ "[Disk%d] Duplicate track %d and side %d. Side number change to %d.",
-            /* ERRV_DUPLICATE_SECTOR        */ "[Disk%d] Duplicate sector %d. [track:%d side:%d]",
-            /* ERRV_NO_SECTOR               */ "[Disk%d] No found sector %d. [track:%d side:%d]",
+            /* ERRV_DUPLICATE_TRACK         */ "[Disk%d] Duplicate track %s and side %s. Side number change to %d.",
+            /* ERRV_DUPLICATE_SECTOR        */ "[Disk%d] Duplicate sector %d. [track:%s side:%s]",
+            /* ERRV_NO_SECTOR               */ "[Disk%d] No found sector %d. [track:%s side:%s]",
             /* ERRV_IGNORE_DATA             */ "[Disk%d] Deleted data found. This sector is ignored. id[C:%d H:%d R:%d]",
             /* ERRV_TOO_MANY_TRACKS         */ "[Disk%d] Too many tracks. Ignore tracks after %dth.",
             /* ERRV_UNSUPPORTED_TYPE        */ "[Disk%d] Data type %s is unsupported.",
@@ -106,26 +108,53 @@ public class DiskResult extends ResultInfo {
     /**
      * Formats and stores an error message.
      *
-     * @param errorNumber the error code (index into {@code gDiskResultMsgs})
+     * @param errorNumber the error code (index into {@code gDiskResultMessages})
      * @param args        arguments used for {@link String#format}
      */
     @Override
     public void setMessageV(int errorNumber, Object... args) {
+try {
+        String message;
 
-        String msg;
+        args = wrapArrayToString(args);
 
         if (errorNumber <= 0) {
             return;
         } else if (errorNumber < ERRV_START) {
-            msg = gDiskResultMsgs[errorNumber];
+            message = gDiskResultMessages[errorNumber];
         } else if (errorNumber < ERRV_END) {
-            msg = String.format(gDiskResultMsgs[errorNumber], args);
+            message = String.format(gDiskResultMessages[errorNumber], args);
         } else {
-            msg = String.format(gDiskResultMsgs[ERRV_END], errorNumber);
+            message = String.format(gDiskResultMessages[ERRV_END], errorNumber);
         }
-        if (!msg.isEmpty()) {
-//logger.log(Level.TRACE, msg, new Exception("MESSAGE: " + msg));
-            msgs.add(msg);
+        if (!message.isEmpty()) {
+//logger.log(Level.TRACE, message, new Exception("MESSAGE: " + message));
+            messages.add(message);
         }
+} catch (Exception e) {
+ logger.log(Level.ERROR, gDiskResultMessages[errorNumber] + ", " + Arrays.toString(args));
+ logger.log(Level.ERROR, e.getMessage(), e);
+}
+    }
+
+    private static String anyArrayToString(Object array) {
+        Class<?> c = array.getClass();
+        if (!c.isArray()) return String.valueOf(array);
+
+        if (c == int[].class) return Arrays.toString((int[]) array);
+        if (c == long[].class) return Arrays.toString((long[]) array);
+        if (c == double[].class) return Arrays.toString((double[]) array);
+        if (c == float[].class) return Arrays.toString((float[]) array);
+        if (c == char[].class) return Arrays.toString((char[]) array);
+        if (c == byte[].class) return Arrays.toString((byte[]) array);
+        if (c == short[].class) return Arrays.toString((short[]) array);
+        if (c == boolean[].class) return Arrays.toString((boolean[]) array);
+
+        // Object[] (may contain nested arrays → deepToString to be safe)
+        return Arrays.deepToString((Object[]) array);
+    }
+
+    private static Object[] wrapArrayToString(Object... args) {
+        return Arrays.stream(args).map(o -> o.getClass().isArray() ? anyArrayToString(o) : o).toArray();
     }
 }

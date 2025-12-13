@@ -10,140 +10,113 @@ import java.util.prefs.Preferences;
 /** 設定ファイル入出力 */
 public class Config extends Params {
 
-    private String ini_file;
+    private String iniFile;
 
     public Config() {
-        ini_file = "";
+        iniFile = "";
     }
 
     // No explicit destructor in Java
 
     public void setFileName(String file) {
-        ini_file = file;
+        iniFile = file;
     }
 
     public void load() {
-        if (ini_file.isEmpty()) return;
+        if (iniFile.isEmpty()) return;
 
-        int[] ival = {0};
-        String[] sval_arr = {""};
-        boolean[] bval_arr = {false};
+        int iVal = 0;
+        String sVal = "";
 
         // load ini file
         Preferences ini = Preferences.userNodeForPackage(Config.class);
 
         // ファイルパス
-        mFilePath = ini.get("Path", "");
+        filePath = ini.get("Path", "");
 
         // エクスポート先パス
-        mExportFilePath = ini.get("ExportPath", "");
+        exportFilePath = ini.get("ExportPath", "");
 
         // 最近使用したファイル
         for (int i = 0; i < MAX_RECENT_FILES; i++) {
-            sval_arr[0] = ini.get("Recent%d".formatted(i), "");
-            if (!sval_arr[0].isEmpty()) {
-                mRecentFiles.add(sval_arr[0]);
+            sVal = ini.get("Recent%d".formatted(i), "");
+            if (!sVal.isEmpty()) {
+                recentFiles.add(sVal);
             }
         }
 
         // キャラクターコードマップ名
-        mCharCode = ini.get("CharCode", "");
+        charCode = ini.get("CharCode", "");
 
         // リストウィンドウのフォント名
-        mListFontName = ini.get("ListFontName", "");
+        listFontName = ini.get("ListFontName", "");
 
         // リストウィンドウのフォントサイズ
-        mListFontSize = ini.getInt("ListFontSize", 12);
+        listFontSize = ini.getInt("ListFontSize", 12);
 
         // ダンプウィンドウのフォント名
-        mDumpFontName = ini.get("DumpFontName", "");
+        dumpFontName = ini.get("DumpFontName", "");
 
         // ダンプウィンドウのフォントサイズ
-        mDumpFontSize = ini.getInt("DumpFontSize", 12);
+        dumpFontSize = ini.getInt("DumpFontSize", 12);
 
         // 未使用データを切り落とすか
-        mTrimUnusedData = ini.getBoolean("TrimUnusedData", false);
+        trimUnusedData = ini.getBoolean("TrimUnusedData", false);
 
         // 削除したファイルを表示するか
-        mShowDeletedFile = ini.getBoolean("ShowDeletedFile", false);
+        showDeletedFile = ini.getBoolean("ShowDeletedFile", false);
 
         // エクスポート時に属性から拡張子を追加するか
-        mAddExtExport = ini.getBoolean("AddExtensionWhenExport", false);
+        addExtExport = ini.getBoolean("AddExtensionWhenExport", false);
 
         // エクスポート時に現在日時を設定するか
-        mCurrentDateExport = ini.getBoolean("SetCurrentDateTimeWhenExport", false);
+        currentDateExport = ini.getBoolean("SetCurrentDateTimeWhenExport", false);
 
         // インポート時に拡張子で属性を決定したら拡張子を削除するか
-        mDecideAttrImport = ini.getBoolean("DeleteExtensionWhenImport", false);
+        decideAttrImport = ini.getBoolean("DeleteExtensionWhenImport", false);
 
         // インポートやプロパティ変更時に日時を無視するか
-        mIgnoreDateTime = ini.getBoolean("IgnoreDateTime", false);
+        ignoreDateTime = ini.getBoolean("IgnoreDateTime", false);
 
         // インポート時に現在日時を設定するか
-        bval_arr[0] = mCurrentDateImport;
-        ini.get("SetCurrentDateTimeWhenImport", "");
-        mCurrentDateImport = bval_arr[0];
+        currentDateImport = ini.getBoolean("SetCurrentDateTimeWhenImport", false);
 
         // プロパティで内部データをリストで表示するか
-        bval_arr[0] = mShowInterDirItem;
-        ini.get("ShowInterDirItem", "");
-        mShowInterDirItem = bval_arr[0];
+        showInterDirItem = ini.getBoolean("ShowInterDirItem", false);
 
         // 一度に処理できるディレクトリの深さ
-        ival[0] = ini.getInt("DirectoriesDepth", 0);
-        if (ival[0] >= 1 && ival[0] <= 100) mDirDepth = ival[0];
+        iVal = ini.getInt("DirectoriesDepth", 0);
+        if (iVal >= 1 && iVal <= 100) dirDepth = iVal;
 
         // ウィンドウ幅
-        mWindowWidth = ini.getInt("WindowWidth", mWindowWidth);
+        windowWidth = ini.getInt("WindowWidth", windowWidth);
 
         // ウィンドウ高さ
-        mWindowHeight = ini.getInt("WindowHeight", mWindowHeight);
+        windowHeight = ini.getInt("WindowHeight", windowHeight);
 
         // テンポラリフォルダのパス
-        sval_arr[0] = "";
-        ini.get("TemporaryFolder", "");
-        mTemporaryFolder = sval_arr[0];
+        temporaryFolder = ini.get("TemporaryFolder", "");
 
         // バイナリエディタのパス
-        sval_arr[0] = "";
-        ini.get("BinaryEditor", "");
-        mBinaryEditor = sval_arr[0];
-        if (mBinaryEditor.isEmpty()) {
-            sval_arr[0] = "";
-            ini.get("BinaryEditer", "");
-            mBinaryEditor = sval_arr[0];
-        }
+        binaryEditor = ini.get("BinaryEditor", "");
 
         // テキストエディタのパス
-        sval_arr[0] = "";
-        ini.get("TextEditor", "");
-        mTextEditor = sval_arr[0];
+        textEditor = ini.get("TextEditor", "");
 
         // 言語
-        mLanguage = ini.get("Language", "");
+        language = ini.get("Language", "");
 
         // リストのカラム幅
         for (int id = LISTCOL_NAME; id < LISTCOL_END; id++) {
-            String key = "ListColumn"
-                    + gUiDiskFileListColumnDefs[id]
-                    + "Width";
-            ival[0] = mListColumnWidth[id];
-            ival[0] = ini.getInt(key, ival[0]);
-            mListColumnWidth[id] = ival[0];
+            String key = "ListColumn" + uiDiskFileListColumnDefs[id] + "Width";
+            listColumnWidth[id] = ini.getInt(key, 0);
         }
 
         // リストのカラム位置
         for (int id = LISTCOL_NAME; id < LISTCOL_END; id++) {
-            String key = "ListColumn"
-                    + gUiDiskFileListColumnDefs[id]
-                    + "Pos";
-            ival[0] = mListColumnPos[id];
-            ival[0] = ini.getInt(key, ival[0]);
-            mListColumnPos[id] = ival[0];
+            String key = "ListColumn" + uiDiskFileListColumnDefs[id] + "Pos";
+            listColumnPos[id] = ini.getInt(key, 0);
         }
-
-        // In Java, object destruction is handled by the GC,
-        // so `delete ini;` is omitted.
     }
 
     public void load(String file) {
@@ -152,114 +125,106 @@ public class Config extends Params {
     }
 
     public void save() {
-        if (ini_file.isEmpty()) return;
+        if (iniFile.isEmpty()) return;
 
         // save ini file
         Preferences ini = Preferences.userNodeForPackage(Config.class);
 
         // ファイルパス
-        ini.put("Path", mFilePath);
+        ini.put("Path", filePath);
 
         // エクスポート先パス
-        ini.put("ExportPath", mExportFilePath);
+        ini.put("ExportPath", exportFilePath);
 
         // 最近使用したファイル
-        for (int i = 0, row = 0; row < MAX_RECENT_FILES && i < mRecentFiles.size(); i++) {
-            String sval = mRecentFiles.get(i);
+        for (int i = 0, row = 0; row < MAX_RECENT_FILES && i < recentFiles.size(); i++) {
+            String sval = recentFiles.get(i);
             if (sval.isEmpty()) continue;
             ini.put("Recent%d".formatted(row), sval);
             row++;
         }
 
         // キャラクターコードマップ名
-        ini.put("CharCode", mCharCode);
+        ini.put("CharCode", charCode);
 
         // リストウィンドウのフォント名
-        ini.put("ListFontName", mListFontName);
+        ini.put("ListFontName", listFontName);
 
         // リストウィンドウのフォントサイズ
-        ini.putInt("ListFontSize", mListFontSize);
+        ini.putInt("ListFontSize", listFontSize);
 
         // ダンプウィンドウのフォント名
-        ini.put("DumpFontName", mDumpFontName);
+        ini.put("DumpFontName", dumpFontName);
 
         // ダンプウィンドウのフォントサイズ
-        ini.putInt("DumpFontSize", mDumpFontSize);
+        ini.putInt("DumpFontSize", dumpFontSize);
 
         // 未使用データを切り落とすか
-        ini.putBoolean("TrimUnusedData", mTrimUnusedData);
+        ini.putBoolean("TrimUnusedData", trimUnusedData);
 
         // 削除したファイルを表示するか
-        ini.putBoolean("ShowDeletedFile", mShowDeletedFile);
+        ini.putBoolean("ShowDeletedFile", showDeletedFile);
 
         // エクスポート時に属性から拡張子を追加するか
-        ini.putBoolean("AddExtensionWhenExport", mAddExtExport);
+        ini.putBoolean("AddExtensionWhenExport", addExtExport);
 
         // エクスポート時に現在日時を設定するか
-        ini.putBoolean("SetCurrentDateTimeWhenExport", mCurrentDateExport);
+        ini.putBoolean("SetCurrentDateTimeWhenExport", currentDateExport);
 
         // インポート時に拡張子で属性を決定したら拡張子を削除するか
-        ini.putBoolean("DeleteExtensionWhenImport", mDecideAttrImport);
+        ini.putBoolean("DeleteExtensionWhenImport", decideAttrImport);
 
         // インポートやプロパティ変更時に日時を無視するか
-        ini.putBoolean("IgnoreDateTime", mIgnoreDateTime);
+        ini.putBoolean("IgnoreDateTime", ignoreDateTime);
 
         // インポート時に現在日時を設定するか
-        ini.putBoolean("SetCurrentDateTimeWhenImport", mCurrentDateImport);
+        ini.putBoolean("SetCurrentDateTimeWhenImport", currentDateImport);
 
         // プロパティで内部データをリストで表示するか
-        ini.putBoolean("ShowInterDirItem", mShowInterDirItem);
+        ini.putBoolean("ShowInterDirItem", showInterDirItem);
 
         // 一度に処理できるディレクトリの深さ
-        ini.putInt("DirectoriesDepth", mDirDepth);
+        ini.putInt("DirectoriesDepth", dirDepth);
 
         // ウィンドウ幅
-        ini.putInt("WindowWidth", mWindowWidth);
+        ini.putInt("WindowWidth", windowWidth);
 
         // ウィンドウ高さ
-        ini.putInt("WindowHeight", mWindowHeight);
+        ini.putInt("WindowHeight", windowHeight);
 
         // テンポラリフォルダのパス
-        ini.put("TemporaryFolder", mTemporaryFolder);
+        ini.put("TemporaryFolder", temporaryFolder);
 
         // バイナリエディタのパス
-        ini.put("BinaryEditor", mBinaryEditor);
-        ini.remove("BinaryEditer");
+        ini.put("BinaryEditor", binaryEditor);
 
         // テキストエディタのパス
-        ini.put("TextEditor", mTextEditor);
+        ini.put("TextEditor", textEditor);
 
         // 言語
-        ini.put("Language", mLanguage);
+        ini.put("Language", language);
 
         // リストのカラム幅
         for (int id = LISTCOL_NAME; id < LISTCOL_END; id++) {
-            String key = "ListColumn"
-                    + gUiDiskFileListColumnDefs[id]
-                    + "Width";
-            ini.putInt(key, mListColumnWidth[id]);
+            String key = "ListColumn" + uiDiskFileListColumnDefs[id] + "Width";
+            ini.putInt(key, listColumnWidth[id]);
         }
 
         // リストのカラム位置
         for (int id = LISTCOL_NAME; id < LISTCOL_END; id++) {
-            String key = "ListColumn"
-                    + gUiDiskFileListColumnDefs[id]
-                    + "Pos";
-            ini.putInt(key, mListColumnPos[id]);
+            String key = "ListColumn" + uiDiskFileListColumnDefs[id] + "Pos";
+            ini.putInt(key, listColumnPos[id]);
         }
-
-        // write - In a real wxFileConfig scenario, the delete might commit the changes.
-        // For a Java equivalent, this would be a save/flush call.
     }
 
-    public static final Config gConfig = new Config();
+    public static final Config config = new Config();
 }
 
 /** 設定ファイルパラメータ */
 class Params {
 
     // Placeholder for unreferenced C++ types and constants
-    public static String[] gUiDiskFileListColumnDefs = {
+    public static String[] uiDiskFileListColumnDefs = {
             "Name",
             "Size",
             "Date",
@@ -273,306 +238,306 @@ class Params {
 
     public static final int MAX_RECENT_FILES = 20;
 
-    protected String mFilePath;
-    protected String mExportFilePath;
-    protected List<String> mRecentFiles;
-    protected String mCharCode;
-    protected String mListFontName;
-    protected int mListFontSize;
-    protected String mDumpFontName;
-    protected int mDumpFontSize;
-    protected boolean mTrimUnusedData;
-    protected boolean mShowDeletedFile;
-    protected boolean mAddExtExport;
-    protected boolean mCurrentDateExport;
-    protected boolean mDecideAttrImport;
-    protected boolean mSkipImportDialog;
-    protected boolean mIgnoreDateTime;
-    protected boolean mCurrentDateImport;
-    protected boolean mShowInterDirItem;
-    protected int mDirDepth;
-    protected int mWindowWidth;
-    protected int mWindowHeight;
-    protected String mTemporaryFolder;
-    protected String mBinaryEditor;
-    protected String mTextEditor;
-    protected String mLanguage;
-    protected int[] mListColumnWidth;
-    protected int[] mListColumnPos;
+    protected String filePath;
+    protected String exportFilePath;
+    protected List<String> recentFiles;
+    protected String charCode;
+    protected String listFontName;
+    protected int listFontSize;
+    protected String dumpFontName;
+    protected int dumpFontSize;
+    protected boolean trimUnusedData;
+    protected boolean showDeletedFile;
+    protected boolean addExtExport;
+    protected boolean currentDateExport;
+    protected boolean decideAttrImport;
+    protected boolean skipImportDialog;
+    protected boolean ignoreDateTime;
+    protected boolean currentDateImport;
+    protected boolean showInterDirItem;
+    protected int dirDepth;
+    protected int windowWidth;
+    protected int windowHeight;
+    protected String temporaryFolder;
+    protected String binaryEditor;
+    protected String textEditor;
+    protected String language;
+    protected int[] listColumnWidth;
+    protected int[] listColumnPos;
 
     public Params() {
         // default value
-        mListColumnWidth = new int[LISTCOL_END];
-        mListColumnPos = new int[LISTCOL_END];
+        listColumnWidth = new int[LISTCOL_END];
+        listColumnPos = new int[LISTCOL_END];
 
-        mFilePath = "";
-        mExportFilePath = "";
-        mRecentFiles = new ArrayList<>();
-        mCharCode = "";
-        mListFontName = "";
-        mListFontSize = 0;
-        mDumpFontName = "";
-        mDumpFontSize = 0;
-        mTrimUnusedData = true;
-        mShowDeletedFile = false;
-        mAddExtExport = true;
-        mCurrentDateExport = false;
-        mDecideAttrImport = true;
-        mSkipImportDialog = false;
-        mIgnoreDateTime = false;
-        mCurrentDateImport = false;
+        filePath = "";
+        exportFilePath = "";
+        recentFiles = new ArrayList<>();
+        charCode = "";
+        listFontName = "";
+        listFontSize = 0;
+        dumpFontName = "";
+        dumpFontSize = 0;
+        trimUnusedData = true;
+        showDeletedFile = false;
+        addExtExport = true;
+        currentDateExport = false;
+        decideAttrImport = true;
+        skipImportDialog = false;
+        ignoreDateTime = false;
+        currentDateImport = false;
         // _DEBUG equivalent, assuming false for release build translation
-        mShowInterDirItem = false;
-        mDirDepth = 20;
-        mWindowWidth = 1000;
-        mWindowHeight = 600;
-        mTemporaryFolder = "";
-        mBinaryEditor = "";
-        mTextEditor = "";
-        mLanguage = "";
+        showInterDirItem = false;
+        dirDepth = 20;
+        windowWidth = 1000;
+        windowHeight = 600;
+        temporaryFolder = "";
+        binaryEditor = "";
+        textEditor = "";
+        language = "";
 
         for (int id = LISTCOL_NAME; id < LISTCOL_END; id++) {
-            mListColumnWidth[id] = -1;
-            mListColumnPos[id] = id;
+            listColumnWidth[id] = -1;
+            listColumnPos[id] = id;
         }
     }
 
     // @name properties
     public void setFilePath(String val) {
-        mFilePath = Path.of(val).getParent().toString();
+        filePath = Path.of(val).getParent().toString();
     }
 
     public final String getFilePath() {
-        return mFilePath;
+        return filePath;
     }
 
-    public void setExportFilePath(String val, boolean is_dir) {
-        if (is_dir) {
-            mExportFilePath = Path.of(val).toAbsolutePath().toString();
+    public void setExportFilePath(String val, boolean isDir) {
+        if (isDir) {
+            exportFilePath = Path.of(val).toAbsolutePath().toString();
         } else {
-            mExportFilePath = Path.of(val).toString();
+            exportFilePath = Path.of(val).toString();
         }
     }
 
     public final String getExportFilePath() {
-        if (mExportFilePath.isEmpty()) {
-            return mFilePath;
+        if (exportFilePath.isEmpty()) {
+            return filePath;
         } else {
-            return mExportFilePath;
+            return exportFilePath;
         }
     }
 
     public void addRecentFile(String val) {
         Path fpath = Path.of(val);
-        mFilePath = fpath.getParent().toString();
+        filePath = fpath.getParent().toString();
         // Check if the same file exists
         String fullPath = fpath.toAbsolutePath().toString();
-        int pos = mRecentFiles.indexOf(fullPath);
+        int pos = recentFiles.indexOf(fullPath);
         if (pos >= 0) {
             // Remove it
-            mRecentFiles.remove(pos);
+            recentFiles.remove(pos);
         }
         // Add
-        mRecentFiles.add(0, fullPath);
+        recentFiles.addFirst(fullPath);
         // Remove those exceeding the limit
-        if (mRecentFiles.size() > MAX_RECENT_FILES) {
-            mRecentFiles.remove(MAX_RECENT_FILES);
+        if (recentFiles.size() > MAX_RECENT_FILES) {
+            recentFiles.remove(MAX_RECENT_FILES);
         }
     }
 
     public final String getRecentFile() {
-        return !mRecentFiles.isEmpty() ? mRecentFiles.get(0) : mFilePath;
+        return !recentFiles.isEmpty() ? recentFiles.getFirst() : filePath;
     }
 
     public final List<String> getRecentFiles() {
-        return Collections.unmodifiableList(mRecentFiles);
+        return Collections.unmodifiableList(recentFiles);
     }
 
     public void setCharCode(String val) {
-        mCharCode = val;
+        charCode = val;
     }
 
     public final String getCharCode() {
-        return mCharCode;
+        return charCode;
     }
 
     public void setListFontName(String val) {
-        mListFontName = val;
+        listFontName = val;
     }
 
     public final String getListFontName() {
-        return mListFontName;
+        return listFontName;
     }
 
     public void setListFontSize(int val) {
-        mListFontSize = val;
+        listFontSize = val;
     }
 
     public int getListFontSize() {
-        return mListFontSize;
+        return listFontSize;
     }
 
     public void setDumpFontName(String val) {
-        mDumpFontName = val;
+        dumpFontName = val;
     }
 
     public final String getDumpFontName() {
-        return mDumpFontName;
+        return dumpFontName;
     }
 
     public void setDumpFontSize(int val) {
-        mDumpFontSize = val;
+        dumpFontSize = val;
     }
 
     public int getDumpFontSize() {
-        return mDumpFontSize;
+        return dumpFontSize;
     }
 
     public void trimUnusedData(boolean val) {
-        mTrimUnusedData = val;
+        trimUnusedData = val;
     }
 
     public boolean isTrimUnusedData() {
-        return mTrimUnusedData;
+        return trimUnusedData;
     }
 
     public void showDeletedFile(boolean val) {
-        mShowDeletedFile = val;
+        showDeletedFile = val;
     }
 
     public boolean isShownDeletedFile() {
-        return mShowDeletedFile;
+        return showDeletedFile;
     }
 
     public void addExtensionExport(boolean val) {
-        mAddExtExport = val;
+        addExtExport = val;
     }
 
     public boolean isAddExtensionExport() {
-        return mAddExtExport;
+        return addExtExport;
     }
 
     public void setCurrentDateExport(boolean val) {
-        mCurrentDateExport = val;
+        currentDateExport = val;
     }
 
     public boolean isSetCurrentDateExport() {
-        return mCurrentDateExport;
+        return currentDateExport;
     }
 
     public void decideAttrImport(boolean val) {
-        mDecideAttrImport = val;
+        decideAttrImport = val;
     }
 
     public boolean isDecideAttrImport() {
-        return mDecideAttrImport;
+        return decideAttrImport;
     }
 
     public void skipImportDialog(boolean val) {
-        mSkipImportDialog = val;
+        skipImportDialog = val;
     }
 
     public boolean isSkipImportDialog() {
-        return mSkipImportDialog;
+        return skipImportDialog;
     }
 
     public void ignoreDateTime(boolean val) {
-        mIgnoreDateTime = val;
+        ignoreDateTime = val;
     }
 
     public boolean doesIgnoreDateTime() {
-        return mIgnoreDateTime;
+        return ignoreDateTime;
     }
 
     public void setCurrentDateImport(boolean val) {
-        mCurrentDateImport = val;
+        currentDateImport = val;
     }
 
     public boolean isSetCurrentDateImport() {
-        return mCurrentDateImport;
+        return currentDateImport;
     }
 
     public void showInterDirItem(boolean val) {
-        mShowInterDirItem = val;
+        showInterDirItem = val;
     }
 
     public boolean doesShowInterDirItem() {
-        return mShowInterDirItem;
+        return showInterDirItem;
     }
 
     public void setDirDepth(int val) {
-        mDirDepth = val;
+        dirDepth = val;
     }
 
     public int getDirDepth() {
-        return mDirDepth;
+        return dirDepth;
     }
 
     public void setWindowWidth(int val) {
-        mWindowWidth = val;
+        windowWidth = val;
     }
 
     public int getWindowWidth() {
-        return mWindowWidth;
+        return windowWidth;
     }
 
     public void setWindowHeight(int val) {
-        mWindowHeight = val;
+        windowHeight = val;
     }
 
     public int getWindowHeight() {
-        return mWindowHeight;
+        return windowHeight;
     }
 
     public void setTemporaryFolder(String val) {
-        mTemporaryFolder = Path.of(val).toAbsolutePath().toString();
+        temporaryFolder = Path.of(val).toAbsolutePath().toString();
     }
 
     public final String getTemporaryFolder() {
-        return mTemporaryFolder;
+        return temporaryFolder;
     }
 
     public void clearTemporaryFolder() {
-        mTemporaryFolder = "";
+        temporaryFolder = "";
     }
 
     public void setBinaryEditor(String val) {
-        mBinaryEditor = Path.of(val).toAbsolutePath().toString();
+        binaryEditor = Path.of(val).toAbsolutePath().toString();
     }
 
     public final String getBinaryEditor() {
-        return mBinaryEditor;
+        return binaryEditor;
     }
 
     public void setTextEditor(String val) {
-        mTextEditor = Path.of(val).toAbsolutePath().toString();
+        textEditor = Path.of(val).toAbsolutePath().toString();
     }
 
     public final String getTextEditor() {
-        return mTextEditor;
+        return textEditor;
     }
 
     public void setLanguage(String val) {
-        mLanguage = val;
+        language = val;
     }
 
     public final String getLanguage() {
-        return mLanguage;
+        return language;
     }
 
     public void setListColumnWidth(int id, int val) {
-        mListColumnWidth[id] = val;
+        listColumnWidth[id] = val;
     }
 
     public int getListColumnWidth(int id) {
-        return mListColumnWidth[id];
+        return listColumnWidth[id];
     }
 
     public void setListColumnPos(int id, int val) {
-        mListColumnPos[id] = val;
+        listColumnPos[id] = val;
     }
 
     public int getListColumnPos(int id) {
-        return mListColumnPos[id];
+        return listColumnPos[id];
     }
 }

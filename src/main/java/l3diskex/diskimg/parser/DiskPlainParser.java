@@ -19,7 +19,7 @@ import l3diskex.diskimg.DiskParser.DiskImageParser;
 import l3diskex.diskimg.DiskResult;
 import l3diskex.diskimg.FileParam.DiskTypeHint;
 
-import static l3diskex.diskimg.DiskParam.gDiskTemplates;
+import static l3diskex.diskimg.DiskParam.diskTemplates;
 
 
 /**
@@ -27,8 +27,14 @@ import static l3diskex.diskimg.DiskParam.gDiskTemplates;
  */
 public class DiskPlainParser extends DiskImageParser {
 
-    public DiskPlainParser(DiskImageFile file, short modFlags, DiskResult result) {
-        super(file, modFlags, result);
+    @Override
+    public boolean isSupported(String type) {
+        return "plain".equalsIgnoreCase(type);
+    }
+
+    @Override
+    public void init(DiskImageFile file, short modFlags, DiskResult result) {
+        super.init(file, modFlags, result);
     }
 
     /**
@@ -48,8 +54,7 @@ public class DiskPlainParser extends DiskImageParser {
         int count = sectors.size();
 
         List<Integer> sectorNums = new ArrayList<>();
-        for (int idx = 0; idx < count; idx++) {
-            DiskImageSector sector = sectors.get(idx);
+        for (DiskImageSector sector : sectors) {
             sectorNums.add(sector.getSectorNumber());
         }
 
@@ -179,18 +184,18 @@ public class DiskPlainParser extends DiskImageParser {
     /**
      * ディスクデータの解析
      *
-     * @param istream    入力ディスクイメージ
+     * @param iStream    入力ディスクイメージ
      * @param diskNumber ディスク番号
      * @param diskParam  ディスクパラメータ
      * @return オフセット
      */
-    protected int parseDisk(InputStream istream, int diskNumber, DiskParam diskParam) throws IOException {
+    protected int parseDisk(InputStream iStream, int diskNumber, DiskParam diskParam) throws IOException {
         DiskImageDisk disk = file.newImageDisk(diskNumber);
 
         // パラメータの計算値がディスクサイズの２倍なら
         // 表面にのみデータをセットする
         int dummySide = -1;
-        int streamLength = istream.available();
+        int streamLength = iStream.available();
         if (streamLength * 2 <= diskParam.calcDiskSize()) {
             dummySide = diskParam.getSideNumberBaseOnDisk() + 1;
         }
@@ -204,7 +209,7 @@ public class DiskPlainParser extends DiskImageParser {
         for (; trackNum < tracksPerSide && result.getValid() >= 0; trackNum++) {
             for (int sideNum = sideNumSt; sideNum < sideNumEd && result.getValid() >= 0; sideNum++) {
                 // トラック作成
-                offset += parseTrack(istream, offsetPos, offset, diskNumber, diskParam, trackNum, sideNum, sideNum == dummySide, disk);
+                offset += parseTrack(iStream, offsetPos, offset, diskNumber, diskParam, trackNum, sideNum, sideNum == dummySide, disk);
                 offsetPos++;
             }
         }
@@ -222,33 +227,35 @@ public class DiskPlainParser extends DiskImageParser {
         return offset;
     }
 
-    /// ベタファイルを解析
-    ///
-    /// @param istream   解析対象データ
-    /// @param diskParam ディスクパラメータ
-    /// @return 0: 正常, -1: エラーあり, 1: 警告あり
+    /**
+     * ベタファイルを解析
+     *
+     * @param iStream   解析対象データ
+     * @param diskParam ディスクパラメータ
+     * @return 0: 正常, -1: エラーあり, 1: 警告あり
+     */
     @Override
-    public int parse(InputStream istream, DiskParam diskParam) throws IOException {
+    public int parse(InputStream iStream, DiskParam diskParam) throws IOException {
         // パラメータ
         if (diskParam == null) {
             result.setError(DiskResult.ERRV_INVALID_DISK, 0);
             return result.getValid();
         }
 
-        parseDisk(istream, 0, diskParam);
+        parseDisk(iStream, 0, diskParam);
 
         return result.getValid();
     }
 
     @Override
-    public int check(InputStream istream) {
+    public int check(InputStream iStream) {
         return -1;
     }
 
     @Override
-    public int check(InputStream istream, List<DiskTypeHint> diskHints, DiskParam diskParam, List<DiskParam> diskParams, DiskParam manualParam) throws IOException {
+    public int check(InputStream iStream, List<DiskTypeHint> diskHints, DiskParam diskParam, List<DiskParam> diskParams, DiskParam manualParam) throws IOException {
         int rc = 0;
-        int streamSize = istream.available(); // TODO assume available as length
+        int streamSize = iStream.available(); // TODO assume available as length
 
         // パラメータで判断
         if (diskParam != null) {
@@ -261,9 +268,9 @@ public class DiskPlainParser extends DiskImageParser {
             // パラメータヒントあり
 
             // 優先順位の高い候補
-            for (int i = 0; i < diskHints.size(); i++) {
-                String hint = diskHints.get(i).getHint();
-                DiskParam param = gDiskTemplates.find(hint);
+            for (DiskTypeHint diskHint : diskHints) {
+                String hint = diskHint.getHint();
+                DiskParam param = diskTemplates.find(hint);
                 if (param != null) {
                     int diskSizeHint = param.calcDiskSize();
                     if (streamSize == diskSizeHint) {
@@ -277,8 +284,8 @@ public class DiskPlainParser extends DiskImageParser {
         // ディスクテンプレート全体から探す
         for (int mag = 1; mag <= 2; mag++) {
             boolean separator = (diskParams.isEmpty());
-            for (int i = 0; i < gDiskTemplates.size(); i++) {
-                DiskParam param = gDiskTemplates.get(i);
+            for (int i = 0; i < diskTemplates.size(); i++) {
+                DiskParam param = diskTemplates.get(i);
                 if (param != null) {
                     // 同じ候補がある場合スキップ
                     if (diskParams.contains(param)) {
@@ -309,22 +316,23 @@ public class DiskPlainParser extends DiskImageParser {
         return rc;
     }
 
+    // セクタサイズヒント
+    private static final int[] secSizeHints = {
+            256, 128, 0
+    };
+    // セクタ数ヒント
+    private static final int[] secs256 = {10, 16, 18, 0};
+    private static final int[] secs512 = {9, 10, 0};
+    private static final int[] secs1024 = {4, 5, 0};
+    private static final int[][] secsHint = {
+            secs256,
+            secs512,
+            secs1024,
+    };
+    private static final int[] tracks = {80, 77, 40, 35, 512, 511, 256, 255, 128, 127, 64, 63, 0};
+
     /** ディスクサイズから尤もらしいパラメータを計算する */
     protected void calcParamFromSize(int diskSize, DiskParam diskParam) {
-        // セクタサイズヒント
-        int[] secSizeHints = {
-                256, 128, 0
-        };
-        // セクタ数ヒント
-        int[] secs256 = {10, 16, 18, 0};
-        int[] secs512 = {9, 10, 0};
-        int[] secs1024 = {4, 5, 0};
-        int[][] secsHint = {
-                secs256,
-                secs512,
-                secs1024,
-        };
-
         // トラック数はディスクサイズで
         int maxTracks = 41;
         int minTracks = 40;
@@ -338,14 +346,14 @@ public class DiskPlainParser extends DiskImageParser {
             minTracks = 80;
         }
 
-        int ival = 0;
+        int value = 0;
         int desidedSecSizeIdx = -1;
         int desidedAllSectors = 0;
 
         for (int secSizeIdx = 0; secSizeHints[secSizeIdx] != 0; secSizeIdx++) {
             // セクタサイズで割る
-            ival = diskSize % secSizeHints[secSizeIdx]; // 余り
-            if (ival == 0) {
+            value = diskSize % secSizeHints[secSizeIdx]; // 余り
+            if (value == 0) {
                 desidedSecSizeIdx = secSizeIdx;
                 desidedAllSectors = diskSize / secSizeHints[secSizeIdx];
                 break;
@@ -365,8 +373,8 @@ public class DiskPlainParser extends DiskImageParser {
             for (int sides = 1; sides <= 2 && !desided; sides++) {
                 for (int tracks = minTracks; tracks <= maxTracks && !desided; tracks++) {
                     for (int ss = 0; sectors[ss] != 0 && !desided; ss++) {
-                        ival = (tracks * sides * sectors[ss]);
-                        if (desidedAllSectors <= ival) {
+                        value = (tracks * sides * sectors[ss]);
+                        if (desidedAllSectors <= value) {
                             desidedTracks = tracks;
                             desidedSides = sides;
                             desidedSectors = sectors[ss];
@@ -382,35 +390,34 @@ public class DiskPlainParser extends DiskImageParser {
         if (!desided) {
             // ディスクサイズで割り切れる値を候補にする
             for (int sides = 2; sides >= 1; sides--) {
-                ival = desidedAllSectors % sides;
-                if (ival == 0) {
+                value = desidedAllSectors % sides;
+                if (value == 0) {
                     desidedSides = sides;
                     desidedAllSectors = desidedAllSectors / sides;
                     break;
                 }
             }
             // トラック数で割る
-            int[] ctracks = {80, 77, 40, 35, 512, 511, 256, 255, 128, 127, 64, 63, 0};
-            for (int t = 0; ctracks[t] != 0; t++) {
-                ival = desidedAllSectors % ctracks[t];
-                if (ival == 0) {
-                    desidedTracks = ctracks[t];
-                    desidedSectors = desidedAllSectors / ctracks[t];
+            for (int t = 0; tracks[t] != 0; t++) {
+                value = desidedAllSectors % tracks[t];
+                if (value == 0) {
+                    desidedTracks = tracks[t];
+                    desidedSectors = desidedAllSectors / tracks[t];
                     break;
                 }
             }
-            if (ival != 0) {
+            if (value != 0) {
                 // セクタ数で割る
                 for (int s = 32; s >= 2; s--) {
-                    ival = desidedAllSectors % s;
-                    if (ival == 0) {
+                    value = desidedAllSectors % s;
+                    if (value == 0) {
                         desidedTracks = desidedAllSectors / s;
                         desidedSectors = s;
                         break;
                     }
                 }
             }
-            if (ival != 0) {
+            if (value != 0) {
                 for (int s = 1; s <= 32; s++) {
                     if ((desidedAllSectors / s) < 10000) {
                         desidedTracks = desidedAllSectors / s;

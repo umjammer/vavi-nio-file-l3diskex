@@ -12,50 +12,40 @@ import l3diskex.basicfmt.diritem.DiskBasicDirItemFAT8.DiskBasicDirItemFAT8F;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
 
+import static l3diskex.basicfmt.type.DiskBasicTypeFM.FORMAT_TYPE_FM;
 
-/// ディレクトリ１アイテム F-BASIC
+
+/** ディレクトリ１アイテム F-BASIC */
 public class DiskBasicDirItemFM extends DiskBasicDirItemFAT8F {
 
-    /**
-     * @param basic the disk basic object
-     */
-    public DiskBasicDirItemFM(DiskBasic basic) {
-        super(basic);
+    @Override
+    public boolean isSupported(int formatType) {
+        return formatType == FORMAT_TYPE_FM;
     }
 
-    /**
-     * @param basic  the disk basic object
-     * @param sector the sector that contains this directory item
-     * @param secPos the position within the sector
-     * @param data   the raw data of the directory item
-     */
-    public DiskBasicDirItemFM(DiskBasic basic,
-                              DiskImageSector sector,
-                              int secPos,
-                              byte[] data, int dataP) {
-        super(basic, sector, secPos, data, dataP);
+    @Override
+    public void init(DiskBasic basic) throws IOException {
+        super.init(basic);
     }
 
-    /**
-     * @param basic  the disk basic object
-     * @param num    the item number
-     * @param gItem  the group item that this directory item refers to
-     * @param sector the sector that contains this directory item
-     * @param secPos the position within the sector
-     * @param data   the raw data of the directory item
-     * @param next   parameters for the next sector (may be {@code null})
-     * @param unuse  a flag indicating whether the item is unused; passed
-     *               by reference in C++ – here represented by a {@code boolean[]}
-     */
-    public DiskBasicDirItemFM(DiskBasic basic,
-                              int num,
-                              DiskBasicGroupItem gItem,
-                              DiskImageSector sector,
-                              int secPos,
-                              byte[] data,
-                              int dataP,
-                              SectorParam next,
-                              boolean[] unuse) throws IOException {
-        super(basic, num, gItem, sector, secPos, data, dataP, next, unuse);
+    @Override
+    public void init(DiskBasic basic,
+                     DiskImageSector sector,
+                     int sectorPos,
+                     byte[] data, int dataPos) throws IOException {
+        super.init(basic, sector, sectorPos, data, dataPos);
+    }
+
+    @Override
+    public void init(DiskBasic basic,
+                     int num,
+                     DiskBasicGroupItem gropItem,
+                     DiskImageSector sector,
+                     int sectorPos,
+                     byte[] data,
+                     int dataPos,
+                     SectorParam next,
+                     boolean[] unuse) throws IOException {
+        super.init(basic, num, gropItem, sector, sectorPos, data, dataPos, next, unuse);
     }
 }

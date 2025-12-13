@@ -117,27 +117,14 @@ public class BasicSelBox extends JDialog {
         // --
         //  Event wiring
         // --
-        comBasic.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                int sel = comBasic.getSelectedIndex();
-                if (sel >= 0) changeBasic(sel);
-            }
+        comBasic.addActionListener(e -> {
+            int sel = comBasic.getSelectedIndex();
+            if (sel >= 0) changeBasic(sel);
         });
 
-        okBtn.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                onOK();
-            }
-        });
+        okBtn.addActionListener(e -> onOK());
 
-        cancelBtn.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                dispose();
-            }
-        });
+        cancelBtn.addActionListener(e -> dispose());
 
         // --
         //  Initial state

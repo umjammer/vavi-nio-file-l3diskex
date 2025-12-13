@@ -10,29 +10,14 @@ import java.lang.System.Logger;
 import java.lang.System.Logger.Level;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.ServiceLoader;
 
 import l3diskex.Utils;
 import l3diskex.diskimg.DiskImage.DiskImageFile;
 import l3diskex.diskimg.FileParam.DiskTypeHint;
 import l3diskex.diskimg.FileParam.FileParamFormat;
-import l3diskex.diskimg.parser.Disk2MGParser;
-import l3diskex.diskimg.parser.DiskADCParser;
-import l3diskex.diskimg.parser.DiskCQMParser;
-import l3diskex.diskimg.parser.DiskD88Parser;
-import l3diskex.diskimg.parser.DiskDIMParser;
-import l3diskex.diskimg.parser.DiskDmkParser;
-import l3diskex.diskimg.parser.DiskDskParser;
-import l3diskex.diskimg.parser.DiskFDIParser;
-import l3diskex.diskimg.parser.DiskG64Parser;
-import l3diskex.diskimg.parser.DiskHfeParser;
-import l3diskex.diskimg.parser.DiskIMDParser;
-import l3diskex.diskimg.parser.DiskJV3Parser;
-import l3diskex.diskimg.parser.DiskPlainParser;
-import l3diskex.diskimg.parser.DiskSTRParser;
-import l3diskex.diskimg.parser.DiskTD0Parser;
-import l3diskex.diskimg.parser.DiskVFDParser;
 
-import static l3diskex.diskimg.FileParam.gFileTypes;
+import static l3diskex.diskimg.FileParam.fileTypes;
 
 
 /**
@@ -68,34 +53,32 @@ public class DiskParser {
     /**
      * ディスクイメージを新たに解析する
      *
-     * @param file_format ファイルの形式名("d88","plain"など)
-     * @param param_hint  ディスクパラメータヒント("plain"時のみ)
+     * @param fileFormat ファイルの形式名 ("d88", "plain" など)
+     * @param paramHint  ディスクパラメータヒント ("plain" 時のみ)
      */
-    public int parse(String file_format, DiskParam param_hint) throws IOException {
-        return parse(file_format, param_hint, DiskImageFile.MODIFY_NONE);
+    public int parse(String fileFormat, DiskParam paramHint) throws IOException {
+        return parse(fileFormat, paramHint, DiskImageFile.MODIFY_NONE);
     }
 
     /**
      * 指定ディスクを解析してこれを既存のディスクイメージに追加する
      *
-     * @param file_format ファイルの形式名("d88","plain"など)
-     * @param param_hint  ディスクパラメータヒント("plain"時のみ)
+     * @param fileFormat ファイルの形式名 ("d88", "plain" など)
+     * @param paramHint  ディスクパラメータヒント ("plain" 時のみ)
      */
-    public int parseAdd(String file_format, DiskParam param_hint) throws IOException {
-        return parse(file_format, param_hint, DiskImageFile.MODIFY_ADD);
+    public int parseAdd(String fileFormat, DiskParam paramHint) throws IOException {
+        return parse(fileFormat, paramHint, DiskImageFile.MODIFY_ADD);
     }
 
     /**
      * ディスクイメージをチェック
      *
-     * @param file_format  [in,out] ファイルの形式名("d88","plain"など)
-     * @param disk_params  [out] ディスクパラメータの候補
-     * @param manual_param [out] 候補がないときのパラメータヒント
+     * @param fileFormat  [in,out] ファイルの形式名 ("d88", "plain", "", など)
+     * @param diskParams  [out] ディスクパラメータの候補
+     * @param manualParam [out] 候補がないときのパラメータヒント
      */
-    public int check(String file_format, List<DiskParam> disk_params,
-                     DiskParam manual_param) throws IOException {
-        return check(file_format, disk_params, manual_param,
-                DiskImageFile.MODIFY_NONE);
+    public int check(String[] fileFormat, List<DiskParam> diskParams, DiskParam manualParam) throws IOException {
+        return check(fileFormat, diskParams, manualParam, DiskImageFile.MODIFY_NONE);
     }
 
     public String getImageType() {
@@ -105,21 +88,21 @@ public class DiskParser {
     /**
      * ディスクイメージの解析
      *
-     * @param file_format ファイルの形式名("d88","plain"など)
-     * @param param_hint  ディスクパラメータヒント("plain"時のみ)
-     * @param mod_flags   オープン/追加 DiskImageFile::Add()
+     * @param fileFormat ファイルの形式名 ("d88", "plain" など)
+     * @param paramHint  ディスクパラメータヒント ("plain" 時のみ)
+     * @param modFlags   オープン/追加 DiskImageFile#add()
      * @return 0: 正常, -1: エラーあり, 1: 警告あり
      */
-    private int parse(String file_format, DiskParam param_hint, short mod_flags) throws IOException {
+    private int parse(String fileFormat, DiskParam paramHint, short modFlags) throws IOException {
         boolean[] support = {false};
         int rc = -1;
 
         imageType = "";
-        if (!file_format.isEmpty()) {
+        if (!fileFormat.isEmpty()) {
             // ファイル形式の指定あり
-            rc = selectPerser(file_format, param_hint, mod_flags, support);
+            rc = selectParser(fileFormat, paramHint, modFlags, support);
             if (rc >= 0) {
-                imageType = file_format;
+                imageType = fileFormat;
             }
         }
         if (!support[0]) {
@@ -132,37 +115,38 @@ public class DiskParser {
     /**
      * ディスクイメージのチェック
      *
-     * @param file_format  [in,out] ファイルの形式名("d88","plain"など)
-     * @param disk_params  [out] ディスクパラメータの候補
-     * @param manual_param [out] 候補がないときのパラメータヒント
-     * @param mod_flags    オープン/追加 DiskImageFile::Add()
+     * @param fileFormat  [in,out] ファイルの形式名 ("d88", "plain", "", など)
+     * @param diskParams  [out] ディスクパラメータの候補
+     * @param manualParam [out] 候補がないときのパラメータヒント
+     * @param modFlags    オープン/追加 DiskImageFile::Add()
      * @return 0: 正常, -1: エラーあり
      */
-    private int check(String file_format, List<DiskParam> disk_params,
-                      DiskParam manual_param, short mod_flags) throws IOException {
+    private int check(String[] fileFormat, List<DiskParam> diskParams,
+                      DiskParam manualParam, short modFlags) throws IOException {
         boolean[] support = {false};
         int rc = -1;
 
-        if (file_format.isEmpty()) {
+        if (fileFormat[0].isEmpty()) {
             // ファイル形式の指定がない場合
 
             // 拡張子で判定
             String ext = Utils.getExt(filepath.getFileName().toString());
 
             // サポートしているファイルか
-            FileParam fitem = gFileTypes.findExt(ext);
-            if (fitem == null) {
+            FileParam fItem = fileTypes.findExt(ext);
+            if (fItem == null) {
                 result.setError(DiskResult.ERR_UNSUPPORTED);
                 return result.getValid();
             }
 
             // 指定形式で解析する
-            List<FileParamFormat> formats = fitem.getFormats();
-            for (int i = 0; i < formats.size(); i++) {
-                FileParamFormat param_format = formats.get(i);
-                rc = selectChecker(param_format.getType(), param_format.getHints(), null, disk_params, manual_param, mod_flags, support);
+            List<FileParamFormat> formats = fItem.getFormats();
+logger.log(Level.TRACE, "formats: %d, %s".formatted(formats.size(), formats));
+            for (FileParamFormat format : formats) {
+                rc = selectChecker(format.getType(), format.getHints(), null, diskParams, manualParam, modFlags, support);
+logger.log(Level.TRACE, "selectChecker: %d, %s".formatted(rc, format.getType()));
                 if (rc >= 0) {
-                    file_format = param_format.getType();
+                    fileFormat[0] = format.getType();
                     break;
                 }
             }
@@ -170,8 +154,7 @@ public class DiskParser {
         } else {
             // ファイル形式の指定あり
 
-            rc = selectChecker(file_format, null, null, disk_params, manual_param, mod_flags, support);
-
+            rc = selectChecker(fileFormat[0], null, null, diskParams, manualParam, modFlags, support);
         }
         if (!support[0]) {
             result.setError(DiskResult.ERR_UNSUPPORTED);
@@ -183,172 +166,66 @@ public class DiskParser {
     /**
      * ファイルの解析方法を選択
      *
-     * @param type       ファイルの形式名("d88","plain"など)
-     * @param disk_param ディスクパラメータ("plain"時のみ)
-     * @param mod_flags  オープン/追加 DiskImageFile::Add()
-     * @param support    [out] サポートしているファイルか
+     * @param type      ファイルの形式名 ("d88", "plain" など)
+     * @param diskParam ディスクパラメータ ("plain" 時のみ)
+     * @param modFlags  オープン/追加 DiskImageFile#add()
+     * @param support   [out] サポートしているファイルか
      * @return 1: 警告, 0: 正常, -1: エラー
      */
-    private int selectPerser(String type, DiskParam disk_param,
-                             short mod_flags, boolean[] support) throws IOException {
-        int rc = -1;
-        if ("d88".equalsIgnoreCase(type)) {
-            DiskD88Parser ps = new DiskD88Parser(file, mod_flags, result);
-            rc = ps.parse(stream, null);
-            support[0] = true;
-        } else if ("cpcdsk".equalsIgnoreCase(type)) {
-            DiskDskParser ps = new DiskDskParser(file, mod_flags, result);
-            if (ps.check(stream) != 0) {
-                rc = ps.parse(stream, disk_param);
+    private int selectParser(String type, DiskParam diskParam,
+                             short modFlags, boolean[] support) throws IOException {
+
+        ServiceLoader<DiskImageParser> serviceLoader = ServiceLoader.load(DiskImageParser.class);
+        for (DiskImageParser parser : serviceLoader) {
+            if (parser.isSupported(type)) {
+                parser.init(file, modFlags, result);
+                int rc = -1;
+                if (parser.needsCheck()) {
+                    if (parser.check(stream) != 0) {
+                        rc = parser.parse(stream, diskParam);
+                    }
+                } else {
+                    rc = parser.parse(stream, diskParam);
+                }
+                support[0] = true;
+                return rc;
             }
-            support[0] = true;
-        } else if ("fdi".equalsIgnoreCase(type)) {
-            DiskFDIParser ps = new DiskFDIParser(file, mod_flags, result);
-            rc = ps.parse(stream, disk_param);
-            support[0] = true;
-        } else if ("cqmimg".equalsIgnoreCase(type)) {
-            DiskCQMParser ps = new DiskCQMParser(file, mod_flags, result);
-            rc = ps.parse(stream, disk_param);
-            support[0] = true;
-        } else if ("teletd0".equalsIgnoreCase(type)) {
-            DiskTD0Parser ps = new DiskTD0Parser(file, mod_flags, result);
-            rc = ps.parse(stream, null);
-            support[0] = true;
-        } else if ("difcdim".equalsIgnoreCase(type)) {
-            DiskDIMParser ps = new DiskDIMParser(file, mod_flags, result);
-            rc = ps.parse(stream, disk_param);
-            support[0] = true;
-        } else if ("v98fdd".equalsIgnoreCase(type)) {
-            DiskVFDParser ps = new DiskVFDParser(file, mod_flags, result);
-            rc = ps.parse(stream, null);
-            support[0] = true;
-        } else if ("imd".equalsIgnoreCase(type)) {
-            DiskIMDParser ps = new DiskIMDParser(file, mod_flags, result);
-            rc = ps.parse(stream, null);
-            support[0] = true;
-        } else if ("dskstr".equalsIgnoreCase(type)) {
-            DiskSTRParser ps = new DiskSTRParser(file, mod_flags, result);
-            rc = ps.parse(stream, null);
-            support[0] = true;
-        } else if ("g64".equalsIgnoreCase(type)) {
-            DiskG64Parser ps = new DiskG64Parser(file, mod_flags, result);
-            rc = ps.parse(stream, null);
-            support[0] = true;
-        } else if ("2mg".equalsIgnoreCase(type)) {
-            Disk2MGParser ps = new Disk2MGParser(file, mod_flags, result);
-            rc = ps.parse(stream, disk_param);
-            support[0] = true;
-        } else if ("adc".equalsIgnoreCase(type)) {
-            DiskADCParser ps = new DiskADCParser(file, mod_flags, result);
-            rc = ps.parse(stream, disk_param);
-            support[0] = true;
-        } else if ("dmk".equalsIgnoreCase(type)) {
-            DiskDmkParser ps = new DiskDmkParser(file, mod_flags, result);
-            if (ps.check(stream) >= 0) {
-                rc = ps.parse(stream, null);
-            }
-            support[0] = true;
-        } else if ("jv3".equalsIgnoreCase(type)) {
-            DiskJV3Parser ps = new DiskJV3Parser(file, mod_flags, result);
-            rc = ps.parse(stream, null);
-            support[0] = true;
-        } else if ("hfe".equalsIgnoreCase(type)) {
-            DiskHfeParser ps = new DiskHfeParser(file, mod_flags, result);
-            rc = ps.parse(stream, null);
-            support[0] = true;
-        } else if ("plain".equalsIgnoreCase(type)) {
-            DiskPlainParser ps = new DiskPlainParser(file, mod_flags, result);
-            rc = ps.parse(stream, disk_param);
-            support[0] = true;
-        } else {
-            logger.log(Level.INFO, type + " is not supported");
         }
-        return rc;
+
+        logger.log(Level.WARNING, type + " is not supported");
+        return -1;
     }
 
     /**
      * ファイルのチェック方法を選択
      *
-     * @param type         ファイルの形式名("d88","plain"など)
-     * @param disk_hints   ディスクパラメータヒント("plain"時のみ)
-     * @param disk_param   ディスクパラメータ("plain"時のみ)
-     * @param disk_params  [out] ディスクパラメータの候補
-     * @param manual_param [out] 候補がないときのパラメータヒント
-     * @param mod_flags    オープン/追加 DiskImageFile::Add()
-     * @param support      [out] サポートしているファイルか
+     * @param type        ファイルの形式名("d88","plain"など)
+     * @param diskHints   ディスクパラメータヒント("plain"時のみ)
+     * @param diskParam   ディスクパラメータ("plain"時のみ)
+     * @param diskParams  [out] ディスクパラメータの候補
+     * @param manualParam [out] 候補がないときのパラメータヒント
+     * @param modFlags    オープン/追加 DiskImageFile::Add()
+     * @param support     [out] サポートしているファイルか
      * @return 1: 候補がないので改めてディスク種類を選択してもらう, 0: 候補あり正常, -1: エラー終了
      */
-    private int selectChecker(String type, List<DiskTypeHint> disk_hints,
-                              DiskParam disk_param, List<DiskParam> disk_params,
-                              DiskParam manual_param, short mod_flags,
+    private int selectChecker(String type, List<DiskTypeHint> diskHints,
+                              DiskParam diskParam, List<DiskParam> diskParams,
+                              DiskParam manualParam, short modFlags,
                               boolean[] support) throws IOException {
-        int rc = -1;
-        if ("d88".equalsIgnoreCase(type)) {
-            DiskD88Parser ps = new DiskD88Parser(file, mod_flags, result);
-            rc = ps.check(stream);
-            support[0] = true;
-        } else if ("cpcdsk".equalsIgnoreCase(type)) {
-            DiskDskParser ps = new DiskDskParser(file, mod_flags, result);
-            rc = ps.check(stream);
-            support[0] = true;
-        } else if ("fdi".equalsIgnoreCase(type)) {
-            DiskFDIParser ps = new DiskFDIParser(file, mod_flags, result);
-            rc = ps.check(stream, disk_hints, disk_param, disk_params, manual_param);
-            support[0] = true;
-        } else if ("cqmimg".equalsIgnoreCase(type)) {
-            DiskCQMParser ps = new DiskCQMParser(file, mod_flags, result);
-            rc = ps.check(stream, disk_hints, disk_param, disk_params, manual_param);
-            support[0] = true;
-        } else if ("teletd0".equalsIgnoreCase(type)) {
-            DiskTD0Parser ps = new DiskTD0Parser(file, mod_flags, result);
-            rc = ps.check(stream);
-            support[0] = true;
-        } else if ("difcdim".equalsIgnoreCase(type)) {
-            DiskDIMParser ps = new DiskDIMParser(file, mod_flags, result);
-            rc = ps.check(stream, disk_hints, disk_param, disk_params, manual_param);
-            support[0] = true;
-        } else if ("v98fdd".equalsIgnoreCase(type)) {
-            DiskVFDParser ps = new DiskVFDParser(file, mod_flags, result);
-            rc = ps.check(stream);
-            support[0] = true;
-        } else if ("imd".equalsIgnoreCase(type)) {
-            DiskIMDParser ps = new DiskIMDParser(file, mod_flags, result);
-            rc = ps.check(stream);
-            support[0] = true;
-        } else if ("dskstr".equalsIgnoreCase(type)) {
-            DiskSTRParser ps = new DiskSTRParser(file, mod_flags, result);
-            rc = ps.check(stream);
-            support[0] = true;
-        } else if ("g64".equalsIgnoreCase(type)) {
-            DiskG64Parser ps = new DiskG64Parser(file, mod_flags, result);
-            rc = ps.check(stream);
-            support[0] = true;
-        } else if ("2mg".equalsIgnoreCase(type)) {
-            Disk2MGParser ps = new Disk2MGParser(file, mod_flags, result);
-            rc = ps.check(stream, disk_hints, disk_param, disk_params, manual_param);
-            support[0] = true;
-        } else if ("adc".equalsIgnoreCase(type)) {
-            DiskADCParser ps = new DiskADCParser(file, mod_flags, result);
-            rc = ps.check(stream, disk_hints, disk_param, disk_params, manual_param);
-            support[0] = true;
-        } else if ("dmk".equalsIgnoreCase(type)) {
-            DiskDmkParser ps = new DiskDmkParser(file, mod_flags, result);
-            rc = ps.check(stream);
-            support[0] = true;
-        } else if ("jv3".equalsIgnoreCase(type)) {
-            DiskJV3Parser ps = new DiskJV3Parser(file, mod_flags, result);
-            rc = ps.check(stream);
-            support[0] = true;
-        } else if ("hfe".equalsIgnoreCase(type)) {
-            DiskHfeParser ps = new DiskHfeParser(file, mod_flags, result);
-            rc = ps.check(stream);
-            support[0] = true;
-        } else if ("plain".equalsIgnoreCase(type)) {
-            DiskPlainParser ps = new DiskPlainParser(file, mod_flags, result);
-            rc = ps.check(stream, disk_hints, disk_param, disk_params, manual_param);
-            support[0] = true;
+
+        ServiceLoader<DiskImageParser> serviceLoader = ServiceLoader.load(DiskImageParser.class);
+        for (DiskImageParser parser : serviceLoader) {
+logger.log(Level.TRACE, type + " is supported: " + parser.isSupported(type));
+            if (parser.isSupported(type)) {
+                parser.init(file, modFlags, result);
+                int rc = parser.check(stream, diskHints, diskParam, diskParams, manualParam);
+                support[0] = true;
+                return rc;
+            }
         }
-        return rc;
+
+logger.log(Level.WARNING, type + " is not supported");
+        return -1;
     }
 
     /** ディスクパーサー */
@@ -358,47 +235,59 @@ public class DiskParser {
         protected short modFlags;
         protected DiskResult result;
 
-        public DiskImageParser(DiskImageFile file, short mod_flags,
-                               DiskResult result) {
+        /** type string is supported nor not */
+        public abstract boolean isSupported(String type);
+
+        /** does check need before parse */
+        public boolean needsCheck() {
+            return false;
+        }
+
+        /** returns teh condition if the check is needed */
+        public boolean checkCondition(InputStream iStream) throws IOException {
+            return false;
+        }
+
+        public void init(DiskImageFile file, short modFlags, DiskResult result) {
             this.file = file;
-            this.modFlags = mod_flags;
+            this.modFlags = modFlags;
             this.result = result;
         }
 
         /**
          * チェック
          *
-         * @param istream 解析対象データ
+         * @param iStream 解析対象データ
          * @return 1: 選択ダイアログ表示, 0: 正常（候補が複数ある時はダイアログ表示）
          */
-        public int check(InputStream istream) throws IOException {
+        public int check(InputStream iStream) throws IOException {
             return result.getValid();
         }
 
         /**
          * チェック
          *
-         * @param istream      解析対象データ
-         * @param hints        ディスクパラメータヒント("2D"など)
-         * @param disk_param   ディスクパラメータ disk_hints指定時はNullable
-         * @param disk_params  [out] ディスクパラメータの候補
-         * @param manual_param [out] 候補がないときのパラメータヒント
+         * @param iStream     解析対象データ
+         * @param hints       ディスクパラメータヒント("2D"など)
+         * @param diskParam   ディスクパラメータ disk_hints指定時はNullable
+         * @param diskParams  [out] ディスクパラメータの候補
+         * @param manualParam [out] 候補がないときのパラメータヒント
          * @return 1: 選択ダイアログ表示,  0: 正常（候補が複数ある時はダイアログ表示）
          */
-        public int check(InputStream istream, List<DiskTypeHint> hints,
-                         DiskParam disk_param, List<DiskParam> disk_params,
-                         DiskParam manual_param) throws IOException {
+        public int check(InputStream iStream, List<DiskTypeHint> hints,
+                         DiskParam diskParam, List<DiskParam> diskParams,
+                         DiskParam manualParam) throws IOException {
             return result.getValid();
         }
 
         /**
          * ファイルイメージを解析
          *
-         * @param istream    解析対象データ
-         * @param disk_param ディスクパラメータ
+         * @param iStream   解析対象データ
+         * @param diskParam ディスクパラメータ
          * @return 0: 正常, -1: エラーあり, 1: 警告あり
          */
-        public int parse(InputStream istream, DiskParam disk_param /* = null */) throws IOException {
+        public int parse(InputStream iStream, DiskParam diskParam /* = null */) throws IOException {
             return result.getValid();
         }
     }

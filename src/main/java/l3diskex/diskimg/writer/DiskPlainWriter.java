@@ -25,24 +25,38 @@ import l3diskex.diskimg.DiskWriter.DiskImageWriter;
  */
 public class DiskPlainWriter extends DiskImageWriter {
 
+    //
+    // べた形式で保存
+    //
+
+    @Override
+    public boolean isSupported(String type) {
+        return "plain".equalsIgnoreCase(type);
+    }
+
+    @Override
+    public void init(DiskWriter writer, DiskResult result) {
+        super.init(writer, result);
+    }
+
     /**
      * ディスク1つを保存
      *
      * @param disk       ディスク1つのイメージ
      * @param sideNumber サイド番号(0-) / -1のときは両面
-     * @param ostream    出力先
+     * @param oStream    出力先
      * @return 0 正常, -1 エラー
      */
-    private int saveDisk(DiskImageDisk disk, int sideNumber, OutputStream ostream) throws IOException {
+    private int saveDisk(DiskImageDisk disk, int sideNumber, OutputStream oStream) throws IOException {
         if (disk == null) {
-            p_result.setError(DiskResult.ERR_NO_DISK);
-            return p_result.getValid();
+            result.setError(DiskResult.ERR_NO_DISK);
+            return result.getValid();
         }
 
         List<DiskImageTrack> tracks = disk.getTracks();
         if (tracks == null) {
-            p_result.setError(DiskResult.ERR_NO_DATA);
-            return p_result.getValid();
+            result.setError(DiskResult.ERR_NO_DATA);
+            return result.getValid();
         }
 
         int trackStart = sideNumber < 0 ? 0 : sideNumber;
@@ -57,29 +71,21 @@ public class DiskPlainWriter extends DiskImageWriter {
             // セクタ番号順に出力する
             List<DiskImageSector> sortedSectors = new ArrayList<>(sectors);
             sortedSectors.sort(Comparator.comparingInt(DiskImageSector::getIDR));
-            for (int idx = 0; idx < sortedSectors.size(); idx++) {
-                DiskImageSector sector = sortedSectors.get(idx);
+            for (DiskImageSector sector : sortedSectors) {
                 if (sector == null) continue;
 
                 // write sector body
                 byte[] buffer = sector.getSectorBuffer();
                 int bufferSize = sector.getSectorBufferSize();
                 if (buffer != null && bufferSize > 0) {
-                    ostream.write(buffer, 0, bufferSize);
+                    oStream.write(buffer, 0, bufferSize);
                 }
                 //sector.clearModify();
             }
         }
 
         //disk.clearModify();
-        return p_result.getValid();
-    }
-
-    //
-    // べた形式で保存
-    //
-    public DiskPlainWriter(DiskWriter dw_, DiskResult result_) {
-        super(dw_, result_);
+        return result.getValid();
     }
 
     /**
@@ -88,36 +94,36 @@ public class DiskPlainWriter extends DiskImageWriter {
      * @param image      ディスクイメージ
      * @param diskNumber ディスク番号(0-) / -1のときは全体
      * @param sideNumber サイド番号(0-) / -1のときは両面
-     * @param ostream    出力先
+     * @param oStream    出力先
      * @return 0 正常, -1 エラー
      */
     @Override
-    public int saveDisk(DiskImage image, int diskNumber, int sideNumber, OutputStream ostream) throws IOException {
-        p_result.clear();
+    public int saveDisk(DiskImage image, int diskNumber, int sideNumber, OutputStream oStream) throws IOException {
+        result.clear();
 
         DiskImageFile file = image.getFile();
         if (file == null) {
-            p_result.setError(DiskResult.ERR_NO_DATA);
-            return p_result.getValid();
+            result.setError(DiskResult.ERR_NO_DATA);
+            return result.getValid();
         }
 
         if (diskNumber < 0) {
             // 最初のディスクだけを保存
             List<DiskImageDisk> disks = file.getDisks();
             if (disks == null || disks.size() <= 0) {
-                p_result.setError(DiskResult.ERR_NO_DISK);
-                return p_result.getValid();
+                result.setError(DiskResult.ERR_NO_DISK);
+                return result.getValid();
             }
             for (int diskNum = 0; diskNum < 1; diskNum++) {
                 DiskImageDisk disk = disks.get(diskNum);
-                saveDisk(disk, -1, ostream);
+                saveDisk(disk, -1, oStream);
             }
         } else {
             // 指定したディスクを保存
             DiskImageDisk disk = file.getDisk(diskNumber);
-            saveDisk(disk, sideNumber, ostream);
+            saveDisk(disk, sideNumber, oStream);
         }
 
-        return p_result.getValid();
+        return result.getValid();
     }
 }

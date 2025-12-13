@@ -198,7 +198,7 @@ public class UiDiskFatArea {
             int row = 0;
             x = lpadding;
 
-            for (int i = 0; i < datas.size(); i++) {
+            for (Integer data : datas) {
                 /* wrap to next row if needed */
                 if ((x + sq.width + rpadding) > getWidth()) {
                     y += (sq.height + margin);
@@ -223,7 +223,7 @@ public class UiDiskFatArea {
                 x += (ll + margin);
 
                 /*  Draw the individual square  */
-                int sts = datas.get(i);
+                int sts = data;
                 Color fillColor;
                 if ((sts & SELECT_FLAG) != 0) {
                     fillColor = brushSelect;

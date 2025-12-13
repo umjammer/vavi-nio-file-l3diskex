@@ -80,19 +80,9 @@ public class FileSelBox extends JDialog {
         panel.add(btnPanel);
 
         // --- ボタンイベント -------------------------------------------------
-        okBtn.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                onOK(e);
-            }
-        });
+        okBtn.addActionListener(e -> onOK(e));
 
-        cancelBtn.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                onCancel(e);
-            }
-        });
+        cancelBtn.addActionListener(e -> onCancel(e));
 
         // --- ダイアログにパネルを設定 ---------------------------------------
         getContentPane().add(panel);

@@ -19,7 +19,7 @@ import java.util.ResourceBundle;
 import javax.swing.JWindow;
 
 import l3diskex.Utils;
-import l3diskex.basicfmt.BasicCommon.DirectoryT;
+import l3diskex.basicfmt.BasicCommon.Directory;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileName;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
@@ -32,7 +32,7 @@ import l3diskex.diskimg.DiskParam.SectorParam;
 import vavi.util.serdes.Element;
 import vavi.util.serdes.Serdes;
 
-import static l3diskex.Config.gConfig;
+import static l3diskex.Config.config;
 import static l3diskex.Parambase.MyAttributes.findValue;
 import static l3diskex.Parambase.MyAttributes.getTypeByValue;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_ASCII_MASK;
@@ -46,9 +46,10 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_VOLUME_MASK;
 import static l3diskex.basicfmt.DiskBasicError.ERR_FILENAME_EMPTY;
 import static l3diskex.basicfmt.DiskBasicError.gDiskBasicErrorMsgs;
 import static l3diskex.basicfmt.DiskBasicType.INVALID_GROUP_NUMBER;
+import static l3diskex.basicfmt.type.DiskBasicTypeMZ.FORMAT_TYPE_MZ;
 
 
-/// ディレクトリ１アイテム MZ DISK BASIC
+/** ディレクトリ１アイテム MZ DISK BASIC */
 public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
 
     static final ResourceBundle rb = ResourceBundle.getBundle("messages");
@@ -57,7 +58,7 @@ public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
      * ディレクトリエントリ MZ DISK BASIC
      */
     @Serdes(bigEndian = false)
-    public static class DirectoryMz implements DirectoryT {
+    public static class DirectoryMz implements Directory {
 
         @Element(sequence = 1)
         public byte type;
@@ -70,9 +71,9 @@ public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
         @Element(sequence = 5)
         public short fileSize;
         @Element(sequence = 6)
-        public short loadAddr;
+        public short loadAddress;
         @Element(sequence = 7)
-        public short execAddr;
+        public short execAddress;
         @Element(sequence = 8)
         public byte[] dateTime = new byte[4];
         @Element(sequence = 9)
@@ -81,10 +82,15 @@ public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
         public static final int SIZE = 32;
     }
 
-    /// MZ S-BASIC 属性
+    // MZ S-BASIC 属性
+
+    /** マシン語のファイル */
     static final int FILETYPE_MZ_OBJ = 1;
+    /** BASIC Text File */
     static final int FILETYPE_MZ_BTX = 2;
+    /** BASIC シーケンシャルDATA */
     static final int FILETYPE_MZ_BSD = 3;
+    /** BASIC Random Access, Data File */
     static final int FILETYPE_MZ_BRD = 4;
     static final int FILETYPE_MZ_DIR = 0xf;
     static final int FILETYPE_MZ_VOL = 0x80;
@@ -108,7 +114,7 @@ public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
     static final int TYPE_NAME_MZ2_SEAMLESS = 1;
 
     /// MZ属性名
-    public static final Map<String, Object> gTypeNameMZ = new HashMap<>() {{
+    public static final Map<String, Object> typeNameMz = new HashMap<>() {{
         put("???", TYPE_NAME_MZ_UNKNOWN);
         put("OBJ", FILETYPE_MZ_OBJ);
         put("BTX", FILETYPE_MZ_BTX);
@@ -119,37 +125,46 @@ public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
         put(/*rb.getString(*/"<VOL> SWAP"/*)*/, FILETYPE_MZ_VOLSWAP);
     }};
 
-    public static final String[] gTypeNameMZ2 = {
+    public static final String[] typeNameMz2 = {
             /*rb.getString(*/"Write Protected"/*)*/,
             /*rb.getString(*/"Seamless"/*)*/,
     };
 
     /** ディレクトリデータ */
-    private final DiskBasicDirData<DirectoryMz> m_data = new DiskBasicDirData<>();
+    private final DiskBasicDirData<DirectoryMz> data = new DiskBasicDirData<>();
 
     //
     //
     //
 
-    public DiskBasicDirItemMZ(DiskBasic basic) {
-        super(basic);
-
-        m_data.alloc(DirectoryMz.class);
+    @Override
+    public boolean isSupported(int formatType) {
+        return formatType == FORMAT_TYPE_MZ;
     }
 
-    public DiskBasicDirItemMZ(DiskBasic basic, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP) {
-        super(basic, n_sector, n_secpos, n_data, dataP);
+    @Override
+    public void init(DiskBasic basic) throws IOException {
+        super.init(basic);
 
-        m_data.attach(DirectoryMz.class, n_data, dataP);
+        data.alloc(DirectoryMz.class);
     }
 
-    public DiskBasicDirItemMZ(DiskBasic basic, int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP, SectorParam n_next, boolean[] n_unuse) throws IOException {
-        super(basic, n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next, n_unuse);
+    @Override
+    public void init(DiskBasic basic, DiskImageSector sector, int sectorPos, byte[] data, int dataP) throws IOException {
+        super.init(basic, sector, sectorPos, data, dataP);
+
+        this.data.attach(DirectoryMz.class, data, dataP);
+    }
+
+    @Override
+    public void init(DiskBasic basic, int num, DiskBasicGroupItem groupItem, DiskImageSector sector, int sectorPos,
+                     byte[] data, int dataP, SectorParam next, boolean[] unuse) throws IOException {
+        super.init(basic, num, groupItem, sector, sectorPos, data, dataP, next, unuse);
 
         // MZ
-        m_data.attach(DirectoryMz.class, n_data, dataP);
+        this.data.attach(DirectoryMz.class, data, dataP);
 
-        used(checkUsed(n_unuse[0]));
+        used(checkUsed(unuse[0]));
 
         calcFileSize();
 
@@ -159,18 +174,19 @@ public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
     }
 
     @Override
-    public void setDataPtr(int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP, SectorParam n_next) throws IOException {
-        super.setDataPtr(n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next);
+    public void setData(int num, DiskBasicGroupItem groupItem, DiskImageSector sector, int sectorPos,
+                        byte[] data, int dataPos, SectorParam next) throws IOException {
+        super.setData(num, groupItem, sector, sectorPos, data, dataPos, next);
 
-        m_data.attach(DirectoryMz.class, n_data, dataP);
+        this.data.attach(DirectoryMz.class, data, dataPos);
     }
 
     @Override
     protected byte[] getFileNamePos(int num, int[] size, int[] len) {
         if (num == 0) {
-            size[0] = m_data.data().name.length;
+            size[0] = data.data().name.length;
             len[0] = size[0] - 1;
-            return m_data.data().name;
+            return data.data().name;
         } else {
             size[0] = 0;
             len[0] = 0;
@@ -180,22 +196,22 @@ public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
 
     @Override
     public int getFileType1() {
-        return basic.invertUint8(m_data.data().type) & 0xff; // invert
+        return basic.invertUint8(data.data().type) & 0xff; // invert
     }
 
     @Override
     public int getFileType2() {
-        return basic.invertUint8(m_data.data().type2) & 0xff; // invert
+        return basic.invertUint8(data.data().type2) & 0xff; // invert
     }
 
     @Override
     protected void setFileType1(int val) {
-        m_data.data().type = basic.invertUint8((byte) val); // invert
+        data.data().type = basic.invertUint8((byte) val); // invert
     }
 
     @Override
     protected void setFileType2(int val) {
-        m_data.data().type2 = basic.invertUint8((byte) val); // invert
+        data.data().type2 = basic.invertUint8((byte) val); // invert
     }
 
     @Override
@@ -205,26 +221,26 @@ public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
 
     @Override
     public boolean check(boolean[] last) {
-        if (!m_data.isValid()) return false;
+        if (!data.isValid()) return false;
 
         boolean valid = true;
         int t = getFileType1();
-        if ((t & 0x70) != 0 && findValue(basic.diskBasicParam.getSpecialAttributes(), t) == null) {
+        if ((t & 0x70) != 0 && findValue(basic.getSpecialAttributes(), t) == null) {
             valid = false;
         }
         return valid;
     }
 
 //    public boolean delete() {
-//        m_data.fill(basic.invertUint8(basic.getDeleteCode()), 1);
+//        data.fill(basic.invertUint8(basic.getDeleteCode()), 1);
 //        used(false);
 //        return true;
 //    }
 
     @Override
     public void setFileAttr(DiskBasicFileType fileType) {
-        int ftype = fileType.getType();
-        if (ftype == -1) return;
+        int fType = fileType.getType();
+        if (fType == -1) return;
 
         int t1 = 0;
         int t2 = 0;
@@ -232,8 +248,8 @@ public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
             t1 = fileType.getOrigin() & 0xff;
             t2 = (fileType.getOrigin() >> 8) & 0xff;
         } else {
-            t1 = convToNativeType(ftype);
-            if ((ftype & FILE_TYPE_READONLY_MASK.getValue()) != 0) {
+            t1 = convToNativeType(fType);
+            if ((fType & FILE_TYPE_READONLY_MASK.getValue()) != 0) {
                 t2 |= DATATYPE_MZ_READ_ONLY;
             }
         }
@@ -241,21 +257,21 @@ public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
         setFileType2(t2);
     }
 
-    private int convToNativeType(int file_type) {
+    private int convToNativeType(int fileType) {
         int val = 0;
-        if ((file_type & FILE_TYPE_MACHINE_MASK.getValue()) != 0) {
+        if ((fileType & FILE_TYPE_MACHINE_MASK.getValue()) != 0) {
             val = FILETYPE_MZ_OBJ;
-        } else if ((file_type & FILE_TYPE_BINARY_MASK.getValue()) != 0) {
+        } else if ((fileType & FILE_TYPE_BINARY_MASK.getValue()) != 0) {
             val = FILETYPE_MZ_BTX;
-        } else if ((file_type & FILE_TYPE_ASCII_MASK.getValue()) != 0) {
+        } else if ((fileType & FILE_TYPE_ASCII_MASK.getValue()) != 0) {
             val = FILETYPE_MZ_BSD;
-        } else if ((file_type & FILE_TYPE_RANDOM_MASK.getValue()) != 0) {
+        } else if ((fileType & FILE_TYPE_RANDOM_MASK.getValue()) != 0) {
             val = FILETYPE_MZ_BRD;
-        } else if ((file_type & FILE_TYPE_DIRECTORY_MASK.getValue()) != 0) {
+        } else if ((fileType & FILE_TYPE_DIRECTORY_MASK.getValue()) != 0) {
             val = FILETYPE_MZ_DIR;
-        } else if ((file_type & FILE_TYPE_VOLUME_MASK.getValue()) != 0) {
+        } else if ((fileType & FILE_TYPE_VOLUME_MASK.getValue()) != 0) {
             val = FILETYPE_MZ_VOL;
-            if ((file_type & FILE_TYPE_TEMPORARY_MASK.getValue()) != 0) val = FILETYPE_MZ_VOLSWAP;
+            if ((fileType & FILE_TYPE_TEMPORARY_MASK.getValue()) != 0) val = FILETYPE_MZ_VOLSWAP;
         }
         return val;
     }
@@ -292,7 +308,7 @@ public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
                 val |= FILE_TYPE_TEMPORARY_MASK.getValue(); // temporary
                 break;
             default:
-                val = getTypeByValue(basic.diskBasicParam.getSpecialAttributes(), t1);
+                val = getTypeByValue(basic.getSpecialAttributes(), t1);
                 break;
         }
         int t2 = getFileType2();
@@ -308,13 +324,13 @@ public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
     @Override
     public String getFileAttrStr() {
         String[] attr = new String[1];
-        getFileAttrName(convFileType1Pos(getFileType1()), gTypeNameMZ, attr, TYPE_NAME_MZ_UNKNOWN);
+        getFileAttrName(convFileType1Pos(getFileType1()), typeNameMz, attr, TYPE_NAME_MZ_UNKNOWN);
 
         int t2 = getFileType2();
         if ((t2 & DATATYPE_MZ_READ_ONLY) != 0) {
             // write protect
             attr[0] += ", ";
-            attr[0] += rb.getString(gTypeNameMZ2[TYPE_NAME_MZ2_READ_ONLY]);
+            attr[0] += rb.getString(typeNameMz2[TYPE_NAME_MZ2_READ_ONLY]);
         }
 
         return attr[0];
@@ -322,7 +338,7 @@ public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
 
     @Override
     protected void setFileSizeBase(int val) {
-        m_data.data().fileSize = basic.invertAndOrderUint16((short) val); // invert
+        data.data().fileSize = basic.invertAndOrderUint16((short) val); // invert
     }
 
     @Override
@@ -337,7 +353,7 @@ public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
 
     @Override
     protected int getFileSizeBase() {
-        int val = basic.invertAndOrderUint16(m_data.data().fileSize) & 0xffff;
+        int val = basic.invertAndOrderUint16(data.data().fileSize) & 0xffff;
         if (getFileType1() == FILETYPE_MZ_BRD) {
             // BRD file
             val *= 32;
@@ -349,7 +365,7 @@ public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
     private static class StBrdParams {
 
         int pos;
-        int cnt;
+        int count;
         short[] maps;
     }
 
@@ -361,63 +377,63 @@ public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
     }
 
     @Override
-    protected void preCalcAllGroups(int[] calc_flags, int[] group_num, int[] remain, int[] sec_size, Object[] user_data) {
-        boolean is_chain = needChainInData();
-        boolean is_brd = getFileType1() == FILETYPE_MZ_BRD;
-        calc_flags[0] = (is_chain ? 1 : 0) | (is_brd ? 2 : 0);
+    protected void preCalcAllGroups(int[] calcFlags, int[] groupNum, int[] remain, int[] sectorSize, Object[] userData) {
+        boolean isChain = needChainInData();
+        boolean isBRD = getFileType1() == FILETYPE_MZ_BRD;
+        calcFlags[0] = (isChain ? 1 : 0) | (isBRD ? 2 : 0);
 
         StBrdParams brd = new StBrdParams();
         brd.pos = 0;
-        brd.cnt = 0;
+        brd.count = 0;
         brd.maps = null;
 
-        if (is_chain) {
+        if (isChain) {
             // 各セクタの最後2バイト分を減算
-            sec_size[0] -= 2;
+            sectorSize[0] -= 2;
         }
-        if (is_brd) {
-            DiskImageSector sector = basic.getSectorFromGroup(group_num[0]);
+        if (isBRD) {
+            DiskImageSector sector = basic.getSectorFromGroup(groupNum[0]);
             if (sector != null) {
                 // This is the pointer map to each start sector
                 ShortBuffer buffer = ByteBuffer.wrap(sector.getSectorBuffer()).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer();
                 brd.maps = new short[buffer.capacity() / Short.BYTES];
                 buffer.get(brd.maps);
 
-                group_num[0] = basic.invertAndOrderUint16(brd.maps[brd.pos]); // invert
-                group_num[0] /= basic.getSectorsPerGroup();
+                groupNum[0] = basic.invertAndOrderUint16(brd.maps[brd.pos]); // invert
+                groupNum[0] /= basic.getSectorsPerGroup();
 
                 // 残りサイズは16セクタ分で丸める
-                int block_size = (16 * basic.getSectorSize());
-                remain[0] = ((remain[0] + block_size - 1) / block_size) * block_size;
+                int blockSize = (16 * basic.getSectorSize());
+                remain[0] = ((remain[0] + blockSize - 1) / blockSize) * blockSize;
             }
         }
 
-        user_data[0] = brd;
+        userData[0] = brd;
     }
 
     @Override
-    protected void calcAllGroups(int calc_flags, int[] group_num, int[] remain, int[] sec_size, int[] end_sec, Object user_data) {
-        boolean is_chain = ((calc_flags & 1) != 0);
-        boolean is_brd = ((calc_flags & 2) != 0);
-        StBrdParams brd = (StBrdParams) user_data;
+    protected void calcAllGroups(int calcFlags, int[] groupNum, int[] remain, int[] sectorSize, int[] endSector, Object userData) {
+        boolean isChain = ((calcFlags & 1) != 0);
+        boolean isBRD = ((calcFlags & 2) != 0);
+        StBrdParams brd = (StBrdParams) userData;
 
-        if (is_chain) {
+        if (isChain) {
             // BSD
-            group_num[0] = type.getNextGroupNumber(group_num[0], end_sec[0]);
+            groupNum[0] = type.getNextGroupNumber(groupNum[0], endSector[0]);
         } else {
             // BTX,OBJ
-            group_num[0]++;
-            if (is_brd) {
+            groupNum[0]++;
+            if (isBRD) {
                 // BRD
-                brd.cnt += basic.getSectorsPerGroup();
-                if (brd.cnt >= 16) {
-                    brd.cnt = 0;
+                brd.count += basic.getSectorsPerGroup();
+                if (brd.count >= 16) {
+                    brd.count = 0;
                     if (((brd.pos + 1) * 2) < basic.getSectorSize()) {
                         brd.pos++;
                     }
                     if (brd.maps != null && brd.pos < brd.maps.length) {
-                        group_num[0] = basic.invertAndOrderUint16(brd.maps[brd.pos]);
-                        group_num[0] /= basic.getSectorsPerGroup();
+                        groupNum[0] = basic.invertAndOrderUint16(brd.maps[brd.pos]);
+                        groupNum[0] /= basic.getSectorsPerGroup();
                     }
                 }
             }
@@ -425,13 +441,13 @@ public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
     }
 
     @Override
-    protected void postCalcAllGroups(Object user_data) {
+    protected void postCalcAllGroups(Object userData) {
     }
 
     @Override
     public LocalDate getFileCreateDate(LocalDateTime tm) {
         int ymd;
-        ymd = (m_data.data().dateTime[0] & 0xFF) << 16 | (m_data.data().dateTime[1] & 0xFF) << 8 | (m_data.data().dateTime[2] & 0xFF);
+        ymd = (data.data().dateTime[0] & 0xFF) << 16 | (data.data().dateTime[1] & 0xFF) << 8 | (data.data().dateTime[2] & 0xFF);
         int inverted_ymd = basic.invertUint32(ymd); // invert
         return LocalDate.of(
                 ((inverted_ymd >> 20) & 0x0f) * 10 + ((inverted_ymd >> 16) & 0x0f) +
@@ -444,7 +460,7 @@ public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
     @Override
     public LocalTime getFileCreateTime(LocalDateTime tm) {
         int hms;
-        hms = (m_data.data().dateTime[2] & 0xFF) << 8 | (m_data.data().dateTime[3] & 0xFF);
+        hms = (data.data().dateTime[2] & 0xFF) << 8 | (data.data().dateTime[3] & 0xFF);
         int inverted_hms = basic.invertUint32(hms); // invert
         return LocalTime.of(
                 ((inverted_hms >> 11) & 3) * 10 + ((inverted_hms >> 7) & 0x0f),
@@ -470,89 +486,88 @@ public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
     public void setFileCreateDate(LocalDateTime tm) {
         if (tm.getYear() < 0 || tm.getMonth().ordinal() < -1) return;
 
-        int tmp = (m_data.data().dateTime[0] & 0xFF) << 16 | (m_data.data().dateTime[1] & 0xFF) << 8 | (m_data.data().dateTime[2] & 0xFF);
-        int inverted_tmp = basic.invertUint32(tmp);
-        inverted_tmp &= 0x1f;
-        inverted_tmp |= (((tm.getYear() / 10) % 10) << 20) | ((tm.getYear() % 10) << 16);
-        inverted_tmp |= ((((tm.getMonth().ordinal() + 1) / 10) & 1) << 15) | (((tm.getMonth().ordinal() + 1) % 10) << 11);
-        inverted_tmp |= (((tm.getDayOfMonth() / 10) & 3) << 9) | ((tm.getDayOfMonth() % 10) << 5);
-        int final_tmp = basic.invertUint32(inverted_tmp);
+        int tmp = (data.data().dateTime[0] & 0xFF) << 16 | (data.data().dateTime[1] & 0xFF) << 8 | (data.data().dateTime[2] & 0xFF);
+        int invertedTmp = basic.invertUint32(tmp);
+        invertedTmp &= 0x1f;
+        invertedTmp |= (((tm.getYear() / 10) % 10) << 20) | ((tm.getYear() % 10) << 16);
+        invertedTmp |= ((((tm.getMonth().ordinal() + 1) / 10) & 1) << 15) | (((tm.getMonth().ordinal() + 1) % 10) << 11);
+        invertedTmp |= (((tm.getDayOfMonth() / 10) & 3) << 9) | ((tm.getDayOfMonth() % 10) << 5);
+        int finalTmp = basic.invertUint32(invertedTmp);
 
-        m_data.data().dateTime[0] = (byte) (final_tmp >> 16);
-        m_data.data().dateTime[1] = (byte) (final_tmp >> 8);
-        m_data.data().dateTime[2] = (byte) (final_tmp & 0xff);
+        data.data().dateTime[0] = (byte) (finalTmp >> 16);
+        data.data().dateTime[1] = (byte) (finalTmp >> 8);
+        data.data().dateTime[2] = (byte) (finalTmp & 0xff);
     }
 
     @Override
     public void setFileCreateTime(LocalDateTime tm) {
         if (tm.getHour() < 0 || tm.getMinute() < 0) return;
 
-        int tmp = (m_data.data().dateTime[2] & 0xFF) << 8 | (m_data.data().dateTime[3] & 0xFF);
-        int inverted_tmp = basic.invertUint32(tmp & 0xFFFF_FFFF);
-        inverted_tmp &= ~0x1fff;
-        inverted_tmp |= (((tm.getHour() / 10) & 3) << 11) | ((tm.getHour() % 10) << 7);
-        inverted_tmp |= (((tm.getMinute() / 10) & 7) << 4) | (tm.getMinute() % 10);
-        int final_tmp = basic.invertUint32(inverted_tmp & 0xFFFF_FFFF);
+        int tmp = (data.data().dateTime[2] & 0xFF) << 8 | (data.data().dateTime[3] & 0xFF);
+        int invertedTmp = basic.invertUint32(tmp & 0xFFFF_FFFF);
+        invertedTmp &= ~0x1fff;
+        invertedTmp |= (((tm.getHour() / 10) & 3) << 11) | ((tm.getHour() % 10) << 7);
+        invertedTmp |= (((tm.getMinute() / 10) & 7) << 4) | (tm.getMinute() % 10);
+        int finalTmp = basic.invertUint32(invertedTmp & 0xFFFF_FFFF);
 
-        m_data.data().dateTime[2] = (byte) (final_tmp >> 8);
-        m_data.data().dateTime[3] = (byte) (final_tmp & 0xff);
+        data.data().dateTime[2] = (byte) (finalTmp >> 8);
+        data.data().dateTime[3] = (byte) (finalTmp & 0xff);
     }
 
     @Override
     public int getStartAddress() {
-        return basic.invertAndOrderUint16(m_data.data().loadAddr);
+        return basic.invertAndOrderUint16(data.data().loadAddress) & 0xffff;
     }
 
     @Override
     public int getExecuteAddress() {
-        return basic.invertAndOrderUint16(m_data.data().execAddr);
+        return basic.invertAndOrderUint16(data.data().execAddress) & 0xffff;
     }
 
     @Override
     public void setStartAddress(int val) {
-        m_data.data().loadAddr = basic.invertAndOrderUint16((short) val);
+        data.data().loadAddress = basic.invertAndOrderUint16((short) val);
     }
 
     @Override
     public void setExecuteAddress(int val) {
-        m_data.data().execAddr = basic.invertAndOrderUint16((short) val);
+        data.data().execAddress = basic.invertAndOrderUint16((short) val);
     }
 
     @Override
     public int getDataSize() {
-        return m_data.getDataSize();
+        return data.getDataSize();
     }
 
     @Override
     public DirectoryMz getData() {
-        return m_data.data();
+        return data.data();
     }
 
     @Override
     public boolean copyData(byte[] val) {
-        return m_data.copy(val, getDataSize());
+        return data.copy(val, getDataSize());
     }
 
     @Override
     public void clearData() {
-        if (!m_data.isValid()) return;
-        m_data.fill(0);
-        Arrays.fill(m_data.data().name, (byte) 0x0d);
-        basic.invertMem(m_data.getRawData(), m_data.getDataSize()); // invert
-        // TODO write back
+        if (!data.isValid()) return;
+        data.fill(0);
+        Arrays.fill(data.getRawData(), 1, 1 + 17, (byte) 0x0d); // name
+        basic.invertMemory(data.getRawData(), data.getDataSize()); // invert
     }
 
     @Override
-    public void setStartGroup(int fileunit_num, int val, int size) {
-        int sval = val * basic.getSectorsPerGroup();
-        sval = basic.invertAndOrderUint16((short) sval);
-        m_data.data().startSector = (short) sval;
+    public void setStartGroup(int fileUnitNum, int val, int size) {
+        int sVal = val * basic.getSectorsPerGroup();
+        sVal = basic.invertAndOrderUint16((short) sVal);
+        data.data().startSector = (short) sVal;
     }
 
     @Override
-    public int getStartGroup(int fileunit_num) {
-        int sval = basic.invertAndOrderUint16(m_data.data().startSector);
-        return (sval / basic.getSectorsPerGroup());
+    public int getStartGroup(int fileUnitNum) {
+        int sVal = basic.invertAndOrderUint16(data.data().startSector);
+        return sVal / basic.getSectorsPerGroup();
     }
 
     @Override
@@ -572,19 +587,19 @@ public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
     }
 
     @Override
-    public boolean isSameFileName(DiskBasicFileName filename, boolean icase) {
+    public boolean isSameFileName(DiskBasicFileName filename, boolean caseInsensitive) {
         int t1 = getFileType1();
         if (t1 == 0 || t1 == FILETYPE_MZ_VOL) return false;
 
-        return super.isSameFileName(filename, icase);
+        return super.isSameFileName(filename, caseInsensitive);
     }
 
     @Override
-    public boolean isSameFileName(DiskBasicDirItem src, boolean icase) {
+    public boolean isSameFileName(DiskBasicDirItem src, boolean iCase) {
         int t1 = getFileType1();
         if (t1 == 0 || t1 == FILETYPE_MZ_VOL) return false;
 
-        return super.isSameFileName(src, icase);
+        return super.isSameFileName(src, iCase);
     }
 
     @Override
@@ -594,11 +609,11 @@ public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
 
     @Override
     public boolean preExportDataFile(String[] filename) {
-        if (!gConfig.isAddExtensionExport()) return true;
+        if (!config.isAddExtensionExport()) return true;
 
         if (!isDirectory()) {
             String[] ext = new String[1];
-            if (getFileAttrName(convFileType1Pos(getFileType1()), gTypeNameMZ, ext, TYPE_NAME_MZ_UNKNOWN)) {
+            if (getFileAttrName(convFileType1Pos(getFileType1()), typeNameMz, ext, TYPE_NAME_MZ_UNKNOWN)) {
                 filename[0] += ".";
                 if (Utils.isUpperString(filename[0])) {
                     filename[0] += ext[0].toUpperCase();
@@ -612,8 +627,8 @@ public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
 
     @Override
     public boolean preImportDataFile(String[] filename) {
-        if (gConfig.isDecideAttrImport()) {
-            isContainAttrByExtension(filename[0], gTypeNameMZ, TYPE_NAME_MZ_OBJ, TYPE_NAME_MZ_DIR, filename, null, null);
+        if (config.isDecideAttrImport()) {
+            isContainAttrByExtension(filename[0], typeNameMz, TYPE_NAME_MZ_OBJ, TYPE_NAME_MZ_DIR, filename, null, null);
         }
         filename[0] = remakeFileNameAndExtStr(filename[0]);
         return true;
@@ -622,61 +637,44 @@ public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
     @Override
     public int convOriginalTypeFromFileName(String filename) {
         int[] t1 = new int[1];
-        if (!isContainAttrByExtension(filename, gTypeNameMZ, TYPE_NAME_MZ_OBJ, TYPE_NAME_MZ_DIR, null, t1, null)) {
+        if (!isContainAttrByExtension(filename, typeNameMz, TYPE_NAME_MZ_OBJ, TYPE_NAME_MZ_DIR, null, t1, null)) {
             t1[0] = FILETYPE_MZ_BSD;
         }
         return t1[0];
     }
 
-    public int convFileType1Pos(int native_type) {
-        int pos = TYPE_NAME_MZ_UNKNOWN;
-        switch (native_type) {
-            case FILETYPE_MZ_OBJ:
-                pos = TYPE_NAME_MZ_OBJ;
-                break;
-            case FILETYPE_MZ_BTX:
-                pos = TYPE_NAME_MZ_BTX;
-                break;
-            case FILETYPE_MZ_BSD:
-                pos = TYPE_NAME_MZ_BSD;
-                break;
-            case FILETYPE_MZ_BRD:
-                pos = TYPE_NAME_MZ_BRD;
-                break;
-            case FILETYPE_MZ_DIR:
-                pos = TYPE_NAME_MZ_DIR;
-                break;
-            case FILETYPE_MZ_VOL:
-                pos = TYPE_NAME_MZ_VOL;
-                break;
-            case FILETYPE_MZ_VOLSWAP:
-                pos = TYPE_NAME_MZ_VOLSWAP;
-                break;
-            default:
-                pos = -native_type;
-                break;
-        }
+    public int convFileType1Pos(int nativeType) {
+        int pos = switch (nativeType) {
+            case FILETYPE_MZ_OBJ -> TYPE_NAME_MZ_OBJ;
+            case FILETYPE_MZ_BTX -> TYPE_NAME_MZ_BTX;
+            case FILETYPE_MZ_BSD -> TYPE_NAME_MZ_BSD;
+            case FILETYPE_MZ_BRD -> TYPE_NAME_MZ_BRD;
+            case FILETYPE_MZ_DIR -> TYPE_NAME_MZ_DIR;
+            case FILETYPE_MZ_VOL -> TYPE_NAME_MZ_VOL;
+            case FILETYPE_MZ_VOLSWAP -> TYPE_NAME_MZ_VOLSWAP;
+            default -> -nativeType;
+        };
         return pos;
     }
 
-    public int convFileType2Pos(int native_type) {
+    public int convFileType2Pos(int nativeType) {
         int val = 0;
-        if ((native_type & DATATYPE_MZ_READ_ONLY) != 0) {
+        if ((nativeType & DATATYPE_MZ_READ_ONLY) != 0) {
             val |= FILE_TYPE_READONLY_MASK.getValue();
         }
-        val |= ((native_type & DATATYPE_MZ_SEAMLESS) << DATATYPE_MZ_SEAMLESS_POS);
+        val |= ((nativeType & DATATYPE_MZ_SEAMLESS) << DATATYPE_MZ_SEAMLESS_POS);
         return val;
     }
 
-    public void setFileTypeForAttrDialog(int show_flags, String name, int[] file_type_1, int[] file_type_2) {
-        if ((show_flags & 1) != 0) { // INTNAME_NEW_FILE is assumed to be 1
-            file_type_1[0] = convOriginalTypeFromFileName(name);
+    public void setFileTypeForAttrDialog(int showFlags, String name, int[] fileType1, int[] fileType2) {
+        if ((showFlags & 1) != 0) { // INTNAME_NEW_FILE is assumed to be 1
+            fileType1[0] = convOriginalTypeFromFileName(name);
         }
     }
 
-    public boolean validateFileName(JWindow parent, String filename, String[] errormsg) {
+    public boolean validateFileName(JWindow parent, String filename, String[] errorMessage) {
         if (filename.isEmpty()) {
-            errormsg[0] = rb.getString(gDiskBasicErrorMsgs[ERR_FILENAME_EMPTY]);
+            errorMessage[0] = rb.getString(gDiskBasicErrorMsgs[ERR_FILENAME_EMPTY]);
             return false;
         }
         return true;
@@ -686,14 +684,14 @@ public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
     public void setInternalDataInAttrDialog(KeyValArray vals) {
         vals.add("inverted", basic.isDataInverted());
 
-        vals.add("TYPE", (byte) (m_data.data().type & 0xFF), basic.isDataInverted());
-        vals.add("NAME", m_data.data().name, m_data.data().name.length, basic.isDataInverted());
-        vals.add("TYPE2", (byte) (m_data.data().type2 & 0xFF), basic.isDataInverted());
-        vals.add("RESERVED", (byte) (m_data.data().reserved & 0xFF), basic.isDataInverted());
-        vals.add("FILE_SIZE", m_data.data().fileSize & 0xFFFF, basic.isBigEndian(), basic.isDataInverted());
-        vals.add("LOAD_ADDR", m_data.data().loadAddr & 0xFFFF, basic.isBigEndian(), basic.isDataInverted());
-        vals.add("EXEC_ADDR", m_data.data().execAddr & 0xFFFF, basic.isBigEndian(), basic.isDataInverted());
-        vals.add("DATE_TIME", m_data.data().dateTime, m_data.data().dateTime.length, basic.isDataInverted());
-        vals.add("START_SECTOR", m_data.data().startSector & 0xFFFF, basic.isBigEndian(), basic.isDataInverted());
+        vals.add("TYPE", (byte) (data.data().type & 0xFF), basic.isDataInverted());
+        vals.add("NAME", data.data().name, data.data().name.length, basic.isDataInverted());
+        vals.add("TYPE2", (byte) (data.data().type2 & 0xFF), basic.isDataInverted());
+        vals.add("RESERVED", (byte) (data.data().reserved & 0xFF), basic.isDataInverted());
+        vals.add("FILE_SIZE", data.data().fileSize & 0xFFFF, basic.isBigEndian(), basic.isDataInverted());
+        vals.add("LOAD_ADDR", data.data().loadAddress & 0xFFFF, basic.isBigEndian(), basic.isDataInverted());
+        vals.add("EXEC_ADDR", data.data().execAddress & 0xFFFF, basic.isBigEndian(), basic.isDataInverted());
+        vals.add("DATE_TIME", data.data().dateTime, data.data().dateTime.length, basic.isDataInverted());
+        vals.add("START_SECTOR", data.data().startSector & 0xFFFF, basic.isBigEndian(), basic.isDataInverted());
     }
 }

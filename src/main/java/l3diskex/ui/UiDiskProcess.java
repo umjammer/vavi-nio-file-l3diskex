@@ -37,15 +37,17 @@ class UiDiskProcess extends JFrame {
         m_unique_number = 0;
     }
 
-    /// 指定したファイルをインポート
-    ///
-    /// @param paths     ファイルパスのリスト
-    /// @param dir_basic [in,out] 保存先のOS
-    /// @param dir_item  [in,out] 保存先ディレクトリアイテム
-    /// @param confirm   ディレクトリを含む場合に確認ダイアログを表示するか
-    /// @param start_msg 開始メッセージ
-    /// @param end_msg   終了メッセージ
-    /// @return true:OK false:Error
+    /**
+     * 指定したファイルをインポート
+     *
+     * @param paths     ファイルパスのリスト
+     * @param dir_basic [in,out] 保存先のOS
+     * @param dir_item  [in,out] 保存先ディレクトリアイテム
+     * @param confirm   ディレクトリを含む場合に確認ダイアログを表示するか
+     * @param start_msg 開始メッセージ
+     * @param end_msg   終了メッセージ
+     * @return true:OK false:Error
+     */
     public boolean ImportDataFiles(List<String> paths, DiskBasic dir_basic, DiskBasicDirItem dir_item, boolean confirm, String start_msg, String end_msg) {
         if (dir_basic == null) {
             return false;
@@ -584,7 +586,7 @@ class UiDiskProcess extends JFrame {
                 } else {
                     // dlg.GetInternalName(dir_name); // Placeholder
                     // if (temp_item.CanIgnoreDateTime()) { // Placeholder
-                    //     gConfig.IgnoreDateTime(dlg.DoesIgnoreDateTime(gConfig.DoesIgnoreDateTime())); // Placeholder
+                    //     config.IgnoreDateTime(dlg.DoesIgnoreDateTime(config.DoesIgnoreDateTime())); // Placeholder
                     // }
                     // Simulate a new name for the loop to continue or exit
                     dir_name = "new_name_placeholder";
@@ -790,9 +792,9 @@ class UiDiskProcess extends JFrame {
         DiskBasicDirItemAttr attr = new DiskBasicDirItemAttr();
 
         // パラメータを設定に反映
-        // gConfig.SkipImportDialog(dlg.IsSkipDialog(gConfig.IsSkipImportDialog())); // Placeholder
+        // config.SkipImportDialog(dlg.IsSkipDialog(config.IsSkipImportDialog())); // Placeholder
         // if (item.CanIgnoreDateTime()) { // Placeholder
-        //     gConfig.IgnoreDateTime(dlg.DoesIgnoreDateTime(gConfig.DoesIgnoreDateTime())); // Placeholder
+        //     config.IgnoreDateTime(dlg.DoesIgnoreDateTime(config.DoesIgnoreDateTime())); // Placeholder
         // }
 
         // 属性をアイテムに反映

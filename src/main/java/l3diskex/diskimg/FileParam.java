@@ -11,6 +11,7 @@ import java.lang.System.Logger.Level;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.StringJoiner;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -20,6 +21,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import l3diskex.Parambase.TemplatesBase;
+import l3diskex.Utils;
 import org.xml.sax.SAXException;
 
 
@@ -27,44 +29,54 @@ public class FileParam {
 
     private static final Logger logger = System.getLogger(FileParam.class.getName());
 
+    public static FileTypes fileTypes = new FileTypes();
+
     /**
      * FileFormat
      */
     public static class FileFormat {
 
-        // index inside the list
-        private final int m_idx;
-        // file type ("d88","plain",...)
-        private String m_name;
-        // description
-        private final String m_description;
+        /** index inside the list */
+        private final int index;
+        /** file type ("d88", "plain",...) */
+        private String name;
+        /** description */
+        private final String description;
 
         public FileFormat() {
-            m_idx = 0;
-            m_name = "";
-            m_description = "";
+            index = 0;
+            name = "";
+            description = "";
         }
 
         public FileFormat(int idx, String name, String desc) {
-            m_idx = idx;
-            m_name = name;
-            m_description = desc;
+            index = idx;
+            this.name = name;
+            description = desc;
         }
 
         public int getIndex() {
-            return m_idx;
+            return index;
         }
 
         public void setName(String val) {
-            m_name = val;
+            name = val;
         }
 
         public String getName() {
-            return m_name;
+            return name;
         }
 
         public String getDescription() {
-            return m_description;
+            return description;
+        }
+
+        @Override public String toString() {
+            return new StringJoiner(", ", FileFormat.class.getSimpleName() + "[", "]")
+                    .add("index=" + index)
+                    .add("name='" + name + "'")
+                    .add("description='" + description + "'")
+                    .toString();
         }
     }
 
@@ -73,35 +85,42 @@ public class FileParam {
      */
     public static class DiskTypeHint {
 
-        private String m_hint;
-        private int m_kind;
+        private String hint;
+        private int kind;
 
         public DiskTypeHint() {
-            m_hint = "";
-            m_kind = 0;
+            hint = "";
+            kind = 0;
         }
 
         public DiskTypeHint(String hint) {
-            m_hint = hint;
-            m_kind = 0;
+            this.hint = hint;
+            kind = 0;
         }
 
         public DiskTypeHint(String hint, int kind) {
-            m_hint = hint;
-            m_kind = kind;
+            this.hint = hint;
+            this.kind = kind;
         }
 
         public void set(String hint, int kind) {
-            m_hint = hint;
-            m_kind = kind;
+            this.hint = hint;
+            this.kind = kind;
         }
 
         public String getHint() {
-            return m_hint;
+            return hint;
         }
 
         public int getKind() {
-            return m_kind;
+            return kind;
+        }
+
+        @Override public String toString() {
+            return new StringJoiner(", ", DiskTypeHint.class.getSimpleName() + "[", "]")
+                    .add("hint='" + hint + "'")
+                    .add("kind=" + kind)
+                    .toString();
         }
     }
 
@@ -110,46 +129,55 @@ public class FileParam {
      */
     public static class FileParamFormat {
 
-        private String m_type;   // file type ("d88","plain",...)
-        private final List<DiskTypeHint> m_hints;  // list of hints
+        /** file type ("d88", "plain",...) */
+        private String type;
+        /** list of hints */
+        private final List<DiskTypeHint> hints;
 
         public FileParamFormat() {
-            m_type = "";
-            m_hints = new ArrayList<>();
+            type = "";
+            hints = new ArrayList<>();
         }
 
         public FileParamFormat(String type) {
-            m_type = type;
-            m_hints = new ArrayList<>();
+            this.type = type;
+            hints = new ArrayList<>();
         }
 
         public void addHint(String val, int kind) {
-            m_hints.add(new DiskTypeHint(val, kind));
+            hints.add(new DiskTypeHint(val, kind));
         }
 
         public void setType(String val) {
-            m_type = val;
+            type = val;
         }
 
         public String getType() {
-            return m_type;
+            return type;
         }
 
         public List<DiskTypeHint> getHints() {
-            return m_hints;
+            return hints;
+        }
+
+        @Override public String toString() {
+            return new StringJoiner(", ", FileParamFormat.class.getSimpleName() + "[", "]")
+                    .add("type='" + type + "'")
+                    .add("hints=" + hints)
+                    .toString();
         }
     }
 
-    /*
-     * FileParam
-     */
+    //
+    // FileParam
+    //
 
-    // extension
-    protected String m_extension;
-    // list of formats
-    protected List<FileParamFormat> m_formats;
-    // description
-    protected String m_description;
+    /** extension */
+    protected String extension;
+    /** list of formats */
+    protected List<FileParamFormat> formats;
+    /** description */
+    protected String description;
 
     public FileParam() {
         clearFileParam();
@@ -159,8 +187,8 @@ public class FileParam {
         setFileParam(src);
     }
 
-    public FileParam(String n_ext, List<FileParamFormat> n_formats, String n_desc) {
-        setFileParam(n_ext, n_formats, n_desc);
+    public FileParam(String ext, List<FileParamFormat> formats, String desc) {
+        setFileParam(ext, formats, desc);
     }
 
     public FileParam assign(FileParam src) {
@@ -169,68 +197,49 @@ public class FileParam {
     }
 
     public void setFileParam(FileParam src) {
-        m_extension = src.m_extension;
-        m_formats = src.m_formats;
-        m_description = src.m_description;
+        extension = src.extension;
+        formats = src.formats;
+        description = src.description;
     }
 
-    public void setFileParam(String n_ext, List<FileParamFormat> n_formats, String n_desc) {
-        m_extension = n_ext;
-        m_formats = n_formats;
-        m_description = n_desc;
-        m_extension = m_extension.toLowerCase(Locale.ROOT);
+    public void setFileParam(String ext, List<FileParamFormat> formats, String desc) {
+        extension = ext;
+        this.formats = formats;
+        description = desc;
+        extension = extension.toLowerCase(Locale.ROOT);
     }
 
     public void clearFileParam() {
-        m_extension = "";
-        m_formats = new ArrayList<>();
-        m_description = "";
+        extension = "";
+        formats = new ArrayList<>();
+        description = "";
     }
 
     public String getExt() {
-        return m_extension;
+        return extension;
     }
 
     public List<FileParamFormat> getFormats() {
-        return m_formats;
+        return formats;
     }
 
     public String getDescription() {
-        return m_description;
+        return description;
+    }
+
+    @Override public String toString() {
+        return new StringJoiner(", ", FileParam.class.getSimpleName() + "[", "]")
+                .add("extension='" + extension + "'")
+                .add("formats=" + formats)
+                .add("description='" + description + "'")
+                .toString();
     }
 
     /**
      * WildCard
      */
-    public static class WildCard {
+    public record WildCard(String format, String ext, String card) {
 
-        private final String m_format;
-        private final String m_ext;
-        private final String m_card;
-
-        public WildCard() {
-            m_format = "";
-            m_ext = "";
-            m_card = "";
-        }
-
-        public WildCard(String n_format, String n_ext, String n_card) {
-            m_format = n_format;
-            m_ext = n_ext;
-            m_card = n_card;
-        }
-
-        public String getFormat() {
-            return m_format;
-        }
-
-        public String getExt() {
-            return m_ext;
-        }
-
-        public String getCard() {
-            return m_card;
-        }
     }
 
     /**
@@ -238,16 +247,19 @@ public class FileParam {
      */
     public static class FileTypes extends TemplatesBase {
 
-        private final List<FileFormat> formats = new ArrayList<>(); // file formats
-        private final List<FileParam> types = new ArrayList<>();  // file parameters
+        /** file formats */
+        private final List<FileFormat> formats = new ArrayList<>();
+        /** file parameters */
+        private final List<FileParam> types = new ArrayList<>();
 
-        private String wcardForLoad = "";   // wildcard for loading
-        private final List<WildCard> wcardForSave = new ArrayList<>(); // wildcards for saving
-        private final List<Integer> idxForSave = new ArrayList<>(); // order of wildcards at save
+        /** wildcard for loading */
+        private String wildCardForLoad = "";
+        /** wildcards for saving */
+        private final List<WildCard> wildCardForSave = new ArrayList<>();
+        /** order of wildcards at save */
+        private final List<Integer> indexForSave = new ArrayList<>();
 
-        /*
-         *  MakeWildcard() – internal helper
-         **/
+        /** internal helper */
         private void makeWildcard() {
             // 3 columns as in the original implementation
             @SuppressWarnings("unchecked")
@@ -256,52 +268,52 @@ public class FileParam {
                 exts.add(new ArrayList<>());
             }
 
-            for (int i = 0; i < DiskWriter.cFormatTypeNamesForSave.length; ++i) {
-                String typeName = DiskWriter.cFormatTypeNamesForSave[i];
+            for (int i = 0; i < DiskWriter.formatTypeNamesForSave.length; ++i) {
+                String typeName = DiskWriter.formatTypeNamesForSave[i];
                 if (typeName == null || typeName.isEmpty()) continue;
 
                 int count = 0;
-                for (FileParam fp : types) {
-                    for (FileParamFormat fmt : fp.getFormats()) {
-                        if (fmt.getType().equals(typeName)) {
+                for (FileParam type : types) {
+                    for (FileParamFormat format : type.getFormats()) {
+                        if (format.getType().equals(typeName)) {
                             count++;
                         }
                     }
                 }
                 if (count > 0) {
-                    exts.get(0).add(typeName);
+                    exts.getFirst().add(typeName);
                 }
             }
 
             // Build the load wildcard
             String sbLoad = "*." +
-                    String.join(", *.", exts.get(0)) +
+                    String.join(", *.", exts.getFirst()) +
                     "|*." +
-                    String.join(", *.", exts.get(0));
+                    String.join(", *.", exts.getFirst());
 
-            wcardForLoad = sbLoad;
+            wildCardForLoad = sbLoad;
 
             // Build the save wildcards
-            wcardForSave.clear();
-            for (int i = 0; i < DiskWriter.cFormatTypeNamesForSave.length; ++i) {
-                String name = DiskWriter.cFormatTypeNamesForSave[i];
+            wildCardForSave.clear();
+            for (int i = 0; i < DiskWriter.formatTypeNamesForSave.length; ++i) {
+                String name = DiskWriter.formatTypeNamesForSave[i];
                 if (name == null || name.isEmpty()) continue;
 
                 // Find a FileParam that contains this format
-                for (FileParam fp : types) {
-                    for (FileParamFormat fmt : fp.getFormats()) {
-                        if (fmt.getType().equals(name)) {
+                for (FileParam type : types) {
+                    for (FileParamFormat format : type.getFormats()) {
+                        if (format.getType().equals(name)) {
                             // Build a simple card: "<format>.<ext>"
-                            String card = name + "." + fmt.getType();
-                            wcardForSave.add(new WildCard(name, fmt.getType(), card));
+                            String card = name + "." + format.getType();
+                            wildCardForSave.add(new WildCard(name, format.getType(), card));
                         }
                     }
                 }
             }
             // Example ordering – in the real code this is more elaborate
-            idxForSave.clear();
-            for (int i = 0; i < wcardForSave.size(); ++i) {
-                idxForSave.add(i);
+            indexForSave.clear();
+            for (int i = 0; i < wildCardForSave.size(); ++i) {
+                indexForSave.add(i);
             }
         }
 
@@ -321,17 +333,20 @@ public class FileParam {
         /**
          * XMLファイルをロード
          *
-         * @param dataPath   ファイルパス
-         * @param localeName ローケル(jaなど)
-         * @param errmsgs [out] エラーメッセージ
+         * @param dataPath    ファイルパス
+         * @param localeName  ローケル(jaなど)
+         * @param errMessages [out] エラーメッセージ
          * @return false: エラー
          * @see "file_types.xml"
          */
-        public boolean load(String dataPath, String localeName, StringBuilder errmsgs) {
+        public boolean load(String dataPath, String localeName, StringBuilder errMessages) {
+            formats.clear();
+            types.clear();
+
             String xmlFile = dataPath + "file_types.xml";
             File file = new File(xmlFile);
             if (!file.exists()) {
-                errmsgs.append("File not found: ").append(xmlFile);
+                errMessages.append("File not found: ").append(xmlFile);
                 return false;
             }
 
@@ -341,7 +356,7 @@ public class FileParam {
                 Document doc = db.parse(file);
                 Element root = doc.getDocumentElement();
                 if (!"FileTypes".equals(root.getTagName())) {
-                    errmsgs.append("Root element is not <FileTypes>");
+                    errMessages.append("Root element is not <FileTypes>");
                     return false;
                 }
 
@@ -361,7 +376,7 @@ public class FileParam {
                         }
                         case "FileType": {
                             // <FileType Extension="d88">
-                            String extAttr = elem.getAttribute("Extension");
+                            String extAttr = elem.getAttribute("ext");
                             String desc = getDescriptionFromChildren(elem, "Description");
                             List<FileParamFormat> fpFormats = new ArrayList<>();
 
@@ -372,7 +387,7 @@ public class FileParam {
                                 if (subNode.getNodeType() != Node.ELEMENT_NODE) continue;
                                 Element subElem = (Element) subNode;
                                 if ("Format".equals(subElem.getTagName())) {
-                                    String typeAttr = subElem.getAttribute("name");
+                                    String typeAttr = subElem.getAttribute("type");
                                     FileParamFormat fpf = new FileParamFormat(typeAttr);
 
                                     // Process <Hint> elements inside <Format>
@@ -381,9 +396,16 @@ public class FileParam {
                                         Node hintNode = hintNodes.item(h);
                                         if (hintNode.getNodeType() != Node.ELEMENT_NODE) continue;
                                         Element hintElem = (Element) hintNode;
-                                        if ("Hint".equals(hintElem.getTagName())) {
+                                        if ("DiskTypeHint".equals(hintElem.getTagName())) {
                                             String hintText = hintElem.getTextContent().trim();
-                                            fpf.addHint(hintText, 0);
+                                            if (!hintText.isEmpty()) {
+                                                String sKind = hintElem.getAttribute("kind");
+                                                int kind = 0;
+                                                if (!sKind.isEmpty()) {
+                                                    kind = Utils.toInt(sKind);
+                                                }
+                                                fpf.addHint(hintText, kind);
+                                            }
                                         }
                                     }
                                     fpFormats.add(fpf);
@@ -396,85 +418,75 @@ public class FileParam {
                 }
 
                 makeWildcard();
-logger.log(Level.INFO, "formats: " + formats.size());
-logger.log(Level.INFO, "types: " + types.size());
+logger.log(Level.INFO, "formats: " + formats.size() + ", " + formats);
+logger.log(Level.INFO, "types: " + types.size() + ", " + types);
                 return true;
 
             } catch (ParserConfigurationException | SAXException | IOException e) {
 logger.log(Level.ERROR, e.getMessage(), e);
-                errmsgs.append("XML parse error: ").append(e.getMessage());
+                errMessages.append("XML parse error: ").append(e.getMessage());
                 return false;
             }
         }
 
-        /**
-         * FindExt
-         */
-        public FileParam findExt(String n_ext) {
-            for (FileParam fp : types) {
-                if (fp.getExt().equalsIgnoreCase(n_ext)) {
-                    return fp;
+        /** FindExt */
+        public FileParam findExt(String ext) {
+            for (FileParam type : types) {
+                if (type.getExt().equalsIgnoreCase(ext)) {
+                    return type;
                 }
             }
             return null;
         }
 
-        /*
-         *  IndexOfExt
-         **/
-        public int indexOfExt(String n_ext) {
+        /** IndexOfExt */
+        public int indexOfExt(String ext) {
             for (int i = 0; i < types.size(); ++i) {
-                if (types.get(i).getExt().equalsIgnoreCase(n_ext)) {
+                if (types.get(i).getExt().equalsIgnoreCase(ext)) {
                     return i;
                 }
             }
-            return -1; // mimics wxNOT_FOUND
+            return -1;
         }
 
-        /*
-         *  FindFormat by name
-         **/
-        public FileFormat findFormat(String n_name) {
+        /** FindFormat by name */
+        public FileFormat findFormat(String name) {
             for (FileFormat ff : formats) {
-                if (ff.getName().equalsIgnoreCase(n_name)) {
+                if (ff.getName().equalsIgnoreCase(name)) {
                     return ff;
                 }
             }
             return null;
         }
 
-        /*
-         *  FindFormat by index
-         **/
-        public FileFormat findFormat(int idx) {
-            if (idx >= 0 && idx < formats.size()) {
-                return formats.get(idx);
+        /** FindFormat by index */
+        public FileFormat findFormat(int index) {
+            if (index >= 0 && index < formats.size()) {
+                return formats.get(index);
             }
             return null;
         }
 
-        /*
-         *  File loading helpers
-         **/
+        /** File loading helpers */
         public String getWildcardForLoad() {
-            return wcardForLoad;
+            return wildCardForLoad;
         }
 
-        public String getWildcardForSave(String n_format, String n_ext) {
-            idxForSave.clear();
-            wcardForSave.clear();
+        public String getWildcardForSave(String format, String ext) {
+            indexForSave.clear();
+            wildCardForSave.clear();
 
             // Build the save list in the same order as the C++ code
-            for (int i = 0; i < DiskWriter.cFormatTypeNamesForSave.length; ++i) {
-                String name = DiskWriter.cFormatTypeNamesForSave[i];
+            for (int i = 0; i < DiskWriter.formatTypeNamesForSave.length; ++i) {
+                String name = DiskWriter.formatTypeNamesForSave[i];
                 if (name == null || name.isEmpty()) continue;
 
                 for (FileParam fp : types) {
                     for (FileParamFormat fmt : fp.getFormats()) {
                         if (fmt.getType().equals(name)) {
                             String card = name + "." + fp.getExt();
-                            wcardForSave.add(new WildCard(name, fp.getExt(), card));
-                            idxForSave.add(wcardForSave.size() - 1);
+                            wildCardForSave.add(new WildCard(name, fp.getExt(), card));
+                            indexForSave.add(wildCardForSave.size() - 1);
                         }
                     }
                 }
@@ -482,10 +494,10 @@ logger.log(Level.ERROR, e.getMessage(), e);
 
             // Build the final string
             StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < idxForSave.size(); ++i) {
-                int pos = idxForSave.get(i);
-                sb.append(wcardForSave.get(pos).getCard());
-                if (i < idxForSave.size() - 1) {
+            for (int i = 0; i < indexForSave.size(); ++i) {
+                int pos = indexForSave.get(i);
+                sb.append(wildCardForSave.get(pos).card());
+                if (i < indexForSave.size() - 1) {
                     sb.append("|");
                 }
             }
@@ -493,39 +505,33 @@ logger.log(Level.ERROR, e.getMessage(), e);
         }
 
         public FileFormat getFilterForSave(int index) {
-            if (index < 0 || index >= idxForSave.size()) return null;
-            int pos = idxForSave.get(index);
-            String fmtName = wcardForSave.get(pos).getFormat();
+            if (index < 0 || index >= indexForSave.size()) return null;
+            int pos = indexForSave.get(index);
+            String fmtName = wildCardForSave.get(pos).format();
             return findFormat(fmtName);
         }
 
         public void getFormatByIndexForSave(int index, StringBuilder format) {
-            if (index < 0 || index >= idxForSave.size()) {
+            if (index < 0 || index >= indexForSave.size()) {
                 format.setLength(0);
                 return;
             }
-            int pos = idxForSave.get(index);
-            format.append(wcardForSave.get(pos).getFormat());
+            int pos = indexForSave.get(index);
+            format.append(wildCardForSave.get(pos).format());
         }
 
         public void getExtByIndexForSave(int index, StringBuilder ext) {
-            if (index < 0 || index >= idxForSave.size()) {
+            if (index < 0 || index >= indexForSave.size()) {
                 ext.setLength(0);
                 return;
             }
-            int pos = idxForSave.get(index);
-            ext.append(wcardForSave.get(pos).getExt());
+            int pos = indexForSave.get(index);
+            ext.append(wildCardForSave.get(pos).ext());
         }
 
-        /*
-         *  Constructors / Destructors
-         **/
         public FileTypes() {
         }
 
-        /*
-         *  Public API
-         **/
         public FileParam getItemPtr(int index) {
             return types.get(index);
         }
@@ -538,9 +544,4 @@ logger.log(Level.ERROR, e.getMessage(), e);
             return types.size();
         }
     }
-
-    /**
-     * Global instance (equivalent to the C++ `extern FileTypes gFileTypes;`)
-     */
-    public static FileTypes gFileTypes = new FileTypes();
 }

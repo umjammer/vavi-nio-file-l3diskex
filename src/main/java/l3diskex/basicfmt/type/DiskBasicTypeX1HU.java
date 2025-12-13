@@ -4,21 +4,24 @@
 
 package l3diskex.basicfmt.type;
 
+import java.util.List;
+
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasicDir;
 import l3diskex.basicfmt.DiskBasicFat;
 import l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability;
 import l3diskex.basicfmt.DiskBasicFat.DiskBasicFatArea;
 import l3diskex.basicfmt.DiskBasicFat.DiskBasicFatBuffer;
-import l3diskex.basicfmt.DiskBasicFat.DiskBasicFatBuffers;
 import l3diskex.basicfmt.DiskBasicType;
 import l3diskex.basicfmt.diritem.DiskBasicDirItemX1HU.DirectoryX1Hu;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 
-import static l3diskex.basicfmt.diritem.DiskBasicDirItemX1HU.EXTERNAL_X1_DEFAULT;
-import static l3diskex.basicfmt.diritem.DiskBasicDirItemX1HU.EXTERNAL_X1_SWORD;
+import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_FREE;
 import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_MISSING;
 import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_USED;
+import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_USED_LAST;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemX1HU.EXTERNAL_X1_DEFAULT;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemX1HU.EXTERNAL_X1_SWORD;
 
 
 /**
@@ -26,31 +29,37 @@ import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailabili
  * <p>
  * DiskBasicParam 固有パラメータ
  *
- * @li IPLString : セクタ1のIPL
+ * <li>IPLString : セクタ1のIPL</li>
  */
 public class DiskBasicTypeX1HU extends DiskBasicType<DirectoryX1Hu> {
 
-    /** Public constructor */
-    public DiskBasicTypeX1HU(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryX1Hu> dir) {
-        super(basic, fat, dir);
+    public static final int FORMAT_TYPE_X1HU = 6;
+
+    @Override
+    public boolean isSupported(int typeNumber) {
+        return typeNumber == FORMAT_TYPE_X1HU;
+    }
+
+    @Override
+    public void init(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryX1Hu> dir) {
+        super.init(basic, fat, dir);
     }
 
     /** FAT位置をセット */
     @Override
     public void setGroupNumber(int num, int val) {
-        DiskBasicFatArea bufs = fat.getDiskBasicFatArea();
-        for (int j = 0; j < bufs.size(); j++) {
-            DiskBasicFatBuffers fatbufs = bufs.get(j);
+        DiskBasicFatArea fatArea = this.fat.getDiskBasicFatArea();
+        for (int j = 0; j < fatArea.size(); j++) {
+            List<DiskBasicFatBuffer> fatBufList = fatArea.get(j);
             // 8bit FAT + 8bit
-            for (int i = 0; i < fatbufs.size(); i++) {
-                DiskBasicFatBuffer fatbuf = fatbufs.get(i);
-                int half_size = fatbuf.getSize() >> 1;
-                if (num < half_size) {
-                    fatbuf.set(num, basic.invertUint8((byte) val));
-                    fatbuf.set(num + half_size, basic.invertUint8((byte) ((val & 0xff00) >> 8)));
+            for (DiskBasicFatBuffer fatBuf : fatBufList) {
+                int halfSize = fatBuf.getSize() >> 1;
+                if (num < halfSize) {
+                    fatBuf.set(num, basic.invertUint8((byte) val));
+                    fatBuf.set(num + halfSize, basic.invertUint8((byte) ((val & 0xff00) >> 8)));
                     break;
                 }
-                num -= fatbuf.getSize();
+                num -= fatBuf.getSize();
             }
         }
     }
@@ -58,64 +67,63 @@ public class DiskBasicTypeX1HU extends DiskBasicType<DirectoryX1Hu> {
     /** FAT位置を返す */
     @Override
     public int getGroupNumber(int num) {
-        int new_num = INVALID_GROUP_NUMBER;
-        DiskBasicFatBuffers fatbufs = fat.getDiskBasicFatBuffers(0);
-        if (fatbufs == null) {
-            return new_num;
+        int newNum = INVALID_GROUP_NUMBER;
+        List<DiskBasicFatBuffer> fatBufList = fat.getDiskBasicFatBuffers(0);
+        if (fatBufList == null) {
+            return newNum;
         }
         // 8bit FAT + 8bit
-        for (int i = 0; i < fatbufs.size(); i++) {
-            DiskBasicFatBuffer fatbuf = fatbufs.get(i);
-            int half_size = fatbuf.getSize() >> 1;
-            if (num < half_size) {
-                new_num = basic.invertUint8((byte) fatbuf.get(num));
+        for (DiskBasicFatBuffer fatBuf : fatBufList) {
+            int halfSize = fatBuf.getSize() >> 1;
+            if (num < halfSize) {
+                newNum = basic.invertUint8((byte) fatBuf.get(num));
                 if (basic.getFatEndGroup() >= 0x80) {
-                    new_num |= ((int) basic.invertUint8((byte) fatbuf.get(num + half_size)) << 8);
+                    newNum |= (int) basic.invertUint8((byte) fatBuf.get(num + halfSize)) << 8;
                 }
                 break;
             }
-            num -= fatbuf.getSize();
+            num -= fatBuf.getSize();
         }
-        return new_num;
+        return newNum;
     }
 
     /** 空きFAT位置を返す */
     @Override
     public int getEmptyGroupNumber() {
-        int new_num = INVALID_GROUP_NUMBER;
+        int newNum = INVALID_GROUP_NUMBER;
         // 若い番号順に検索
         for (int num = 0; num <= basic.getFatEndGroup(); num++) {
-            if (num == basic.diskBasicParam.getGroupFinalCode()) num += basic.diskBasicParam.getGroupFinalCode();
-            int gnum = getGroupNumber(num);
-            if (gnum == basic.diskBasicParam.getGroupUnusedCode()) {
-                new_num = num;
+            if (num == basic.getGroupFinalCode()) num += basic.getGroupFinalCode();
+            int groupNum = getGroupNumber(num);
+            if (groupNum == basic.getGroupUnusedCode()) {
+                newNum = num;
                 break;
             }
         }
-        return new_num;
+        return newNum;
     }
 
     /** 次の空き位置を返す */
     @Override
-    public int getNextEmptyGroupNumber(int curr_group) {
-        int new_num = INVALID_GROUP_NUMBER;
+    public int getNextEmptyGroupNumber(int currentGroup) {
+        int newNum = INVALID_GROUP_NUMBER;
 
         // グループが連続するように検索
-        int group_max = basic.getFatEndGroup() + 1;
-        int group_start = curr_group;
-        int group_end;
+        int groupMax = basic.getFatEndGroup() + 1;
+        int groupStart = currentGroup;
+        int groupEnd;
         int dir;
         boolean found = false;
 
         dir = 1; // 始めは+方向、なければ-方向に検索
-        for(int i=0; i<2; i++) {
-            group_end = (dir > 0 ? group_max : -1);
-            for(int g = group_start; g != group_end; g += dir) {
-                if (dir > 0 && g == basic.diskBasicParam.getGroupFinalCode()) g += basic.diskBasicParam.getGroupFinalCode();
-                else if (dir < 0 && g == basic.diskBasicParam.getGroupSystemCode()) g -= basic.diskBasicParam.getGroupFinalCode();
-                int gnum = getGroupNumber(g);
-                if (gnum == basic.diskBasicParam.getGroupUnusedCode()) {	// 0xff
-                    new_num = g;
+        for (int i = 0; i < 2; i++) {
+            groupEnd = (dir > 0 ? groupMax : -1);
+            for(int group = groupStart; group != groupEnd; group += dir) {
+                if (dir > 0 && group == basic.getGroupFinalCode()) group += basic.getGroupFinalCode();
+                else if (dir < 0 && group == basic.getGroupSystemCode()) group -= basic.getGroupFinalCode();
+                int groupNum = getGroupNumber(group);
+                if (groupNum == basic.getGroupUnusedCode()) { // 0xff
+                    newNum = group;
                     found = true;
                     break;
                 }
@@ -123,160 +131,158 @@ public class DiskBasicTypeX1HU extends DiskBasicType<DirectoryX1Hu> {
             if (found) break;
             dir = -dir;
         }
-        return new_num;
+        return newNum;
     }
 
     /** FATエリアをチェック */
     @Override
-    public double checkFat(boolean is_formatting) {
-        double valid_ratio = 1.0;
+    public double checkFat(boolean isFormatting) {
+        double validRatio = 1.0;
 
         // FAT領域の先頭がFAT領域のセクタ数であるか
-        DiskBasicFatArea bufs = fat.getDiskBasicFatArea();
-        if (bufs.matchData8(0, basic.invertUint8((byte) 0x01)) != bufs.size()) {
+        DiskBasicFatArea fatArea = fat.getDiskBasicFatArea();
+        if (fatArea.matchData8(0, basic.invertUint8((byte) 0x01)) != fatArea.size()) {
             return -1.0;
         }
 
         int end = basic.getFatEndGroup();
-        int[] tbl = new int[end + 1];
+        int[] table = new int[end + 1];
 
         // 同じグループ番号が重複しているか
         for (int pos = 0; pos <= end; pos++) {
-            int gnum = getGroupNumber(pos);
-            if (gnum > 0 && gnum <= end) {
-                tbl[gnum]++;
+            int groupNum = getGroupNumber(pos);
+            if (groupNum > 0 && groupNum <= end) {
+                table[groupNum]++;
             }
         }
         // 同じグループ番号が重複している場合エラー
-        for (int i = 0; i < tbl.length; i++) {
-            if (tbl[i] > 1) {
-                valid_ratio = 0.0;
+        for (int value : table) {
+            if (value > 1) {
+                validRatio = 0.0;
                 break;
             }
         }
 
         // Hu-BASIC か S-OS SWORD か
-        if (valid_ratio >= 0) {
-            int atype = basic.diskBasicParam.getVariousIntegerParam("DefaultAsciiType");
-            int pt = 0;
+        if (validRatio >= 0) {
+            int aType = basic.getVariousIntegerParam("DefaultAsciiType");
+            int point = 0;
             for (int i = 0; i < 2; i++) {
-                DiskImageSector sector = null;
-                switch (i) {
-                    case 0:
+                DiskImageSector sector = switch (i) {
+                    case 0 ->
                         // IPL領域
-                        sector = basic.getSector(0, 0, 1);
-                        break;
-                    case 1:
+                            basic.getSector(0, 0, 1);
+                    case 1 ->
                         // ディレクトリ領域
-                        sector = basic.getManagedSector(basic.diskBasicParam.getDirStartSector() - 1);
-                        break;
-                }
+                            basic.getManagedSector(basic.getDirStartSector() - 1);
+                    default -> null;
+                };
                 if (sector != null) {
-                    int hfind = sector.find("CZ8F".getBytes(), 4);
-                    int sfind = sector.find("SWORD".getBytes(), 5);
-                    if (atype == EXTERNAL_X1_DEFAULT && hfind >= 0) {
-                        pt++;
-                    } else if (atype == EXTERNAL_X1_SWORD && sfind >= 0) {
-                        pt++;
+                    int hFind = sector.find("CZ8F".getBytes(), 4);
+                    int sFind = sector.find("SWORD".getBytes(), 5);
+                    if (aType == EXTERNAL_X1_DEFAULT && hFind >= 0) {
+                        point++;
+                    } else if (aType == EXTERNAL_X1_SWORD && sFind >= 0) {
+                        point++;
                     }
                 }
             }
 
-            if (pt < 1) {
-                valid_ratio /= 2.0;
+            if (point < 1) {
+                validRatio /= 2.0;
             }
         }
 
-        return valid_ratio;
+        return validRatio;
     }
 
     /** ディスクから各パラメータを取得＆必要なパラメータを計算 */
     @Override
-    public double parseParamOnDisk(boolean is_formatting) {
+    public double parseParamOnDisk(boolean isFormatting) {
         if (basic.getFatEndGroup() == 0) {
-            int end = basic.getFatEndGroup();
-            // calculate
-            basic.diskBasicParam.setFatEndGroup(end);
+            int endGroup = basic.getTracksPerSideOnBasic() * basic.getSidesPerDiskOnBasic() - 1;
+            if (endGroup >= 0x80) {
+                endGroup += 0x80;
+            }
+            basic.setFatEndGroup(endGroup);
         }
+
         return 1.0;
     }
 
     /** 使用可能なディスクサイズを得る */
     @Override
-    public void getUsableDiskSize(int[] disk_size, int[] group_size) {
-        int groupSize = basic.getFatEndGroup() + 1;
-        if (groupSize >= basic.diskBasicParam.getGroupFinalCode()) {
-            groupSize -= basic.diskBasicParam.getGroupFinalCode();
-        }
-        int diskSize = groupSize * basic.getSectorSize() * basic.getSectorsPerGroup();
-        disk_size[0] = diskSize;
-        group_size[0] = groupSize;
+    public void getUsableDiskSize(int[] diskSize, int[] groupSize) {
+        groupSize[0] = basic.getFatEndGroup() + 1;
+        if (groupSize[0] >= basic.getGroupFinalCode()) groupSize[0] -= basic.getGroupFinalCode();
+        diskSize[0] = groupSize[0] * basic.getSectorSize() * basic.getSectorsPerGroup();
     }
 
     /** 残りディスクサイズを計算 */
     @Override
     public void calcDiskFreeSize(boolean wrote) {
-        int fsize = 0;
-        int grps = 0;
-        FatAvailability fsts = FAT_AVAIL_USED;
+        int fSize = 0;
+        int groups = 0;
+        FatAvailability fStats = FAT_AVAIL_USED;
         fatAvailability.empty();
         for (int pos = 0; pos <= basic.getFatEndGroup(); pos++) {
-            int gnum = getGroupNumber(pos);
-            if (gnum == FAT_AVAIL_USED.ordinal()) {
-                fsize = 0;
-                grps = 0;
+            int groupNum = getGroupNumber(pos);
+            if (pos >= basic.getGroupFinalCode() && pos <= basic.getGroupSystemCode()) {
+                fStats = FAT_AVAIL_MISSING;
+            } else if (groupNum == basic.getGroupUnusedCode()) {
+                fSize = basic.getSectorSize() * basic.getSectorsPerGroup();
+                groups = 1;
+                fStats = FAT_AVAIL_FREE;
+            } else if (groupNum >= basic.getGroupFinalCode() && groupNum <= basic.getGroupSystemCode()) {
+                fStats = FAT_AVAIL_USED_LAST;
             }
-            if (gnum == FAT_AVAIL_MISSING.ordinal()) {
-                fsts = FAT_AVAIL_MISSING;
-                fsize = 0;
-                grps = 0;
-            }
-            fatAvailability.add(fsts, fsize, grps);
+            fatAvailability.add(fStats, fSize, groups);
         }
     }
 
     /** グループ番号から開始セクタ番号を得る */
     @Override
-    public int getStartSectorFromGroup(int group_num) {
-        if (group_num > basic.diskBasicParam.getGroupSystemCode()) {
-            group_num -= basic.diskBasicParam.getGroupFinalCode();
+    public int getStartSectorFromGroup(int groupNum) {
+        if (groupNum > basic.getGroupSystemCode()) {
+            // 0x100以降の番号は0x80減算
+            groupNum -= basic.getGroupFinalCode();
         }
-        return group_num * basic.getSectorsPerGroup();
+        return groupNum * basic.getSectorsPerGroup();
     }
 
     /** グループ番号から最終セクタ番号を得る */
     @Override
-    public int getEndSectorFromGroup(int group_num, int next_group, int sector_start, int sector_size, int remain_size) {
-        int sector_end = sector_start + basic.getSectorsPerGroup() - 1;
-        if (next_group >= basic.diskBasicParam.getGroupFinalCode() && next_group <= basic.diskBasicParam.getGroupSystemCode()) {
+    public int getEndSectorFromGroup(int groupNum, int nextGroup, int sectorStart, int sectorSize, int remainSize) {
+        int sectorEnd = sectorStart + basic.getSectorsPerGroup() - 1;
+        if (nextGroup >= basic.getGroupFinalCode() && nextGroup <= basic.getGroupSystemCode()) {
             // 最終グループの場合指定したセクタまで
-            sector_end = sector_start + (next_group - basic.diskBasicParam.getGroupFinalCode());
+            sectorEnd = sectorStart + (nextGroup - basic.getGroupFinalCode());
         }
-        return sector_end;
+        return sectorEnd;
     }
 
     /** ディレクトリがルートかを判定 */
     @Override
-    public boolean isRootDirectory(int group_num) {
-        int sec_num = basic.diskBasicParam.getDirEndSector();
-        int start_group = sec_num / basic.getSectorsPerGroup();
-        return group_num < start_group;
+    public boolean isRootDirectory(int groupNum) {
+        int secNum = basic.getDirEndSector();
+        int startGroup = secNum / basic.getSectorsPerGroup();
+        return groupNum < startGroup;
     }
 
     /** ディレクトリ名の変更 */
     @Override
-    public boolean renameOnMakingDirectory(String[] dir_name) {
-        int pos;
+    public boolean renameOnMakingDirectory(String[] dirName) {
         // 空や"."で始まるディレクトリは作成不可
-        if (dir_name[0].isEmpty() || dir_name[0].startsWith(".")) {
+        if (dirName[0].isEmpty() || dirName[0].startsWith(".")) {
             return false;
         }
-        if ((pos = dir_name[0].indexOf(".")) != -1) {
+        int pos = dirName[0].indexOf(".");
+        if (pos != -1) {
             // 拡張子以下を除く
-            dir_name[0] = dir_name[0].substring(0, pos);
+            dirName[0] = dirName[0].substring(0, pos);
         }
         // 拡張子を付ける
-        dir_name[0] += ".DIR";
+        dirName[0] += ".DIR";
 
         return true;
     }

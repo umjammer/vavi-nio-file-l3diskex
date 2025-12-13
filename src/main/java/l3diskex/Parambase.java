@@ -8,6 +8,7 @@ import java.util.EnumSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.StringJoiner;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
@@ -119,6 +120,17 @@ public class Parambase {
         public void setMaxLength(int val) {
             maxLength = val;
         }
+
+        @Override public String toString() {
+            return new StringJoiner(", ", ValidNameRule.class.getSimpleName() + "[", "]")
+                    .add("validFirstChars='" + validFirstChars + "'")
+                    .add("validChars='" + validChars + "'")
+                    .add("invalidChars='" + invalidChars + "'")
+                    .add("deduplicateChars='" + deduplicateChars + "'")
+                    .add("nameRequire=" + nameRequire)
+                    .add("maxLength=" + maxLength)
+                    .toString();
+        }
     }
 
     /**
@@ -129,12 +141,12 @@ public class Parambase {
     public static final class MyAttribute {
 
         /** index */
-        private final int idx;
+        private final int index;
         /** attribute type */
         private final int type;
         /** attribute value */
         private final int value;
-        /** マスク */
+        /** mask */
         private final int mask;
         /** name */
         private String name;
@@ -142,45 +154,44 @@ public class Parambase {
         private String desc;
 
         public MyAttribute() {
-            idx = 0;
+            index = 0;
             type = 0;
             value = 0;
             mask = -1;
         }
 
-        public MyAttribute(int nIdx, int nType, int nValue, int nMask,
-                           String nName, String nDesc) {
-            idx = nIdx;
-            type = nType;
-            value = nValue;
-            mask = nMask;
-            name = nName;
-            desc = nDesc;
+        public MyAttribute(int index, int type, int value, int mask, String name, String desc) {
+            this.index = index;
+            this.type = type;
+            this.value = value;
+            this.mask = mask;
+            this.name = name;
+            this.desc = desc;
 
-            if (name == null || name.isEmpty()) name = "???";
+            if (this.name == null || this.name.isEmpty()) this.name = "???";
         }
 
-        /** インデックス */
+        /** index */
         public int getIndex() {
-            return idx;
+            return index;
         }
 
-        /** 属性タイプ */
+        /** attribute type */
         public int getType() {
             return type;
         }
 
-        /** 属性値 */
+        /** attribute value */
         public int getValue() {
             return value;
         }
 
-        /** マスク */
+        /** mask */
         public int getMask() {
             return mask;
         }
 
-        /** 名前 */
+        /** name */
         public String getName() {
             return name;
         }
@@ -188,6 +199,17 @@ public class Parambase {
         /** description */
         public String getDescription() {
             return desc;
+        }
+
+        @Override public String toString() {
+            return new StringJoiner(", ", MyAttribute.class.getSimpleName() + "[", "]")
+                    .add("index=" + index)
+                    .add("type=" + type)
+                    .add("value=" + value)
+                    .add("mask=" + mask)
+                    .add("name='" + name + "'")
+                    .add("desc='" + desc + "'")
+                    .toString();
         }
     }
 
@@ -199,10 +221,8 @@ public class Parambase {
         /** Returns an item that matches the attribute type and value. */
         public static MyAttribute find(List<MyAttribute> list, int type, int value) {
             MyAttribute match = null;
-            for (int i = 0; i < list.size(); i++) {
-                MyAttribute attr = list.get(i);
-                if (attr.getType() == type &&
-                        attr.getValue() == (value & attr.getMask())) {
+            for (MyAttribute attr : list) {
+                if (attr.getType() == type && attr.getValue() == (value & attr.getMask())) {
                     match = attr;
                     break;
                 }
@@ -213,10 +233,8 @@ public class Parambase {
         /** Returns an item that matches the attribute type and value. */
         public static MyAttribute find(List<MyAttribute> list, int type, int mask, int value) {
             MyAttribute match = null;
-            for (int i = 0; i < list.size(); i++) {
-                MyAttribute attr = list.get(i);
-                if (((attr.getType() & mask) == (type & mask)) &&
-                        attr.getValue() == (value & attr.getMask())) {
+            for (MyAttribute attr : list) {
+                if (((attr.getType() & mask) == (type & mask)) && attr.getValue() == (value & attr.getMask())) {
                     match = attr;
                     break;
                 }
@@ -227,8 +245,7 @@ public class Parambase {
         /** Returns an item that matches the attribute type. */
         public static MyAttribute findType(List<MyAttribute> list, int type, int mask) {
             MyAttribute match = null;
-            for (int i = 0; i < list.size(); i++) {
-                MyAttribute attr = list.get(i);
+            for (MyAttribute attr : list) {
                 if (((attr.getType() & mask) == (type & mask))) {
                     match = attr;
                     break;
@@ -240,8 +257,7 @@ public class Parambase {
         /** Returns an item that matches the attribute value. */
         public static MyAttribute findValue(List<MyAttribute> list, int value) {
             MyAttribute match = null;
-            for (int i = 0; i < list.size(); i++) {
-                MyAttribute attr = list.get(i);
+            for (MyAttribute attr : list) {
                 if (attr.getValue() == (value & attr.getMask())) {
                     match = attr;
                     break;
@@ -253,8 +269,7 @@ public class Parambase {
         /** Returns an item that matches the attribute name. */
         public static MyAttribute find(List<MyAttribute> list, int type, String name) {
             MyAttribute match = null;
-            for (int i = 0; i < list.size(); i++) {
-                MyAttribute attr = list.get(i);
+            for (MyAttribute attr : list) {
                 if (attr.getType() == type && attr.getName().equals(name)) {
                     match = attr;
                     break;
@@ -266,8 +281,7 @@ public class Parambase {
         /** Returns an item that matches the attribute name. */
         public static MyAttribute find(List<MyAttribute> list, String name) {
             MyAttribute match = null;
-            for (int i = 0; i < list.size(); i++) {
-                MyAttribute attr = list.get(i);
+            for (MyAttribute attr : list) {
                 if (attr.getName().equals(name)) {
                     match = attr;
                     break;
@@ -278,11 +292,10 @@ public class Parambase {
 
         /** Returns an item that matches the attribute name. Match in upper case. */
         public static MyAttribute findUpperCase(List<MyAttribute> list, String name) {
-            String iname = name.toUpperCase();
+            String iName = name.toUpperCase();
             MyAttribute match = null;
-            for (int i = 0; i < list.size(); i++) {
-                MyAttribute attr = list.get(i);
-                if (attr.getName().toUpperCase().equals(iname)) {
+            for (MyAttribute attr : list) {
+                if (attr.getName().toUpperCase().equals(iName)) {
                     match = attr;
                     break;
                 }
@@ -292,12 +305,10 @@ public class Parambase {
 
         /** Returns an item that matches the attribute name and type. Match in upper case. */
         public static MyAttribute findUpperCase(List<MyAttribute> list, String name, int type, int mask) {
-            String iname = name.toUpperCase();
+            String iName = name.toUpperCase();
             MyAttribute match = null;
-            for (int i = 0; i < list.size(); i++) {
-                MyAttribute attr = list.get(i);
-                if (attr.getName().toUpperCase().equals(iname) &&
-                        ((attr.getType() & mask) == (type & mask))) {
+            for (MyAttribute attr : list) {
+                if (attr.getName().toUpperCase().equals(iName) && ((attr.getType() & mask) == (type & mask))) {
                     match = attr;
                     break;
                 }
@@ -307,11 +318,10 @@ public class Parambase {
 
         /** Returns an item that matches the attribute name, type, and value. Match in upper case. */
         public static MyAttribute findUpperCase(List<MyAttribute> list, String name, int type, int mask, int value) {
-            String iname = name.toUpperCase();
+            String iName = name.toUpperCase();
             MyAttribute match = null;
-            for (int i = 0; i < list.size(); i++) {
-                MyAttribute attr = list.get(i);
-                if (attr.getName().toUpperCase().equals(iname) &&
+            for (MyAttribute attr : list) {
+                if (attr.getName().toUpperCase().equals(iName) &&
                         ((attr.getType() & mask) == (type & mask)) &&
                         attr.getValue() == (value & attr.getMask())) {
                     match = attr;
@@ -323,10 +333,10 @@ public class Parambase {
 
         /** Returns the position of the item that matches the attribute value. */
         public static int getIndexByValue(List<MyAttribute> list, int value) {
-            int idx = -1;
+            int index = -1;
             MyAttribute attr = findValue(list, value);
-            if (attr != null) idx = attr.getIndex();
-            return idx;
+            if (attr != null) index = attr.getIndex();
+            return index;
         }
 
         /** Returns the attribute type of the item that matches the attribute value. */
@@ -336,16 +346,16 @@ public class Parambase {
         }
 
         /** Returns the attribute type from the position. */
-        public static int getTypeByIndex(List<MyAttribute> list, int idx) {
-            if (idx >= 0 && idx < list.size())
-                return list.get(idx).getType();
+        public static int getTypeByIndex(List<MyAttribute> list, int index) {
+            if (index >= 0 && index < list.size())
+                return list.get(index).getType();
             return -1;
         }
 
         /** Returns the attribute value from the position. */
-        public static int getValueByIndex(List<MyAttribute> list, int idx) {
-            if (idx >= 0 && idx < list.size())
-                return list.get(idx).getValue();
+        public static int getValueByIndex(List<MyAttribute> list, int index) {
+            if (index >= 0 && index < list.size())
+                return list.get(index).getValue();
             return -1;
         }
     }
@@ -384,23 +394,21 @@ public class Parambase {
          * 独自エレメントのロード
          *
          * @param node 子ノード
-         * @param val  value
-         * @param nVal [out] converted value
+         * @param value  value
+         * @param result [out] converted value
          * @return true
          */
-        protected static boolean loadVariousParam(Node node, String val, Object[] nVal) {
+        protected static boolean loadVariousParam(Node node, String value, Object[] result) {
             if (node == null) return false;
             String tagName = node.getNodeName();
-            if (tagName == null) return false;
+            if (tagName.isEmpty()) return false;
 
-            if (tagName.equals("int"))
-                nVal[0] = Integer.parseInt(val);
-            else if (tagName.equals("bool"))
-                nVal[0] = Boolean.parseBoolean(val);
-            else if (tagName.equals("string"))
-                nVal[0] = val;
-            else
-                nVal[0] = null;
+            result[0] = switch (tagName) {
+                case "int" -> Integer.parseInt(value);
+                case "bool" -> Boolean.parseBoolean(value);
+                case "string" -> value;
+                default -> null;
+            };
 
             return true;
         }
@@ -451,13 +459,13 @@ public class Parambase {
          *
          * @param node       子ノード
          * @param localeName ローケル名
-         * @param errmsgs    [out] エラーメッセージ
+         * @param errMsgs    [out] エラーメッセージ
          * @param attrs      [out] 値
          * @return true
          */
         protected static boolean loadMyAttributesInTypes(Node node,
                                                          String localeName,
-                                                         StringBuilder errmsgs,
+                                                         StringBuilder errMsgs,
                                                          List<MyAttribute> attrs) {
             Node citemnode = node.getFirstChild();
             while (citemnode != null) {
@@ -477,12 +485,12 @@ public class Parambase {
          *
          * @param node       子ノード
          * @param validChars [out] 値
-         * @param errmsgs    [out] エラー時メッセージ
+         * @param errMsgs    [out] エラー時メッセージ
          * @return true
          */
         protected static boolean loadValidChars(Node node,
                                                 Parambase.ValidNameRule validChars,
-                                                StringBuilder errmsgs) {
+                                                StringBuilder errMsgs) {
             boolean valid = true;
             String[] chars = new String[4];
             Node cnode = node.getFirstChild();
@@ -509,44 +517,48 @@ public class Parambase {
                 }
 
                 if (num >= 0) {
-                    if (name.equals("CharSet")) {
-                        String[] rstr = new String[1];
-                        Utils.decodeEscape(cnode.getTextContent(), rstr);
-                        chars[num] = rstr[0];
-                    } else if (name.equals("Code")) {
-                        int c = Utils.toInt(cnode.getTextContent());
-                        if (encoding == 0) {
-                            if (c < 0 || c >= 0x80) {
-                                errmsgs.append("\n");
-                                errmsgs.append("Out of range in InvalidateCharacters::Code");
-                                errmsgs.append("(line #%d)".formatted(-1));
-                                valid = false;
-                            } else {
-                                chars[num] = String.valueOf((char) c);
-                            }
-                        } else {
-                            // unicode
-                            chars[num] = String.valueOf(c);
+                    switch (name) {
+                        case "CharSet" -> {
+                            String[] tmp = new String[1];
+                            Utils.decodeEscape(cnode.getTextContent(), tmp);
+                            chars[num] = tmp[0];
                         }
-                    } else if (name.equals("CodeRange")) {
-                        int st = Utils.toInt(((Element) cnode).getAttribute("first"));
-                        int ed = Utils.toInt(((Element) cnode).getAttribute("last"));
-                        if (encoding == 0) {
-                            for (int c = st; c <= ed; c++) {
+                        case "Code" -> {
+                            int c = Utils.toInt(cnode.getTextContent());
+                            if (encoding == 0) {
                                 if (c < 0 || c >= 0x80) {
-                                    errmsgs.append("\n");
-                                    errmsgs.append("Out of range in InvalidateCharacters::CodeRange");
-                                    errmsgs.append("(line #%d)".formatted(-1));
+                                    errMsgs.append("\n");
+                                    errMsgs.append("Out of range in InvalidateCharacters::Code");
+                                    errMsgs.append("(line #%d)".formatted(-1));
                                     valid = false;
-                                    break;
                                 } else {
                                     chars[num] = String.valueOf((char) c);
                                 }
-                            }
-                        } else {
-                            // unicode
-                            for (int c = st; c <= ed; c++) {
+                            } else {
+                                // unicode
                                 chars[num] = String.valueOf(c);
+                            }
+                        }
+                        case "CodeRange" -> {
+                            int first = Utils.toInt(((Element) cnode).getAttribute("first"));
+                            int last = Utils.toInt(((Element) cnode).getAttribute("last"));
+                            if (encoding == 0) {
+                                for (int c = first; c <= last; c++) {
+                                    if (c < 0 || c >= 0x80) {
+                                        errMsgs.append("\n");
+                                        errMsgs.append("Out of range in InvalidateCharacters::CodeRange");
+                                        errMsgs.append("(line #%d)".formatted(-1));
+                                        valid = false;
+                                        break;
+                                    } else {
+                                        chars[num] = String.valueOf((char) c);
+                                    }
+                                }
+                            } else {
+                                // unicode
+                                for (int c = first; c <= last; c++) {
+                                    chars[num] = String.valueOf(c);
+                                }
                             }
                         }
                     }

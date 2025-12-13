@@ -4,9 +4,14 @@
 
   <groupId>vavi</groupId>
   <artifactId>vavi-nio-file-l3diskex</artifactId>
-  <version>0.7.1</version>
+  <version>0.7.2</version>
 
   <name>L3 Disk Explorer</name>
+
+  <properties>
+    <vavi-net-fuse.groupId>com.github.umjammer.vavi-apps-fuse</vavi-net-fuse.groupId>
+    <vavi-net-fuse.version>0.1.8</vavi-net-fuse.version>
+  </properties>
 
   <build>
     <plugins>
@@ -29,6 +34,7 @@
           <argLine>
             -Djava.util.logging.config.file=${project.build.testOutputDirectory}/logging.properties
             -Dswing.defaultlaf=com.formdev.flatlaf.FlatLightLaf
+            -Dvavi.util.serdes.cache.statistics=false
           </argLine>
           <trimStackTrace>false</trimStackTrace>
         </configuration>
@@ -48,7 +54,7 @@
       <dependency>
         <groupId>org.junit</groupId>
         <artifactId>junit-bom</artifactId>
-        <version>5.13.4</version>
+        <version>5.14.0</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -59,13 +65,25 @@
     <dependency>
       <groupId>com.github.umjammer</groupId> <!-- com.github.umjammer / vavi -->
       <artifactId>vavi-commons</artifactId>
-      <version>1.1.15</version>
+      <version>1.1.16</version>
     </dependency>
 
     <dependency>
       <groupId>com.github.umjammer</groupId> <!-- com.github.umjammer / vavi -->
       <artifactId>vavi-util-serdes</artifactId>
-      <version>1.0.9</version>
+      <version>1.0.11</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-api</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <dependency>
+      <groupId>com.github.umjammer</groupId> <!-- com.github.fge / com.github.umjammer -->
+      <artifactId>vavi-nio-file-base</artifactId>
+      <version>0.0.17</version>
     </dependency>
 
     <dependency>
@@ -88,6 +106,39 @@
     <dependency>
       <groupId>org.junit.platform</groupId>
       <artifactId>junit-platform-commons</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-params</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>${vavi-net-fuse.groupId}</groupId>
+      <artifactId>vavi-net-fuse</artifactId>
+      <version>${vavi-net-fuse.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>${vavi-net-fuse.groupId}</groupId>
+      <artifactId>vavi-net-fuse</artifactId>
+      <version>${vavi-net-fuse.version}</version>
+      <type>test-jar</type>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <version>5.20.0</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-jdk14</artifactId>
+      <version>2.0.16</version>
       <scope>test</scope>
     </dependency>
   </dependencies>

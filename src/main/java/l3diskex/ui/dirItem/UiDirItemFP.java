@@ -149,17 +149,11 @@ public class UiDirItemFP extends UiDirItem {
 
         if (radType1 != null) {
             sel = radType1.getSelection();
-            switch (sel) {
-                case TYPE_NAME_1_BASIC:
-                    ftype = FILE_TYPE_BASIC_MASK.getValue();
-                    break;
-                case TYPE_NAME_1_MACHINE:
-                    ftype = FILE_TYPE_MACHINE_MASK.getValue();
-                    break;
-                default:
-                    ftype = FILE_TYPE_DATA_MASK.getValue();
-                    break;
-            }
+            ftype = switch (sel) {
+                case TYPE_NAME_1_BASIC -> FILE_TYPE_BASIC_MASK.getValue();
+                case TYPE_NAME_1_MACHINE -> FILE_TYPE_MACHINE_MASK.getValue();
+                default -> FILE_TYPE_DATA_MASK.getValue();
+            };
         }
 
         if (radType2 != null) {

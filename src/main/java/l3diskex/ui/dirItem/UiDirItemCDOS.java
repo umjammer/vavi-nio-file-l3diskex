@@ -29,7 +29,7 @@ public class UiDirItemCDOS extends UiDirItem {
     private int GetFileType1InAttrDialog(IntNameBox parent) {
         Object obj = parent.getComponent(IDC_COMBO_TYPE1);
         if (obj instanceof JComboBox) {
-            return ((JComboBox) obj).getSelectedIndex();
+            return ((JComboBox<?>) obj).getSelectedIndex();
         }
         return -1;
     }

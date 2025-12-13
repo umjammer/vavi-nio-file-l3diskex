@@ -26,8 +26,8 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_MACHINE_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_RANDOM_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_READONLY_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_READWRITE_MASK;
-import static l3diskex.basicfmt.diritem.DiskBasicDirItemN88.G_TYPE_NAME_N88_1;
-import static l3diskex.basicfmt.diritem.DiskBasicDirItemN88.G_TYPE_NAME_N88_2;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemN88.TYPE_NAME_N88_1;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemN88.TYPE_NAME_N88_2;
 import static l3diskex.basicfmt.diritem.DiskBasicDirItemN88.TYPE_NAME_N88_ASCII;
 import static l3diskex.basicfmt.diritem.DiskBasicDirItemN88.TYPE_NAME_N88_BINARY;
 import static l3diskex.basicfmt.diritem.DiskBasicDirItemN88.TYPE_NAME_N88_ENCRYPTED;
@@ -85,8 +85,8 @@ public class UiDirItemN88 extends UiDirItem {
         BoxLayout gszr = new BoxLayout(); // wxHORIZONTAL
 
         List<String> types1 = new ArrayList<>();
-        for (int i = 0; G_TYPE_NAME_N88_1[i] != null; i++) {
-            types1.add(G_TYPE_NAME_N88_1[i]);
+        for (int i = 0; TYPE_NAME_N88_1[i] != null; i++) {
+            types1.add(TYPE_NAME_N88_1[i]);
         }
         // wxDefaultPosition, wxDefaultSize, wxRA_SPECIFY_ROWS are placeholders/constants
         radType1 = new ButtonGroup(parent, IDC_RADIO_TYPE1, "File Type", null, null, types1.toArray(String[]::new), 0, null); // Assuming helper method for List<String> to String[] and constants are handled
@@ -98,17 +98,17 @@ public class UiDirItemN88 extends UiDirItem {
         // Placeholder for static box sizer
         WxStaticBoxSizer staType4 = new WxStaticBoxSizer(null, null);
 
-        chkReadOnly = new JCheckBox(parent, IDC_CHECK_READONLY, G_TYPE_NAME_N88_2[TYPE_NAME_N88_READ_ONLY]);
+        chkReadOnly = new JCheckBox(parent, IDC_CHECK_READONLY, TYPE_NAME_N88_2[TYPE_NAME_N88_READ_ONLY]);
         chkReadOnly.setValue((fileType2 & FILE_TYPE_READONLY_MASK.getValue()) != 0);
         // staType4->Add(chkReadOnly, flags);
         // Assuming staType4.add(chkReadOnly, flags)
 
-        chkReadWrite = new JCheckBox(parent, IDC_CHECK_READWRITE, G_TYPE_NAME_N88_2[TYPE_NAME_N88_READ_WRITE]);
+        chkReadWrite = new JCheckBox(parent, IDC_CHECK_READWRITE, TYPE_NAME_N88_2[TYPE_NAME_N88_READ_WRITE]);
         chkReadWrite.setValue((fileType2 & FILE_TYPE_READWRITE_MASK.getValue()) != 0);
         // staType4->Add(chkReadWrite, flags);
         // Assuming staType4.add(chkReadWrite, flags)
 
-        chkEncrypt = new JCheckBox(parent, IDC_CHECK_ENCRYPT, G_TYPE_NAME_N88_2[TYPE_NAME_N88_ENCRYPTED]);
+        chkEncrypt = new JCheckBox(parent, IDC_CHECK_ENCRYPT, TYPE_NAME_N88_2[TYPE_NAME_N88_ENCRYPTED]);
         chkEncrypt.setValue((fileType2 & FILE_TYPE_ENCRYPTED_MASK.getValue()) != 0);
         // staType4->Add(chkEncrypt, flags);
         // Assuming staType4.add(chkEncrypt, flags)

@@ -25,7 +25,7 @@ import vavi.util.serdes.Element;
 import vavi.util.serdes.Serdes;
 
 
-/// Commodore G64 ディスクパーサ
+/** Commodore G64 ディスクパーサ */
 public class DiskG64Parser extends DiskImageParser {
 
     /** G64 header */
@@ -38,9 +38,9 @@ public class DiskG64Parser extends DiskImageParser {
         @Element(sequence = 2)
         public byte version;
         @Element(sequence = 3)
-        public byte num_of_tracks;
+        public byte numOfTracks;
         @Element(sequence = 4)
-        public short max_track_size;
+        public short maxTrackSize;
 
         public static final int SIZE = 8 + 1 + 1 + 2; // 12
     }
@@ -50,15 +50,15 @@ public class DiskG64Parser extends DiskImageParser {
     private static final class G64SectorHeader {
 
         @Element(sequence = 1)
-        public byte block_id;
+        public byte blockId;
         @Element(sequence = 2)
-        public byte format_id0;
+        public byte formatId0;
         @Element(sequence = 3)
-        public byte format_id1;
+        public byte formatId1;
         @Element(sequence = 4)
-        public byte track_number;
+        public byte trackNumber;
         @Element(sequence = 5)
-        public byte sector_number;
+        public byte sectorNumber;
         @Element(sequence = 6)
         public byte reserved1;
         @Element(sequence = 7)
@@ -71,11 +71,11 @@ public class DiskG64Parser extends DiskImageParser {
     private static final class G64SectorData {
 
         @Element(sequence = 1)
-        public byte block_id;
+        public byte blockId;
         @Element(sequence = 2)
         public byte[] data = new byte[256];
         @Element(sequence = 3)
-        public byte chksum;
+        public byte checksum;
         @Element(sequence = 4)
         public byte reserved1;
         @Element(sequence = 5)
@@ -87,40 +87,45 @@ public class DiskG64Parser extends DiskImageParser {
     //
 
     /** */
-    private final G64Header m_header;
+    private G64Header header;
 
-    /** */
-    public DiskG64Parser(DiskImageFile file, short modFlags, DiskResult result) {
-        super(file, modFlags, result);
+    @Override
+    public boolean isSupported(String type) {
+        return "g64".equalsIgnoreCase(type);
+    }
 
-        m_header = new G64Header();
+    @Override
+    public void init(DiskImageFile file, short modFlags, DiskResult result) {
+        super.init(file, modFlags, result);
+
+        header = new G64Header();
     }
 
     /**
      * セクタデータの作成
      *
-     * @param indata         セクタデータ
-     * @param disk_number    ディスク番号
-     * @param track_number   トラック番号
-     * @param side_number    サイド番号
-     * @param sector_nums    セクタ数
-     * @param sector_number  セクタ番号
-     * @param sector_size    セクタサイズ
-     * @param single_density 単密度か
-     * @param track          [in,out] トラック
+     * @param inData        セクタデータ
+     * @param diskNumber    ディスク番号
+     * @param trackNumber   トラック番号
+     * @param sideNumber    サイド番号
+     * @param numOfSectors  セクタ数
+     * @param sectorNumber  セクタ番号
+     * @param sectorSize    セクタサイズ
+     * @param singleDensity 単密度か
+     * @param track         [in,out] トラック
      * @return ヘッダ込みのセクタサイズ
      */
-    private int parseSector(byte[] indata, int disk_number, int track_number, int side_number, int sector_nums,
-                            int sector_number, int sector_size, boolean single_density, DiskImageTrack track) {
+    private int parseSector(byte[] inData, int diskNumber, int trackNumber, int sideNumber, int numOfSectors,
+                            int sectorNumber, int sectorSize, boolean singleDensity, DiskImageTrack track) {
 
         // Create a new image sector
-        DiskImageSector sector = track.newImageSector(track_number, side_number, sector_number, sector_size, sector_nums, false, 0);
+        DiskImageSector sector = track.newImageSector(trackNumber, sideNumber, sectorNumber, sectorSize, numOfSectors, false, 0);
         track.add(sector);
 
         // Copy plain data
-        sector.copy(indata, sector_size);
+        sector.copy(inData, sectorSize);
 
-        sector.setSingleDensity(single_density);
+        sector.setSingleDensity(singleDensity);
         sector.clearModify();
 
         // Return sector size (with header)
@@ -140,19 +145,19 @@ public class DiskG64Parser extends DiskImageParser {
     /**
      * GCRデータをデコード
      *
-     * @param indata   入力データ
-     * @param inbitlen 入力データ長さ(bit単位)
-     * @param outdata  [out] 出力データ
-     * @param outlen   出力データバッファサイズ
+     * @param inData   入力データ
+     * @param inBitLen 入力データ長さ(bit単位)
+     * @param outData  [out] 出力データ
+     * @param outLen   出力データバッファサイズ
      */
-    private static int decodeGCR(byte[] indata, int bitpos, int inbitlen, byte[] outdata, int outpos, int outlen) {
-        while (bitpos < inbitlen && outpos < outlen) {
+    private static int decodeGCR(byte[] inData, int bitPos, int inBitLen, byte[] outData, int outPos, int outLen) {
+        while (bitPos < inBitLen && outPos < outLen) {
             int adat = 0;
             for (int i = 0; i < 2; i++) {
-                int pos = bitpos >> 3;
-                int bit = bitpos & 7;
+                int pos = bitPos >> 3;
+                int bit = bitPos & 7;
 
-                int dat = ((indata[pos] & 0xff) << 8) | ((indata[pos + 1] & 0xff));
+                int dat = ((inData[pos] & 0xff) << 8) | ((inData[pos + 1] & 0xff));
 
                 int idat = (dat >> (11 - bit));
                 idat &= 0x1f;
@@ -163,113 +168,113 @@ public class DiskG64Parser extends DiskImageParser {
                 adat = adat << 4;
                 adat |= ndat;
 
-                bitpos += 5;
+                bitPos += 5;
             }
-            outdata[outpos] = (byte) adat;
-            outpos++;
+            outData[outPos] = (byte) adat;
+            outPos++;
         }
-        return outpos;
+        return outPos;
     }
 
     /**
      * トラックデータの作成
      *
-     * @param istream     ディスクイメージ
-     * @param disk_number ディスク番号
-     * @param side_number サイド番号
-     * @param offset_pos  オフセット番号
-     * @param offset      オフセット位置
-     * @param disk        [in,out] ディスク
+     * @param iStream    ディスクイメージ
+     * @param diskNumber ディスク番号
+     * @param sideNumber サイド番号
+     * @param offsetPos  オフセット番号
+     * @param offset     オフセット位置
+     * @param disk       [in,out] ディスク
      * @return -1: エラー or 終り, >0: トラックサイズ
      */
-    private int parseTrack(InputStream istream, int disk_number, int side_number, int offset_pos, int offset, DiskImageDisk disk) throws IOException {
+    private int parseTrack(InputStream iStream, int diskNumber, int sideNumber, int offsetPos, int offset, DiskImageDisk disk) throws IOException {
         // Read track size
-        byte[] buffer2 = new byte[2];
-        if (istream.readNBytes(buffer2, 0, 2) != 2) {
+        byte[] buf = new byte[2];
+        if (iStream.readNBytes(buf, 0, 2) != 2) {
             return -1;
         }
 
-        int trackSize = ByteUtil.readBeShort(buffer2, 0) & 0xffff;
+        int trackSize = ByteUtil.readBeShort(buf, 0) & 0xffff;
         if (trackSize == 0) {
             return -1;
         }
 
-        byte[] indata = new byte[trackSize + 32];
-        int insize = indata.length;
-        byte[] outdata = new byte[trackSize];
-        int outsize = outdata.length;
+        byte[] inData = new byte[trackSize + 32];
+        int inSize = inData.length;
+        byte[] outData = new byte[trackSize];
+        int outSize = outData.length;
 
-        int len = istream.readNBytes(indata, 0, insize);
+        int len = iStream.readNBytes(inData, 0, inSize);
 
         List<byte[]> sectorHeaders = new ArrayList<>();
-        List<byte[]> sectorDatas = new ArrayList<>();
+        List<byte[]> sectorData = new ArrayList<>();
 
-        int inpos = 0;
-        int outpos = 0;
-        while (inpos < trackSize) {
+        int inPos = 0;
+        int outPos = 0;
+        while (inPos < trackSize) {
             // Skip header sync ($ff) – usually 4–5 bytes
-            while (indata[inpos] == (byte) 0xff && inpos < trackSize) {
-                inpos++;
+            while (inData[inPos] == (byte) 0xff && inPos < trackSize) {
+                inPos++;
             }
-            if (inpos >= trackSize) {
+            if (inPos >= trackSize) {
                 break;
             }
 
             // Header GCR – usually 10 bytes
-            len = decodeGCR(indata, inpos, 80, outdata, outpos, outsize - outpos);
-            sectorHeaders.add(Arrays.copyOfRange(outdata, outpos, outpos + len));
-            inpos += 10;
-            outpos += len;
+            len = decodeGCR(inData, inPos, 80, outData, outPos, outSize - outPos);
+            sectorHeaders.add(Arrays.copyOfRange(outData, outPos, outPos + len));
+            inPos += 10;
+            outPos += len;
 
             // Skip header gap
-            while (indata[inpos] != (byte) 0xff && inpos < trackSize) {
-                inpos++;
+            while (inData[inPos] != (byte) 0xff && inPos < trackSize) {
+                inPos++;
             }
-            if (inpos >= trackSize) break;
+            if (inPos >= trackSize) break;
 
             // Skip data sync ($ff) – usually 4–5 bytes
-            while (indata[inpos] == (byte) 0xff && inpos < trackSize) {
-                inpos++;
+            while (inData[inPos] == (byte) 0xff && inPos < trackSize) {
+                inPos++;
             }
-            if (inpos >= trackSize) break;
+            if (inPos >= trackSize) break;
 
             // Data GCR – usually 325 bytes
-            len = decodeGCR(indata, inpos, 2600, outdata, outpos, outsize - outpos);
-            sectorDatas.add(Arrays.copyOfRange(outdata, outpos, outpos + len));
-            inpos += 325;
-            outpos += len;
+            len = decodeGCR(inData, inPos, 2600, outData, outPos, outSize - outPos);
+            sectorData.add(Arrays.copyOfRange(outData, outPos, outPos + len));
+            inPos += 325;
+            outPos += len;
 
             // Skip data gap
-            while (indata[inpos] != (byte) 0xff && inpos < trackSize) {
-                inpos++;
+            while (inData[inPos] != (byte) 0xff && inPos < trackSize) {
+                inPos++;
             }
-            if (inpos >= trackSize) break;
+            if (inPos >= trackSize) break;
         }
 
         // Determine track number
-        G64SectorHeader sh = new G64SectorHeader();
-        Serdes.Util.deserialize(new ByteArrayInputStream(sectorHeaders.getFirst()), sh);
-        int trackNumber = sh.track_number;
+        G64SectorHeader sectorHeader = new G64SectorHeader();
+        Serdes.Util.deserialize(new ByteArrayInputStream(sectorHeaders.getFirst()), sectorHeader);
+        int trackNumber = sectorHeader.trackNumber;
 
         // Create track
         int d88TrackSize = 0;
-        DiskImageTrack track = disk.newImageTrack(trackNumber, side_number, offset_pos, 1);
+        DiskImageTrack track = disk.newImageTrack(trackNumber, sideNumber, offsetPos, 1);
         disk.setMaxTrackNumber(trackNumber);
 
-        for (int i = 0; i < sectorDatas.size(); i++) {
+        for (int i = 0; i < sectorData.size(); i++) {
             // Create a sector
-            sh = new G64SectorHeader();
-            Serdes.Util.deserialize(new ByteArrayInputStream(sectorHeaders.get(i)), sh);
+            sectorHeader = new G64SectorHeader();
+            Serdes.Util.deserialize(new ByteArrayInputStream(sectorHeaders.get(i)), sectorHeader);
             G64SectorData sd = new G64SectorData();
-            Serdes.Util.deserialize(new ByteArrayInputStream(sectorDatas.get(i)), sh);
+            Serdes.Util.deserialize(new ByteArrayInputStream(sectorData.get(i)), sectorHeader);
 
             d88TrackSize = parseSector(
                     sd.data,
-                    disk_number,
-                    sh.track_number,
-                    side_number,
+                    diskNumber,
+                    sectorHeader.trackNumber,
+                    sideNumber,
                     sectorHeaders.size(),
-                    sh.sector_number,
+                    sectorHeader.sectorNumber,
                     256,
                     false,
                     track);
@@ -289,20 +294,22 @@ public class DiskG64Parser extends DiskImageParser {
             // ディスクに追加
             disk.add(track);
             // オフセット設定
-            disk.setOffset(offset_pos, offset);
+            disk.setOffset(offsetPos, offset);
         }
 
         return d88TrackSize;
     }
 
-    /// ファイルを解析
-    ///
-    /// @param istream     解析対象データ
-    /// @param disk_number ディスク番号
-    /// @return -1: finish parsing, 0: parse next disk
-    private int parseDisk(InputStream istream, int disk_number) throws IOException {
+    /**
+     * ファイルを解析
+     *
+     * @param iStream     解析対象データ
+     * @param diskNumber ディスク番号
+     * @return -1: finish parsing, 0: parse next disk
+     */
+    private int parseDisk(InputStream iStream, int diskNumber) throws IOException {
         // Parse header
-        if (parseHeader(istream, disk_number) < 0) {
+        if (parseHeader(iStream, diskNumber) < 0) {
             return -1;
         }
 
@@ -310,13 +317,13 @@ public class DiskG64Parser extends DiskImageParser {
         int len = 0;
         List<Integer> offsets = new ArrayList<>();
         boolean hasHalfTrack = false;
-        for (int pos = 0; pos < m_header.num_of_tracks; pos++) {
-            byte[] buf4 = new byte[4];
-            len = istream.readNBytes(buf4, 0, 4);
+        for (int pos = 0; pos < header.numOfTracks; pos++) {
+            byte[] buf = new byte[4];
+            len = iStream.readNBytes(buf, 0, 4);
             if (len < 4) {
                 return -1;
             }
-            int offset = ByteUtil.readLeShort(buf4, 0) & 0xffff;
+            int offset = ByteUtil.readLeShort(buf, 0) & 0xffff;
 
             offsets.add(offset);
             // ハーフトラックを持っているか
@@ -324,25 +331,25 @@ public class DiskG64Parser extends DiskImageParser {
         }
 
         // Skip speed zone data
-        int size = m_header.num_of_tracks * 4;
-        int current = (int) ((SeekableDataInputStream) istream).position();
-        ((SeekableDataInputStream) istream).position(current + size); // wxFromCurrent
+        int size = header.numOfTracks * 4;
+        int current = (int) ((SeekableDataInputStream) iStream).position();
+        ((SeekableDataInputStream) iStream).position(current + size); // wxFromCurrent
 
         // Create disk image
-        DiskImageDisk disk = file.newImageDisk(disk_number);
+        DiskImageDisk disk = file.newImageDisk(diskNumber);
 
         // Parse tracks
         int d88Offset = disk.getOffsetStart(); // header size
         int d88OffsetPos = 0;
-        for (int pos = 0; pos < m_header.num_of_tracks; pos++) {
+        for (int pos = 0; pos < header.numOfTracks; pos++) {
             size = offsets.get(pos);
             if (size == 0) {
                 // skip empty track
                 continue;
             }
 
-            ((SeekableDataInputStream) istream).position(size);
-            int offset = parseTrack(istream, disk_number, hasHalfTrack ? pos & 1 : 0, d88OffsetPos, d88Offset, disk);
+            ((SeekableDataInputStream) iStream).position(size);
+            int offset = parseTrack(iStream, diskNumber, hasHalfTrack ? pos & 1 : 0, d88OffsetPos, d88Offset, disk);
             if (offset == -1) {
                 return -1;
             }
@@ -363,23 +370,25 @@ public class DiskG64Parser extends DiskImageParser {
         return 0;
     }
 
-    /// ヘッダ解析
-    ///
-    /// @param istream     解析対象データ
-    /// @param disk_number ディスク番号
-    /// @return -1: エラー, 0:
-    private int parseHeader(InputStream istream, int disk_number) throws IOException {
-        int len = istream.available();
+    /**
+     * ヘッダ解析
+     *
+     * @param iStream    解析対象データ
+     * @param diskNumber ディスク番号
+     * @return -1: エラー, 0:
+     */
+    private int parseHeader(InputStream iStream, int diskNumber) throws IOException {
+        int len = iStream.available();
         if (len < G64Header.SIZE) {
             // too short
             return -1;
         }
-        Serdes.Util.deserialize(istream, m_header);
-        if (!Arrays.equals(m_header.sig, "GCR-1541".getBytes())) {
+        Serdes.Util.deserialize(iStream, header);
+        if (!Arrays.equals(header.sig, "GCR-1541".getBytes())) {
             // not an image
             return -1;
         }
-        if (m_header.num_of_tracks == 0) {
+        if (header.numOfTracks == 0) {
             return -1;
         }
 
@@ -387,37 +396,40 @@ public class DiskG64Parser extends DiskImageParser {
     }
 
     @Override
-    public int check(InputStream istream, List<DiskTypeHint> disk_hints, DiskParam disk_param, List<DiskParam> disk_params, DiskParam manual_param) {
-        return -1;
+    public int check(InputStream iStream, List<DiskTypeHint> diskHints, DiskParam diskParam, List<DiskParam> diskParams, DiskParam manualParam) throws IOException {
+        return check(iStream);
     }
 
-    /// チェック
-    ///
-    /// @param istream 解析対象データ
-    /// @return 1 選択ダイアログ表示
-    ///  0 正常（候補が複数ある時はダイアログ表示）
+    /**
+     * チェック
+     *
+     * @param iStream 解析対象データ
+     * @return 1: 選択ダイアログ表示, 0: 正常（候補が複数ある時はダイアログ表示）
+     */
     @Override
-    public int check(InputStream istream) throws IOException {
-        ((SeekableDataInputStream) istream).position(0);
+    public int check(InputStream iStream) throws IOException {
+        ((SeekableDataInputStream) iStream).position(0);
 
-        if (parseHeader(istream, 0) < 0) {
+        if (parseHeader(iStream, 0) < 0) {
             return -1;
         }
 
         return 0;
     }
 
-    /// ファイルを解析
-    ///
-    /// @param istream    解析対象データ
-    /// @param disk_param パラメータ通常不要
-    /// @return 0: 正常, -1: エラーあり, 1: 警告あり
+    /**
+     * ファイルを解析
+     *
+     * @param iStream   解析対象データ
+     * @param diskParam パラメータ通常不要
+     * @return 0: 正常, -1: エラーあり, 1: 警告あり
+     */
     @Override
-    public int parse(InputStream istream, DiskParam disk_param) throws IOException {
-        ((SeekableDataInputStream) istream).position(0);
+    public int parse(InputStream iStream, DiskParam diskParam) throws IOException {
+        ((SeekableDataInputStream) iStream).position(0);
 
-        for (int disk_number = 0; disk_number < 1; disk_number++) {
-            if (parseDisk(istream, disk_number) < 0) {
+        for (int diskNumber = 0; diskNumber < 1; diskNumber++) {
+            if (parseDisk(iStream, diskNumber) < 0) {
                 break;
             }
         }

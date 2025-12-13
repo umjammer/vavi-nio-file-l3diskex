@@ -87,8 +87,8 @@ public class UiDirItemOS9 extends UiDirItem {
         // Initial values for dialog controls:
 
         // Owner ID
-        dirItem.m_group_id = (short) ((user_id >> 8) & 0xff);
-        dirItem.m_owner_id = (short) (user_id & 0xff);
+        dirItem.groupId = (short) ((user_id >> 8) & 0xff);
+        dirItem.ownerId = (short) (user_id & 0xff);
 
         // File Attributes
         boolean chkDirectoryValue = (file_type_1 & FILETYPE_MASK_OS9_DIRECTORY) != 0;
@@ -131,7 +131,7 @@ public class UiDirItemOS9 extends UiDirItem {
         boolean chkUsrWriteValue = false;
         boolean chkUsrReadValue = false;
 
-        // The logic for retrieving m_group_id and m_owner_id from dialog controls is missing in C++,
+        // The logic for retrieving groupId and ownerId from dialog controls is missing in C++,
         // but they are used in the calculation, assuming they are updated by the dialog's validators.
 
         int t1 = 0;
@@ -144,7 +144,7 @@ public class UiDirItemOS9 extends UiDirItem {
         t1 |= (chkUsrWriteValue ? FILETYPE_MASK_OS9_USER_WRITE : 0);
         t1 |= (chkUsrReadValue ? FILETYPE_MASK_OS9_USER_READ : 0);
 
-        int user_id = ((dirItem.m_group_id << 8) | dirItem.m_owner_id);
+        int user_id = ((dirItem.groupId << 8) | dirItem.ownerId);
         attr.setFileAttr(dirItem.getBasic().getFormatTypeNumber(), 0, t1, user_id, 0);
 
         return true;

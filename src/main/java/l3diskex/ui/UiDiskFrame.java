@@ -18,7 +18,7 @@ import l3diskex.ui.Main.UiDiskPanel;
 import l3diskex.ui.UIBinDump.UiDiskBinDumpFrame;
 import l3diskex.ui.UiDiskFatArea.UiDiskFatAreaFrame;
 
-import static l3diskex.Config.gConfig;
+import static l3diskex.Config.config;
 import static l3diskex.ui.UiDiskList.IDM_ADD_DISK_FROM_FILE;
 import static l3diskex.ui.UiDiskList.IDM_ADD_DISK_NEW;
 import static l3diskex.ui.UiDiskList.IDM_DELETE_DISK_FROM_FILE;
@@ -222,8 +222,8 @@ public class UiDiskFrame extends UiDiskProcess {
     // Java equivalent of destructor logic
     public void cleanup() {
         // Dimension sz = GetSize() / GetClientSize() mocked
-        gConfig.setWindowWidth(0);
-        gConfig.setWindowHeight(0);
+        config.setWindowWidth(0);
+        config.setWindowHeight(0);
 
         p_image = null; // delete p_image;
     }

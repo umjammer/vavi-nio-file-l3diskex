@@ -15,12 +15,20 @@ import l3diskex.basicfmt.diritem.DiskBasicDirItemN88.DirectoryN88;
  * <p>
  * DiskBasicParam
  *
- * @li ReservedGroups : Group 予約済みにするグループ（クラスタ）番号
+ * <li>ReservedGroups : Group 予約済みにするグループ（クラスタ）番号</li>
  */
 public class DiskBasicTypePA extends DiskBasicTypeN88 {
 
-    public DiskBasicTypePA(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryN88> dir) {
-        super(basic, fat, dir);
+    public static final int FORMAT_TYPE_PA = 11;
+
+    @Override
+    public boolean isSupported(int typeNumber) {
+        return typeNumber == FORMAT_TYPE_PA;
+    }
+
+    @Override
+    public void init(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryN88> dir) {
+        super.init(basic, fat, dir);
     }
 
     /**
@@ -34,9 +42,9 @@ public class DiskBasicTypePA extends DiskBasicTypeN88 {
         // グループ（クラスタ）番号はサイド（サーフェース）優先なので、
         // セクタ番号はトラック優先になるよう変換する。
         int sides = basic.getSidesPerDiskOnBasic();
-        int grpPerTrk = basic.getSectorsPerTrack() / basic.getSectorsPerGroup();
-        int grpPerSid = sides * grpPerTrk;
-        int ngrp = (groupNum / grpPerSid) * grpPerSid + (groupNum % sides) * grpPerTrk + ((groupNum % grpPerSid) / sides);
-        return ngrp * basic.getSectorsPerGroup();
+        int groupPerTrack = basic.getSectorsPerTrack() / basic.getSectorsPerGroup();
+        int groupPerSide = sides * groupPerTrack;
+        int numOfGroups = (groupNum / groupPerSide) * groupPerSide + (groupNum % sides) * groupPerTrack + ((groupNum % groupPerSide) / sides);
+        return numOfGroups * basic.getSectorsPerGroup();
     }
 }

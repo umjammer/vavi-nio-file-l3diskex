@@ -21,46 +21,50 @@ import vavi.io.SeekableDataInputStream;
 import vavi.util.serdes.Serdes;
 
 
-// TRS-80 DMKディスクパーサー
+/**
+ * TRS-80 DMKディスクパーサー
+ *
+ * @see "https://electrickery.hosting.philpem.me.uk/comp/trs80-4p/dmkeilImages/trstech.htm"
+ */
 public class DiskDmkParser extends DiskImageParser {
 
-    /// TRS-80 DMK header
+    /** TRS-80 DMK header */
     @Serdes(bigEndian = false)
     public static class TrsDmkHeader {
 
-        // 0x00:no 0xff:yes
-        public byte write_protected;
-        public byte num_of_tracks;
-        // track length
-        public short track_length;
+        /** 0x00: no, 0xff: yes */
+        public byte writeProtected;
+        public byte numOfTracks;
+        /** track length */
+        public short trackLength;
         public byte flags;
         public byte[] reserved = new byte[7];
-        // 0x12345678:Real Disk, 0x00000000:Virtual Disk
+        /** 0x12345678: Real Disk, 0x00000000: Virtual Disk */
         public int signature;
 
         public static final int SIZE = 16;
     }
 
-    /// TRS-80 DMK track
+    /** TRS-80 DMK track */
     @Serdes(bigEndian = false)
     public static class TrsDmkTrack {
 
-        // pointer to sector IDAMs
-        public short[] ptr = new short[64];
+        /** pointer to sector IDAMs */
+        public short[] pointers = new short[64];
 
         public static final int SIZE = 64 * 2;
     }
 
-    /// TRS-80 DMK sector id
+    /** TRS-80 DMK sector id */
     @Serdes(bigEndian = false)
     public static class TrsDmkSectorId {
 
-        public byte IDAM;
-        public byte C;
-        public byte H;
-        public byte R;
-        public byte N;
-        public short CRC;
+        public byte idam;
+        public byte c;
+        public byte h;
+        public byte r;
+        public byte n;
+        public short crc;
 
         public static final int SIZE = 6;
     }
@@ -68,54 +72,71 @@ public class DiskDmkParser extends DiskImageParser {
     private static final int DMK_IDAM_DENSITY = 0x8000;
     private static final int DMK_IDAM_OFFSET = 0x3fff;
 
-    private static final int DMK_DISK_REAL = 0x12345678;
-    private static final int DMK_DISK_VIRTUAL = 0x00000000;
+    private static final int DMK_DISK_REAL = 0x1234_5678;
+    private static final int DMK_DISK_VIRTUAL = 0x0000_0000;
 
     /** */
-    private static final class Amark {
+    private static final class AMark {
 
         public final byte[] id;
         public final int deleted;
 
-        public Amark(String id, int deleted) {
+        public AMark(String id, int deleted) {
             this.id = id != null ? id.getBytes() : null;
             this.deleted = deleted;
         }
     }
 
     /** */
-    private static final Amark[][] AMARKS = {
+    private static final AMark[][] AMARKS = {
             {
-                    new Amark("\u0000\u0000\u0000\u00fb", 0),
-                    new Amark("\u0000\u0000\u0000\u00f8", 0), // TRSDOS 1.3 SYSTEM
-                    new Amark("\u0000\u0000\u0000\u00fa", 0), // TRSDOS DIR
+                    new AMark("\u0000\u0000\u0000\u00fb", 0),
+                    new AMark("\u0000\u0000\u0000\u00f8", 0), // TRSDOS 1.3 SYSTEM
+                    new AMark("\u0000\u0000\u0000\u00fa", 0), // TRSDOS DIR
             },
             {
-                    new Amark("\u00a1\u00a1\u00a1\u00fb", 0),
-                    new Amark("\u00a1\u00a1\u00a1\u00f8", 0), // TRSDOS 1.3 SYSTEM
-                    new Amark("\u00a1\u00a1\u00a1\u00fa", 0), // TRSDOS DIR
+                    new AMark("\u00a1\u00a1\u00a1\u00fb", 0),
+                    new AMark("\u00a1\u00a1\u00a1\u00f8", 0), // TRSDOS 1.3 SYSTEM
+                    new AMark("\u00a1\u00a1\u00a1\u00fa", 0), // TRSDOS DIR
             }
     };
 
     //
     // TRS-80 DMK形式をD88形式にする
     //
-    public DiskDmkParser(DiskImageFile file, short mod_flags, DiskResult result) {
-        super(file, mod_flags, result);
+
+    @Override
+    public boolean isSupported(String type) {
+        return "dmk".equalsIgnoreCase(type);
     }
 
-    // データマークをさがす
-    private boolean findDataMark(InputStream istream, int sector_size, boolean double_density, int[] deleted) throws IOException {
+    @Override
+    public boolean needsCheck() {
+        return true;
+    }
+
+    @Override
+    public boolean checkCondition(InputStream stream) throws IOException {
+        return check(stream) >= 0;
+    }
+
+    @Override
+    public void init(DiskImageFile file, short modFlags, DiskResult result) {
+        super.init(file, modFlags, result);
+    }
+
+    /** データマークをさがす */
+    private static boolean findDataMark(InputStream iStream, int sectorSize, boolean doubleDensity, int[] deleted) throws IOException {
         byte[] buf = new byte[64];
 
-        int len = istream.readNBytes(buf, 0, buf.length);
+        int len = iStream.readNBytes(buf, 0, buf.length);
         if (len < buf.length) {
             return false;
         }
 
         boolean found = false;
         int pos;
-        int den = double_density ? 1 : 0;
+        int den = doubleDensity ? 1 : 0;
 
         for (pos = 0; pos < len - 4; pos++) {
             for (int i = 0; AMARKS[den][i].id != null; i++) {
@@ -134,49 +155,49 @@ public class DiskDmkParser extends DiskImageParser {
 
         // adjust position
         int offset = pos + 4 - buf.length;
-        int current = (int) ((SeekableDataInputStream) istream).position();
-        ((SeekableDataInputStream) istream).position(current + offset); // wxFromCurrent
+        int current = (int) ((SeekableDataInputStream) iStream).position();
+        ((SeekableDataInputStream) iStream).position(current + offset); // wxFromCurrent
 
         return true;
     }
 
-    // セクタデータの作成
-    private int parseSector(InputStream istream, int sector_nums, int flags, DiskImageTrack track) throws IOException {
-        int len = istream.available();
+    /** セクタデータの作成 */
+    private int parseSector(InputStream iStream, int sectorNums, int flags, DiskImageTrack track) throws IOException {
+        int len = iStream.available();
         if (len != TrsDmkSectorId.SIZE) {
             result.setError(DiskResult.ERRV_SECTORS_HEADER, 0);
             return 0;
         }
         TrsDmkSectorId id = new TrsDmkSectorId();
-        Serdes.Util.deserialize(istream, id);
+        Serdes.Util.deserialize(iStream, id);
 
-        int track_number = id.C & 0xff;
-        int side_number = id.H & 0xff;
-        int sector_number = id.R & 0xff;
-        int sector_size_code = id.N & 0xff;
+        int trackNumber = id.c & 0xff;
+        int sideNumber = id.h & 0xff;
+        int sectorNumber = id.r & 0xff;
+        int sectorSizeCode = id.n & 0xff;
 
-        if (sector_size_code > 7) {
+        if (sectorSizeCode > 7) {
             // セクタサイズが大きすぎる
-            result.setError(DiskResult.ERRV_SECTOR_SIZE_SECTOR, 0, track_number, side_number, sector_number, sector_size_code, sector_size_code);
+            result.setError(DiskResult.ERRV_SECTOR_SIZE_SECTOR, 0, trackNumber, sideNumber, sectorNumber, sectorSizeCode, sectorSizeCode);
             return 0;
         }
 
-        int sector_size = 128 << sector_size_code;
+        int sectorSize = 128 << sectorSizeCode;
 
         // データの開始位置をさがす
         int[] deleted = new int[1];
-        if (!findDataMark(istream, sector_size, (flags & DMK_IDAM_DENSITY) != 0, deleted)) {
-            result.setError(DiskResult.ERRV_NO_SECTOR, 0, sector_number, track_number, side_number);
+        if (!findDataMark(iStream, sectorSize, (flags & DMK_IDAM_DENSITY) != 0, deleted)) {
+            result.setError(DiskResult.ERRV_NO_SECTOR, 0, sectorNumber, trackNumber, sideNumber);
             return 0;
         }
 
-        DiskImageSector sector = track.newImageSector(track_number, side_number, sector_number, sector_size, sector_nums, false, 0);
+        DiskImageSector sector = track.newImageSector(trackNumber, sideNumber, sectorNumber, sectorSize, sectorNums, false, 0);
         track.add(sector);
 
         byte[] buf = sector.getSectorBuffer();
         int siz = sector.getSectorBufferSize();
 
-        len = istream.readNBytes(buf, 0, siz);
+        len = iStream.readNBytes(buf, 0, siz);
         if (len < siz) {
             // ファイルデータが足りない
             result.setError(DiskResult.ERRV_INVALID_DISK, 0);
@@ -189,39 +210,37 @@ public class DiskDmkParser extends DiskImageParser {
         return sector.getSize();
     }
 
-    // トラックデータの作成
-    private int parseTrack(InputStream istream, int track_size, int offset_pos, int offset, DiskImageDisk disk) throws IOException {
-        int file_offset = (int) ((SeekableDataInputStream) istream).position();
+    /** トラックデータの作成 */
+    private int parseTrack(InputStream iStream, int trackSize, int offsetPos, int offset, DiskImageDisk disk) throws IOException {
+        int file_offset = (int) ((SeekableDataInputStream) iStream).position();
 
-        int len = istream.available();
+        int len = iStream.available();
         if (len != TrsDmkTrack.SIZE) {
             result.setError(DiskResult.ERR_NO_TRACK, 0);
             return 0;
         }
-        TrsDmkTrack track_header = new TrsDmkTrack();
-        Serdes.Util.deserialize(istream, track_header);
+        TrsDmkTrack trackHeader = new TrsDmkTrack();
+        Serdes.Util.deserialize(iStream, trackHeader);
 
         // セクタ数を計算
-        int num_of_sectors = 0;
+        int numOfSectors = 0;
         for (int pos = 0; pos < 64; pos++) {
-            if (track_header.ptr[pos] == 0) {
+            if (trackHeader.pointers[pos] == 0) {
                 break;
             }
-            num_of_sectors++;
+            numOfSectors++;
         }
 
-        DiskImageTrack track = disk.newImageTrack(0, 0, offset_pos, 1);
+        DiskImageTrack track = disk.newImageTrack(0, 0, offsetPos, 1);
 
-        int d88_track_size = 0;
-        for (int pos = 0; pos < num_of_sectors && result.getValid() >= 0; pos++) {
-            int ptr = track_header.ptr[pos] & 0xffff;
-            int next_offset = (ptr & DMK_IDAM_OFFSET);
+        int d88TrackSize = 0;
+        for (int pos = 0; pos < numOfSectors && result.getValid() >= 0; pos++) {
+            int ptr = trackHeader.pointers[pos] & 0xffff;
+            int nextOffset = (ptr & DMK_IDAM_OFFSET);
             // move position in file
-            ((SeekableDataInputStream) istream).position(file_offset + next_offset); // wxFromStart
+            ((SeekableDataInputStream) iStream).position(file_offset + nextOffset); // wxFromStart
 
-            d88_track_size += parseSector(istream,
-                    num_of_sectors,
-                    (ptr & ~DMK_IDAM_OFFSET), track);
+            d88TrackSize += parseSector(iStream, numOfSectors, (ptr & ~DMK_IDAM_OFFSET), track);
         }
 
         if (result.getValid() >= 0) {
@@ -229,7 +248,7 @@ public class DiskDmkParser extends DiskImageParser {
             track.calcInterleave();
 
             // トラックサイズ設定
-            track.setSize(d88_track_size);
+            track.setSize(d88TrackSize);
             // トラック番号は各セクタのID Cに合わせる
             int track_number = track.getMajorIDC();
             track.setTrackNumber(track_number);
@@ -239,7 +258,7 @@ public class DiskDmkParser extends DiskImageParser {
             // ディスクに追加
             disk.add(track);
             // オフセット設定
-            disk.setOffset(offset_pos, offset);
+            disk.setOffset(offsetPos, offset);
             // 最大トラック番号設定
             disk.setMaxTrackNumber(track_number);
 
@@ -247,76 +266,74 @@ public class DiskDmkParser extends DiskImageParser {
         }
 
         // 次のトラックデータの先頭へ
-        ((SeekableDataInputStream) istream).position(file_offset + track_size); // wxFromStart
+        ((SeekableDataInputStream) iStream).position(file_offset + trackSize); // wxFromStart
 
-        return d88_track_size;
+        return d88TrackSize;
     }
 
-    // ディスクの解析
-    private int parseDisk(InputStream istream) throws IOException {
+    /** ディスクの解析 */
+    private int parseDisk(InputStream iStream) throws IOException {
         DiskImageDisk disk = file.newImageDisk(0);
 
-        int len = istream.available();
+        int len = iStream.available();
         if (len != TrsDmkHeader.SIZE) {
             result.setError(DiskResult.ERRV_INVALID_DISK, 0);
             return 0;
         }
         TrsDmkHeader header = new TrsDmkHeader();
-        Serdes.Util.deserialize(istream, header);
+        Serdes.Util.deserialize(iStream, header);
 
-        int max_tracks = header.num_of_tracks & 0xff;
+        int max_tracks = header.numOfTracks & 0xff;
 
-        int d88_offset = disk.getOffsetStart(); // header size
-        int d88_offset_pos = 0;
-        int limit_offset_pos = disk.getCreatableTracks();
+        int d88Offset = disk.getOffsetStart(); // header size
+        int d88OffsetPos = 0;
+        int limitOffsetPos = disk.getCreatableTracks();
         for (int pos = 0; pos < 204 && pos < max_tracks; pos++) {
-            d88_offset += parseTrack(istream,
-                    header.track_length & 0xffff,
-                    d88_offset_pos, d88_offset, disk);
-            d88_offset_pos++;
-            if (d88_offset_pos >= limit_offset_pos) {
-                result.setError(DiskResult.ERRV_OVERFLOW_SIZE, 0, d88_offset);
+            d88Offset += parseTrack(iStream, header.trackLength & 0xffff, d88OffsetPos, d88Offset, disk);
+            d88OffsetPos++;
+            if (d88OffsetPos >= limitOffsetPos) {
+                result.setError(DiskResult.ERRV_OVERFLOW_SIZE, 0, d88Offset);
             }
         }
-        disk.setSize(d88_offset);
+        disk.setSize(d88Offset);
 
         if (result.getValid() >= 0) {
             // ディスクを追加
-            DiskParam disk_param = disk.calcMajorNumber();
-            if (disk_param != null) {
-                disk.setDensity(disk_param.getParamDensity());
+            DiskParam diskParam = disk.calcMajorNumber();
+            if (diskParam != null) {
+                disk.setDensity(diskParam.getParamDensity());
             }
-            disk.setWriteProtect((header.write_protected & 0xff) == 0xff);
+            disk.setWriteProtect((header.writeProtected & 0xff) == 0xff);
 
             file.add(disk, modFlags);
         }
 
-        return d88_offset;
+        return d88Offset;
     }
 
     @Override
-    public int check(InputStream istream, List<DiskTypeHint> disk_hints, DiskParam disk_param, List<DiskParam> disk_params, DiskParam manual_param) {
-        return -1;
+    public int check(InputStream iStream, List<DiskTypeHint> diskHints, DiskParam diskParam, List<DiskParam> diskParams, DiskParam manualParam) throws IOException {
+        return check(iStream);
     }
 
-    // TRS-80 DMKファイルかどうかをチェック
+    /** TRS-80 DMKファイルかどうかをチェック */
     @Override
-    public int check(InputStream istream) throws IOException {
-        ((SeekableDataInputStream) istream).position(0);
+    public int check(InputStream iStream) throws IOException {
+        ((SeekableDataInputStream) iStream).position(0);
 
-        int len = istream.available();
+        int len = iStream.available();
         if (len < TrsDmkHeader.SIZE) {
             // too short
             return -1;
         }
         TrsDmkHeader header = new TrsDmkHeader();
-        Serdes.Util.deserialize(istream, header);
+        Serdes.Util.deserialize(iStream, header);
 
-        ((SeekableDataInputStream) istream).position(0);
+        ((SeekableDataInputStream) iStream).position(0);
 
         // check header
         // first data is 0x00 or 0xff (write protected flag)
-        if ((header.write_protected & 0xff) != 0x00 && (header.write_protected & 0xff) != 0xff) {
+        if ((header.writeProtected & 0xff) != 0x00 && (header.writeProtected & 0xff) != 0xff) {
             return -1;
         }
         // signature
@@ -324,7 +341,7 @@ public class DiskDmkParser extends DiskImageParser {
             return -1;
         }
         // file size
-        if ((header.num_of_tracks & 0xff) * (header.track_length & 0xffff) + TrsDmkHeader.SIZE < len /* file size */) {
+        if ((header.numOfTracks & 0xff) * (header.trackLength & 0xffff) + TrsDmkHeader.SIZE < len /* file size */) {
             // too short
             return -1;
         }
@@ -332,10 +349,10 @@ public class DiskDmkParser extends DiskImageParser {
         return 0;
     }
 
-    // TRS-80 DMKファイルを解析
+    /** TRS-80 DMKファイルを解析 */
     @Override
-    public int parse(InputStream istream, DiskParam disk_param) throws IOException {
-        parseDisk(istream);
+    public int parse(InputStream iStream, DiskParam diskParam) throws IOException {
+        parseDisk(iStream);
         return result.getValid();
     }
 }

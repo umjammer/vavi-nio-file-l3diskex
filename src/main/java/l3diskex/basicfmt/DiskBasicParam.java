@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.StringJoiner;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
@@ -13,10 +14,11 @@ import l3diskex.Parambase.MyAttribute;
 import l3diskex.Parambase.TemplatesBase;
 import l3diskex.Parambase.ValidNameRule;
 import l3diskex.Utils;
-import l3diskex.basicfmt.BasicCommon.DiskBasicFormatType;
 import l3diskex.diskimg.DiskParam.DiskParamName;
 import l3diskex.diskimg.DiskParam.NumSectorsParam;
 import l3diskex.diskimg.DiskParam.SectorInterleave;
+
+import static l3diskex.basicfmt.BasicCommon.FORMAT_TYPE_UNKNOWN;
 
 
 /** DISK BASICのパラメータを保持するクラス */
@@ -26,14 +28,14 @@ public class DiskBasicParam extends DiskBasicParamBase {
 
     public static class DiskBasicParamBases extends TemplatesBase {
 
-        private boolean m_set_volume_rule;
+        private boolean setVolumeRule;
 
         public DiskBasicParamBases() {
-            m_set_volume_rule = false;
+            setVolumeRule = false;
         }
 
         /** 共通パラメータ関連のロード */
-        public boolean load(Node node, String name, String value, String locale_name, DiskBasicParamBase param, StringBuilder errmsgs) {
+        public boolean load(Node node, String name, String value, String localeName, DiskBasicParamBase param, StringBuilder errMsgs) {
             boolean valid = true;
             if (name.equals("SectorsPerGroup")) {
                 param.setSectorsPerGroup(Utils.toInt(value));
@@ -59,11 +61,11 @@ public class DiskBasicParam extends DiskBasicParamBase {
                 param.setDirStartPosOnGroup(Utils.toInt(value));
             } else if (name.equals("SpecialAttributes")) {
                 List<MyAttribute> attrs = new ArrayList<>();
-                loadMyAttributesInTypes(node, locale_name, errmsgs, attrs);
+                loadMyAttributesInTypes(node, localeName, errMsgs, attrs);
                 param.setSpecialAttributes(attrs);
             } else if (name.equals("AttributesByExtension")) {
                 List<MyAttribute> attrs = new ArrayList<>();
-                loadMyAttributesInTypes(node, locale_name, errmsgs, attrs);
+                loadMyAttributesInTypes(node, localeName, errMsgs, attrs);
                 param.setAttributesByExtension(attrs);
             } else if (name.equals("FillCodeOnFormat")) {
                 param.setFillCodeOnFormat((byte) Utils.toInt(value));
@@ -78,13 +80,13 @@ public class DiskBasicParam extends DiskBasicParamBase {
             } else if (name.equals("ExtensionPreCode")) {
                 param.setExtensionPreCode((byte) Utils.toInt(value));
             } else if (name.equals("FileNameCharacters")) {
-                valid = loadValidChars(node, param.getValidFileNameForMod(), errmsgs);
-                if (!m_set_volume_rule) {
+                valid = loadValidChars(node, param.getValidFileNameForMod(), errMsgs);
+                if (!setVolumeRule) {
                     param.setValidVolumeName(param.getValidFileName());
                 }
             } else if (name.equals("VolumeNameCharacters")) {
-                valid = loadValidChars(node, param.getValidVolumeNameForMod(), errmsgs);
-                m_set_volume_rule = valid;
+                valid = loadValidChars(node, param.getValidVolumeNameForMod(), errMsgs);
+                setVolumeRule = valid;
             } else if (name.equals("FileNameCompareCase")) {
                 boolean[] val = new boolean[1];
                 loadFileNameCompareCase(node, val);
@@ -102,10 +104,10 @@ public class DiskBasicParam extends DiskBasicParamBase {
             } else if (name.equals("Endian")) {
                 param.bigEndian(value.equalsIgnoreCase("BIG"));
             } else if (!name.isEmpty()) {
-                Object[] nval = new Object[1];
-                param.getVariousParam(name, nval);
-                loadVariousParam(node, value, nval);
-                param.setVariousParam(name, nval[0]);
+                Object[] nVal = new Object[1];
+                param.getVariousParam(name, nVal);
+                loadVariousParam(node, value, nVal);
+                param.setVariousParam(name, nVal[0]);
             }
             return valid;
         }
@@ -115,7 +117,7 @@ public class DiskBasicParam extends DiskBasicParamBase {
     public static class DiskBasicFormat extends DiskBasicParamBase {
 
         /** フォーマットタイプ番号 */
-        private DiskBasicFormatType typeNumber;
+        private int typeNumber;
         /** ボリューム名 */
         private boolean hasVolumeName;
         /** ボリューム番号 */
@@ -125,25 +127,24 @@ public class DiskBasicParam extends DiskBasicParamBase {
 
         /** 初期化 */
         private void clearBasicFormatPrivate() {
-            typeNumber = DiskBasicFormatType.FORMAT_TYPE_UNKNOWN;
+            typeNumber = FORMAT_TYPE_UNKNOWN;
             hasVolumeName = false;
             hasVolumeNumber = false;
             hasVolumeDate = false;
         }
 
         public DiskBasicFormat() {
-            super();
             clearBasicFormatPrivate();
         }
 
         /** 初期化 */
         public void clearBasicFormat() {
-            clearBasicParamBase(); // Assuming this is the intended call for base class
+            clearBasicParamBase();
             clearBasicFormatPrivate();
         }
 
         /** フォーマットタイプ番号 */
-        public DiskBasicFormatType getTypeNumber() {
+        public int getTypeNumber() {
             return typeNumber;
         }
 
@@ -163,10 +164,10 @@ public class DiskBasicParam extends DiskBasicParamBase {
         }
 
 //        /** ファイル名が必須か */
-//        public bool isFileNameRequired() { return filename_require; }
+//        public bool isFileNameRequired() { return filenameRequire; }
 
         /** フォーマットタイプ番号 */
-        public void setTypeNumber(DiskBasicFormatType val) {
+        public void setTypeNumber(int val) {
             typeNumber = val;
         }
 
@@ -196,9 +197,12 @@ public class DiskBasicParam extends DiskBasicParamBase {
 
         /**
          * DiskBasicFormatエレメントのロード
-         * @see "basic_types.xml"
+         *
+         * @see "basicTypes.xml"
          */
-        public boolean load(Node node, String locale_name, StringBuilder errmsgs) {
+        public boolean load(Node node, String localeName, StringBuilder errMsgs) {
+            list.clear();
+
             boolean valid = false;
             while (node != null && !valid) {
                 if (node.getNodeName().equals("DiskBasicFormats")) {
@@ -208,7 +212,7 @@ public class DiskBasicParam extends DiskBasicParamBase {
                 node = node.getNextSibling();
             }
             if (!valid) {
-logger.log(Level.ERROR, "no DiskBasicFormats");
+                logger.log(Level.ERROR, "no DiskBasicFormats");
                 return false;
             }
 
@@ -217,35 +221,34 @@ logger.log(Level.ERROR, "no DiskBasicFormats");
             while (item != null && valid) {
                 if (item.getNodeName().equals("DiskBasicFormat")) {
                     DiskBasicFormat f = new DiskBasicFormat();
-                    DiskBasicParamBases param_bases = new DiskBasicParamBases();
-                    String s_type_number = ((Element) item).getAttribute("type");
-                    int type_number = Utils.toInt(s_type_number);
-                    f.setTypeNumber(DiskBasicFormatType.valueOf(type_number));
+                    DiskBasicParamBases paramBases = new DiskBasicParamBases();
+                    String sTypeNumber = ((Element) item).getAttribute("type");
+                    int typeNumber = Utils.toInt(sTypeNumber);
+                    f.setTypeNumber(typeNumber);
 
                     Node itemnode = item.getFirstChild();
                     while (itemnode != null) {
                         String name = itemnode.getNodeName();
                         String str = itemnode.getTextContent();
-                        if (name.equals("HasVolumeName")) {
-                            f.hasVolumeName(Utils.toBool(str));
-                        } else if (name.equals("HasVolumeNumber")) {
-                            f.hasVolumeNumber(Utils.toBool(str));
-                        } else if (name.equals("HasVolumeDate")) {
-                            f.hasVolumeDate(Utils.toBool(str));
-                        } else {
-                            boolean rc = param_bases.load(itemnode, name, str, locale_name, f, errmsgs);
-                            valid = (valid && rc);
+                        switch (name) {
+                            case "HasVolumeName" -> f.hasVolumeName(Utils.toBool(str));
+                            case "HasVolumeNumber" -> f.hasVolumeNumber(Utils.toBool(str));
+                            case "HasVolumeDate" -> f.hasVolumeDate(Utils.toBool(str));
+                            default -> {
+                                boolean rc = paramBases.load(itemnode, name, str, localeName, f, errMsgs);
+                                valid = (valid && rc);
+                            }
                         }
                         itemnode = itemnode.getNextSibling();
                     }
 
-                    if (find(DiskBasicFormatType.valueOf(type_number)) == null) {
+                    if (find(typeNumber) == null) {
                         list.add(f);
                     } else {
-                        errmsgs.append("\n");
-                        errmsgs.append("Duplicate type number in DiskBasicFormat : ");
-                        errmsgs.append("%d".formatted(type_number));
-logger.log(Level.WARNING, "Duplicate type number in DiskBasicFormat : " + type_number);
+                        errMsgs.append("\n");
+                        errMsgs.append("Duplicate type number in DiskBasicFormat : ");
+                        errMsgs.append("%d".formatted(typeNumber));
+                        logger.log(Level.WARNING, "Duplicate type number in DiskBasicFormat : " + typeNumber);
                         valid = false;
                         break;
                     }
@@ -255,11 +258,11 @@ logger.log(Level.WARNING, "Duplicate type number in DiskBasicFormat : " + type_n
             return valid;
         }
 
-        /** @param format_type : フォーマット種類 */
-        public DiskBasicFormat find(DiskBasicFormatType format_type) {
+        /** @param formatType フォーマット種類 */
+        public DiskBasicFormat find(int formatType) {
             DiskBasicFormat match = null;
             for (DiskBasicFormat item : list) {
-                if (item.getTypeNumber() == format_type) {
+                if (item.getTypeNumber() == formatType) {
                     match = item;
                     break;
                 }
@@ -467,7 +470,7 @@ logger.log(Level.WARNING, "Duplicate type number in DiskBasicFormat : " + type_n
         return sidesOnBasic;
     }
 
-    /** BASICで使用するセクタ数/トラック */
+    /** BASIC種類 */
     public int getSectorsPerTrackOnBasic() {
         return sectorsOnBasic;
     }
@@ -668,6 +671,9 @@ logger.log(Level.WARNING, "Duplicate type number in DiskBasicFormat : " + type_n
     /** ファイル管理エリアのあるトラック番号 */
     public void setManagedTrackNumber(int val) {
         managedTrackNumber = val;
+if (basicCategoryNames.contains("N88")) {
+ logger.log(Level.TRACE, "managedTrackNumber: " + managedTrackNumber);
+}
     }
 
     /** トラック当たりのグループ数 */
@@ -810,7 +816,7 @@ logger.log(Level.WARNING, "Duplicate type number in DiskBasicFormat : " + type_n
         if (basicCategoryNames.isEmpty()) {
             return "";
         } else {
-            return basicCategoryNames.get(0);
+            return basicCategoryNames.getFirst();
         }
     }
 
@@ -820,12 +826,12 @@ logger.log(Level.WARNING, "Duplicate type number in DiskBasicFormat : " + type_n
     }
 
     /** ReservedGroupsエレメントをロード */
-    public boolean loadReservedGroupsInTypes(Node node, String locale_name, StringBuilder errmsgs) {
-        Node citemnode = node.getFirstChild();
-        while (citemnode != null) {
-            if (citemnode.getNodeName().equals("Group")) {
-                String first = ((Element) citemnode).getAttribute("first");
-                String last = ((Element) citemnode).getAttribute("last");
+    public boolean loadReservedGroupsInTypes(Node node, String localeName, StringBuilder errMsgs) {
+        Node citeMNode = node.getFirstChild();
+        while (citeMNode != null) {
+            if (citeMNode.getNodeName().equals("Group")) {
+                String first = ((Element) citeMNode).getAttribute("first");
+                String last = ((Element) citeMNode).getAttribute("last");
                 if (!first.isEmpty() && !last.isEmpty()) {
                     int fval = Utils.toInt(first);
                     int lval = Utils.toInt(last);
@@ -833,28 +839,27 @@ logger.log(Level.WARNING, "Duplicate type number in DiskBasicFormat : " + type_n
                         reservedGroups.add(i);
                     }
                 }
-                String str = citemnode.getTextContent();
+                String str = citeMNode.getTextContent();
                 if (!str.isEmpty()) {
                     int reserved_group = Utils.toInt(str);
                     reservedGroups.add(reserved_group);
                 }
             }
-            citemnode = citemnode.getNextSibling();
+            citeMNode = citeMNode.getNextSibling();
         }
         return true;
     }
 
     /** SectorSkewMapエレメントをロード */
     public boolean loadSectorSkewMap(Node node) {
-        // Implementation based on basicparam.cpp logic
         List<Integer> map = new ArrayList<>();
-        Node cnode = node.getFirstChild();
-        while (cnode != null) {
-            String name = cnode.getNodeName();
+        Node cNode = node.getFirstChild();
+        while (cNode != null) {
+            String name = cNode.getNodeName();
             if (name.equals("Value")) {
-                map.add(Utils.toInt(cnode.getTextContent()));
+                map.add(Utils.toInt(cNode.getTextContent()));
             }
-            cnode = cnode.getNextSibling();
+            cNode = cNode.getNextSibling();
         }
 
         sectorSkew.set(map);
@@ -863,37 +868,38 @@ logger.log(Level.WARNING, "Duplicate type number in DiskBasicFormat : " + type_n
 
     /** SectorsPerTrackエレメントをロード */
     public boolean loadNumSectorsMap(Node node, String val) {
-        int sec_param = getSectorsPerTrackOnBasic();
+        // sec_param  セクタ数/トラック(全トラック同じの場合)
+        int secParam = getSectorsPerTrackOnBasic();
+        // sec_params セクタ数/トラック(トラック毎に異なる場合)
         List<NumSectorsParam> sec_params = sectorsPerTrackOnBasicList();
 
         String str = "";
-        int start_track = -1;
-        int num_of_tracks = -1;
-        int sec_per_trk = 1;
+        int startTrack = -1;
+        int numOfTracks = -1;
+        int secPerTrk = 1;
 
         if (!(str = ((Element) node).getAttribute("start")).isEmpty()) {
-            start_track = Utils.toInt(str);
+            startTrack = Utils.toInt(str);
         }
         if (!(str = ((Element) node).getAttribute("tracks")).isEmpty()) {
-            num_of_tracks = Utils.toInt(str);
+            numOfTracks = Utils.toInt(str);
         }
-        sec_per_trk = Utils.toInt(val);
+        secPerTrk = Utils.toInt(val);
 
-        if (start_track < 0 && num_of_tracks < 0) {
-            sec_param = sec_per_trk;
+        if (startTrack < 0 && numOfTracks < 0) {
+            secParam = secPerTrk;
         } else {
-            sec_params.add(new NumSectorsParam(start_track, num_of_tracks, sec_per_trk));
+            sec_params.add(new NumSectorsParam(startTrack, numOfTracks, secPerTrk));
         }
 
-        setSectorsPerTrackOnBasic(sec_param);
+        setSectorsPerTrackOnBasic(secParam);
         return true;
     }
 
     /** Categoriesエレメントのロード */
-    public boolean loadCategories(Node node, String locale_name, StringBuilder errmsgs) {
-        // Implementation based on basicparam.cpp logic
+    public boolean loadCategories(Node node, String localeName, StringBuilder errMsgs) {
         boolean valid = true;
-        Node item = node.getFirstChild(); // Placeholder for GetChildren
+        Node item = node.getFirstChild();
         while (item != null && valid) {
             if (item.getNodeName().equals("Category")) {
                 Node itemnode = item.getFirstChild();
@@ -922,9 +928,12 @@ logger.log(Level.WARNING, "Duplicate type number in DiskBasicFormat : " + type_n
 
         /**
          * DiskBasicTypeエレメントのロード
-         * @see "basic_types.xml"
+         *
+         * @see "basicTypes.xml"
          */
-        public boolean load(Node node, String locale_name, DiskBasicFormats formats, StringBuilder errmsgs) {
+        public boolean load(Node node, String localeName, DiskBasicFormats formats, StringBuilder errMsgs) {
+            list.clear();
+
             boolean valid = false;
             while (node != null && !valid) {
                 if (node.getNodeName().equals("DiskBasicTypes")) {
@@ -942,135 +951,105 @@ logger.log(Level.WARNING, "Duplicate type number in DiskBasicFormat : " + type_n
                     DiskBasicParam p = new DiskBasicParam();
                     DiskBasicParamBases param_bases = new DiskBasicParamBases();
 
-                    String type_name = ((Element) item).getAttribute("name");
-                    p.setBasicTypeName(type_name);
+                    String typeName = ((Element) item).getAttribute("name");
+                    p.setBasicTypeName(typeName);
 
-                    String format_name = ((Element) item).getAttribute("type");
-                    DiskBasicFormat format_type = formats.find(DiskBasicFormatType.valueOf(Utils.toInt(format_name))); // Placeholder for enum conversion
-                    if (!format_name.isEmpty() && format_type != null) {
+                    String formatName = ((Element) item).getAttribute("type");
+                    DiskBasicFormat formatType = formats.find(Utils.toInt(formatName));
+                    if (!formatName.isEmpty() && formatType != null) {
                         // フォーマットパラメータを初期値とする
-                        p.setFormatType(format_type);
-                        //p.RequireFileName(format_type.isFileNameRequired());
-                        p.setBasicParamBase(format_type);
+                        p.setFormatType(formatType);
+                        //p.RequireFileName(formatType.isFileNameRequired());
+                        p.setBasicParamBase(formatType);
                     } else {
                         // フォーマットタイプがない
-                        errmsgs.append("\n");
-                        errmsgs.append("Unknown format type in DiskBasicType : ");
-                        errmsgs.append(type_name);
+                        errMsgs.append("\n");
+                        errMsgs.append("Unknown format type in DiskBasicType : ");
+                        errMsgs.append(typeName);
                         return false;
                     }
 
                     p.addBasicCategoryName(((Element) item).getAttribute("category"));
 
-                    int reserved_sectors = -2;
-                    int fat_start_sector = 0;
+                    int reservedSectors = -2;
+                    int fatStartSector = 0;
 
-                    int sectors_per_fat = 0;
-                    int fat_end_sector = 0;
+                    int sectorsPerFat = 0;
+                    int fatEndSector = 0;
 
-                    String[] desc = {""}, desc_locale = {""};
+                    String[] desc = {""}, descLocale = {""};
 
                     Node itemnode = item.getFirstChild();
                     while (itemnode != null) {
                         String name = itemnode.getNodeName();
                         String str = itemnode.getTextContent();
 //                        if (itemnode.getName().equals("FormatType")) {
-//                            DiskBasicFormat format_type = findFormat((DiskBasicFormatType) Utils.toInt(str));
-//                            p.SetFormatType(format_type);
-                        if (name.equals("FormatSubType")) {
-                            p.setFormatSubTypeNumber(Utils.toInt(str));
-                        } else if (name.equals("SidesPerDisk")) {
-                            p.setSidesPerDiskOnBasic(Utils.toInt(str));
-                        } else if (name.equals("SectorsPerTrack")) {
-                            p.loadNumSectorsMap(itemnode, str);
-                        } else if (name.equals("SectorNumberBase")) {
-                            p.setSectorNumberBaseOnBasic(Utils.toInt(str));
-                        } else if (name.equals("TracksPerSide")) {
-                            p.setTracksPerSideOnBasic(Utils.toInt(str));
-                        } else if (name.equals("ManagedTrackNumber")) {
-                            p.setManagedTrackNumber(Utils.toInt(str));
-                        } else if (name.equals("GroupsPerTrack")) {
-                            p.setGroupsPerTrack(Utils.toInt(str));
-                        } else if (name.equals("GroupsPerSector")) {
-                            p.setGroupsPerSector(Utils.toInt(str));
-                        } else if (name.equals("ReservedSectors")) {
-                            reserved_sectors = Utils.toInt(str);
-                        } else if (name.equals("NumberOfFATs")) {
-                            p.setNumberOfFats(Utils.toInt(str));
-                        } else if (name.equals("ValidNumberOfFATs")) {
-                            p.setValidNumberOfFats(Utils.toInt(str));
-                        } else if (name.equals("SectorsPerFAT")) {
-                            sectors_per_fat = Utils.toInt(str);
-                        } else if (name.equals("FATStartSector")) {
-                            fat_start_sector = Utils.toInt(str);
-                        } else if (name.equals("FATEndSector")) {
-                            fat_end_sector = Utils.toInt(str);
-                        } else if (name.equals("FATStartPosition")) {
-                            p.setFatStartPos(Utils.toInt(str));
-                        } else if (name.equals("FATEndGroup")) {
-                            p.setFatEndGroup(Utils.toInt(str));
-                        } else if (name.equals("FATSideNumber")) {
-                            p.setFatSideNumber(Utils.toInt(str));
-                        } else if (name.equals("ReservedGroups")) {
-                            p.loadReservedGroupsInTypes(itemnode, locale_name, errmsgs);
-                        } else if (name.equals("DirStartSector")) {
-                            p.setDirStartSector(Utils.toInt(str));
-                        } else if (name.equals("DirEndSector")) {
-                            p.setDirEndSector(Utils.toInt(str));
-                        } else if (name.equals("DirEntryCount")) {
-                            p.setDirEntryCount(Utils.toInt(str));
-                        } else if (name.equals("GroupWidth")) {
-                            p.setGroupWidth(Utils.toInt(str));
-                        } else if (name.equals("GroupsPerDirEntry")) {
-                            p.setGroupsPerDirEntry(Utils.toInt(str));
-                        } else if (name.equals("ValidDensityType")) {
-                            p.setValidDensityType(Utils.toInt(str));
-                        } else if (name.equals("SectorSkew")) {
-                            p.setSectorSkew(Utils.toInt(str));
-                        } else if (name.equals("SectorSkewMap")) {
-                            p.loadSectorSkewMap(itemnode);
-                        } else if (name.equals("SubDirGroupSize")) {
-                            p.setSubDirGroupSize(Utils.toInt(str));
-                        } else if (name.equals("MediaID")) {
-                            p.setMediaId((byte) Utils.toInt(str));
-                        } else if (name.equals("DataInverted")) {
-                            p.dataInverted(Utils.toBool(str));
-                        } else if (name.equals("SideReversed")) {
-                            p.sideReversed(Utils.toBool(str));
-                        } else if (name.equals("CanMountEachSides")) {
-                            p.mountEachSides(Utils.toBool(str));
-                        } else if (name.equals("Description")) {
-                            loadDescription(itemnode, locale_name, desc, desc_locale);
-                        } else if (name.equals("Categories")) {
-                            p.loadCategories(itemnode, locale_name, errmsgs);
-                        } else {
-                            boolean rc = param_bases.load(itemnode, name, str, locale_name, p, errmsgs);
-                            valid = (valid && rc);
+//                            DiskBasicFormat formatType = findFormat((DiskBasicFormatType) Utils.toInt(str));
+//                            p.SetFormatType(formatType);
+                        switch (name) {
+                            case "FormatSubType" -> p.setFormatSubTypeNumber(Utils.toInt(str));
+                            case "SidesPerDisk" -> p.setSidesPerDiskOnBasic(Utils.toInt(str));
+                            case "SectorsPerTrack" -> p.loadNumSectorsMap(itemnode, str);
+                            case "SectorNumberBase" -> p.setSectorNumberBaseOnBasic(Utils.toInt(str));
+                            case "TracksPerSide" -> p.setTracksPerSideOnBasic(Utils.toInt(str));
+                            case "ManagedTrackNumber" -> p.setManagedTrackNumber(Utils.toInt(str));
+                            case "GroupsPerTrack" -> p.setGroupsPerTrack(Utils.toInt(str));
+                            case "GroupsPerSector" -> p.setGroupsPerSector(Utils.toInt(str));
+                            case "ReservedSectors" -> reservedSectors = Utils.toInt(str);
+                            case "NumberOfFATs" -> p.setNumberOfFats(Utils.toInt(str));
+                            case "ValidNumberOfFATs" -> p.setValidNumberOfFats(Utils.toInt(str));
+                            case "SectorsPerFAT" -> sectorsPerFat = Utils.toInt(str);
+                            case "FATStartSector" -> fatStartSector = Utils.toInt(str);
+                            case "FATEndSector" -> fatEndSector = Utils.toInt(str);
+                            case "FATStartPosition" -> p.setFatStartPos(Utils.toInt(str));
+                            case "FATEndGroup" -> p.setFatEndGroup(Utils.toInt(str));
+                            case "FATSideNumber" -> p.setFatSideNumber(Utils.toInt(str));
+                            case "ReservedGroups" -> p.loadReservedGroupsInTypes(itemnode, localeName, errMsgs);
+                            case "DirStartSector" -> p.setDirStartSector(Utils.toInt(str));
+                            case "DirEndSector" -> p.setDirEndSector(Utils.toInt(str));
+                            case "DirEntryCount" -> p.setDirEntryCount(Utils.toInt(str));
+                            case "GroupWidth" -> p.setGroupWidth(Utils.toInt(str));
+                            case "GroupsPerDirEntry" -> p.setGroupsPerDirEntry(Utils.toInt(str));
+                            case "ValidDensityType" -> p.setValidDensityType(Utils.toInt(str));
+                            case "SectorSkew" -> p.setSectorSkew(Utils.toInt(str));
+                            case "SectorSkewMap" -> p.loadSectorSkewMap(itemnode);
+                            case "SubDirGroupSize" -> p.setSubDirGroupSize(Utils.toInt(str));
+                            case "MediaID" -> p.setMediaId((byte) Utils.toInt(str));
+                            case "DataInverted" -> p.dataInverted(Utils.toBool(str));
+                            case "SideReversed" -> p.sideReversed(Utils.toBool(str));
+                            case "CanMountEachSides" -> p.mountEachSides(Utils.toBool(str));
+                            case "Description" -> loadDescription(itemnode, localeName, desc, descLocale);
+                            case "Categories" -> p.loadCategories(itemnode, localeName, errMsgs);
+                            default -> {
+                                boolean rc = param_bases.load(itemnode, name, str, localeName, p, errMsgs);
+                                valid = (valid && rc);
+                            }
                         }
                         itemnode = itemnode.getNextSibling();
                     }
-                    if (fat_start_sector > 0 && reserved_sectors <= 0) {
-                        reserved_sectors = fat_start_sector - 1;
+                    if (fatStartSector > 0 && reservedSectors <= 0) {
+                        reservedSectors = fatStartSector - 1;
                     }
-                    p.setReservedSectors(reserved_sectors);
+                    p.setReservedSectors(reservedSectors);
 
-                    if (fat_end_sector > 0 && sectors_per_fat <= 0) {
-                        sectors_per_fat = fat_end_sector - fat_start_sector + 1;
+                    if (fatEndSector > 0 && sectorsPerFat <= 0) {
+                        sectorsPerFat = fatEndSector - fatStartSector + 1;
                     }
-                    p.setSectorsPerFat(sectors_per_fat);
+                    p.setSectorsPerFat(sectorsPerFat);
 
-                    if (!desc_locale[0].isEmpty()) {
-                        desc = desc_locale;
+                    if (!descLocale[0].isEmpty()) {
+                        desc = descLocale;
                     }
                     p.setBasicDescription(desc[0]);
 
-                    if (find("", type_name) == null) {
+                    if (find("", typeName) == null) {
                         list.add(p);
+//System.out.println(p);
                     } else {
                         // タイプ名が重複している
-                        errmsgs.append("\n");
-                        errmsgs.append("Duplicate type name in DiskBasicType : ");
-                        errmsgs.append(type_name);
+                        errMsgs.append("\n");
+                        errMsgs.append("Duplicate type name in DiskBasicType : ");
+                        errMsgs.append(typeName);
                         valid = false;
                         break;
                     }
@@ -1083,58 +1062,58 @@ logger.log(Level.WARNING, "Duplicate type number in DiskBasicFormat : " + type_n
         /**
          * カテゴリとタイプに一致するパラメータを検索
          *
-         * @param n_category   カテゴリ名 空文字列の場合は検索条件からはずす
-         * @param n_basic_type タイプ名
+         * @param category  カテゴリ名 空文字列の場合は検索条件からはずす
+         * @param basicType タイプ名
          * @return 一致したパラメータ
          */
-        public DiskBasicParam find(String n_category, String n_basic_type) {
-            DiskBasicParam match_item = null;
+        public DiskBasicParam find(String category, String basicType) {
+            DiskBasicParam matchItem = null;
             for (DiskBasicParam item : list) {
-                if (n_category.isEmpty() || item.findBasicCategoryName(n_category)) {
-                    if (n_basic_type.equals(item.getBasicTypeName())) {
-                        match_item = item;
+                if (category.isEmpty() || item.findBasicCategoryName(category)) {
+                    if (basicType.equals(item.getBasicTypeName())) {
+                        matchItem = item;
                         break;
                     }
                 }
             }
-            return match_item;
+            return matchItem;
         }
 
         /**
          * カテゴリが一致し、タイプリストに含まれるパラメータを検索
          *
-         * @param n_category    カテゴリ名 空文字列の場合は検索条件からはずす
-         * @param n_basic_types タイプ名リスト
+         * @param category   カテゴリ名 空文字列の場合は検索条件からはずす
+         * @param basicTypes タイプ名リスト
          * @return 一致したパラメータ
          */
-        public DiskBasicParam find(String n_category, List<DiskParamName> n_basic_types) {
-            DiskBasicParam match_item = null;
-            for (int i = 0; i < n_basic_types.size() && match_item == null; i++) { // Placeholder for DiskParamNames logic
-                match_item = find(n_category, n_basic_types.get(i).getName());
+        public DiskBasicParam find(String category, List<DiskParamName> basicTypes) {
+            DiskBasicParam matchItem = null;
+            for (int i = 0; i < basicTypes.size() && matchItem == null; i++) {
+                matchItem = find(category, basicTypes.get(i).getName());
             }
-            return match_item;
+            return matchItem;
         }
 
         /**
          * カテゴリ、タイプ、サイド数とセクタ数が一致するパラメータを検索
          * まず、カテゴリ＆タイプで検索し、なければカテゴリ＆サイド数＆セクタ数で検索
          *
-         * @param n_category   カテゴリ名 必須
-         * @param n_basic_type タイプ名 必須
-         * @param n_sides      サイド数
-         * @param n_sectors    セクタ数/トラック -1の場合は検索条件からはずす
+         * @param category  カテゴリ名 必須
+         * @param basicType タイプ名 必須
+         * @param sides     サイド数
+         * @param sectors   セクタ数/トラック -1の場合は検索条件からはずす
          * @return 一致したパラメータ
          */
-        public DiskBasicParam find(String n_category, String n_basic_type, int n_sides, int n_sectors) {
+        public DiskBasicParam find(String category, String basicType, int sides, int sectors) {
             DiskBasicParam match_item = null;
             // カテゴリ、タイプで一致するか
-            match_item = find(n_category, n_basic_type);
+            match_item = find(category, basicType);
             // カテゴリ、サイド数、セクタ数で一致するか
             if (match_item == null) {
                 for (DiskBasicParam item : list) {
-                    if (n_category.equals(item.getBasicCategoryName())) {
-                        if (n_sides == item.getSidesPerDiskOnBasic()) {
-                            if (n_sectors < 0 || item.getSectorsPerTrackOnBasic() < 0 || n_sectors == item.getSectorsPerTrackOnBasic()) {
+                    if (category.equals(item.getBasicCategoryName())) {
+                        if (sides == item.getSidesPerDiskOnBasic()) {
+                            if (sectors < 0 || item.getSectorsPerTrackOnBasic() < 0 || sectors == item.getSectorsPerTrackOnBasic()) {
                                 match_item = item;
                                 break;
                             }
@@ -1148,39 +1127,114 @@ logger.log(Level.WARNING, "Duplicate type number in DiskBasicFormat : " + type_n
         /**
          * DISK BASICフォーマット種類に一致するタイプを検索
          *
-         * @param n_format_types DISK BASICフォーマット種類 (Assuming int[] of enum ordinal values)
-         * @param n_types        [out] 一致したタイプリスト
+         * @param formatTypes DISK BASICフォーマット種類
+         * @param types       [out] 一致したタイプリスト
          * @return リストの数
          */
-        public int findTypes(List<Integer> n_format_types, DiskBasicParams n_types) {
-            n_types.list.clear();
+        public int findTypes(List<Integer> formatTypes, DiskBasicParams types) {
+            types.list.clear();
             for (DiskBasicParam item : this.list) {
-                for (int format_type_val : n_format_types) {
+                for (int formatTypeVal : formatTypes) {
                     DiskBasicFormat fmt = item.getFormatType();
-                    if (fmt != null && format_type_val == fmt.getTypeNumber().ordinal()) { // Placeholder for enum ordinal
-                        n_types.list.add(item);
+                    if (fmt != null && formatTypeVal == fmt.getTypeNumber()) {
+                        types.list.add(item);
                     }
                 }
             }
-            return n_types.list.size();
+            return types.list.size();
         }
 
         /**
          * カテゴリ名に一致するタイプ名リストを検索
          *
-         * @param n_category_name カテゴリ名
-         * @param n_type_names    [out] タイプ名リスト
+         * @param categoryName カテゴリ名
+         * @param typeNames    [out] タイプ名リスト
          * @return リストの数
          */
-        public int findNames(String n_category_name, List<String> n_type_names) {
-            n_type_names.clear();
+        public int findNames(String categoryName, List<String> typeNames) {
+            typeNames.clear();
             for (DiskBasicParam item : this.list) {
-                if (item.findBasicCategoryName(n_category_name)) {
-                    n_type_names.add(item.getBasicTypeName());
+                if (item.findBasicCategoryName(categoryName)) {
+                    typeNames.add(item.getBasicTypeName());
                 }
             }
-            return n_type_names.size();
+            return typeNames.size();
         }
+    }
+
+    @Override
+    public String toString() {
+//        return new StringJoiner(", ", DiskBasicParam.class.getSimpleName() + "[", "]")
+//                .add("basicTypeName='" + basicTypeName + "'")
+//                .add("basicCategoryNames=" + basicCategoryNames)
+//                .add("formatType=" + formatType)
+//                .add("formatSubtypeNumber=" + formatSubtypeNumber)
+//                .add("sidesOnBasic=" + sidesOnBasic)
+//                .add("sectorsOnBasic=" + sectorsOnBasic)
+//                .add("sectorsOnBasicList=" + sectorsOnBasicList)
+//                .add("sectorNumberBase=" + sectorNumberBase)
+//                .add("tracksOnBasic=" + tracksOnBasic)
+//                .add("managedTrackNumber=" + managedTrackNumber)
+//                .add("groupsPerTrack=" + groupsPerTrack)
+//                .add("groupsPerSector=" + groupsPerSector)
+//                .add("reservedSectors=" + reservedSectors)
+//                .add("numberOfFats=" + numberOfFats)
+//                .add("validNumberOfFats=" + validNumberOfFats)
+//                .add("sectorsPerFat=" + sectorsPerFat)
+//                .add("fatStartPos=" + fatStartPos)
+//                .add("fatEndGroup=" + fatEndGroup)
+//                .add("fatSideNumber=" + fatSideNumber)
+//                .add("reservedGroups=" + reservedGroups)
+//                .add("dirStartSector=" + dirStartSector)
+//                .add("dirEndSector=" + dirEndSector)
+//                .add("dirEntryCount=" + dirEntryCount)
+//                .add("subdirGroupSize=" + subdirGroupSize)
+//                .add("groupWidth=" + groupWidth)
+//                .add("groupsPerDirEntry=" + groupsPerDirEntry)
+//                .add("validDensityType=" + validDensityType)
+//                .add("sectorSkew=" + sectorSkew)
+//                .add("mediaId=" + mediaId)
+//                .add("dataInverted=" + dataInverted)
+//                .add("sideReversed=" + sideReversed)
+//                .add("mountEachSides=" + mountEachSides)
+//                .add("basicDescription='" + basicDescription + "'")
+//                .toString();
+        return new StringJoiner(", ", "", "")
+                .add(basicTypeName)
+                .add("" + basicCategoryNames)
+//                .add("" + formatType)
+                .add("" + formatSubtypeNumber)
+                .add("" + sidesOnBasic)
+                .add("" + sectorsOnBasic)
+                .add("" + sectorsOnBasicList)
+                .add("" + sectorNumberBase)
+                .add("" + tracksOnBasic)
+                .add("" + managedTrackNumber)
+                .add("" + groupsPerTrack)
+                .add("" + groupsPerSector)
+                .add("" + reservedSectors)
+                .add("" + numberOfFats)
+                .add("" + validNumberOfFats)
+                .add("" + sectorsPerFat)
+                .add("" + fatStartPos)
+                .add("" + fatEndGroup)
+                .add("" + fatSideNumber)
+                .add("" + reservedGroups)
+                .add("" + dirStartSector)
+                .add("" + dirEndSector)
+                .add("" + dirEntryCount)
+                .add("" + subdirGroupSize)
+                .add("" + groupWidth)
+                .add("" + groupsPerDirEntry)
+                .add("" + validDensityType)
+                .add("" + sectorSkew)
+                .add("" + mediaId)
+                .add("" + dataInverted)
+                .add("" + sideReversed)
+                .add("" + mountEachSides)
+                .add(basicDescription)
+                .add(super.toString())
+                .toString();
     }
 }
 
@@ -1232,7 +1286,7 @@ class DiskBasicParamBase {
     /** ボリューム名に設定できるルール */
     protected ValidNameRule validVolumeName = new ValidNameRule();
     /** ファイル名比較時に大文字小文字区別しないか */
-    protected boolean compareCaseInsense;
+    protected boolean compareCaseInsensitive;
     /** ファイル名ダイアログ表示前に大文字に変換するか */
     protected boolean toUpperBeforeDialog;
     /** ファイル名ダイアログ入力後に大文字に変換するか */
@@ -1265,7 +1319,7 @@ class DiskBasicParamBase {
         extensionPreCode = 0x2e; // '.'
         validFileName.empty();
         validVolumeName.empty();
-        compareCaseInsense = false;
+        compareCaseInsensitive = false;
         toUpperBeforeDialog = false;
         toUpperAfterRenamed = false;
         bigEndian = false;
@@ -1299,7 +1353,7 @@ class DiskBasicParamBase {
         this.extensionPreCode = src.extensionPreCode;
         this.validFileName = src.validFileName;
         this.validVolumeName = src.validVolumeName;
-        this.compareCaseInsense = src.compareCaseInsense;
+        this.compareCaseInsensitive = src.compareCaseInsensitive;
         this.toUpperBeforeDialog = src.toUpperBeforeDialog;
         this.toUpperAfterRenamed = src.toUpperAfterRenamed;
         this.bigEndian = src.bigEndian;
@@ -1423,8 +1477,8 @@ class DiskBasicParamBase {
     } // Changed name
 
     /** ファイル名比較時に大文字小文字区別しないか */
-    public boolean isCompareCaseInsense() {
-        return compareCaseInsense;
+    public boolean isCompareCaseInsensitive() {
+        return compareCaseInsensitive;
     }
 
     /** ファイル名ダイアログ表示前に大文字に変換するか */
@@ -1593,7 +1647,7 @@ logger.log(Level.TRACE, "key: " + key + ", value: " + value);
 
     /** ファイル名比較時に大文字小文字区別しないか */
     public void compareCaseInsense(boolean val) {
-        compareCaseInsense = val;
+        compareCaseInsensitive = val;
     }
 
     /** ファイル名ダイアログ表示前に大文字に変換するか */
@@ -1619,5 +1673,65 @@ logger.log(Level.TRACE, "key: " + key + ", value: " + value);
     /** 固有のパラメータ */
     public void setVariousParams(HashMap<String, Object> val) {
         variousParams = val;
+    }
+
+    @Override
+    public String toString() {
+//        return new StringJoiner(", ", DiskBasicParamBase.class.getSimpleName() + "[", "]")
+//                .add("sectorsPerGroup=" + sectorsPerGroup)
+//                .add("groupFinalCode=" + groupFinalCode)
+//                .add("groupSystemCode=" + groupSystemCode)
+//                .add("groupUnusedCode=" + groupUnusedCode)
+//                .add("dirTerminateCode=" + dirTerminateCode)
+//                .add("dirSpaceCode=" + dirSpaceCode)
+//                .add("dirTrimmingCode=" + dirTrimmingCode)
+//                .add("dirStartPos=" + dirStartPos)
+//                .add("dirStartPosOnRoot=" + dirStartPosOnRoot)
+//                .add("dirStartPosOnSec=" + dirStartPosOnSec)
+//                .add("dirStartPosOnGroup=" + dirStartPosOnGroup)
+//                .add("specialAttrs=" + specialAttrs)
+//                .add("attrsByExtension=" + attrsByExtension)
+//                .add("fillcodeOnFormat=" + fillcodeOnFormat)
+//                .add("fillcodeOnFat=" + fillcodeOnFat)
+//                .add("fillcodeOnDir=" + fillcodeOnDir)
+//                .add("deleteCode=" + deleteCode)
+//                .add("textTerminateCode=" + textTerminateCode)
+//                .add("extensionPreCode=" + extensionPreCode)
+//                .add("validFileName=" + validFileName)
+//                .add("validVolumeName=" + validVolumeName)
+//                .add("compareCaseInsensitive=" + compareCaseInsensitive)
+//                .add("toUpperBeforeDialog=" + toUpperBeforeDialog)
+//                .add("toUpperAfterRenamed=" + toUpperAfterRenamed)
+//                .add("bigEndian=" + bigEndian)
+//                .add("variousParams=" + variousParams)
+//                .toString();
+        return new StringJoiner(", ", "", "")
+                .add("" + sectorsPerGroup)
+                .add("" + groupFinalCode)
+                .add("" + groupSystemCode)
+                .add("" + groupUnusedCode)
+                .add("" + dirTerminateCode)
+                .add("" + dirSpaceCode)
+                .add("" + dirTrimmingCode)
+                .add("" + dirStartPos)
+                .add("" + dirStartPosOnRoot)
+                .add("" + dirStartPosOnSec)
+                .add("" + dirStartPosOnGroup)
+                .add("" + specialAttrs)
+                .add("" + attrsByExtension)
+                .add("" + fillcodeOnFormat)
+                .add("" + fillcodeOnFat)
+                .add("" + fillcodeOnDir)
+                .add("" + deleteCode)
+                .add("" + textTerminateCode)
+                .add("" + extensionPreCode)
+                .add("" + validFileName)
+                .add("" + validVolumeName)
+                .add("" + compareCaseInsensitive)
+                .add("" + toUpperBeforeDialog)
+                .add("" + toUpperAfterRenamed)
+                .add("" + bigEndian)
+                .add("" + variousParams)
+                .toString();
     }
 }

@@ -9,7 +9,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import l3diskex.Utils;
-import l3diskex.basicfmt.BasicCommon.DirectoryT;
+import l3diskex.basicfmt.BasicCommon.Directory;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasic.DiskBasicIdentifiedData;
@@ -18,101 +18,101 @@ import l3diskex.basicfmt.DiskBasicDirItem;
 import l3diskex.basicfmt.DiskBasicFat;
 import l3diskex.basicfmt.DiskBasicType;
 import l3diskex.basicfmt.diritem.DiskBasicDirItemTRSDOS;
-import l3diskex.basicfmt.diritem.DiskBasicDirItemTRSDOS.DiskBasicDirItemTRSD13.DirectoryTrsd13;
-import l3diskex.basicfmt.diritem.DiskBasicDirItemTRSDOS.DiskBasicDirItemTRSD23.DirectoryTrsd23;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemTRSDOS.DiskBasicDirItemTRSD13.DirectoryTrsD13;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemTRSDOS.DiskBasicDirItemTRSD23.DirectoryTrsD23;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import vavi.util.serdes.Element;
 import vavi.util.serdes.Serdes;
 
-import static l3diskex.basicfmt.diritem.DiskBasicDirItemTRSDOS.FILETYPE_MASK_TRSDOS_SYSTEM;
 import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_FREE;
 import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_SYSTEM;
 import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_USED;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemTRSDOS.FILETYPE_MASK_TRSDOS_SYSTEM;
 
 
-public abstract class DiskBasicTypeTRSDOS<T extends DirectoryT> extends DiskBasicType<T> {
+public abstract class DiskBasicTypeTRSDOS<T extends Directory> extends DiskBasicType<T> {
 
-    //
-    // TRSDOS GAT (Granule Allocation Table)
-    //
-    public static class TRSDOS_GAT {
+    /**
+     * TRSDos GAT (Granule Allocation Table)
+     */
+    public static class TrsDosGat {
 
-        private final byte[] m_buffer;
-        private final int m_size;
-        private final int m_groups_per_track;
+        private final byte[] buffer;
+        private final int size;
+        private final int groupsPerTrack;
 
-        public TRSDOS_GAT() {
-            m_buffer = null;
-            m_size = 0;
-            m_groups_per_track = 1;
+        public TrsDosGat() {
+            buffer = null;
+            size = 0;
+            groupsPerTrack = 1;
         }
 
-        public TRSDOS_GAT(byte[] n_buffer, int n_size, int n_groups_per_track) {
-            m_buffer = n_buffer;
-            m_size = n_size;
-            m_groups_per_track = n_groups_per_track;
+        public TrsDosGat(byte[] buffer, int size, int groupsPerTrack) {
+            this.buffer = buffer;
+            this.size = size;
+            this.groupsPerTrack = groupsPerTrack;
         }
 
         public void modify(int num, boolean val) {
-            int pos = num / m_groups_per_track;
-            int bit = num % m_groups_per_track;
+            int pos = num / groupsPerTrack;
+            int bit = num % groupsPerTrack;
             if (val) {
-                m_buffer[pos] = (byte) ((m_buffer[pos] | (1 << bit)));
+                buffer[pos] = (byte) ((buffer[pos] | (1 << bit)));
             } else {
-                m_buffer[pos] = (byte) ((m_buffer[pos] & ~(1 << bit)));
+                buffer[pos] = (byte) ((buffer[pos] & ~(1 << bit)));
             }
         }
 
         public boolean isSet(int num) {
-            int pos = num / m_groups_per_track;
-            int bit = num % m_groups_per_track;
-            return ((m_buffer[pos] & (1 << bit)) != 0);
+            int pos = num / groupsPerTrack;
+            int bit = num % groupsPerTrack;
+            return ((buffer[pos] & (1 << bit)) != 0);
         }
 
         public void getPos(int num, int[] pos, int[] bit) {
-            pos[0] = num / m_groups_per_track;
-            bit[0] = num % m_groups_per_track;
+            pos[0] = num / groupsPerTrack;
+            bit[0] = num % groupsPerTrack;
         }
 
         public byte[] getBuffer() {
-            return m_buffer;
+            return buffer;
         }
 
         public int getSize() {
-            return m_size;
+            return size;
         }
     }
 
     //
     // TRSDOS HIT (Hash Index Table)
     //
-    public static class TRSDOS_HIT {
+    public static class TrsDosHit {
 
-        private byte[] m_hit_buffer;
-        private int m_hit_size;
+        private byte[] hitBuffer;
+        private int hitSize;
 
-        public TRSDOS_HIT() {
-            m_hit_buffer = null;
-            m_hit_size = 0;
+        public TrsDosHit() {
+            hitBuffer = null;
+            hitSize = 0;
         }
 
-        public void assignHIT(byte[] n_buffer, int n_size) {
-            m_hit_buffer = n_buffer;
-            m_hit_size = n_size;
+        public void assignHIT(byte[] buffer, int size) {
+            hitBuffer = buffer;
+            hitSize = size;
         }
 
         public byte getHI(int pos) {
-            if (m_hit_buffer == null) return (byte) 0;
-            if (m_hit_size <= pos) return (byte) 0;
+            if (hitBuffer == null) return (byte) 0;
+            if (hitSize <= pos) return (byte) 0;
 
-            return m_hit_buffer[pos];
+            return hitBuffer[pos];
         }
 
         public void setHI(int pos, byte val) {
-            if (m_hit_buffer == null) return;
-            if (m_hit_size <= pos) return;
+            if (hitBuffer == null) return;
+            if (hitSize <= pos) return;
 
-            m_hit_buffer[pos] = val;
+            hitBuffer[pos] = val;
         }
 
         public void deleteHI(int pos) {
@@ -122,7 +122,7 @@ public abstract class DiskBasicTypeTRSDOS<T extends DirectoryT> extends DiskBasi
 
     // GATエリア構造
     @Serdes
-    static class trsdos_gat_t {
+    static class TrsDosGatSector {
 
         @Element(sequence = 1)
         public byte[] gat = new byte[0x60];
@@ -141,28 +141,29 @@ public abstract class DiskBasicTypeTRSDOS<T extends DirectoryT> extends DiskBasi
     }
 
     /** GAT Granule Allocate Table */
-    protected TRSDOS_GAT gat_table;
+    protected TrsDosGat gatTable;
     /** TLT Track Lock-out Table */
-    protected TRSDOS_GAT tlt_table;
+    protected TrsDosGat tltTable;
 
     /** Use composition for TRSDOS_HIT */
-    public TRSDOS_HIT hit_impl;
+    public TrsDosHit hit;
 
-    public DiskBasicTypeTRSDOS(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<T> dir) {
-        super(basic, fat, dir);
-        this.hit_impl = new TRSDOS_HIT();
+    @Override
+    public void init(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<T> dir) {
+        super.init(basic, fat, dir);
+        this.hit = new TrsDosHit();
 
-        if (basic.diskBasicParam.getGroupsPerTrack() <= 0) {
-            basic.diskBasicParam.setGroupsPerTrack(basic.getSectorsPerTrackOnBasic() / basic.getSectorsPerGroup());
+        if (basic.getGroupsPerTrack() <= 0) {
+            basic.setGroupsPerTrack(basic.getSectorsPerTrackOnBasic() / basic.getSectorsPerGroup());
         }
     }
 
     /** ハッシュの格納位置からセクタ番号を得る */
-    public abstract void getFromHIPosition(int pos, int[] sector_num, int[] pos_in_sector);
+    public abstract void getFromHIPosition(int pos, int[] sectorNum, int[] posInSector);
 
     @Override
     public void setGroupNumber(int num, int val) {
-        gat_table.modify(num, val != INVALID_GROUP_NUMBER);
+        gatTable.modify(num, val != INVALID_GROUP_NUMBER);
     }
 
     @Override
@@ -172,98 +173,98 @@ public abstract class DiskBasicTypeTRSDOS<T extends DirectoryT> extends DiskBasi
 
     @Override
     public boolean isUsedGroupNumber(int num) {
-        return gat_table.isSet(num) || tlt_table.isSet(num);
+        return gatTable.isSet(num) || tltTable.isSet(num);
     }
 
     @Override
-    public int getNextGroupNumber(int num, int sector_pos) {
+    public int getNextGroupNumber(int num, int sectorPos) {
         return INVALID_GROUP_NUMBER;
     }
 
     @Override
     public int getEmptyGroupNumber() {
-        int new_num = INVALID_GROUP_NUMBER;
+        int newNum = INVALID_GROUP_NUMBER;
 
-        int mng_grp_sta = basic.getManagedTrackNumber() * basic.diskBasicParam.getGroupsPerTrack();
-        int mng_grp_end = mng_grp_sta + basic.diskBasicParam.getGroupsPerTrack() - 1;
+        int managedGroupStart = basic.getManagedTrackNumber() * basic.getGroupsPerTrack();
+        int managedGroupEnd = managedGroupStart + basic.getGroupsPerTrack() - 1;
 
-        for (int grp = 0; grp <= basic.getFatEndGroup(); grp = grp + 1) {
-            if ((grp < mng_grp_sta || mng_grp_end < grp) && !isUsedGroupNumber(grp)) {
-                new_num = grp;
+        for (int group = 0; group <= basic.getFatEndGroup(); group = group + 1) {
+            if ((group < managedGroupStart || managedGroupEnd < group) && !isUsedGroupNumber(group)) {
+                newNum = group;
                 break;
             }
         }
-        return new_num;
+        return newNum;
     }
 
     @Override
-    public int getNextEmptyGroupNumber(int curr_group) {
+    public int getNextEmptyGroupNumber(int currentGroup) {
         return getEmptyGroupNumber();
     }
 
     @Override
-    public double checkFat(boolean is_formatting) throws IOException {
-        double valid_ratio = 1.0;
+    public double checkFat(boolean isFormatting) throws IOException {
+        double validRatio = 1.0;
 
         // GATエリア
-        int sec = basic.getManagedTrackNumber() * basic.getSectorsPerTrackOnBasic() * basic.getSidesPerDiskOnBasic();
-        DiskImageSector sector = basic.getSectorFromSectorPos(sec);
+        int s = basic.getManagedTrackNumber() * basic.getSectorsPerTrackOnBasic() * basic.getSidesPerDiskOnBasic();
+        DiskImageSector sector = basic.getSectorFromSectorPos(s);
         if (sector == null) {
             return -1.0;
         }
-        trsdos_gat_t gat_sector = new trsdos_gat_t();
+        TrsDosGatSector gatSector = new TrsDosGatSector();
         byte[] b = sector.getSectorBuffer();
-        Serdes.Util.deserialize(new ByteArrayInputStream(b), gat_sector);
+        Serdes.Util.deserialize(new ByteArrayInputStream(b), gatSector);
 
-        gat_table = new TRSDOS_GAT(gat_sector.gat, gat_sector.gat.length, basic.diskBasicParam.getGroupsPerTrack());
-        tlt_table = new TRSDOS_GAT(gat_sector.tlt, gat_sector.tlt.length, basic.diskBasicParam.getGroupsPerTrack());
+        gatTable = new TrsDosGat(gatSector.gat, gatSector.gat.length, basic.getGroupsPerTrack());
+        tltTable = new TrsDosGat(gatSector.tlt, gatSector.tlt.length, basic.getGroupsPerTrack());
 
-        sector = basic.getSectorFromSectorPos(sec + 1);
+        sector = basic.getSectorFromSectorPos(s + 1);
         if (sector == null) {
             return -1.0;
         }
-        hit_impl.assignHIT(sector.getSectorBuffer(), sector.getSectorBufferSize());
+        hit.assignHIT(sector.getSectorBuffer(), sector.getSectorBufferSize());
 
-        basic.diskBasicParam.setSectorsPerFat(1);
+        basic.setSectorsPerFat(1);
 
-        return valid_ratio;
+        return validRatio;
     }
 
     @Override
-    public double parseParamOnDisk(boolean is_formatting) throws IOException {
-        if (is_formatting) return 1.0;
+    public double parseParamOnDisk(boolean isFormatting) throws IOException {
+        if (isFormatting) return 1.0;
 
-        double valid_ratio = 1.0;
+        double validRatio = 1.0;
 
         // GATエリアにあるボリューム名
-        int sec = basic.getManagedTrackNumber() * basic.getSectorsPerTrackOnBasic() * basic.getSidesPerDiskOnBasic();
-        DiskImageSector sector = basic.getSectorFromSectorPos(sec);
+        int s = basic.getManagedTrackNumber() * basic.getSectorsPerTrackOnBasic() * basic.getSidesPerDiskOnBasic();
+        DiskImageSector sector = basic.getSectorFromSectorPos(s);
         if (sector == null) {
             return -1.0;
         }
-        trsdos_gat_t gat_sector = new trsdos_gat_t();
+        TrsDosGatSector gatSector = new TrsDosGatSector();
         byte[] b = sector.getSectorBuffer();
-        Serdes.Util.deserialize(new ByteArrayInputStream(b), gat_sector);
-        String volname = new String(gat_sector.name);
-        if (!volname.chars().allMatch(ch -> ch < 128)) {
+        Serdes.Util.deserialize(new ByteArrayInputStream(b), gatSector);
+        String volumeName = new String(gatSector.name);
+        if (!volumeName.chars().allMatch(ch -> ch < 128)) {
             return -1.0;
         }
 
-        basic.diskBasicParam.setFatEndGroup(basic.getSidesPerDiskOnBasic() * basic.getTracksPerSideOnBasic() * basic.diskBasicParam.getGroupsPerTrack() - 1);
+        basic.setFatEndGroup(basic.getSidesPerDiskOnBasic() * basic.getTracksPerSideOnBasic() * basic.getGroupsPerTrack() - 1);
 
-        return valid_ratio;
+        return validRatio;
     }
 
     @Override
-    public void getStartNumOnFat(int[] track_num, int[] side_num, int[] sector_num) {
-        int sec = basic.getManagedTrackNumber() * basic.getSectorsPerTrackOnBasic() * basic.getSidesPerDiskOnBasic();
-        getNumFromSectorPos(sec, track_num, side_num, sector_num);
+    public void getStartNumOnFat(int[] trackNum, int[] sideNum, int[] sectorNum) {
+        int s = basic.getManagedTrackNumber() * basic.getSectorsPerTrackOnBasic() * basic.getSidesPerDiskOnBasic();
+        getNumFromSectorPos(s, trackNum, sideNum, sectorNum);
     }
 
     @Override
-    public void getEndNumOnFat(int[] track_num, int[] side_num, int[] sector_num) {
-        int sec = basic.getManagedTrackNumber() * basic.getSectorsPerTrackOnBasic() * basic.getSidesPerDiskOnBasic() + 1;
-        getNumFromSectorPos(sec, track_num, side_num, sector_num);
+    public void getEndNumOnFat(int[] trackNum, int[] sideNum, int[] sectorNum) {
+        int s = basic.getManagedTrackNumber() * basic.getSectorsPerTrackOnBasic() * basic.getSidesPerDiskOnBasic() + 1;
+        getNumFromSectorPos(s, trackNum, sideNum, sectorNum);
     }
 
     @Override
@@ -272,52 +273,52 @@ public abstract class DiskBasicTypeTRSDOS<T extends DirectoryT> extends DiskBasi
     }
 
     @Override
-    public void getUsableDiskSize(int[] disk_size, int[] group_size) {
-        group_size[0] = basic.getFatEndGroup() + 1;
-        disk_size[0] = group_size[0] * basic.getSectorSize() * basic.getSectorsPerGroup();
+    public void getUsableDiskSize(int[] diskSize, int[] groupSize) {
+        groupSize[0] = basic.getFatEndGroup() + 1;
+        diskSize[0] = groupSize[0] * basic.getSectorSize() * basic.getSectorsPerGroup();
     }
 
     @Override
     public void calcDiskFreeSize(boolean wrote) {
         fatAvailability.empty();
 
-        if (gat_table == null || gat_table.getBuffer() == null) return;
-        if (tlt_table == null || tlt_table.getBuffer() == null) return;
+        if (gatTable == null || gatTable.getBuffer() == null) return;
+        if (tltTable == null || tltTable.getBuffer() == null) return;
 
-        int mng_trk = basic.getManagedTrackNumber();
-        int mng_start = mng_trk * basic.diskBasicParam.getGroupsPerTrack();
-        int mng_end = mng_trk * basic.diskBasicParam.getGroupsPerTrack() + basic.diskBasicParam.getGroupsPerTrack() - 1;
+        int managedTrack = basic.getManagedTrackNumber();
+        int managedStart = managedTrack * basic.getGroupsPerTrack();
+        int managedEnd = managedTrack * basic.getGroupsPerTrack() + basic.getGroupsPerTrack() - 1;
 
-        int group_size = basic.getSectorsPerGroup() * basic.getSectorSize();
-        int max_group = basic.getFatEndGroup();
+        int groupSize = basic.getSectorsPerGroup() * basic.getSectorSize();
+        int maxGroup = basic.getFatEndGroup();
 
-        for (int grp = 0; grp <= max_group; grp = grp + 1) {
-            if (mng_start <= grp && grp <= mng_end) {
+        for (int group = 0; group <= maxGroup; group = group + 1) {
+            if (managedStart <= group && group <= managedEnd) {
                 fatAvailability.add(FAT_AVAIL_SYSTEM, 0, 0);
-            } else if (tlt_table.isSet(grp)) {
+            } else if (tltTable.isSet(group)) {
                 fatAvailability.add(FAT_AVAIL_USED, 0, 0);
             } else {
-                if (gat_table.isSet(grp)) {
+                if (gatTable.isSet(group)) {
                     fatAvailability.add(FAT_AVAIL_USED, 0, 0);
                 } else {
-                    fatAvailability.add(FAT_AVAIL_FREE, group_size, 1);
+                    fatAvailability.add(FAT_AVAIL_FREE, groupSize, 1);
                 }
             }
         }
     }
 
-    public int calcDataSizeOnLastSector(DiskBasicDirItem<?> item, InputStream istream, OutputStream ostream, byte[] sector_buffer, int sector_size, int remain_size) {
-        return remain_size;
+    public int calcDataSizeOnLastSector(DiskBasicDirItem<?> item, InputStream iStream, OutputStream oStream, byte[] sectorBuffer, int sectorSize, int remainSize) {
+        return remainSize;
     }
 
     @Override
-    public int getStartSectorFromGroup(int group_num) {
-        return group_num * basic.getSectorsPerGroup();
+    public int getStartSectorFromGroup(int groupNum) {
+        return groupNum * basic.getSectorsPerGroup();
     }
 
     @Override
-    public int getEndSectorFromGroup(int group_num, int next_group, int sector_start, int sector_size, int remain_size) {
-        return (group_num + 1) * basic.getSectorsPerGroup() - 1;
+    public int getEndSectorFromGroup(int groupNum, int nextGroup, int sectorStart, int sectorSize, int remainSize) {
+        return (groupNum + 1) * basic.getSectorsPerGroup() - 1;
     }
 
     @Override
@@ -325,62 +326,63 @@ public abstract class DiskBasicTypeTRSDOS<T extends DirectoryT> extends DiskBasi
         DiskImageSector sector;
 
         // GAT
-        int st_pos = basic.getManagedTrackNumber() * basic.getSectorsPerTrackOnBasic() * basic.getSidesPerDiskOnBasic() + basic.diskBasicParam.getDirStartSector() - 2;
-        sector = basic.getSectorFromSectorPos(st_pos);
+        int startPos = basic.getManagedTrackNumber() * basic.getSectorsPerTrackOnBasic() * basic.getSidesPerDiskOnBasic() + basic.getDirStartSector() - 2;
+        sector = basic.getSectorFromSectorPos(startPos);
         if (sector == null) {
             // Why?
             return false;
         }
-        sector.fill(basic.diskBasicParam.getFillCodeOnFAT());
+        sector.fill(basic.getFillCodeOnFAT());
 
-        trsdos_gat_t gat_sector = new trsdos_gat_t();
+        TrsDosGatSector gatSector = new TrsDosGatSector();
         byte[] b = sector.getSectorBuffer();
-        Serdes.Util.deserialize(new ByteArrayInputStream(b), gat_sector);
+        Serdes.Util.deserialize(new ByteArrayInputStream(b), gatSector);
 
         // GAT set free area
-        int mnt_st_grp = basic.getManagedTrackNumber() * basic.diskBasicParam.getGroupsPerTrack() * basic.getSidesPerDiskOnBasic();
-        int mnt_ed_grp = mnt_st_grp + basic.diskBasicParam.getGroupsPerTrack() - 1;
-        for (int grp = 0; grp <= basic.getFatEndGroup(); grp = grp + 1) {
-            if (grp < mnt_st_grp || mnt_ed_grp < grp) {
-                gat_table.modify(grp, false);
+        int mountStartGroup = basic.getManagedTrackNumber() * basic.getGroupsPerTrack() * basic.getSidesPerDiskOnBasic();
+        int mountEndGroup = mountStartGroup + basic.getGroupsPerTrack() - 1;
+        for (int group = 0; group <= basic.getFatEndGroup(); group = group + 1) {
+            if (group < mountStartGroup || mountEndGroup < group) {
+                gatTable.modify(group, false);
             }
         }
 
         // 日付
-        DiskBasicIdentifiedData ndata = data;
+        DiskBasicIdentifiedData nData = data;
         LocalDate tm = LocalDate.now();
         if (Utils.convDateStrToTm(data.getVolumeDate()) == null) {
             // 現在日付をセット
-            ndata.setVolumeDate(Utils.formatYMDStr(tm));
+            nData.setVolumeDate(Utils.formatYMDStr(tm));
         }
 
         // ボリューム名を設定
-        setIdentifiedData(ndata);
+        setIdentifiedData(nData);
 
         // APT
-        Arrays.fill(gat_sector.apt, (byte) 0x20);
-        gat_sector.apt[0] = (byte) 0x0d;
+        Arrays.fill(gatSector.apt, (byte) 0x20);
+        gatSector.apt[0] = (byte) 0x0d;
 
         // HIT, FDE ディレクトリ
-        st_pos++;
-        int ed_pos = basic.getManagedTrackNumber() * basic.getSectorsPerTrackOnBasic() * basic.getSidesPerDiskOnBasic() + basic.diskBasicParam.getDirEndSector();
-        for (int sec = st_pos; sec <= ed_pos; sec++) {
-            sector = basic.getSectorFromSectorPos(sec);
+        startPos++;
+        int endPos = basic.getManagedTrackNumber() * basic.getSectorsPerTrackOnBasic() * basic.getSidesPerDiskOnBasic() + basic.getDirEndSector();
+        for (int sectorPos = startPos; sectorPos <= endPos; sectorPos++) {
+            sector = basic.getSectorFromSectorPos(sectorPos);
             if (sector == null) {
                 return false;
             }
-            sector.fill(basic.diskBasicParam.getFillCodeOnDir());
+            sector.fill(basic.getFillCodeOnDir());
         }
 
         return true;
     }
 
     @Override
-    public int writeFile(DiskBasicDirItem<T> item, InputStream istream, byte[] buffer, int size, int remain, int sector_num, int group_num, int next_group, int sector_end, int seq_num) throws IOException {
+    public int writeFile(DiskBasicDirItem<T> item, InputStream iStream, byte[] buffer, int size, int remain,
+                         int sectorNum, int groupNum, int nextGroup, int sectorEnd, int seqNum) throws IOException {
         int len = 0;
         if (remain <= size) {
             if (remain < 0) remain = 0;
-            if (remain > 0) istream.read(buffer, 0, remain);
+            if (remain > 0) iStream.readNBytes(buffer, 0, remain);
             if (size > remain) {
                 // バッファの余りは0サプレス
                 Arrays.fill(buffer, remain, size, (byte) 0);
@@ -388,7 +390,7 @@ public abstract class DiskBasicTypeTRSDOS<T extends DirectoryT> extends DiskBasi
             len = remain;
         } else {
             // 継続
-            istream.read(buffer, 0, size);
+            iStream.readNBytes(buffer, 0, size);
             len = size;
         }
 
@@ -396,95 +398,105 @@ public abstract class DiskBasicTypeTRSDOS<T extends DirectoryT> extends DiskBasi
     }
 
     @Override
-    public void deleteGroupNumber(int group_num) {
-        setGroupNumber(group_num, INVALID_GROUP_NUMBER);
+    public void deleteGroupNumber(int groupNum) {
+        setGroupNumber(groupNum, INVALID_GROUP_NUMBER);
     }
 
     @Override
     public void getIdentifiedData(DiskBasicIdentifiedData data) throws IOException {
         // GATエリア
-        int sec = basic.getManagedTrackNumber() * basic.getSectorsPerTrackOnBasic() * basic.getSidesPerDiskOnBasic();
-        DiskImageSector sector = basic.getSectorFromSectorPos(sec);
+        int sectorPos = basic.getManagedTrackNumber() * basic.getSectorsPerTrackOnBasic() * basic.getSidesPerDiskOnBasic();
+        DiskImageSector sector = basic.getSectorFromSectorPos(sectorPos);
         if (sector == null) {
             return;
         }
-        trsdos_gat_t gat_sector = new trsdos_gat_t();
+        TrsDosGatSector gatSector = new TrsDosGatSector();
         byte[] b = sector.getSectorBuffer();
-        Serdes.Util.deserialize(new ByteArrayInputStream(b), gat_sector);
+        Serdes.Util.deserialize(new ByteArrayInputStream(b), gatSector);
 
         // volume name
-        String wname = new String(gat_sector.name, basic.getCharCodes().charset());
-        wname = wname.trim();
-        data.setVolumeName(wname);
-        data.setVolumeNameMaxLength(gat_sector.name.length);
+        StringBuilder sb = new StringBuilder();
+        basic.getCharCodes().convToString(gatSector.name, 0, gatSector.name.length, sb, -1);
+        String wName = sb.toString().trim();
+        data.setVolumeName(wName);
+        data.setVolumeNameMaxLength(gatSector.name.length);
         // volume date
-        int yy = (gat_sector.date[6] & 0xf) * 10 + (gat_sector.date[7] & 0xf);
+        int yy = (gatSector.date[6] & 0xf) * 10 + (gatSector.date[7] & 0xf);
         if (yy < 70) yy += 100;
         LocalDate tm = LocalDate.of(
                 yy,
-                (gat_sector.date[0] & 0xf) * 10 + (gat_sector.date[1] & 0xf) - 1,
-                (gat_sector.date[3] & 0xf) * 10 + (gat_sector.date[4] & 0xf));
+                (gatSector.date[0] & 0xf) * 10 + (gatSector.date[1] & 0xf) - 1,
+                (gatSector.date[3] & 0xf) * 10 + (gatSector.date[4] & 0xf));
         data.setVolumeDate(Utils.formatYMDStr(tm));
     }
 
     @Override
     public void setIdentifiedData(DiskBasicIdentifiedData data) throws IOException {
         // GATエリア
-        int sec = basic.getManagedTrackNumber() * basic.getSectorsPerTrackOnBasic() * basic.getSidesPerDiskOnBasic();
-        DiskImageSector sector = basic.getSectorFromSectorPos(sec);
+        int sectorPos = basic.getManagedTrackNumber() * basic.getSectorsPerTrackOnBasic() * basic.getSidesPerDiskOnBasic();
+        DiskImageSector sector = basic.getSectorFromSectorPos(sectorPos);
         if (sector == null) {
             return;
         }
-        trsdos_gat_t gat_sector = new trsdos_gat_t();
+        TrsDosGatSector gatSector = new TrsDosGatSector();
         byte[] b = sector.getSectorBuffer();
-        Serdes.Util.deserialize(new ByteArrayInputStream(b), gat_sector);
+        Serdes.Util.deserialize(new ByteArrayInputStream(b), gatSector);
 
         // volume name
         byte[] volname = data.getVolumeName().toUpperCase().getBytes();
-        int len = Math.min(gat_sector.name.length, volname.length);
-        Arrays.fill(gat_sector.name, basic.diskBasicParam.getDirSpaceCode());
-        System.arraycopy(volname, 0, gat_sector.name, 0, len);
+        int len = Math.min(gatSector.name.length, volname.length);
+        Arrays.fill(gatSector.name, basic.getDirSpaceCode());
+        System.arraycopy(volname, 0, gatSector.name, 0, len);
         // volume date
         LocalDate tm = Utils.convDateStrToTm(data.getVolumeDate());
-        gat_sector.date[0] = (byte) (((tm.getMonth().ordinal() + 1) / 10) + 0x30);
-        gat_sector.date[1] = (byte) (((tm.getMonth().ordinal() + 1) % 10) + 0x30);
-        gat_sector.date[2] = (byte) '/';
-        gat_sector.date[3] = (byte) ((tm.getDayOfMonth() / 10) + 0x30);
-        gat_sector.date[4] = (byte) ((tm.getDayOfMonth() % 10) + 0x30);
-        gat_sector.date[5] = (byte) '/';
-        gat_sector.date[6] = (byte) (((tm.getYear() / 10) % 10) + 0x30);
-        gat_sector.date[7] = (byte) ((tm.getYear() % 10) + 0x30);
+        gatSector.date[0] = (byte) (((tm.getMonth().ordinal() + 1) / 10) + 0x30);
+        gatSector.date[1] = (byte) (((tm.getMonth().ordinal() + 1) % 10) + 0x30);
+        gatSector.date[2] = (byte) '/';
+        gatSector.date[3] = (byte) ((tm.getDayOfMonth() / 10) + 0x30);
+        gatSector.date[4] = (byte) ((tm.getDayOfMonth() % 10) + 0x30);
+        gatSector.date[5] = (byte) '/';
+        gatSector.date[6] = (byte) (((tm.getYear() / 10) % 10) + 0x30);
+        gatSector.date[7] = (byte) ((tm.getYear() % 10) + 0x30);
     }
 
     //
     // TRSDOS 2.x の処理
     //
-    public static class DiskBasicTypeTRSD23 extends DiskBasicTypeTRSDOS<DirectoryTrsd23> {
+    public static class DiskBasicTypeTRSD23 extends DiskBasicTypeTRSDOS<DirectoryTrsD23> {
 
-        /** */
-        public DiskBasicTypeTRSD23(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryTrsd23> dir) {
-            super(basic, fat, dir);
+        public static final int FORMAT_TYPE_TRSD23 = 17;
+
+        @Override
+        public boolean isSupported(int typeNumber) {
+            return typeNumber == FORMAT_TYPE_TRSD23;
         }
 
         @Override
-        public void getFromHIPosition(int pos, int[] sector_num, int[] pos_in_sector) {
-            sector_num[0] = (pos & 0xf) + 2;
-            pos_in_sector[0] = ((pos & 0xf0) >> 4) / 2;
+        public void init(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryTrsD23> dir) {
+            super.init(basic, fat, dir);
+        }
+
+        @Override
+        public void getFromHIPosition(int pos, int[] sectorNum, int[] posInSector) {
+            sectorNum[0] = (pos & 0xf) + 2;
+            posInSector[0] = ((pos & 0xf0) >> 4) / 2;
         }
 
         /** ハッシュの格納位置を得る */
-        public static int getHIPosition(int sector_num, int pos_in_sector) {
+        public static int getHIPosition(int sectorNum, int posInSector) {
             // 下位4バイトがセクタ
-            int pos = (sector_num - 2);
+            int pos = (sectorNum - 2);
             // 上位4バイトが位置
-            pos |= ((pos_in_sector * 2) << 4);
+            pos |= ((posInSector * 2) << 4);
 
             return pos & 0xff;
         }
 
-        /// ハッシュを計算
-        /// @param name ファイル名＋拡張子 11バイト
-        /// @return ハッシュ値
+        /**
+         * ハッシュを計算
+         * @param name ファイル名＋拡張子 11バイト
+         * @return ハッシュ値
+         */
         public static byte computeHI(byte[] name) {
             int a;
             int c = 0;		// HR.
@@ -500,99 +512,99 @@ public abstract class DiskBasicTypeTRSDOS<T extends DirectoryT> extends DiskBasi
         }
 
         @Override
-        public boolean assignRootDirectory(int start_sector, int end_sector, DiskBasicGroups group_items, DiskBasicDirItem<DirectoryTrsd23> dir_item) throws IOException {
-            boolean sts = super.assignRootDirectory(start_sector, end_sector, group_items, dir_item);
+        public boolean assignRootDirectory(int startSector, int endSector, DiskBasicGroups groupItems, DiskBasicDirItem<DirectoryTrsD23> dirItem) throws IOException {
+            boolean status = super.assignRootDirectory(startSector, endSector, groupItems, dirItem);
 
-            List<DiskBasicDirItem<DirectoryTrsd23>> citems = dir_item.getChildren();
-            for (int i = 0; i < citems.size(); i++) {
-                DiskBasicDirItemTRSDOS<DirectoryTrsd23> citem = (DiskBasicDirItemTRSDOS<DirectoryTrsd23>) citems.get(i);
-                int ov = citem.getOverflow() & 0xff;
-                if (ov > 0 && ov < 254) {
-                    citem.visible(false);
-                    int[] ov_sec_num = new int[1];
-                    int[] ov_sec_pos = new int[1];
-                    getFromHIPosition(ov, ov_sec_num, ov_sec_pos);
+            List<DiskBasicDirItem<DirectoryTrsD23>> cItems = dirItem.getChildren();
+            for (int i = 0; i < cItems.size(); i++) {
+                DiskBasicDirItemTRSDOS<DirectoryTrsD23> cItem = (DiskBasicDirItemTRSDOS<DirectoryTrsD23>) cItems.get(i);
+                int overflow = cItem.getOverflow() & 0xff;
+                if (overflow > 0 && overflow < 254) {
+                    cItem.visible(false);
+                    int[] overflowSectorNum = new int[1];
+                    int[] overflowSectorPos = new int[1];
+                    getFromHIPosition(overflow, overflowSectorNum, overflowSectorPos);
 
-                    int num = (ov_sec_num[0] - 2) * basic.getSectorSize() / citem.getDataSize() + ov_sec_pos[0];
-                    if (num >= citems.size()) {
-                        sts = false;
-                        return sts;
+                    int num = (overflowSectorNum[0] - 2) * basic.getSectorSize() / cItem.getDataSize() + overflowSectorPos[0];
+                    if (num >= cItems.size()) {
+                        status = false;
+                        return status;
                     }
-                    DiskBasicDirItemTRSDOS<DirectoryTrsd23> pitem = (DiskBasicDirItemTRSDOS<DirectoryTrsd23>) citems.get(num);
-                    pitem.setNextItem(citem);
+                    DiskBasicDirItemTRSDOS<DirectoryTrsD23> pItem = (DiskBasicDirItemTRSDOS<DirectoryTrsD23>) cItems.get(num);
+                    pItem.setNextItem(cItem);
                 }
             }
 
-            for (int i = 0; i < citems.size(); i++) {
-                DiskBasicDirItemTRSDOS<DirectoryTrsd23> citem = (DiskBasicDirItemTRSDOS<DirectoryTrsd23>) citems.get(i);
+            for (DiskBasicDirItem<DirectoryTrsD23> cItem : cItems) {
+                DiskBasicDirItemTRSDOS<DirectoryTrsD23> citem = (DiskBasicDirItemTRSDOS<DirectoryTrsD23>) cItem;
                 citem.calcFileSize();
             }
-            return sts;
+            return status;
         }
 
-        public int allocateUnitGroups(int fileunit_num, DiskBasicDirItem<DirectoryTrsd23> item, int data_size, int flags, DiskBasicGroups group_items) throws IOException {
+        public int allocateUnitGroups(int fileUnitNum, DiskBasicDirItem<DirectoryTrsD23> item, int dataSize, int flags, DiskBasicGroups groupItems) throws IOException {
             int rc = 0;
-            int sizeremain = data_size;
+            int sizeremain = dataSize;
 
-            int bytes_per_group = basic.diskBasicParam.getSectorsPerGroup() * basic.getSectorSize();
-            int limit = basic.diskBasicParam.getFatEndGroup() + 1;
-            int pos_max = 4;
+            int bytesPerGroup = basic.getSectorsPerGroup() * basic.getSectorSize();
+            int limit = basic.getFatEndGroup() + 1;
+            int posMax = 4;
             while (rc >= 0 && limit >= 0 && sizeremain > 0) {
-                int group_num = getEmptyGroupNumber();
-                if (group_num == INVALID_GROUP_NUMBER) {
+                int groupNum = getEmptyGroupNumber();
+                if (groupNum == INVALID_GROUP_NUMBER) {
                     // 空きなし
                     rc = -1;
                     break;
                 }
                 // 位置を予約
-                setGroupNumber(group_num, 1);
+                setGroupNumber(groupNum, 1);
 
-                basic.getNumsFromGroup(group_num, 0, basic.getSectorSize(), sizeremain, group_items);
+                basic.getNumsFromGroup(groupNum, 0, basic.getSectorSize(), sizeremain, groupItems);
 
-                sizeremain -= bytes_per_group;
+                sizeremain -= bytesPerGroup;
 
                 limit--;
             }
             if (limit < 0) {
-                // too large or infinit loop
+                // too large or infinite loop
                 rc = -1;
             }
 
             if (rc >= 0) {
-                DiskBasicDirItemTRSDOS[] titem = {(DiskBasicDirItemTRSDOS<DirectoryTrsd23>) item};
+                DiskBasicDirItemTRSDOS[] tItem = {(DiskBasicDirItemTRSDOS<DirectoryTrsD23>) item};
 
                 // 使用中にする
-                titem[0].setAsNewFile();
+                tItem[0].setAsNewFile();
 
                 // ディレクトリエントリに追加
                 int[] pos = {0};
-                int pre_grp = 0;
-                int sta_grp = 0;
-                int cnt = 0;
-                int max_idx = group_items.size();
-                for (int idx = 0; idx < max_idx; idx++) {
-                    int grp = group_items.get(idx).group;
-                    if (idx == 0) {
-                        sta_grp = grp;
-                    } else if (cnt > 32 || pre_grp + 1 != grp) {
-                        if (pos[0] >= pos_max && createOverflowEntry(titem, pos) < 0) {
+                int preGroup = 0;
+                int startGroup = 0;
+                int count = 0;
+                int maxIndex = groupItems.size();
+                for (int index = 0; index < maxIndex; index++) {
+                    int group = groupItems.get(index).group;
+                    if (index == 0) {
+                        startGroup = group;
+                    } else if (count > 32 || preGroup + 1 != group) {
+                        if (pos[0] >= posMax && createOverflowEntry(tItem, pos) < 0) {
                             rc = -1;
                             break;
                         }
-                        titem[0].setGranulesOnGap(pos[0], sta_grp, cnt);
-                        cnt = 0;
-                        sta_grp = grp;
+                        tItem[0].setGranulesOnGap(pos[0], startGroup, count);
+                        count = 0;
+                        startGroup = group;
                         pos[0]++;
                     }
-                    cnt++;
-                    pre_grp = grp;
+                    count++;
+                    preGroup = group;
                 }
-                if (rc >= 0 && cnt > 0) {
-                    if (pos[0] >= pos_max && createOverflowEntry(titem, pos) < 0) {
+                if (rc >= 0 && count > 0) {
+                    if (pos[0] >= posMax && createOverflowEntry(tItem, pos) < 0) {
                         rc = -1;
                     }
                     if (rc >= 0) {
-                        titem[0].setGranulesOnGap(pos[0], sta_grp, cnt);
+                        tItem[0].setGranulesOnGap(pos[0], startGroup, count);
                         pos[0]++;
                     }
                 }
@@ -600,55 +612,54 @@ public abstract class DiskBasicTypeTRSDOS<T extends DirectoryT> extends DiskBasi
 
             if (rc < 0) {
                 // グループを削除
-                deleteGroups(group_items);
+                deleteGroups(groupItems);
             }
 
             return rc;
         }
 
-        private int createOverflowEntry(DiskBasicDirItemTRSDOS<DirectoryTrsd23>[] ptitem, int[] pos) throws IOException {
+        private int createOverflowEntry(DiskBasicDirItemTRSDOS<DirectoryTrsD23>[] ptItem, int[] pos) throws IOException {
             int rc = 0;
-            DiskBasicDirItemTRSDOS<DirectoryTrsd23> new_titem = (DiskBasicDirItemTRSDOS<DirectoryTrsd23>) dir.getEmptyItemOnCurrent(ptitem[0], null);
-            if (new_titem == null) {
+            DiskBasicDirItemTRSDOS<DirectoryTrsD23> newTItem = (DiskBasicDirItemTRSDOS<DirectoryTrsD23>) dir.getEmptyItemOnCurrent(ptItem[0], null);
+            if (newTItem == null) {
                 rc = -1;
                 return rc;
             } else {
-                int[] ccnt_arr = new int[1];
-                int cgrp = ptitem[0].getGranulesOnGap(4, ccnt_arr);
-                ptitem[0].clearGranulesOnGap(4, 0xfe, new_titem.getPositionInHIT());
+                int[] cCount = new int[1];
+                int cGroup = ptItem[0].getGranulesOnGap(4, cCount);
+                ptItem[0].clearGranulesOnGap(4, 0xfe, newTItem.getPositionInHIT());
 
-                byte pos_in_hit = ptitem[0].getPositionInHIT();
-                new_titem.setAsOverflowFile(pos_in_hit, hit_impl.getHI(pos_in_hit));
+                byte posInHit = ptItem[0].getPositionInHIT();
+                newTItem.setAsOverflowFile(posInHit, hit.getHI(posInHit));
 
                 pos[0] = 0;
-                new_titem.setGranulesOnGap(pos[0], cgrp, ccnt_arr[0]);
+                newTItem.setGranulesOnGap(pos[0], cGroup, cCount[0]);
                 pos[0]++;
 
-                ptitem[0].setNextItem(new_titem);
+                ptItem[0].setNextItem(newTItem);
 
-                ptitem[0] = new_titem;
+                ptItem[0] = newTItem;
             }
             return rc;
         }
 
         @Override
-        public DiskBasicDirItem<DirectoryTrsd23> getEmptyDirectoryItem(DiskBasicDirItem<DirectoryTrsd23> parent, List<DiskBasicDirItem<DirectoryTrsd23>> items, DiskBasicDirItem<DirectoryTrsd23> pitem, DiskBasicDirItem<DirectoryTrsd23>[] next_item) {
-            boolean is_sys = ((pitem.getFileAttr().getOrigin() & FILETYPE_MASK_TRSDOS_SYSTEM) != 0);
+        public DiskBasicDirItem<DirectoryTrsD23> getEmptyDirectoryItem(DiskBasicDirItem<DirectoryTrsD23> parent, List<DiskBasicDirItem<DirectoryTrsD23>> items, DiskBasicDirItem<DirectoryTrsD23> pItem, DiskBasicDirItem<DirectoryTrsD23>[] nextItem) {
+            boolean isSystem = ((pItem.getFileAttr().getOrigin() & FILETYPE_MASK_TRSDOS_SYSTEM) != 0);
 
-            DiskBasicDirItem<DirectoryTrsd23> match_item = null;
+            DiskBasicDirItem<DirectoryTrsD23> matchItem = null;
             if (items != null) {
                 for (int i = 0; i < items.size(); i++) {
-                    DiskBasicDirItem<DirectoryTrsd23> item = items.get(i);
+                    DiskBasicDirItem<DirectoryTrsD23> item = items.get(i);
                     if (!item.isUsed()) {
-                        if ((is_sys && item.getPosition() < 0x40)
-                                || (!is_sys && item.getPosition() >= 0x40)) {
-                            match_item = item;
-                            if (next_item != null) {
+                        if ((isSystem && item.getPosition() < 0x40) || (!isSystem && item.getPosition() >= 0x40)) {
+                            matchItem = item;
+                            if (nextItem != null) {
                                 i++;
                                 if (i < items.size() && !items.get(i).isUsed()) {
-                                    next_item[0] = items.get(i);
+                                    nextItem[0] = items.get(i);
                                 } else {
-                                    next_item[0] = null;
+                                    nextItem[0] = null;
                                 }
                             }
                             break;
@@ -656,7 +667,7 @@ public abstract class DiskBasicTypeTRSDOS<T extends DirectoryT> extends DiskBasi
                     }
                 }
             }
-            return match_item;
+            return matchItem;
         }
 
         @Override
@@ -667,43 +678,47 @@ public abstract class DiskBasicTypeTRSDOS<T extends DirectoryT> extends DiskBasi
 
             DiskImageSector sector;
 
-            int st_pos = basic.getManagedTrackNumber() * basic.getSectorsPerTrackOnBasic() * basic.getSidesPerDiskOnBasic() + basic.diskBasicParam.getDirStartSector() - 2;
-            sector = basic.getSectorFromSectorPos(st_pos);
+            // GAT
+            int startPos = basic.getManagedTrackNumber() * basic.getSectorsPerTrackOnBasic() * basic.getSidesPerDiskOnBasic() + basic.getDirStartSector() - 2;
+            sector = basic.getSectorFromSectorPos(startPos);
             if (sector == null) {
                 return false;
             }
 
-            for (int grp = 0; grp <= basic.getFatEndGroup(); grp = grp + 1) {
-                tlt_table.modify(grp, false);
+            // TLT no lock out
+            for (int group = 0; group <= basic.getFatEndGroup(); group = group + 1) {
+                tltTable.modify(group, false);
             }
 
-            trsdos_gat_t gat_sector = (trsdos_gat_t) (Object) sector.getSectorBuffer();
+            byte[] b = sector.getSectorBuffer();
+            TrsDosGatSector gatSector = new TrsDosGatSector();
+            Serdes.Util.deserialize(new ByteArrayInputStream(b), gatSector);
 
-            // Assuming wxUINT16_SWAP_ON_BE is a byte-swapping utility
-            // gat_sector.password = wxUINT16_SWAP_ON_BE(0x4296);
-            gat_sector.password = (short) 0x4296; // Placeholder for byte-swapping
+            // ボリュームパスワード
+            gatSector.password = (short) 0x4296;
 
-            DiskBasicDirItemTRSDOS<?> titem;
+            DiskBasicDirItemTRSDOS<?> tItem;
 
-            st_pos += 2;
-            sector = basic.getSectorFromSectorPos(st_pos);
-            titem = (DiskBasicDirItemTRSDOS<?>) dir.newItem(sector, 0, sector.getSectorBuffer(0), 0);
-            titem.setAsBootSysEntry();
-            // Assume delete titem is not needed in Java due to garbage collection
-            // delete titem;
+            // "BOOT/SYS"エントリを作る
+            startPos += 2;
+            sector = basic.getSectorFromSectorPos(startPos);
+            tItem = (DiskBasicDirItemTRSDOS<?>) dir.newItem(sector, 0, sector.getSectorBuffer(0), 0);
+            tItem.setAsBootSysEntry();
 
-            st_pos++;
-            sector = basic.getSectorFromSectorPos(st_pos);
-            titem = (DiskBasicDirItemTRSDOS<?>) dir.newItem(sector, 0, sector.getSectorBuffer(0), 0);
-            titem.setAsDirSysEntry();
-            // delete titem;
+            // "DIR/SYS"エントリを作る
+            startPos++;
+            sector = basic.getSectorFromSectorPos(startPos);
+            tItem = (DiskBasicDirItemTRSDOS<?>) dir.newItem(sector, 0, sector.getSectorBuffer(0), 0);
+            tItem.setAsDirSysEntry();
 
+            // セクタ 0
             sector = basic.getSectorFromSectorPos(0);
             if (sector == null) {
+                // Why?
                 return false;
             }
             sector.copy("\u0000\u00fe\u0011\u00f3".getBytes(), 4);
-            gat_table.modify(0, true);
+            gatTable.modify(0, true);
 
             return true;
         }
@@ -712,10 +727,18 @@ public abstract class DiskBasicTypeTRSDOS<T extends DirectoryT> extends DiskBasi
     /**
      * TRSDOS 1.3 の処理
      */
-    public static class DiskBasicTypeTRSD13 extends DiskBasicTypeTRSDOS<DirectoryTrsd13> {
+    public static class DiskBasicTypeTRSD13 extends DiskBasicTypeTRSDOS<DirectoryTrsD13> {
 
-        public DiskBasicTypeTRSD13(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryTrsd13> dir) {
-            super(basic, fat, dir);
+        public static final int FORMAT_TYPE_TRSD13 = 18;
+
+        @Override
+        public boolean isSupported(int typeNumber) {
+            return typeNumber == FORMAT_TYPE_TRSD13;
+        }
+
+        @Override
+        public void init(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryTrsD13> dir) {
+            super.init(basic, fat, dir);
         }
 
         /** ハッシュの格納位置を得る */
@@ -724,28 +747,27 @@ public abstract class DiskBasicTypeTRSDOS<T extends DirectoryT> extends DiskBasi
         }
 
         @Override
-        public void getFromHIPosition(int pos, int[] sector_num, int[] pos_in_sector) {
-            int n = basic.getSectorSize() / DirectoryTrsd13.SIZE;
-            sector_num[0] = pos / n;
-            pos_in_sector[0] = (pos % n);
+        public void getFromHIPosition(int pos, int[] sectorNum, int[] posInSector) {
+            int n = basic.getSectorSize() / DirectoryTrsD13.SIZE;
+            sectorNum[0] = pos / n;
+            posInSector[0] = (pos % n);
         }
 
         @Override
-        public boolean assignRootDirectory(int start_sector, int end_sector, DiskBasicGroups group_items, DiskBasicDirItem<DirectoryTrsd13> dir_item) throws IOException {
-            boolean sts = super.assignRootDirectory(start_sector, end_sector, group_items, dir_item);
+        public boolean assignRootDirectory(int startSector, int endSector, DiskBasicGroups groupItems, DiskBasicDirItem<DirectoryTrsD13> dirItem) throws IOException {
+            boolean sts = super.assignRootDirectory(startSector, endSector, groupItems, dirItem);
 
             // ファイルサイズを再計算
-            List<DiskBasicDirItem<DirectoryTrsd13>> citems = dir_item.getChildren();
-            for (int i = 0; i < citems.size(); i++) {
-                DiskBasicDirItemTRSDOS<?> citem = (DiskBasicDirItemTRSDOS<?>) citems.get(i);
-                citem.calcFileSize();
+            List<DiskBasicDirItem<DirectoryTrsD13>> cItems = dirItem.getChildren();
+            for (DiskBasicDirItem<DirectoryTrsD13> cItem : cItems) {
+                cItem.calcFileSize();
             }
             return sts;
         }
 
         @Override
-        public int finishAssigningDirectory(int[] pos, int[] size, int[] size_remain) {
-            if (pos[0] + DirectoryTrsd13.SIZE > size[0]) {
+        public int finishAssigningDirectory(int[] pos, int[] size, int[] sizeRemain) {
+            if (pos[0] + DirectoryTrsD13.SIZE > size[0]) {
                 return -1;
             }
             return 0;
@@ -756,68 +778,68 @@ public abstract class DiskBasicTypeTRSDOS<T extends DirectoryT> extends DiskBasi
             return 0;
         }
 
-        public int allocateUnitGroups(int fileunit_num, DiskBasicDirItem<DirectoryTrsd13> item, int data_size, int flags, DiskBasicGroups group_items) throws IOException {
+        public int allocateUnitGroups(int fileUnitNum, DiskBasicDirItem<DirectoryTrsD13> item, int dataSize, int flags, DiskBasicGroups groupItems) throws IOException {
             int rc = 0;
-            int sizeremain = data_size;
+            int sizeRemain = dataSize;
 
-            int bytes_per_group = basic.getSectorsPerGroup() * basic.getSectorSize();
+            int bytesPerGroup = basic.getSectorsPerGroup() * basic.getSectorSize();
             int limit = basic.getFatEndGroup() + 1;
-            int pos_max = 13;
-            while (rc >= 0 && limit >= 0 && sizeremain > 0) {
-                int group_num = getEmptyGroupNumber();
-                if (group_num == INVALID_GROUP_NUMBER) {
+            int posMax = 13;
+            while (rc >= 0 && limit >= 0 && sizeRemain > 0) {
+                int groupNum = getEmptyGroupNumber();
+                if (groupNum == INVALID_GROUP_NUMBER) {
                     // 空きなし
                     rc = -1;
                     break;
                 }
                 // 位置を予約
-                setGroupNumber(group_num, 1);
+                setGroupNumber(groupNum, 1);
 
-                basic.getNumsFromGroup(group_num, 0, basic.getSectorSize(), sizeremain, group_items);
+                basic.getNumsFromGroup(groupNum, 0, basic.getSectorSize(), sizeRemain, groupItems);
 
-                sizeremain -= bytes_per_group;
+                sizeRemain -= bytesPerGroup;
                 limit--;
             }
             if (limit < 0) {
-                // too large or infinit loop
+                // too large or infinite loop
                 rc = -1;
             }
 
             if (rc >= 0) {
-                DiskBasicDirItemTRSDOS<DirectoryTrsd13> titem = (DiskBasicDirItemTRSDOS<DirectoryTrsd13>) item;
+                DiskBasicDirItemTRSDOS<DirectoryTrsD13> tItem = (DiskBasicDirItemTRSDOS<DirectoryTrsD13>) item;
 
                 // 使用中にする
-                titem.setAsNewFile();
+                tItem.setAsNewFile();
 
                 // ディレクトリエントリに追加
                 int pos = 0;
-                int pre_grp = 0;
-                int sta_grp = 0;
-                int cnt = 0;
-                int max_idx = group_items.size();
-                for (int idx = 0; idx < max_idx; idx++) {
-                    int grp = group_items.get(idx).group;
-                    if (idx == 0) {
-                        sta_grp = grp;
-                    } else if (cnt > 32 || pre_grp + 1 != grp) {
-                        if (pos >= pos_max) {
+                int preGroup = 0;
+                int startGroup = 0;
+                int count = 0;
+                int maxIndex = groupItems.size();
+                for (int index = 0; index < maxIndex; index++) {
+                    int group = groupItems.get(index).group;
+                    if (index == 0) {
+                        startGroup = group;
+                    } else if (count > 32 || preGroup + 1 != group) {
+                        if (pos >= posMax) {
                             rc = -1;
                             break;
                         }
-                        titem.setGranulesOnGap(pos, sta_grp, cnt);
-                        cnt = 0;
-                        sta_grp = grp;
+                        tItem.setGranulesOnGap(pos, startGroup, count);
+                        count = 0;
+                        startGroup = group;
                         pos++;
                     }
-                    cnt++;
-                    pre_grp = grp;
+                    count++;
+                    preGroup = group;
                 }
-                if (rc >= 0 && cnt > 0) {
-                    if (pos >= pos_max) {
+                if (rc >= 0 && count > 0) {
+                    if (pos >= posMax) {
                         rc = -1;
                     }
                     if (rc >= 0) {
-                        titem.setGranulesOnGap(pos, sta_grp, cnt);
+                        tItem.setGranulesOnGap(pos, startGroup, count);
                         pos++;
                     }
                 }
@@ -825,7 +847,7 @@ public abstract class DiskBasicTypeTRSDOS<T extends DirectoryT> extends DiskBasi
 
             if (rc < 0) {
                 // グループを削除
-                deleteGroups(group_items);
+                deleteGroups(groupItems);
             }
 
             return rc;
@@ -839,19 +861,19 @@ public abstract class DiskBasicTypeTRSDOS<T extends DirectoryT> extends DiskBasi
 
             DiskImageSector sector;
 
-            int st_pos = basic.getManagedTrackNumber() * basic.getSectorsPerTrackOnBasic() * basic.getSidesPerDiskOnBasic() + basic.diskBasicParam.getDirStartSector() - 2;
-            sector = basic.getSectorFromSectorPos(st_pos);
+            int startPos = basic.getManagedTrackNumber() * basic.getSectorsPerTrackOnBasic() * basic.getSidesPerDiskOnBasic() + basic.getDirStartSector() - 2;
+            sector = basic.getSectorFromSectorPos(startPos);
             if (sector == null) {
                 // Why?
                 return false;
             }
 
-            trsdos_gat_t gat_sector = new trsdos_gat_t();
             byte[] b = sector.getSectorBuffer();
-            Serdes.Util.deserialize(new ByteArrayInputStream(b), gat_sector);
+            TrsDosGatSector gatSector = new TrsDosGatSector();
+            Serdes.Util.deserialize(new ByteArrayInputStream(b), gatSector);
 
             // ボリュームパスワード
-            gat_sector.password = (short) 0x5cef;
+            gatSector.password = (short) 0x5cef;
 
             // セクタ 0
             sector = basic.getSectorFromSectorPos(0);
@@ -860,7 +882,7 @@ public abstract class DiskBasicTypeTRSDOS<T extends DirectoryT> extends DiskBasi
                 return false;
             }
             sector.copy("\u00fe\u0011\u003e\u00d0".getBytes(), 4, 0);
-            gat_table.modify(0, true);
+            gatTable.modify(0, true);
 
             return true;
         }

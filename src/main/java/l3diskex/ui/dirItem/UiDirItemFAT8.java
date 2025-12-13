@@ -19,7 +19,7 @@ import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_UNKN
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_ASCII_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_BINARY_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_RANDOM_MASK;
-import static l3diskex.basicfmt.diritem.DiskBasicDirItemFAT8.G_TYPE_NAME_1;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemFAT8.TYPE_NAME_1;
 import static l3diskex.basicfmt.diritem.DiskBasicDirItemFAT8.TYPE_NAME_1_MACHINE;
 
 
@@ -52,7 +52,7 @@ public class UiDirItemFAT8 extends UiDirItem {
 
         String[] types1 = new String[TYPE_NAME_1_MACHINE + 1];
         for (int i = 0; i <= TYPE_NAME_1_MACHINE; i++) {
-            types1[i] = G_TYPE_NAME_1[i]; // Using direct string for translation
+            types1[i] = TYPE_NAME_1[i]; // Using direct string for translation
         }
         // Assuming RadioBox and related UI classes
         radType1 = new ButtonGroup(parent, ATTR_DIALOG_IDC_RADIO_TYPE1, "File Type", types1); // Constructor simplified
@@ -75,6 +75,8 @@ public class UiDirItemFAT8 extends UiDirItem {
 
     // Assuming RadioBox, TextCtrl, and other UI classes are mapped/mocked.
     // IntNameBox::OnChangeType1 should call this method, which is defined in the base C++ class.
+    @Override
+    @Override
     public void changeTypeInAttrDialog(IntNameBox parent) {
         // FindWindow methods are assumed to exist and return the correct type
         JTextField txtIntName = (JTextField) parent.getComponent(IntNameBox.IDC_TEXT_INTNAME);
@@ -123,6 +125,8 @@ public class UiDirItemFAT8 extends UiDirItem {
         }
     }
 
+    @Override
+    @Override
     public boolean setAttrInAttrDialog(IntNameBox parent, DiskBasicDirItemAttr attr, DiskBasicError errinfo) {
         ButtonGroup radType1 = (ButtonGroup) parent.getComponent(ATTR_DIALOG_IDC_RADIO_TYPE1);
         ButtonGroup radType2 = (ButtonGroup) parent.getComponent(ATTR_DIALOG_IDC_RADIO_TYPE2);

@@ -20,13 +20,13 @@ import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.diritem.DiskBasicDirItemMAGICAL.DirectoryMagical;
-import l3diskex.basicfmt.diritem.DiskBasicDirItemXDOS.DirectoryXdos;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemXDOS.DirectoryXDos;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
 import vavi.util.serdes.Element;
 import vavi.util.serdes.Serdes;
 
-import static l3diskex.Config.gConfig;
+import static l3diskex.Config.config;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_ASCII_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_BASIC_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_BINARY_MASK;
@@ -36,12 +36,13 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_HIDDEN_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_MACHINE_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_READONLY_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_SYSTEM_MASK;
+import static l3diskex.basicfmt.type.DiskBasicTypeMAGICAL.FORMAT_TYPE_MAGICAL;
 
 
-/// ディレクトリ１アイテム Magical DOS
+/** ディレクトリ１アイテム Magical DOS */
 public class DiskBasicDirItemMAGICAL extends DiskBasicDirItemXDOSBase<DirectoryMagical> {
 
-    static final ResourceBundle rb = ResourceBundle.getBundle("message");
+    static final ResourceBundle rb = ResourceBundle.getBundle("messages");
 
     /**
      * Magical DOS セグメント情報
@@ -61,7 +62,7 @@ public class DiskBasicDirItemMAGICAL extends DiskBasicDirItemXDOSBase<DirectoryM
      * ディレクトリエントリ Magical DOS
      */
     @Serdes
-    public static class DirectoryMagical extends DirectoryXdos {
+    public static class DirectoryMagical extends DirectoryXDos {
 
         @Element(sequence = 1)
         public byte type; // 1
@@ -70,11 +71,11 @@ public class DiskBasicDirItemMAGICAL extends DiskBasicDirItemXDOSBase<DirectoryM
         @Element(sequence = 3)
         public byte type2; // 1
         @Element(sequence = 4)
-        public short loadAddr; // 2
+        public short loadAddress; // 2
         @Element(sequence = 5)
         public short fileSize; // 2
         @Element(sequence = 6)
-        public short execAddr; // 2
+        public short execAddress; // 2
         @Element(sequence = 7)
         public byte[] date = new byte[2];
         @Element(sequence = 8)
@@ -88,7 +89,7 @@ public class DiskBasicDirItemMAGICAL extends DiskBasicDirItemXDOSBase<DirectoryM
     }
 
     // Enums and Constants from basicdiritem_magical.h
-    public enum en_type_name_magical_1 {
+    public enum TypeNameMagical1 {
         TYPE_NAME_MAGICAL_SYS,
         TYPE_NAME_MAGICAL_BAS,
         TYPE_NAME_MAGICAL_OBJ,
@@ -109,7 +110,7 @@ public class DiskBasicDirItemMAGICAL extends DiskBasicDirItemXDOSBase<DirectoryM
         TYPE_NAME_MAGICAL_UNKNOWN,
     }
 
-    public enum en_file_type_magical {
+    public enum FileTypeMagical {
         FILETYPE_MAGICAL_SYS(0x01),
         FILETYPE_MAGICAL_BAS(0x22),
         FILETYPE_MAGICAL_OBJ(0x03),
@@ -130,19 +131,19 @@ public class DiskBasicDirItemMAGICAL extends DiskBasicDirItemXDOSBase<DirectoryM
         FILETYPE_MAGICAL_UNKNOWN(0x80);
         final int v;
 
-        en_file_type_magical(int v) {
+        FileTypeMagical(int v) {
             this.v = v;
         }
     }
 
-    public enum en_type_name_magical_2 {
+    public enum TypeNameMagical2 {
         TYPE_NAME_MAGICAL_READONLY,
         TYPE_NAME_MAGICAL_HIDDEN,
         TYPE_NAME_MAGICAL_SYSTEM,
         TYPE_NAME_MAGICAL_SUPER,
     }
 
-    public enum en_data_type_magical {
+    public enum DataTypeMagical {
         DATATYPE_MAGICAL_MASK_b(0x00),
         DATATYPE_MAGICAL_MASK_r(0x01),
         DATATYPE_MAGICAL_MASK_g(0x02),
@@ -165,12 +166,12 @@ public class DiskBasicDirItemMAGICAL extends DiskBasicDirItemXDOSBase<DirectoryM
         DATATYPE_MAGICAL_MASK_SUPER(0x80);
         final int v;
 
-        en_data_type_magical(int v) {
+        DataTypeMagical(int v) {
             this.v = v;
         }
     }
 
-    public enum en_type_name_magical_3 {
+    public enum TypeNameMagical3 {
         TYPE_NAME_MAGICAL_BANK_b,
         TYPE_NAME_MAGICAL_BANK_r,
         TYPE_NAME_MAGICAL_BANK_g,
@@ -183,58 +184,58 @@ public class DiskBasicDirItemMAGICAL extends DiskBasicDirItemXDOSBase<DirectoryM
     }
 
     /// Magical DOS 属性名
-    public static final Map<String, Object> gTypeNameMAGICAL_1 = new LinkedHashMap<>() {{
-        put("SYS", en_file_type_magical.FILETYPE_MAGICAL_SYS.ordinal()); // 0x01
-        put("BAS", en_file_type_magical.FILETYPE_MAGICAL_BAS.ordinal()); // 0x22
-        put("OBJ", en_file_type_magical.FILETYPE_MAGICAL_OBJ.ordinal()); // 0x03
-        put("ASC", en_file_type_magical.FILETYPE_MAGICAL_ASC.ordinal()); // 0x44
-        put("DIR", en_file_type_magical.FILETYPE_MAGICAL_DIR.ordinal()); // 0x05
-        put("CDT", en_file_type_magical.FILETYPE_MAGICAL_CDT.ordinal()); // 0x06
-        put("PDT", en_file_type_magical.FILETYPE_MAGICAL_PDT.ordinal()); // 0x07
-        put("GRA", en_file_type_magical.FILETYPE_MAGICAL_GRA.ordinal()); // 0x08
-        put("GAK", en_file_type_magical.FILETYPE_MAGICAL_GAK.ordinal()); // 0x49
-        put("SBA", en_file_type_magical.FILETYPE_MAGICAL_SBA.ordinal()); // 0x2a
-        put("SOB", en_file_type_magical.FILETYPE_MAGICAL_SOB.ordinal()); // 0x0b
-        put("REP", en_file_type_magical.FILETYPE_MAGICAL_REP.ordinal()); // 0x4c
-        put("MDT", en_file_type_magical.FILETYPE_MAGICAL_MDT.ordinal()); // 0x0d
-        put("ARC", en_file_type_magical.FILETYPE_MAGICAL_ARC.ordinal()); // 0x4e
-        put("KTY", en_file_type_magical.FILETYPE_MAGICAL_KTY.ordinal()); // 0x4f
-        put("CGP", en_file_type_magical.FILETYPE_MAGICAL_CGP.ordinal()); // 0x50
-        put("BGM", en_file_type_magical.FILETYPE_MAGICAL_BGM.ordinal()); // 0x51
-        put("???", en_file_type_magical.FILETYPE_MAGICAL_UNKNOWN.ordinal()); // 0x80
+    public static final Map<String, Object> typeNameMagical1 = new LinkedHashMap<>() {{
+        put("SYS", FileTypeMagical.FILETYPE_MAGICAL_SYS.ordinal()); // 0x01
+        put("BAS", FileTypeMagical.FILETYPE_MAGICAL_BAS.ordinal()); // 0x22
+        put("OBJ", FileTypeMagical.FILETYPE_MAGICAL_OBJ.ordinal()); // 0x03
+        put("ASC", FileTypeMagical.FILETYPE_MAGICAL_ASC.ordinal()); // 0x44
+        put("DIR", FileTypeMagical.FILETYPE_MAGICAL_DIR.ordinal()); // 0x05
+        put("CDT", FileTypeMagical.FILETYPE_MAGICAL_CDT.ordinal()); // 0x06
+        put("PDT", FileTypeMagical.FILETYPE_MAGICAL_PDT.ordinal()); // 0x07
+        put("GRA", FileTypeMagical.FILETYPE_MAGICAL_GRA.ordinal()); // 0x08
+        put("GAK", FileTypeMagical.FILETYPE_MAGICAL_GAK.ordinal()); // 0x49
+        put("SBA", FileTypeMagical.FILETYPE_MAGICAL_SBA.ordinal()); // 0x2a
+        put("SOB", FileTypeMagical.FILETYPE_MAGICAL_SOB.ordinal()); // 0x0b
+        put("REP", FileTypeMagical.FILETYPE_MAGICAL_REP.ordinal()); // 0x4c
+        put("MDT", FileTypeMagical.FILETYPE_MAGICAL_MDT.ordinal()); // 0x0d
+        put("ARC", FileTypeMagical.FILETYPE_MAGICAL_ARC.ordinal()); // 0x4e
+        put("KTY", FileTypeMagical.FILETYPE_MAGICAL_KTY.ordinal()); // 0x4f
+        put("CGP", FileTypeMagical.FILETYPE_MAGICAL_CGP.ordinal()); // 0x50
+        put("BGM", FileTypeMagical.FILETYPE_MAGICAL_BGM.ordinal()); // 0x51
+        put("???", FileTypeMagical.FILETYPE_MAGICAL_UNKNOWN.ordinal()); // 0x80
     }};
 
-    public static final int[] gTypeNameMAGICALMap = {
-            en_file_type_magical.FILETYPE_MAGICAL_SYS.ordinal(),
-            en_file_type_magical.FILETYPE_MAGICAL_BAS.ordinal(),
-            en_file_type_magical.FILETYPE_MAGICAL_OBJ.ordinal(),
-            en_file_type_magical.FILETYPE_MAGICAL_ASC.ordinal(),
-            en_file_type_magical.FILETYPE_MAGICAL_DIR.ordinal(),
-            en_file_type_magical.FILETYPE_MAGICAL_CDT.ordinal(),
-            en_file_type_magical.FILETYPE_MAGICAL_PDT.ordinal(),
-            en_file_type_magical.FILETYPE_MAGICAL_GRA.ordinal(),
-            en_file_type_magical.FILETYPE_MAGICAL_GAK.ordinal(),
-            en_file_type_magical.FILETYPE_MAGICAL_SBA.ordinal(),
-            en_file_type_magical.FILETYPE_MAGICAL_SOB.ordinal(),
-            en_file_type_magical.FILETYPE_MAGICAL_REP.ordinal(),
-            en_file_type_magical.FILETYPE_MAGICAL_MDT.ordinal(),
-            en_file_type_magical.FILETYPE_MAGICAL_ARC.ordinal(),
-            en_file_type_magical.FILETYPE_MAGICAL_KTY.ordinal(),
-            en_file_type_magical.FILETYPE_MAGICAL_CGP.ordinal(),
-            en_file_type_magical.FILETYPE_MAGICAL_BGM.ordinal(),
-            en_file_type_magical.FILETYPE_MAGICAL_UNKNOWN.ordinal(),
+    public static final int[] typeNameMagicalMap = {
+            FileTypeMagical.FILETYPE_MAGICAL_SYS.ordinal(),
+            FileTypeMagical.FILETYPE_MAGICAL_BAS.ordinal(),
+            FileTypeMagical.FILETYPE_MAGICAL_OBJ.ordinal(),
+            FileTypeMagical.FILETYPE_MAGICAL_ASC.ordinal(),
+            FileTypeMagical.FILETYPE_MAGICAL_DIR.ordinal(),
+            FileTypeMagical.FILETYPE_MAGICAL_CDT.ordinal(),
+            FileTypeMagical.FILETYPE_MAGICAL_PDT.ordinal(),
+            FileTypeMagical.FILETYPE_MAGICAL_GRA.ordinal(),
+            FileTypeMagical.FILETYPE_MAGICAL_GAK.ordinal(),
+            FileTypeMagical.FILETYPE_MAGICAL_SBA.ordinal(),
+            FileTypeMagical.FILETYPE_MAGICAL_SOB.ordinal(),
+            FileTypeMagical.FILETYPE_MAGICAL_REP.ordinal(),
+            FileTypeMagical.FILETYPE_MAGICAL_MDT.ordinal(),
+            FileTypeMagical.FILETYPE_MAGICAL_ARC.ordinal(),
+            FileTypeMagical.FILETYPE_MAGICAL_KTY.ordinal(),
+            FileTypeMagical.FILETYPE_MAGICAL_CGP.ordinal(),
+            FileTypeMagical.FILETYPE_MAGICAL_BGM.ordinal(),
+            FileTypeMagical.FILETYPE_MAGICAL_UNKNOWN.ordinal(),
     };
 
-    public static final String[] gTypeNameMAGICAL_2 = {
-            rb.getString("Write Protected"),
-            rb.getString("Hidden"),
-            rb.getString("System"),
-            rb.getString("Super User"),
+    public static final String[] typeNameMagical2 = {
+            /*rb.getString(*/"Write Protected"/*)*/,
+            /*rb.getString(*/"Hidden"/*)*/,
+            /*rb.getString(*/"System"/*)*/,
+            /*rb.getString(*/"Super User"/*)*/,
     };
 
-    private static final String gTypeNameMAGICAL_3s = "brgmABCDEFGHIJKL";
+    private static final String typeNameMagical3s = "brgmABCDEFGHIJKL";
 
-    public static final String[] gTypeNameMAGICAL_3 = {
+    public static final String[] typeNameMagical3 = {
             "GRAM blue",
             "GRAM red",
             "GRAM green",
@@ -243,36 +244,45 @@ public class DiskBasicDirItemMAGICAL extends DiskBasicDirItemXDOSBase<DirectoryM
             "ERAM B",
             "ERAM C",
             "ERAM D",
-            rb.getString("Unknown"),
+            /*rb.getString(*/"Unknown"/*)*/,
     };
 
     /** ディレクトリデータ */
-    private final DiskBasicDirData<DirectoryMagical> m_data = new DiskBasicDirData<>();
+    private final DiskBasicDirData<DirectoryMagical> data = new DiskBasicDirData<>();
 
     /** セクタ内部へのポインタ */
-    private final DirItemSectorBoundary m_sdata = new DirItemSectorBoundary();
+    private final DirItemSectorBoundary sectorData = new DirItemSectorBoundary();
 
-    public DiskBasicDirItemMAGICAL(DiskBasic basic) throws IOException {
-        super(basic);
+    @Override
+    public boolean isSupported(int formatType) {
+        return formatType == FORMAT_TYPE_MAGICAL;
+    }
 
-        m_data.alloc(DirectoryMagical.class);
+    @Override
+    public void init(DiskBasic basic) throws IOException {
+        super.init(basic);
+
+        data.alloc(DirectoryMagical.class);
         allocateItem(null);
     }
 
-    public DiskBasicDirItemMAGICAL(DiskBasic basic, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP) throws IOException {
-        super(basic, n_sector, n_secpos, n_data, dataP);
+    @Override
+    public void init(DiskBasic basic, DiskImageSector sector, int sectorPos, byte[] data, int dataP) throws IOException {
+        super.init(basic, sector, sectorPos, data, dataP);
 
-        m_data.attach(DirectoryMagical.class, n_data, dataP);
+        this.data.attach(DirectoryMagical.class, data, dataP);
         allocateItem(null);
     }
 
-    public DiskBasicDirItemMAGICAL(DiskBasic basic, int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP, SectorParam n_next, boolean[] n_unuse) throws IOException {
-        super(basic, n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next, n_unuse, true);
+    @Override
+    public void init(DiskBasic basic, int num, DiskBasicGroupItem groupItem, DiskImageSector sector, int sectorPos,
+                     byte[] data, int dataP, SectorParam next, boolean[] unuse) throws IOException {
+        super.init(basic, num, groupItem, sector, sectorPos, data, dataP, next, unuse, true);
 
-        m_data.attach(DirectoryMagical.class, n_data, dataP);
-        allocateItem(n_next);
+        this.data.attach(DirectoryMagical.class, data, dataP);
+        allocateItem(next);
 
-        used(checkUsed(n_unuse[0]));
+        used(checkUsed(unuse[0]));
 
         // チェインセクタへのポインタをセット
         if (isUsed()) {
@@ -284,25 +294,26 @@ public class DiskBasicDirItemMAGICAL extends DiskBasicDirItemXDOSBase<DirectoryM
     }
 
     @Override
-    public void setDataPtr(int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP, SectorParam n_next) throws IOException {
-        super.setDataPtr(n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next);
+    public void setData(int num, DiskBasicGroupItem groupItem, DiskImageSector sector, int sectorPos,
+                        byte[] data, int dataPos, SectorParam next) throws IOException {
+        super.setData(num, groupItem, sector, sectorPos, data, dataPos, next);
 
-        m_data.attach(DirectoryMagical.class, n_data, dataP);
-        allocateItem(n_next);
+        this.data.attach(DirectoryMagical.class, data, dataPos);
+        allocateItem(next);
     }
 
     @Override
     protected boolean allocateItem(SectorParam next) throws IOException {
-        m_sdata.clear();
-        boolean bound = m_sdata.set(basic, sector, position, m_data.getRawData(), getDataSize(), next);
+        sectorData.clear();
+        boolean bound = sectorData.set(basic, sector, position, data.getRawData(), getDataSize(), next);
 
         if (bound) {
             // セクタをまたぐ場合、dataは内部で確保する
-            m_data.fill((byte) 0);
+            data.fill((byte) 0);
         }
 
         // コピー
-        m_sdata.copyTo(m_data.getRawData());
+        sectorData.copyTo(data.getRawData());
 
         return true;
     }
@@ -310,8 +321,8 @@ public class DiskBasicDirItemMAGICAL extends DiskBasicDirItemXDOSBase<DirectoryM
     @Override
     protected byte[] getFileNamePos(int num, int[] size, int[] len) {
         if (num == 0) {
-            size[0] = len[0] = m_data.data().name.length;
-            return m_data.data().name;
+            size[0] = len[0] = data.data().name.length;
+            return data.data().name;
         } else {
             size[0] = len[0] = 0;
             return null;
@@ -320,26 +331,26 @@ public class DiskBasicDirItemMAGICAL extends DiskBasicDirItemXDOSBase<DirectoryM
 
     @Override
     public int getFileType1() {
-        return m_data.data().type & 0xff;
+        return data.data().type & 0xff;
     }
 
     protected String convFileType1Str(int t1) {
-        return rb.getString(Utils.keyAt(gTypeNameMAGICAL_1, convFileType1Pos(t1)));
+        return rb.getString(Utils.keyAt(typeNameMagical1, convFileType1Pos(t1)));
     }
 
     @Override
     protected void setFileType1(int val) {
-        m_data.data().type = (byte) (val & 0xff);
+        data.data().type = (byte) (val & 0xff);
     }
 
     @Override
     public int getFileType2() {
-        return m_data.data().type2 & 0xff;
+        return data.data().type2 & 0xff;
     }
 
     @Override
     protected void setFileType2(int val) {
-        m_data.data().type2 = (byte) (val & 0xff);
+        data.data().type2 = (byte) (val & 0xff);
     }
 
     @Override
@@ -354,13 +365,13 @@ public class DiskBasicDirItemMAGICAL extends DiskBasicDirItemXDOSBase<DirectoryM
     }
 
     @Override
-    public void getNativeFileName(byte[] name, int[] nlen, byte[] ext, int[] elen) {
-        super.getNativeFileName(name, nlen, ext, elen);
+    public void getNativeFileName(byte[] name, int[] nLen, byte[] ext, int[] eLen) {
+        super.getNativeFileName(name, nLen, ext, eLen);
     }
 
     @Override
     public boolean check(boolean[] last) {
-        if (!m_data.isValid()) return false;
+        if (!data.isValid()) return false;
 
         boolean valid = true;
         if (getFileType1() == 0xff) {
@@ -378,50 +389,50 @@ public class DiskBasicDirItemMAGICAL extends DiskBasicDirItemXDOSBase<DirectoryM
     @Override
     public boolean delete() {
         // 削除はエントリの先頭にコードを入れるだけ
-        m_data.fill(basic.invertUint8(basic.diskBasicParam.getDeleteCode()), 1);
+        data.fill(basic.invertUint8(basic.getDeleteCode()), 1);
         used(false);
         return true;
     }
 
     @Override
-    public int recalcFileSizeOnSave(InputStream istream, int file_size) {
+    public int recalcFileSizeOnSave(InputStream iStream, int fileSize) throws IOException {
         if (needCheckEofCode()) {
             // ファイルの最終が終端記号で終わっているかを調べる
             // ただし、ファイルサイズがクラスタサイズと合うなら終端記号は不要
-            if ((file_size % (basic.getSectorSize() * basic.getSectorsPerGroup())) != 0) {
-                file_size = checkEofCode(istream, file_size);
+            if ((fileSize % (basic.getSectorSize() * basic.getSectorsPerGroup())) != 0) {
+                fileSize = checkEofCode(iStream, fileSize);
             }
         }
-        return file_size;
+        return fileSize;
     }
 
     @Override
-    public void setFileAttr(DiskBasicFileType file_type) {
-        int ftype = file_type.getType();
-        if (ftype == -1) return;
+    public void setFileAttr(DiskBasicFileType fileType) {
+        int fType = fileType.getType();
+        if (fType == -1) return;
 
         int t1 = 0;
-        int t2 = en_data_type_magical.DATATYPE_MAGICAL_MASK_m.ordinal();
-        if (file_type.isDirectory()) {
+        int t2 = DataTypeMagical.DATATYPE_MAGICAL_MASK_m.ordinal();
+        if (fileType.isDirectory()) {
             // ディレクトリの場合
-            t1 = en_file_type_magical.FILETYPE_MAGICAL_DIR.ordinal();
-        } else if (file_type.getFormat() == basic.getFormatTypeNumber()) {
+            t1 = FileTypeMagical.FILETYPE_MAGICAL_DIR.ordinal();
+        } else if (fileType.getFormat() == basic.getFormatTypeNumber()) {
             // 同じOSの場合
-            t1 = file_type.getOrigin();
+            t1 = fileType.getOrigin();
             t2 = t1 >> 8;
             t1 &= 0xff;
         } else {
             // 違うOSの場合
-            if ((ftype & FILE_TYPE_BINARY_MASK.getValue()) != 0) {
-                if ((ftype & FILE_TYPE_SYSTEM_MASK.getValue()) != 0) {
-                    t1 = en_file_type_magical.FILETYPE_MAGICAL_SYS.ordinal();
-                } else if ((ftype & FILE_TYPE_BASIC_MASK.getValue()) != 0) {
-                    t1 = en_file_type_magical.FILETYPE_MAGICAL_BAS.ordinal();
+            if ((fType & FILE_TYPE_BINARY_MASK.getValue()) != 0) {
+                if ((fType & FILE_TYPE_SYSTEM_MASK.getValue()) != 0) {
+                    t1 = FileTypeMagical.FILETYPE_MAGICAL_SYS.ordinal();
+                } else if ((fType & FILE_TYPE_BASIC_MASK.getValue()) != 0) {
+                    t1 = FileTypeMagical.FILETYPE_MAGICAL_BAS.ordinal();
                 } else {
-                    t1 = en_file_type_magical.FILETYPE_MAGICAL_OBJ.ordinal();
+                    t1 = FileTypeMagical.FILETYPE_MAGICAL_OBJ.ordinal();
                 }
             } else {
-                t1 = en_file_type_magical.FILETYPE_MAGICAL_ASC.ordinal();
+                t1 = FileTypeMagical.FILETYPE_MAGICAL_ASC.ordinal();
             }
         }
         setFileType1(t1);
@@ -459,16 +470,16 @@ public class DiskBasicDirItemMAGICAL extends DiskBasicDirItemXDOSBase<DirectoryM
         }
 
         int t2 = getFileType2();
-        if ((t2 & en_data_type_magical.DATATYPE_MAGICAL_MASK_READONLY.ordinal()) != 0) {
+        if ((t2 & DataTypeMagical.DATATYPE_MAGICAL_MASK_READONLY.ordinal()) != 0) {
             val |= FILE_TYPE_READONLY_MASK.getValue();
         }
-        if ((t2 & en_data_type_magical.DATATYPE_MAGICAL_MASK_HIDDEN.ordinal()) != 0) {
+        if ((t2 & DataTypeMagical.DATATYPE_MAGICAL_MASK_HIDDEN.ordinal()) != 0) {
             val |= FILE_TYPE_HIDDEN_MASK.getValue();
         }
-        if ((t2 & en_data_type_magical.DATATYPE_MAGICAL_MASK_SYSTEM.ordinal()) != 0) {
+        if ((t2 & DataTypeMagical.DATATYPE_MAGICAL_MASK_SYSTEM.ordinal()) != 0) {
             val |= FILE_TYPE_SYSTEM_MASK.getValue();
         }
-        if ((t2 & en_data_type_magical.DATATYPE_MAGICAL_MASK_SUPER.ordinal()) != 0) {
+        if ((t2 & DataTypeMagical.DATATYPE_MAGICAL_MASK_SUPER.ordinal()) != 0) {
             val |= FILE_TYPE_SYSTEM_MASK.getValue();
         }
 
@@ -482,23 +493,23 @@ public class DiskBasicDirItemMAGICAL extends DiskBasicDirItemXDOSBase<DirectoryM
         int t2 = getFileType2();
 
         attr.append(", ");
-        attr.append(gTypeNameMAGICAL_3s.charAt(t2 & 0xf));
+        attr.append(typeNameMagical3s.charAt(t2 & 0xf));
 
-        if ((t2 & en_data_type_magical.DATATYPE_MAGICAL_MASK_READONLY.ordinal()) != 0) {
+        if ((t2 & DataTypeMagical.DATATYPE_MAGICAL_MASK_READONLY.ordinal()) != 0) {
             attr.append(", ");
-            attr.append(rb.getString(gTypeNameMAGICAL_2[en_type_name_magical_2.TYPE_NAME_MAGICAL_READONLY.ordinal()]));
+            attr.append(rb.getString(typeNameMagical2[TypeNameMagical2.TYPE_NAME_MAGICAL_READONLY.ordinal()]));
         }
-        if ((t2 & en_data_type_magical.DATATYPE_MAGICAL_MASK_HIDDEN.ordinal()) != 0) {
+        if ((t2 & DataTypeMagical.DATATYPE_MAGICAL_MASK_HIDDEN.ordinal()) != 0) {
             attr.append(", ");
-            attr.append(rb.getString(gTypeNameMAGICAL_2[en_type_name_magical_2.TYPE_NAME_MAGICAL_HIDDEN.ordinal()]));
+            attr.append(rb.getString(typeNameMagical2[TypeNameMagical2.TYPE_NAME_MAGICAL_HIDDEN.ordinal()]));
         }
-        if ((t2 & en_data_type_magical.DATATYPE_MAGICAL_MASK_SYSTEM.ordinal()) != 0) {
+        if ((t2 & DataTypeMagical.DATATYPE_MAGICAL_MASK_SYSTEM.ordinal()) != 0) {
             attr.append(", ");
-            attr.append(rb.getString(gTypeNameMAGICAL_2[en_type_name_magical_2.TYPE_NAME_MAGICAL_SYSTEM.ordinal()]));
+            attr.append(rb.getString(typeNameMagical2[TypeNameMagical2.TYPE_NAME_MAGICAL_SYSTEM.ordinal()]));
         }
-        if ((t2 & en_data_type_magical.DATATYPE_MAGICAL_MASK_SUPER.ordinal()) != 0) {
+        if ((t2 & DataTypeMagical.DATATYPE_MAGICAL_MASK_SUPER.ordinal()) != 0) {
             attr.append(", ");
-            attr.append(rb.getString(gTypeNameMAGICAL_2[en_type_name_magical_2.TYPE_NAME_MAGICAL_SUPER.ordinal()]));
+            attr.append(rb.getString(typeNameMagical2[TypeNameMagical2.TYPE_NAME_MAGICAL_SUPER.ordinal()]));
         }
         return attr.toString();
     }
@@ -506,28 +517,28 @@ public class DiskBasicDirItemMAGICAL extends DiskBasicDirItemXDOSBase<DirectoryM
     @Override
     public void setFileSize(int val) {
         short size = basic.orderUint16((short) val);
-        m_data.data().fileSize = size;
+        data.data().fileSize = size;
     }
 
     @Override
     public int getFileSize() {
-        short size = m_data.data().fileSize;
+        short size = data.data().fileSize;
         return basic.orderUint16(size);
     }
 
     @Override
-    public void setStartGroup(int fileunit_num, int val, int size) {
+    public void setStartGroup(int fileUnitNum, int val, int size) {
         byte track = (byte) ((val / basic.getSectorsPerTrackOnBasic()) & 0xff);
         byte sector = (byte) (((val % basic.getSectorsPerTrackOnBasic()) + 1) & 0xff);
-        m_data.data().start.track = track;
-        m_data.data().start.sector = sector;
-        m_data.data().start.size = (byte) size;
+        data.data().start.track = track;
+        data.data().start.sector = sector;
+        data.data().start.size = (byte) size;
     }
 
     @Override
-    public int getStartGroup(int fileunit_num) {
-        int track = m_data.data().start.track & 0xff;
-        int sector = m_data.data().start.sector & 0xff;
+    public int getStartGroup(int fileUnitNum) {
+        int track = data.data().start.track & 0xff;
+        int sector = data.data().start.sector & 0xff;
         return track * basic.getSectorsPerTrackOnBasic() + sector - 1;
     }
 
@@ -535,15 +546,15 @@ public class DiskBasicDirItemMAGICAL extends DiskBasicDirItemXDOSBase<DirectoryM
     public void setExtraGroup(int val) {
         byte track = (byte) ((val / basic.getSectorsPerTrackOnBasic()) & 0xff);
         byte sector = (byte) (((val % basic.getSectorsPerTrackOnBasic()) + 1) & 0xff);
-        m_data.data().start.track = track;
-        m_data.data().start.sector = sector;
-        m_data.data().start.size = 1;
+        data.data().start.track = track;
+        data.data().start.sector = sector;
+        data.data().start.size = 1;
     }
 
     @Override
     public int getExtraGroup() {
-        int track = m_data.data().start.track & 0xff;
-        int sector = m_data.data().start.sector & 0xff;
+        int track = data.data().start.track & 0xff;
+        int sector = data.data().start.sector & 0xff;
         return track * basic.getSectorsPerTrackOnBasic() + sector - 1;
     }
 
@@ -554,8 +565,8 @@ public class DiskBasicDirItemMAGICAL extends DiskBasicDirItemXDOSBase<DirectoryM
 
     @Override
     public LocalDate getFileCreateDate(LocalDateTime tm) {
-        int d0 = m_data.data().date[0] & 0xff;
-        int d1 = m_data.data().date[1] & 0xff;
+        int d0 = data.data().date[0] & 0xff;
+        int d1 = data.data().date[1] & 0xff;
 
         int date = (d0 << 8) | d1;
         return convDateToTm((short) date);
@@ -563,8 +574,8 @@ public class DiskBasicDirItemMAGICAL extends DiskBasicDirItemXDOSBase<DirectoryM
 
     @Override
     public LocalTime getFileCreateTime(LocalDateTime tm) {
-        int t0 = m_data.data().time[0] & 0xff;
-        int t1 = m_data.data().time[1] & 0xff;
+        int t0 = data.data().time[0] & 0xff;
+        int t1 = data.data().time[1] & 0xff;
 
         int time = (t0 << 8) | t1;
         return convTimeToTm((short) time);
@@ -574,8 +585,8 @@ public class DiskBasicDirItemMAGICAL extends DiskBasicDirItemXDOSBase<DirectoryM
     public void setFileCreateDate(LocalDateTime tm) {
         if (tm.getYear() >= 0 && tm.getMonth().ordinal() >= -1) {
             short date = convTmToDate(tm);
-            m_data.data().date[0] = (byte) (date >> 8);
-            m_data.data().date[1] = (byte) (date & 0xff);
+            data.data().date[0] = (byte) (date >> 8);
+            data.data().date[1] = (byte) (date & 0xff);
         }
     }
 
@@ -583,8 +594,8 @@ public class DiskBasicDirItemMAGICAL extends DiskBasicDirItemXDOSBase<DirectoryM
     public void setFileCreateTime(LocalDateTime tm) {
         if (tm.getHour() >= 0 && tm.getMinute() >= 0) {
             short time = convTmToTime(tm);
-            m_data.data().time[0] = (byte) (time >> 8);
-            m_data.data().time[1] = (byte) (time & 0xff);
+            data.data().time[0] = (byte) (time >> 8);
+            data.data().time[1] = (byte) (time & 0xff);
         }
     }
 
@@ -629,58 +640,58 @@ public class DiskBasicDirItemMAGICAL extends DiskBasicDirItemXDOSBase<DirectoryM
 
     @Override
     public int getStartAddress() {
-        short addr = m_data.data().loadAddr;
+        short addr = data.data().loadAddress;
         return basic.orderUint16(addr);
     }
 
     @Override
     public int getExecuteAddress() {
-        short addr = m_data.data().execAddr;
+        short addr = data.data().execAddress;
         return basic.orderUint16(addr);
     }
 
     @Override
     public void setStartAddress(int val) {
-        m_data.data().loadAddr = basic.orderUint16((short) val);
+        data.data().loadAddress = basic.orderUint16((short) val);
     }
 
     @Override
     public void setExecuteAddress(int val) {
-        m_data.data().execAddr = basic.orderUint16((short) val);
+        data.data().execAddress = basic.orderUint16((short) val);
     }
 
     @Override
     public int getDataSize() {
-        return m_data.getDataSize();
+        return data.getDataSize();
     }
 
     @Override
     public DirectoryMagical getData() {
-        return m_data.data();
+        return data.data();
     }
 
     @Override
     public boolean copyData(byte[] val) {
-        boolean sts = m_data.copy(val);
-        m_sdata.copyFrom(m_data.getRawData());
+        boolean sts = data.copy(val);
+        sectorData.copyFrom(data.getRawData());
         return sts;
     }
 
     @Override
     public void clearData() {
-        m_data.fill(basic.diskBasicParam.getDeleteCode());
-        m_sdata.copyFrom(m_data.getRawData());
+        data.fill(basic.getDeleteCode());
+        sectorData.copyFrom(data.getRawData());
     }
 
     @Override
     public void initialData() {
-        m_data.fill(basic.diskBasicParam.getFillCodeOnDir());
-            m_sdata.copyFrom(m_data.getRawData());
+        data.fill(basic.getFillCodeOnDir());
+            sectorData.copyFrom(data.getRawData());
     }
 
     @Override
     public boolean preExportDataFile(String[] filename) {
-        if (!gConfig.isAddExtensionExport()) return true;
+        if (!config.isAddExtensionExport()) return true;
 
         // 拡張子を付加する
         if (!isDirectory()) {
@@ -698,8 +709,8 @@ public class DiskBasicDirItemMAGICAL extends DiskBasicDirItemXDOSBase<DirectoryM
 
     @Override
     public boolean preImportDataFile(String[] filename) {
-        if (gConfig.isDecideAttrImport()) {
-            isContainAttrByExtension(filename[0], gTypeNameMAGICAL_1, en_type_name_magical_1.TYPE_NAME_MAGICAL_SYS.ordinal(), en_type_name_magical_1.TYPE_NAME_MAGICAL_BGM.ordinal(), filename, null, null);
+        if (config.isDecideAttrImport()) {
+            isContainAttrByExtension(filename[0], typeNameMagical1, TypeNameMagical1.TYPE_NAME_MAGICAL_SYS.ordinal(), TypeNameMagical1.TYPE_NAME_MAGICAL_BGM.ordinal(), filename, null, null);
         }
         filename[0] = remakeFileNameAndExtStr(filename[0]);
         return true;
@@ -709,9 +720,9 @@ public class DiskBasicDirItemMAGICAL extends DiskBasicDirItemXDOSBase<DirectoryM
     public int convOriginalTypeFromFileName(String filename) {
         int[] t1 = {0};
         // 拡張子で属性を設定する
-        if (!isContainAttrByExtension(filename, gTypeNameMAGICAL_1, en_type_name_magical_1.TYPE_NAME_MAGICAL_SYS.ordinal(), en_type_name_magical_1.TYPE_NAME_MAGICAL_BGM.ordinal(), null, t1, null)) {
+        if (!isContainAttrByExtension(filename, typeNameMagical1, TypeNameMagical1.TYPE_NAME_MAGICAL_SYS.ordinal(), TypeNameMagical1.TYPE_NAME_MAGICAL_BGM.ordinal(), null, t1, null)) {
             // 不明の拡張子
-            t1[0] = en_file_type_magical.FILETYPE_MAGICAL_ASC.v;
+            t1[0] = FileTypeMagical.FILETYPE_MAGICAL_ASC.v;
         }
         //int extType = getFileTypeFromExtension(filename);
         //if (extType != -1) {
@@ -720,22 +731,22 @@ public class DiskBasicDirItemMAGICAL extends DiskBasicDirItemXDOSBase<DirectoryM
         //    // 不明の拡張子
         //    t1 = en_file_type_magical.FILETYPE_MAGICAL_ASC.ordinal();
         //}
-        t1[0] |= (en_data_type_magical.DATATYPE_MAGICAL_MASK_m.ordinal() << 8);
+        t1[0] |= (DataTypeMagical.DATATYPE_MAGICAL_MASK_m.ordinal() << 8);
         return t1[0];
     }
 
     @Override
     public void setModify() {
-        m_sdata.copyFrom(m_data.getRawData());
+        sectorData.copyFrom(data.getRawData());
     }
 
     private int convFileType1Pos(int t1) {
-        int pos = en_type_name_magical_1.TYPE_NAME_MAGICAL_UNKNOWN.ordinal();
+        int pos = TypeNameMagical1.TYPE_NAME_MAGICAL_UNKNOWN.ordinal();
         for (int i = 0; ; i++) {
-            if (i >= gTypeNameMAGICALMap.length || gTypeNameMAGICALMap[i] == 0) {
+            if (i >= typeNameMagicalMap.length || typeNameMagicalMap[i] == 0) {
                 break;
             }
-            int val = gTypeNameMAGICALMap[i];
+            int val = typeNameMagicalMap[i];
             if (t1 == val) {
                 pos = i;
                 break;
@@ -746,17 +757,17 @@ public class DiskBasicDirItemMAGICAL extends DiskBasicDirItemXDOSBase<DirectoryM
 
     @Override
     public void setInternalDataInAttrDialog(KeyValArray vals) {
-        vals.add("TYPE", m_data.data().type);
-        vals.add("NAME", m_data.data().name, m_data.data().name.length);
-        vals.add("TYPE2", m_data.data().type2);
-        vals.add("LOAD_ADDR", (byte) m_data.data().loadAddr, basic.isBigEndian());
-        vals.add("FILE_SIZE", (byte) m_data.data().fileSize, basic.isBigEndian());
-        vals.add("EXEC_ADDR", (byte) m_data.data().execAddr, basic.isBigEndian());
-        vals.add("DATE", m_data.data().date, m_data.data().date.length);
-        vals.add("TIME", m_data.data().time, m_data.data().time.length);
-        vals.add("RESERVED", m_data.data().reserved, m_data.data().reserved.length);
-        vals.add("START.TRACK", m_data.data().start.track);
-        vals.add("START.SECTOR", m_data.data().start.sector);
-        vals.add("START.SIZE", m_data.data().start.size);
+        vals.add("TYPE", data.data().type);
+        vals.add("NAME", data.data().name, data.data().name.length);
+        vals.add("TYPE2", data.data().type2);
+        vals.add("LOAD_ADDR", (byte) data.data().loadAddress, basic.isBigEndian());
+        vals.add("FILE_SIZE", (byte) data.data().fileSize, basic.isBigEndian());
+        vals.add("EXEC_ADDR", (byte) data.data().execAddress, basic.isBigEndian());
+        vals.add("DATE", data.data().date, data.data().date.length);
+        vals.add("TIME", data.data().time, data.data().time.length);
+        vals.add("RESERVED", data.data().reserved, data.data().reserved.length);
+        vals.add("START.TRACK", data.data().start.track);
+        vals.add("START.SECTOR", data.data().start.sector);
+        vals.add("START.SIZE", data.data().start.size);
     }
 }

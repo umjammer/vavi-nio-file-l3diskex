@@ -15,58 +15,67 @@ import l3diskex.diskimg.DiskImage.DiskImageSector;
 
 
 /**
- MSX BASIC / MSX-DOSの処理
-
- DiskBasicParam
- @li MediaID : メディアID
+ * MSX BASIC / MSX-DOSの処理
+ * <p>
+ * DiskBasicParam
+ *
+ * <li>MediaID : メディアID</li>
  */
 public class DiskBasicTypeMSX extends DiskBasicTypeMSDOS {
 
-    private static final String[] C_EXCLUDE_KEYWORDS = {
+    private static final String[] EXCLUDE_KEYWORDS = {
             "IO      SYS",
             "IBMDOS",
             "MSDOS",
             "IBM",
     };
 
-    public DiskBasicTypeMSX(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryMsDos> dir) {
-        super(basic, fat, dir);
+    public static final int FORMAT_TYPE_MSX = 4;
+
+    @Override
+    public boolean isSupported(int typeNumber) {
+        return typeNumber == FORMAT_TYPE_MSX;
+    }
+
+    @Override
+    public void init(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryMsDos> dir) {
+        super.init(basic, fat, dir);
     }
 
     /**
      * ディスクから各パラメータを取得＆必要なパラメータを計算
      *
-     * @param is_formatting フォーマット中か
+     * @param isFormatting フォーマット中か
      * @return 1.0: 正常, 0.0 - 1.0: 警告あり, <0.0: エラーあり
      */
     @Override
-    public double parseParamOnDisk(boolean is_formatting) throws IOException {
-        if (is_formatting) return 0.0;
+    public double parseParamOnDisk(boolean isFormatting) throws IOException {
+        if (isFormatting) return 0.0;
 
-        double valid_ratio = parseMSDOSParamOnDisk(basic.getDisk(), is_formatting);
-        if (valid_ratio >= 0.0) {
+        double validRatio = parseMSDOSParamOnDisk(basic.getDisk(), isFormatting);
+        if (validRatio >= 0.0) {
             DiskImageSector sector = basic.getSector(0, 0, 1);
             if (sector == null) return -1.0;
-            byte[] datas = sector.getSectorBuffer();
-            if (datas == null) return -1.0;
+            byte[] data = sector.getSectorBuffer();
+            if (data == null) return -1.0;
             // MSXDOS という文字列があれば確実
             if (sector.find("MSXDOS".getBytes(), 6) >= 0) {
-                valid_ratio += 0.8;
+                validRatio += 0.8;
             } else if (sector.find("MSX".getBytes(), 3) >= 0) {
-                valid_ratio += 0.4;
+                validRatio += 0.4;
             }
             // 除外するキーワード
-            for (int i = 0; i < C_EXCLUDE_KEYWORDS.length; i++) {
-                if (sector.find(C_EXCLUDE_KEYWORDS[i].getBytes(), C_EXCLUDE_KEYWORDS[i].length()) >= 0) {
-                    valid_ratio -= 0.5;
+            for (String excludeKeyword : EXCLUDE_KEYWORDS) {
+                if (sector.find(excludeKeyword.getBytes(), excludeKeyword.length()) >= 0) {
+                    validRatio -= 0.5;
                     break;
                 }
             }
         }
-        if (valid_ratio > 1.0) valid_ratio = 1.0;
-        else if (valid_ratio < -1.0) valid_ratio = -1.0;
+        if (validRatio > 1.0) validRatio = 1.0;
+        else if (validRatio < -1.0) validRatio = -1.0;
 
-        return valid_ratio;
+        return validRatio;
     }
 
     /**

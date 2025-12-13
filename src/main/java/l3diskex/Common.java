@@ -8,9 +8,9 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Locale;
 
-import static l3diskex.basicfmt.DiskBasicTemplates.gDiskBasicTemplates;
-import static l3diskex.diskimg.DiskParam.gDiskTemplates;
-import static l3diskex.diskimg.FileParam.gFileTypes;
+import static l3diskex.basicfmt.DiskBasicTemplates.diskBasicTemplates;
+import static l3diskex.diskimg.DiskParam.diskTemplates;
+import static l3diskex.diskimg.FileParam.fileTypes;
 
 
 /**
@@ -26,7 +26,7 @@ public class Common {
      * @param ch  character to trim
      * @return new length after trimming
      */
-    public static int rtrim(byte[] buf, int len, byte ch) {
+    public static int trimRight(byte[] buf, int len, byte ch) {
         int pos = len - 1;
         while (len > 0) {
             if (buf[pos] != 0 && buf[pos] != ch) break;
@@ -45,7 +45,7 @@ public class Common {
      * @param ch  target character
      * @return length up to ch (or len if not found)
      */
-    public static int str_length(byte[] buf, int len, byte ch) {
+    public static int getStringLength(byte[] buf, int len, byte ch) {
         for (int i = 0; i < len; i++) {
             if (buf[i] == ch) {
                 return i;
@@ -57,7 +57,7 @@ public class Common {
     /**
      * Invert each byte in the buffer.
      */
-    public static void mem_invert(byte[] buf, int len) {
+    public static void invertMemory(byte[] buf, int len) {
         for (int i = 0; i < len; i++) {
             buf[i] = (byte) (~buf[i]);
         }
@@ -66,7 +66,7 @@ public class Common {
     /**
      * Shrink string at first null / line‑feed / carriage‑return.
      */
-    public static int str_shrink(byte[] buf, int len) {
+    public static int shrinkString(byte[] buf, int len) {
         int pos = 0;
         while (pos < len) {
             byte b = buf[pos];
@@ -82,7 +82,7 @@ public class Common {
     /**
      * Copy source to destination, filling the rest with `fill`.
      */
-    public static void mem_copy(byte[] src, int slen, byte fill, byte[] dst, int dlen) {
+    public static void copyMemory(byte[] src, int slen, byte fill, byte[] dst, int dlen) {
         int copyLen = Math.min(slen, dlen);
         // fill destination with fill
         Arrays.fill(dst, fill);
@@ -122,7 +122,7 @@ public class Common {
     /**
      * Convert ASCII lowercase to uppercase.
      */
-    public static void to_upper(byte[] src, int len) {
+    public static void toUpper(byte[] src, int len) {
         for (int i = 0; i < len; i++) {
             byte b = src[i];
             if (b >= 0x61 && b <= 0x7a) { // 'a'..'z'
@@ -134,22 +134,22 @@ public class Common {
     // set locale search path and catalog name
     // TODO do it in its own class
     public static void init() {
-        String res_path = System.getProperty("user.dir") + File.separator + "src/main/resources" + File.separator;
+        String resPath = System.getProperty("user.dir") + File.separator + "src/main/resources" + File.separator;
 
-        String locale_name = Locale.getDefault().getLanguage();
+        String localeName = Locale.getDefault().getLanguage();
 
         // load xml
         StringBuilder errmsgs = new StringBuilder();
-        if (!gDiskTemplates.load(res_path + "data/", locale_name, errmsgs)) {
+        if (!diskTemplates.load(resPath + "data/", localeName, errmsgs)) {
             throw new IllegalStateException("Cannot load disk types data file. " + errmsgs);
         }
-        if (!gDiskBasicTemplates.load(res_path + "data/", locale_name, errmsgs)) {
+        if (!diskBasicTemplates.load(resPath + "data/", localeName, errmsgs)) {
             throw new IllegalStateException("Cannot load disk basic types data file. " + errmsgs);
         }
-//        if (!CharCodes.load(res_path + "data/", locale_name, errmsgs)) {
-//            throw new IllegalStateException("Cannot load char codes data file. " + errmsgs);
-//        }
-        if (!gFileTypes.load(res_path + "data/", locale_name, errmsgs)) {
+        if (!CharCodes.load(resPath + "data/", localeName, errmsgs)) {
+            throw new IllegalStateException("Cannot load char codes data file. " + errmsgs);
+        }
+        if (!fileTypes.load(resPath + "data/", localeName, errmsgs)) {
             throw new IllegalStateException("Cannot load file types data file. " + errmsgs);
         }
     }

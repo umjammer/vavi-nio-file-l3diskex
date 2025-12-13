@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 import l3diskex.Utils;
-import l3diskex.basicfmt.BasicCommon.DirectoryT;
+import l3diskex.basicfmt.BasicCommon.Directory;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupUserData;
@@ -38,11 +38,14 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_READONLY_MASK
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_SOFTLINK_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_UNDELETE_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_WRITEONLY_MASK;
+import static l3diskex.basicfmt.type.DiskBasicTypeAmiga.FORMAT_TYPE_AMIGA;
 
 
-/// ディレクトリ１アイテム Amiga DOS
-///
-/// @li FastFileSystem FFSかどうか(bool)
+/**
+ * ディレクトリ１アイテム Amiga DOS
+ *
+ * <li>FastFileSystem FFSかどうか(bool)</li
+ */
 public class DiskBasicDirItemAmiga extends DiskBasicDirItem<DirectoryAmiga> {
 
     /**
@@ -236,7 +239,7 @@ public class DiskBasicDirItemAmiga extends DiskBasicDirItem<DirectoryAmiga> {
      * AmigaDOSは1セクタ分になるのでブロック番号だけを保持
      */
     @Serdes
-    public static class DirectoryAmiga implements DirectoryT {
+    public static class DirectoryAmiga implements Directory {
 
         @Element(sequence = 1)
         public int blockNum; // int
@@ -283,8 +286,8 @@ public class DiskBasicDirItemAmiga extends DiskBasicDirItem<DirectoryAmiga> {
     public static final int FILETYPE_MASK_AMIGA_O_NREAD = 0x00008000;
     public static final int FILETYPE_MASK_AMIGA_SETUID = 0x80000000;
 
-    /// Amiga属性名１
-    public static final Map<String, Object> G_TYPE_NAME_AMIGA1 = new LinkedHashMap<>() {{
+    /** Amiga属性名 1 */
+    public static final Map<String, Object> TYPE_NAME_AMIGA1 = new LinkedHashMap<>() {{
         put("File", FILETYPE_MASK_AMIGA_FILE);
         put("Dir", FILETYPE_MASK_AMIGA_USERDIR);
         put("L.F.", FILETYPE_MASK_AMIGA_LINKFILE);
@@ -292,8 +295,8 @@ public class DiskBasicDirItemAmiga extends DiskBasicDirItem<DirectoryAmiga> {
         put("S.L.", FILETYPE_MASK_AMIGA_SOFTLINK);
     }};
 
-    /// Amiga属性１変換テーブル
-    public static final Map<Integer, Integer> G_TYPE_CONV_AMIGA1 = new HashMap<>() {{
+    /// Amiga 属性 1 変換テーブル
+    public static final Map<Integer, Integer> TYPE_CONV_AMIGA1 = new HashMap<>() {{
             put(FILE_TYPE_DIRECTORY_MASK.getValue(), FILETYPE_MASK_AMIGA_ROOT);
             put(FILE_TYPE_DATA_MASK.getValue(), FILETYPE_MASK_AMIGA_FILE);
             put(FILE_TYPE_DIRECTORY_MASK.getValue(), FILETYPE_MASK_AMIGA_USERDIR);
@@ -302,11 +305,11 @@ public class DiskBasicDirItemAmiga extends DiskBasicDirItem<DirectoryAmiga> {
             put(FILE_TYPE_SOFTLINK_MASK.getValue(), FILETYPE_MASK_AMIGA_SOFTLINK);
     }};
 
-    /// Amiga属性名２ リスト用
-    public static final String G_TYPE_NAME_AMIGA2 = "dewrapsh";
+    /** Amiga 属性名 2 リスト用 */
+    public static final String TYPE_NAME_AMIGA2 = "dewrapsh";
 
-    /// Amiga属性変換
-    public static final int[] G_TYPE_CONV_AMIGA2 = {
+    /** Amiga 属性変換 */
+    public static final int[] TYPE_CONV_AMIGA2 = {
             FILETYPE_MASK_AMIGA_U_NDEL, FILETYPE_MASK_AMIGA_U_NEXEC,
             FILETYPE_MASK_AMIGA_U_NWRITE, FILETYPE_MASK_AMIGA_U_NREAD,
             FILETYPE_MASK_AMIGA_ARCHIVE, FILETYPE_MASK_AMIGA_PURE,
@@ -318,7 +321,7 @@ public class DiskBasicDirItemAmiga extends DiskBasicDirItem<DirectoryAmiga> {
             FILETYPE_MASK_AMIGA_SETUID, -1
     };
 
-    // Amiga Hash Chain (last 16bytes on each block (sector))
+    /** Amiga Hash Chain (last 16bytes on each block (sector)) */
     @Serdes
     public static class AmigaHashChain {
 
@@ -326,7 +329,7 @@ public class DiskBasicDirItemAmiga extends DiskBasicDirItem<DirectoryAmiga> {
 
         /** next entry with same hash */
         @Element(sequence = 1)
-        public Pointer hash_chain;
+        public Pointer hashChain;
         @Element(sequence = 2)
         public int parent;
         @Element(sequence = 3)
@@ -335,7 +338,7 @@ public class DiskBasicDirItemAmiga extends DiskBasicDirItem<DirectoryAmiga> {
         public int sec_type;
     }
 
-    /// Amiga File Data Block (all Big Endien)
+    /** Amiga File Data Block (all Big Endian) */
     @Serdes
     public static class AmigaFileDataPre {
 
@@ -348,17 +351,17 @@ public class DiskBasicDirItemAmiga extends DiskBasicDirItem<DirectoryAmiga> {
             public int type;
             /** file header block */
             @Element(sequence = 2)
-            public int header_key;
+            public int headerKey;
             /** data block seq number */
             @Element(sequence = 3)
-            public int seq_num;
+            public int seqNum;
             @Element(sequence = 4)
-            public int data_size;
+            public int dataSize;
             /** next data block */
             @Element(sequence = 5)
-            public int next_data;
+            public int nextData;
             @Element(sequence = 6)
-            public int check_sum;
+            public int checkSum;
             @Element(sequence = 7)
             public byte[] data = new byte[1];
         }
@@ -381,33 +384,34 @@ public class DiskBasicDirItemAmiga extends DiskBasicDirItem<DirectoryAmiga> {
             void set(int value) { buf[index] = value; }
         }
         /** ハッシュテーブル内の位置 */
-        public int m_idx;
+        public int index;
         /** ハッシュチェインのあるポインタ(前) */
-        public Pointer p_prev_chain;
+        public Pointer prevChain;
         /** ハッシュチェインのあるポインタ(次) */
-        public Pointer p_next_chain;
+        public Pointer nextChain;
 
         public AmigaChain() {
-            m_idx = 0;
-            p_prev_chain = null;
-            p_next_chain = null;
+            index = 0;
+            prevChain = null;
+            nextChain = null;
         }
 
-        public AmigaChain(int idx, Pointer prev_chain, Pointer next_chain) {
-            m_idx = idx;
-            p_prev_chain = prev_chain;
-            p_next_chain = next_chain;
+        public AmigaChain(int index, Pointer prevChain, Pointer nextChain) {
+            this.index = index;
+            this.prevChain = prevChain;
+            this.nextChain = nextChain;
         }
 
-        public DiskBasicGroupUserData Clone() {
-            return new AmigaChain(this.m_idx, this.p_prev_chain, this.p_next_chain);
+        @Override
+        public DiskBasicGroupUserData clone() {
+            return new AmigaChain(this.index, this.prevChain, this.nextChain);
         }
 
         public AmigaChain operator_assign(DiskBasicGroupUserData src) { // operator=
             AmigaChain src_amiga = (AmigaChain) src;
-            m_idx = src_amiga.m_idx;
-            p_prev_chain = src_amiga.p_prev_chain;
-            p_next_chain = src_amiga.p_next_chain;
+            index = src_amiga.index;
+            prevChain = src_amiga.prevChain;
+            nextChain = src_amiga.nextChain;
             return this;
         }
     }
@@ -417,90 +421,103 @@ public class DiskBasicDirItemAmiga extends DiskBasicDirItem<DirectoryAmiga> {
     //
 
     /** ディレクトリデータ */
-    private final DiskBasicDirData<DirectoryAmiga> m_data = new DiskBasicDirData<>();
+    private final DiskBasicDirData<DirectoryAmiga> data = new DiskBasicDirData<>();
 
     /** エクステンションブロック番号 */
-    private final List<Integer> m_extension_list = new ArrayList<>();
+    private final List<Integer> extensions = new ArrayList<>();
 
     /** インポート時などで一時的に作成する際のバッファ */
-    private AmigaBlockPre m_temp_pre;
+    private AmigaBlockPre tempPre;
     /** インポート時などで一時的に作成する際のバッファ */
-    private AmigaBlockPost m_temp_post;
+    private AmigaBlockPost tempPost;
 
     /** チェイン情報 */
-    private AmigaChain m_chain = new AmigaChain();
+    private AmigaChain chain = new AmigaChain();
 
-    public DiskBasicDirItemAmiga(DiskBasic basic) throws IOException {
-        super(basic);
+    @Override
+    public boolean isSupported(int formatType) {
+        return formatType == FORMAT_TYPE_AMIGA;
+    }
 
-        m_temp_pre = null;
-        m_temp_post = null;
+    @Override
+    public void init(DiskBasic basic) throws IOException {
+        super.init(basic);
+
+        tempPre = null;
+        tempPost = null;
 
         allocData(null, null, 0);
         allocTemp();
     }
 
-    public DiskBasicDirItemAmiga(DiskBasic basic, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP) throws IOException {
-        super(basic, n_sector, n_secpos, n_data, dataP);
+    @Override
+    public void init(DiskBasic basic, DiskImageSector sector, int sectorPos,
+                     byte[] data, int dataP) throws IOException {
+        super.init(basic, sector, sectorPos, data, dataP);
 
-        m_temp_pre = null;
-        m_temp_post = null;
+        tempPre = null;
+        tempPost = null;
 
-        allocData(n_sector, n_data, dataP);
+        allocData(sector, data, dataP);
     }
 
-    public DiskBasicDirItemAmiga(DiskBasic basic, int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP, SectorParam n_next, boolean[] n_unuse) throws IOException {
-        super(basic, n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next, n_unuse);
+    @Override
+    public void init(DiskBasic basic, int num, DiskBasicGroupItem groupItem,
+                     DiskImageSector sector, int sectorPos,
+                     byte[] data, int dataPos,
+                     SectorParam next, boolean[] unuse) throws IOException {
+        super.init(basic, num, groupItem, sector, sectorPos, data, dataPos, next, unuse);
 
-        m_temp_pre = null;
-        m_temp_post = null;
-        if (n_gitem != null) m_chain = m_chain.operator_assign(n_gitem.userData);
+        tempPre = null;
+        tempPost = null;
+        if (groupItem != null) chain = chain.operator_assign(groupItem.userData);
 
-        allocData(n_sector, n_data, dataP);
+        allocData(sector, data, dataPos);
 
-        used(checkUsed(n_unuse[0]));
+        used(checkUsed(unuse[0]));
 
         calcFileSize();
     }
 
     /** ディレクトリ情報をアロケート */
-    private void allocData(DiskImageSector n_sector, byte[] n_data, int dataP) throws IOException {
-        m_data.alloc(DirectoryAmiga.class);
+    private void allocData(DiskImageSector sector, byte[] data, int dataPos) throws IOException {
+        this.data.alloc(DirectoryAmiga.class);
 
-        if (n_sector != null && n_data != null) {
-            int num = type.getSectorPosFromNum(n_sector.getIDC(), n_sector.getIDH(), n_sector.getIDR());
-            m_data.data().blockNum = num;
-            m_data.data().pre = new AmigaBlockPre();
-            Serdes.Util.deserialize(new ByteArrayInputStream(n_data, dataP, AmigaBlockPre.SIZE), m_data.data().pre);
-            m_data.data().post = new AmigaBlockPost();
-            Serdes.Util.deserialize(new ByteArrayInputStream(n_data, n_sector.getSectorSize() - AmigaBlockPost.SIZE, AmigaBlockPost.SIZE), m_data.data().post);
+        if (sector != null && data != null) {
+            int num = type.getSectorPosFromNum(sector.getIDC(), sector.getIDH(), sector.getIDR());
+            this.data.data().blockNum = num;
+            this.data.data().pre = new AmigaBlockPre();
+            Serdes.Util.deserialize(new ByteArrayInputStream(data, dataPos, AmigaBlockPre.SIZE), this.data.data().pre);
+            this.data.data().post = new AmigaBlockPost();
+            Serdes.Util.deserialize(new ByteArrayInputStream(data, sector.getSectorSize() - AmigaBlockPost.SIZE, AmigaBlockPost.SIZE), this.data.data().post);
         } else {
-            m_data.data().blockNum = 0;
-            m_data.data().pre = null;
-            m_data.data().post = null;
+            this.data.data().blockNum = 0;
+            this.data.data().pre = null;
+            this.data.data().post = null;
         }
     }
 
     /** バッファをアロケート */
     private void allocTemp() {
-        m_temp_pre = new AmigaBlockPre();
-        m_temp_post = new AmigaBlockPost();
+        tempPre = new AmigaBlockPre();
+        tempPost = new AmigaBlockPost();
 
-        m_data.data().pre = m_temp_pre;
-        m_data.data().post = m_temp_post;
+        data.data().pre = tempPre;
+        data.data().post = tempPost;
     }
 
     @Override
-    public void setDataPtr(int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP, SectorParam n_next) throws IOException {
-        super.setDataPtr(n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next);
+    public void setData(int num, DiskBasicGroupItem groupItem, DiskImageSector sector, int sectorPos,
+                        byte[] data, int dataPos, SectorParam next) throws IOException {
+        super.setData(num, groupItem, sector, sectorPos, data, dataPos, next);
 
-        if (n_gitem != null) m_chain = m_chain.operator_assign(n_gitem.userData); // TODO serdes
-        allocData(n_sector, n_data, dataP);
+        if (groupItem != null) chain = chain.operator_assign(groupItem.userData); // TODO assign op
+        allocData(sector, data, dataPos);
     }
 
     @Override
     protected byte[] getFileNamePos(int num, int[] size, int[] len) {
-        AmigaHeaderPost post = m_data.data().post != null ? m_data.data().post.u.h : null;
+        AmigaHeaderPost post = data.data().post != null ? data.data().post.u.h : null;
         if (post != null && num == 0) {
             size[0] = post.name.length;
             len[0] = post.name.length;
@@ -520,7 +537,7 @@ public class DiskBasicDirItemAmiga extends DiskBasicDirItem<DirectoryAmiga> {
         n = getFileNamePos(0, ns, nl);
         if (n != null && ns[0] > 0) {
             System.arraycopy(filename, 0, n, 0, ns[0]);
-            AmigaHeaderPost post = m_data.data().post != null ? m_data.data().post.u.h : null;
+            AmigaHeaderPost post = data.data().post != null ? data.data().post.u.h : null;
             if (post != null) post.nameLen = (byte) ((length - 1) & 0xff);
         }
     }
@@ -539,17 +556,19 @@ public class DiskBasicDirItemAmiga extends DiskBasicDirItem<DirectoryAmiga> {
         length[0] = l[0];
     }
 
-    /// 大文字にする
-    /// @param ch 文字
-    /// @param is_intr インターナショナルか
-    /// @return 変換後文字
-    public static byte upper(byte ch, boolean is_intr) {
+    /**
+     * 大文字にする
+     * @param ch 文字
+     * @param isI18n インターナショナルか
+     * @return 変換後文字
+     */
+    public static byte upper(byte ch, boolean isI18n) {
         // a -> A
         if (ch >= 0x61 && ch <= 0x7a) {
             ch -= 0x20;
         }
         // i18n (iso-8859-1)
-        if (is_intr) {
+        if (isI18n) {
             if (ch >= (byte) 0xe0 && ch <= (byte) 0xfe && ch != (byte) 0xf7) {
                 ch -= 0x20;
             }
@@ -559,62 +578,62 @@ public class DiskBasicDirItemAmiga extends DiskBasicDirItem<DirectoryAmiga> {
 
     @Override
     public int getFileType1() {
-        AmigaHeaderPost post = m_data.data().post != null ? m_data.data().post.u.h : null;
+        AmigaHeaderPost post = data.data().post != null ? data.data().post.u.h : null;
         if (post != null) return post.secType; // le
         return 0;
     }
 
     @Override
     public void setFileType1(int val) {
-        AmigaHeaderPost post = m_data.data().post != null ? m_data.data().post.u.h : null;
+        AmigaHeaderPost post = data.data().post != null ? data.data().post.u.h : null;
         if (post != null) post.secType = val; // le
     }
 
     @Override
-    public int getFileType2() { // virtual int GetFileType2() const
-        AmigaHeaderPost post = m_data.data().post != null ? m_data.data().post.u.h : null;
+    public int getFileType2() {
+        AmigaHeaderPost post = data.data().post != null ? data.data().post.u.h : null;
         if (post != null) return post.protect; // le
         return 0;
     }
 
     @Override
-    public void setFileType2(int val) { // virtual void SetFileType2(int val)
-        AmigaHeaderPost post = m_data.data().post != null ? m_data.data().post.u.h : null;
+    public void setFileType2(int val) {
+        AmigaHeaderPost post = data.data().post != null ? data.data().post.u.h : null;
         if (post != null) post.protect = val; // le
     }
 
     @Override
-    protected int getFileType3() { // protected virtual int GetFileType3() const
+    protected int getFileType3() {
         return (getGroupID() << 16) | getUserID();
     }
 
     @Override
-    protected void setFileType3(int val) { // protected virtual void SetFileType3(int val)
+    protected void setFileType3(int val) {
         setGroupID((short) (val >> 16));
         setUserID((short) (val & 0xffff));
     }
 
     @Override
-    public boolean checkUsed(boolean unuse) { // virtual bool CheckUsed(bool unuse)
+    public boolean checkUsed(boolean unuse) {
         return true;
     }
 
     @Override
-    public void setFileAttr(DiskBasicFileType file_type) { // virtual void SetFileAttr(final DiskBasicFileType &file_type)
-        int ftype = file_type.getType();
-        if (ftype == -1) return;
-        if (file_type.getFormat() == basic.getFormatTypeNumber()) {
-            setFileType1(file_type.getOrigin(0));
-            setFileType2(file_type.getOrigin(1));
-            setFileType3(file_type.getOrigin(2));
+    public void setFileAttr(DiskBasicFileType fileType) {
+        int fType = fileType.getType();
+        if (fType == -1) return;
+        if (fileType.getFormat() == basic.getFormatTypeNumber()) {
+            setFileType1(fileType.getOrigin(0));
+            setFileType2(fileType.getOrigin(1));
+            setFileType3(fileType.getOrigin(2));
         } else {
-            int t1 = convToFileType1(ftype);
+            int t1 = convToFileType1(fType);
             setFileType1(t1);
         }
     }
 
     @Override
-    public DiskBasicFileType getFileAttr() { // virtual DiskBasicFileType GetFileAttr() const
+    public DiskBasicFileType getFileAttr() {
         int t1 = getFileType1();
         int t2 = getFileType2();
         int t3 = getFileType3();
@@ -624,46 +643,46 @@ public class DiskBasicDirItemAmiga extends DiskBasicDirItem<DirectoryAmiga> {
     }
 
     @Override
-    public String getFileAttrStr() { // virtual wxString GetFileAttrStr() const
+    public String getFileAttrStr() {
         StringBuilder str = new StringBuilder();
-        int spos = convFileType1Pos(getFileType1());
-        str.append(spos >= 0 ? G_TYPE_NAME_AMIGA1.get(spos) : "???");
+        int sPos = convFileType1Pos(getFileType1());
+        str.append(sPos >= 0 ? TYPE_NAME_AMIGA1.get(sPos) : "???");
         str.append(" ,");
         int type2 = getFileType2();
         for (int i = 7; i >= 0; i--) {
             boolean high = (i >= 4);
-            boolean bset = (((type2 & G_TYPE_CONV_AMIGA2[i]) != 0));
-            str.append(bset == high ? G_TYPE_NAME_AMIGA2.charAt(i) : "-");
+            boolean bset = (((type2 & TYPE_CONV_AMIGA2[i]) != 0));
+            str.append(bset == high ? TYPE_NAME_AMIGA2.charAt(i) : "-");
         }
         return str.toString();
     }
 
     @Override
-    public void calcFileUnitSize(int fileunit_num) throws IOException {
+    public void calcFileUnitSize(int fileUnitNum) throws IOException {
         if (!isUsed()) return;
-        getUnitGroups(fileunit_num, groups);
+        getUnitGroups(fileUnitNum, groups);
     }
 
     @Override
-    public void getUnitGroups(int fileunit_num, DiskBasicGroups group_items) throws IOException { // virtual void GetUnitGroups(...)
-        m_extension_list.clear();
+    public void getUnitGroups(int fileUnitNum, DiskBasicGroups groupItems) throws IOException {
+        extensions.clear();
         int limit = basic.getFatEndGroup() + 1;
         int[] tables = getBlockTable();
-        int max_blks = getDataBlockNums();
+        int max_blks = getNumOfDataBlocks();
         int t1 = getFileType1();
         switch (t1) {
             case FILETYPE_MASK_AMIGA_FILE:
-                getFileGroups(tables, max_blks, limit, group_items, m_extension_list);
+                getFileGroups(tables, max_blks, limit, groupItems, extensions);
                 break;
             case FILETYPE_MASK_AMIGA_USERDIR:
-                getDirectoryGroups(basic, tables, max_blks, limit, group_items);
+                getDirectoryGroups(basic, tables, max_blks, limit, groupItems);
                 break;
         }
     }
 
     @Override
-    public boolean isDeletable() { // virtual bool IsDeletable() const
-        AmigaHeaderPost post = m_data.data().post != null ? m_data.data().post.u.h : null;
+    public boolean isDeletable() {
+        AmigaHeaderPost post = data.data().post != null ? data.data().post.u.h : null;
         int val = (post != null ? post.nextLink /* le */ : 0);
         return val <= 0;
     }
@@ -672,15 +691,14 @@ public class DiskBasicDirItemAmiga extends DiskBasicDirItem<DirectoryAmiga> {
     public boolean delete() throws IOException {
         // extensionブロックを未使用にする
         // ディレクトリの場合、directory cacheを未使用にする
-        for (int i = 0; i < m_extension_list.size(); i++) {
-            int num = m_extension_list.get(i);
+        for (int num : extensions) {
             type.deleteGroupNumber(num);
         }
         // ハードリンクの場合、リンクのつなぎ替えを行う
         deleteHardLink();
 
         // 自分を未使用にする
-        type.deleteGroupNumber(m_data.data().blockNum);
+        type.deleteGroupNumber(data.data().blockNum);
 
         used(false);
         return true;
@@ -694,30 +712,30 @@ public class DiskBasicDirItemAmiga extends DiskBasicDirItem<DirectoryAmiga> {
             return true;
         }
         // real
-        int my_block_num = getStartGroup(0);
-        AmigaHeaderPost prev_post = null;
-        AmigaHeaderPost post = m_data.data().post.u.h;
-        int block_num = post.realEntry; // le
-        while (block_num >= 2) {
+        int myBlockNum = getStartGroup(0);
+        AmigaHeaderPost prevPost = null;
+        AmigaHeaderPost post = data.data().post.u.h;
+        int blockNum = post.realEntry; // le
+        while (blockNum >= 2) {
             // next link
-            DiskImageSector sector = basic.getSectorFromGroup(block_num);
-            int npos = sector.getSectorSize() - AmigaHeaderPost.SIZE;
+            DiskImageSector sector = basic.getSectorFromGroup(blockNum);
+            int nPos = sector.getSectorSize() - AmigaHeaderPost.SIZE;
             post = new AmigaHeaderPost();
-            Serdes.Util.deserialize(new ByteArrayInputStream(sector.getSectorBuffer(npos)), post);
+            Serdes.Util.deserialize(new ByteArrayInputStream(sector.getSectorBuffer(nPos)), post);
 
-            if (prev_post != null && block_num == my_block_num) {
-                prev_post.nextLink = post.nextLink;
+            if (prevPost != null && blockNum == myBlockNum) {
+                prevPost.nextLink = post.nextLink;
                 break;
             }
-            block_num = post.nextLink; // le
-            prev_post = post;
+            blockNum = post.nextLink; // le
+            prevPost = post;
         }
         return true;
     }
 
     @Override
     public boolean check(boolean[] last) {
-        if (!m_data.isValid()) return false;
+        if (!data.isValid()) return false;
 
         boolean valid = true;
 
@@ -731,28 +749,28 @@ public class DiskBasicDirItemAmiga extends DiskBasicDirItem<DirectoryAmiga> {
     }
 
     /// header用にセクタを初期化
-    public void initForHeaderBlock(int parent_num) {
-        AmigaBlockPre pre = m_data.data().pre;
+    public void initForHeaderBlock(int parentNum) {
+        AmigaBlockPre pre = data.data().pre;
         if (pre == null) return;
 
         pre.type = FILETYPE_MASK_AMIGA_HEADER;
-        pre.headerKey = m_data.data().blockNum; // le
+        pre.headerKey = data.data().blockNum; // le
 
-        AmigaHeaderPost post = m_data.data().post.u.h;
+        AmigaHeaderPost post = data.data().post.u.h;
         if (post == null) return;
 
-        post.parentDir = parent_num; // le
+        post.parentDir = parentNum; // le
     }
 
     /// header用にセクタを初期化
     public void initForExtensionBlock(int parent_num) {
-        AmigaBlockPre pre = m_data.data().pre;
+        AmigaBlockPre pre = data.data().pre;
         if (pre == null) return;
 
         pre.type = FILETYPE_MASK_AMIGA_LIST;
-        pre.headerKey = m_data.data().blockNum; // le
+        pre.headerKey = data.data().blockNum; // le
 
-        AmigaHeaderPost post = m_data.data().post.u.h;
+        AmigaHeaderPost post = data.data().post.u.h;
         if (post == null) return;
 
         post.parentDir = parent_num; // le
@@ -770,55 +788,55 @@ public class DiskBasicDirItemAmiga extends DiskBasicDirItem<DirectoryAmiga> {
 
     /** ファイルサイズを返す */
     public int getByteSize() {
-        AmigaHeaderPost post = m_data.data().post != null ? m_data.data().post.u.h : null;
+        AmigaHeaderPost post = data.data().post != null ? data.data().post.u.h : null;
         if (post != null) return post.byteSize; // le
         return 0;
     }
 
     /** ストアしたブロック数をセット */
     public void setHighSeq(int val) {
-        AmigaBlockPre pre = m_data.data().pre;
+        AmigaBlockPre pre = data.data().pre;
         if (pre != null) pre.highSeq = val; // le
     }
 
     /** ブロックテーブルを返す */
     public int[] getBlockTable() {
-        AmigaBlockPre pre = m_data.data().pre;
+        AmigaBlockPre pre = data.data().pre;
         return pre != null ? pre.u.table : null;
     }
 
     /** ブロック番号を返す */
     public int getDataBlock(int idx) {
-        AmigaBlockPre pre = m_data.data().pre;
+        AmigaBlockPre pre = data.data().pre;
         return pre != null ? pre.u.table[idx] : 0; // le
     }
 
     /** ブロック番号をセット */
     public void setDataBlock(int idx, int val) {
-        AmigaBlockPre pre = m_data.data().pre;
+        AmigaBlockPre pre = data.data().pre;
         if (pre != null) pre.u.table[idx] = val; // le
     }
 
-    /// 1ヘッダで格納できるブロック数を返す
-    public int getDataBlockNums() {
+    /** 1ヘッダで格納できるブロック数を返す */
+    public int getNumOfDataBlocks() {
         return (basic.getSectorSize() - AmigaBlockPre.SIZE - AmigaHeaderPost.SIZE) / 4 + 1;
     }
 
     /** ハッシュテーブルにセット（必要ならチェインをたどる）ディレクトリ用 */
     public boolean chainHashNumber(int idx, int val, DiskBasicDirItem<?> item) throws IOException {
         DiskBasicDirItemAmiga aitem = (DiskBasicDirItemAmiga) item;
-        aitem.m_chain.m_idx = idx;
-        AmigaHeaderPost post = aitem.m_data.data().post.u.h;
+        aitem.chain.index = idx;
+        AmigaHeaderPost post = aitem.data.data().post.u.h;
         if (post != null) {
-            aitem.m_chain.p_next_chain = post.hashChain;
+            aitem.chain.nextChain = post.hashChain;
         }
 
         int num = getDataBlock(idx);
         if (num < 2) {
             setDataBlock(idx, val);
-            AmigaBlockPre pre = m_data.data().pre;
+            AmigaBlockPre pre = data.data().pre;
             if (pre != null) {
-                aitem.m_chain.p_prev_chain = new Pointer(pre.u.table, idx);
+                aitem.chain.prevChain = new Pointer(pre.u.table, idx);
             }
             return true;
         }
@@ -835,12 +853,12 @@ public class DiskBasicDirItemAmiga extends DiskBasicDirItem<DirectoryAmiga> {
             byte[] b = sector.getSectorBuffer(offset);
             if (b == null) return false;
             Serdes.Util.deserialize(new ByteArrayInputStream(b), chain);
-            num = chain.hash_chain.get(); // le
+            num = chain.hashChain.get(); // le
             limit--;
         }
         if (limit >= 0) {
-            chain.hash_chain.set(val); // le
-            aitem.m_chain.p_prev_chain = chain.hash_chain;
+            chain.hashChain.set(val); // le
+            aitem.chain.prevChain = chain.hashChain;
             return true;
         }
         return false;
@@ -848,45 +866,45 @@ public class DiskBasicDirItemAmiga extends DiskBasicDirItem<DirectoryAmiga> {
 
     /** ハッシュ番号を返す */
     public int getHashNumber() {
-        return m_chain.m_idx;
+        return chain.index;
     }
 
     /** エクステンションをセット */
     public void setExtension(int val) {
-        AmigaHeaderPost post = m_data.data().post.u.h;
+        AmigaHeaderPost post = data.data().post.u.h;
         if (post != null) post.extension = val; // le
     }
 
     /** エクステンションを返す */
     public int getExtension() {
-        AmigaHeaderPost post = m_data.data().post.u.h;
+        AmigaHeaderPost post = data.data().post.u.h;
         if (post != null) return post.extension; // le
         return 0;
     }
 
     /** ユーザＩＤを返す */
     public int getUserID() {
-        AmigaHeaderPost post = m_data.data().post.u.h;
+        AmigaHeaderPost post = data.data().post.u.h;
         if (post != null) return post.uid & 0xffff; // le
         return 0;
     }
 
     /** ユーザＩＤをセット */
     public void setUserID(int val) {
-        AmigaHeaderPost post = m_data.data().post.u.h;
+        AmigaHeaderPost post = data.data().post.u.h;
         if (post != null) post.uid = (short) val; // le
     }
 
     /** グループＩＤを返す */
     public int getGroupID() {
-        AmigaHeaderPost post = m_data.data().post.u.h;
+        AmigaHeaderPost post = data.data().post.u.h;
         if (post != null) return post.gid & 0xffff; // le
         return 0;
     }
 
     /** グループＩＤをセット */
     public void setGroupID(int val) {
-        AmigaHeaderPost post = m_data.data().post.u.h;
+        AmigaHeaderPost post = data.data().post.u.h;
         if (post != null) post.gid = (short) val; // le
     }
 
@@ -904,7 +922,7 @@ public class DiskBasicDirItemAmiga extends DiskBasicDirItem<DirectoryAmiga> {
     /** 個別属性を共通属性に変換 */
     public static int convFromFileType1(int type1) {
         int val = 0;
-        for (Map.Entry<Integer, Integer> vv : G_TYPE_CONV_AMIGA1.entrySet()) {
+        for (Map.Entry<Integer, Integer> vv : TYPE_CONV_AMIGA1.entrySet()) {
             if (type1 == vv.getKey()) {
                 val = vv.getValue();
                 break;
@@ -928,37 +946,37 @@ public class DiskBasicDirItemAmiga extends DiskBasicDirItem<DirectoryAmiga> {
 
     /** 属性２からリストの位置を返す */
     public int convFileType1Pos(int type1) {
-        return Utils.indexOf(G_TYPE_NAME_AMIGA1, type1);
+        return Utils.indexOf(TYPE_NAME_AMIGA1, type1);
     }
 
     @Override
     public void setFileSize(int val) {
         groups.setSize(val);
-        AmigaHeaderPost post = m_data.data().post.u.h;
+        AmigaHeaderPost post = data.data().post.u.h;
         if (post != null) post.byteSize = val; // le
     }
 
     @Override
     public int getFileSize() {
         int val = 0;
-        AmigaHeaderPost post = m_data.data().post.u.h;
+        AmigaHeaderPost post = data.data().post.u.h;
         if (post != null) val = post.byteSize; // le
         if (val == 0) val = groups.getSize();
         return val;
     }
 
     /** ファイルのすべてのグループを取得 */
-    public boolean getFileGroups(int[] tables, int table_size, int limit, DiskBasicGroups group_items, List<Integer> extension_list) throws IOException {
-        int[] track_num = {0};
-        int[] side_num = {0};
-        int sector_num = 0;
-        int prev_num = 0;
-        int prev_track_num = 0;
-        int prev_side_num = 0;
-        int prev_sector_num = 0;
+    public boolean getFileGroups(int[] tables, int tableSize, int limit, DiskBasicGroups groupItems, List<Integer> extensionList) throws IOException {
+        int[] trackNum = {0};
+        int[] sideNum = {0};
+        int sectorNum = 0;
+        int prevNum = 0;
+        int prevTrackNum = 0;
+        int prevSideNum = 0;
+        int prevSectorNum = 0;
 
-        int calc_groups = 0;
-        int calc_file_size = 0;
+        int calcGroups = 0;
+        int calcFileSize = 0;
 
         AmigaBlockPre expre = null;
         AmigaHeaderPost expost = null;
@@ -966,20 +984,20 @@ public class DiskBasicDirItemAmiga extends DiskBasicDirItem<DirectoryAmiga> {
         int[] table = tables;
 
         // データ部のブロックサイズ(OFSは24バイト減)
-        int data_block_size = basic.getSectorSize();
-        if (!basic.diskBasicParam.getVariousBoolParam(KEY_FAST_FILE_SYSTEM)) {
-            data_block_size -= 24;
+        int dataBlockSize = basic.getSectorSize();
+        if (!basic.getVariousBoolParam(KEY_FAST_FILE_SYSTEM)) {
+            dataBlockSize -= 24;
         }
 
         // ファイルの時、data_block をたどる
         for (int extension = -1; ; extension++) {
             // 後ろから
-            for (int i = table_size - 1; i >= 0 && limit >= 0; i--) {
+            for (int i = tableSize - 1; i >= 0 && limit >= 0; i--) {
                 int num = table[i]; // le
                 if (num == 0) {
                     break;
                 }
-                DiskImageSector sector = basic.getSectorFromGroup(num, track_num, side_num);
+                DiskImageSector sector = basic.getSectorFromGroup(num, trackNum, sideNum);
                 if (sector == null) {
                     break;
                 }
@@ -988,27 +1006,27 @@ public class DiskBasicDirItemAmiga extends DiskBasicDirItem<DirectoryAmiga> {
                     break;
                 }
 
-                sector_num = sector.getSectorNumber();
-                if (group_items != null && prev_num > 0) {
-                    group_items.add(prev_num, num, prev_track_num, prev_side_num, prev_sector_num, sector_num);
+                sectorNum = sector.getSectorNumber();
+                if (groupItems != null && prevNum > 0) {
+                    groupItems.add(prevNum, num, prevTrackNum, prevSideNum, prevSectorNum, sectorNum);
                 }
-                prev_num = num;
-                prev_track_num = track_num[0];
-                prev_side_num = side_num[0];
-                prev_sector_num = sector_num;
+                prevNum = num;
+                prevTrackNum = trackNum[0];
+                prevSideNum = sideNum[0];
+                prevSectorNum = sectorNum;
 
-                calc_groups++;
-                calc_file_size += data_block_size;
+                calcGroups++;
+                calcFileSize += dataBlockSize;
                 limit--;
             }
             // グループ数はヘッダブロック分も足す
-            calc_groups++;
+            calcGroups++;
             // エクステンションがあるか
-            int exnum = extension < 0 ? getExtension() : (expost != null ? expost.extension /* le */ : 0);
-            if (exnum < 2) {
+            int extNum = extension < 0 ? getExtension() : (expost != null ? expost.extension /* le */ : 0);
+            if (extNum < 2) {
                 break;
             }
-            DiskImageSector sector = basic.getSectorFromGroup(exnum, track_num, side_num);
+            DiskImageSector sector = basic.getSectorFromGroup(extNum, trackNum, sideNum);
             if (sector == null) {
                 break;
             }
@@ -1025,22 +1043,22 @@ public class DiskBasicDirItemAmiga extends DiskBasicDirItem<DirectoryAmiga> {
             table = expre.u.table;
             expost = new AmigaHeaderPost();
             Serdes.Util.deserialize(new ByteArrayInputStream(sector.getSectorBuffer(sector.getSectorSize() - AmigaHeaderPost.SIZE)), expost);
-            if (extension_list != null) extension_list.add(exnum);
+            if (extensionList != null) extensionList.add(extNum);
         }
-        if (group_items != null && prev_num > 0) {
-            group_items.add(prev_num, 0, prev_track_num, prev_side_num, prev_sector_num, prev_sector_num);
+        if (groupItems != null && prevNum > 0) {
+            groupItems.add(prevNum, 0, prevTrackNum, prevSideNum, prevSectorNum, prevSectorNum);
         }
 
         // ファイルサイズ
-        if (group_items != null) {
-            int real_file_size = getByteSize();
-            if (calc_file_size < real_file_size) {
-                group_items.setSize(calc_file_size);
+        if (groupItems != null) {
+            int realFileSize = getByteSize();
+            if (calcFileSize < realFileSize) {
+                groupItems.setSize(calcFileSize);
             } else {
-                group_items.setSize(real_file_size);
+                groupItems.setSize(realFileSize);
             }
-            group_items.setNums(calc_groups);
-            group_items.setSizePerGroup(basic.getSectorSize());
+            groupItems.setNums(calcGroups);
+            groupItems.setSizePerGroup(basic.getSectorSize());
         }
 
         return limit < 0;
@@ -1049,23 +1067,23 @@ public class DiskBasicDirItemAmiga extends DiskBasicDirItem<DirectoryAmiga> {
     /**
      * 指定ディレクトリのすべてのグループを取得
      */
-    public static boolean getDirectoryGroups(DiskBasic basic, int[] tables, int table_size, int limit, DiskBasicGroups group_items) throws IOException {
+    public static boolean getDirectoryGroups(DiskBasic basic, int[] tables, int tableSize, int limit, DiskBasicGroups groupItems) throws IOException {
         boolean valid = true;
 
-        int[] track_num = {0};
-        int[] side_num = {0};
-        int sector_num = 0;
+        int[] trackNum = {0};
+        int[] sideNum = {0};
+        int sectorNum = 0;
 
         // ディレクトリの時、hash_table をたどる
-        for (int i = 0; i < table_size && limit >= 0; i++) {
+        for (int i = 0; i < tableSize && limit >= 0; i++) {
             int num = tables[i]; // le
             if (num < 2) {
                 continue;
             }
-            Pointer p_prev_chain = new Pointer(tables, i);
+            Pointer pPrevChain = new Pointer(tables, i);
             while (num >= 2 && limit >= 0) {
                 limit--;
-                DiskImageSector sector = basic.getSectorFromGroup(num, track_num, side_num);
+                DiskImageSector sector = basic.getSectorFromGroup(num, trackNum, sideNum);
                 if (sector == null) {
                     // Why?
                     valid = false;
@@ -1084,22 +1102,22 @@ public class DiskBasicDirItemAmiga extends DiskBasicDirItem<DirectoryAmiga> {
                 AmigaHashChain chain = new AmigaHashChain();
                 Serdes.Util.deserialize(new ByteArrayInputStream(sector.getSectorBuffer(offset)), chain);
 
-                if (group_items != null) {
-                    sector_num = sector.getSectorNumber();
-                    group_items.add(num, 0, track_num[0], side_num[0], sector_num,
-                            new DiskBasicDirItemAmiga.AmigaChain(i, p_prev_chain, chain.hash_chain)
+                if (groupItems != null) {
+                    sectorNum = sector.getSectorNumber();
+                    groupItems.add(num, 0, trackNum[0], sideNum[0], sectorNum,
+                            new DiskBasicDirItemAmiga.AmigaChain(i, pPrevChain, chain.hashChain)
                     );
                 }
 
-                p_prev_chain = chain.hash_chain;
-                num = chain.hash_chain.get(); // le
+                pPrevChain = chain.hashChain;
+                num = chain.hashChain.get(); // le
             }
         }
 
         // 常に１ブロック
-        if (group_items != null) {
-            group_items.setNums(1);
-            group_items.setSize(basic.getSectorSize());
+        if (groupItems != null) {
+            groupItems.setNums(1);
+            groupItems.setSize(basic.getSectorSize());
         }
 
         return (limit >= 0) && valid;
@@ -1109,16 +1127,16 @@ public class DiskBasicDirItemAmiga extends DiskBasicDirItem<DirectoryAmiga> {
     public static void renumberInDirectory(DiskBasic basic, List<DiskBasicDirItem<DirectoryAmiga>> items) {
         if (items == null) return;
 
-        int prev_idx = -1;
+        int prevIndex = -1;
         int chains = 0;
-        for (int i = 0; i < items.size(); i++) {
-            DiskBasicDirItemAmiga aitem = (DiskBasicDirItemAmiga) items.get(i);
-            int idx = aitem.m_chain.m_idx;
-            if (prev_idx != idx) {
+        for (DiskBasicDirItem<DirectoryAmiga> item : items) {
+            DiskBasicDirItemAmiga aitem = (DiskBasicDirItemAmiga) item;
+            int index = aitem.chain.index;
+            if (prevIndex != index) {
                 chains = 0;
             }
-            aitem.setNumber(chains * 1000 + idx);
-            prev_idx = idx;
+            aitem.setNumber(chains * 1000 + index);
+            prevIndex = index;
             chains++;
         }
     }
@@ -1126,14 +1144,14 @@ public class DiskBasicDirItemAmiga extends DiskBasicDirItem<DirectoryAmiga> {
     /**
      * アイテムリストにアイテムを挿入
      *
-     * @param basic      DISK BASIC
-     * @param tables     ディレクトリヘッダ内のハッシュテーブル
-     * @param table_size ハッシュテーブルのサイズ数
-     * @param limit      ループ制限値
-     * @param items      [in,out] ディレクトリの子供アイテムリスト
-     * @param item       [in,out] 新たに追加するアイテム
+     * @param basic     DISK BASIC
+     * @param tables    ディレクトリヘッダ内のハッシュテーブル
+     * @param tableSize ハッシュテーブルのサイズ数
+     * @param limit     ループ制限値
+     * @param items     [in,out] ディレクトリの子供アイテムリスト
+     * @param item      [in,out] 新たに追加するアイテム
      */
-    public static boolean insertItemInDirectory(DiskBasic basic, int[] tables, int table_size, int limit, List<DiskBasicDirItem<DirectoryAmiga>> items, DiskBasicDirItem<DirectoryAmiga> item) {
+    public static boolean insertItemInDirectory(DiskBasic basic, int[] tables, int tableSize, int limit, List<DiskBasicDirItem<DirectoryAmiga>> items, DiskBasicDirItem<DirectoryAmiga> item) {
         boolean valid = true;
 
         if (!(items != null && item != null)) {
@@ -1141,11 +1159,11 @@ public class DiskBasicDirItemAmiga extends DiskBasicDirItem<DirectoryAmiga> {
         }
 
         valid = false;
-        DiskBasicDirItemAmiga aitem = (DiskBasicDirItemAmiga) item;
+        DiskBasicDirItemAmiga aItem = (DiskBasicDirItemAmiga) item;
         for (int i = 0; i < items.size(); i++) {
-            DiskBasicDirItemAmiga ad = (DiskBasicDirItemAmiga) items.get(i);
+            DiskBasicDirItemAmiga aItem_ = (DiskBasicDirItemAmiga) items.get(i);
             // hash_tableのインデックス番号に沿ってインサート
-            if (ad.m_chain.m_idx > aitem.m_chain.m_idx) {
+            if (aItem_.chain.index > aItem.chain.index) {
                 items.add(i, item);
                 valid = true;
                 break;
@@ -1162,15 +1180,15 @@ public class DiskBasicDirItemAmiga extends DiskBasicDirItem<DirectoryAmiga> {
     }
 
     /** アイテムリストからアイテムを削除 */
-    public static boolean deleteItemInDirectory(DiskBasic basic, int[] tables, int table_size, int limit, List<DiskBasicDirItem<DirectoryAmiga>> items, DiskBasicDirItem<DirectoryAmiga> item) {
+    public static boolean deleteItemInDirectory(DiskBasic basic, int[] tables, int tableSize, int limit, List<DiskBasicDirItem<DirectoryAmiga>> items, DiskBasicDirItem<DirectoryAmiga> item) {
         //bool valid = true;
 
         if (!(items != null && item != null)) {
             return false;
         }
 
-        DiskBasicDirItemAmiga aitem = (DiskBasicDirItemAmiga) item;
-        aitem.m_chain.p_prev_chain = aitem.m_chain.p_next_chain;
+        DiskBasicDirItemAmiga aItem = (DiskBasicDirItemAmiga) item;
+        aItem.chain.prevChain = aItem.chain.nextChain;
 
         items.remove(item);
 
@@ -1187,22 +1205,22 @@ public class DiskBasicDirItemAmiga extends DiskBasicDirItem<DirectoryAmiga> {
         // 1978-01-01から
         for (int i = 0; i < 200; i++) {
             year = 1978 + i;
-            int days_per_year = (int) Utils.getDaysSince1978(LocalDate.of(i, 1, 1));
-            if (days < days_per_year) {
-                month = days % days_per_year;
+            int daysPerYear = (int) Utils.getDaysSince1978(LocalDate.of(i, 1, 1));
+            if (days < daysPerYear) {
+                month = days % daysPerYear;
                 break;
             }
-            days -= days_per_year;
+            days -= daysPerYear;
         }
         // month and day
         for (int i = 0; i < 12; i++) {
-            int day_of_month = (int) Utils.getDaysSince1978(LocalDate.of(year, month, 1));
-            if (month < day_of_month) {
-                day = (month % day_of_month) + 1;
+            int dayOfMonth = (int) Utils.getDaysSince1978(LocalDate.of(year, month, 1));
+            if (month < dayOfMonth) {
+                day = (month % dayOfMonth) + 1;
                 month = i;
                 break;
             }
-            month -= day_of_month;
+            month -= dayOfMonth;
         }
 
         return LocalDate.of(
@@ -1262,40 +1280,40 @@ public class DiskBasicDirItemAmiga extends DiskBasicDirItem<DirectoryAmiga> {
     /** アイテムを返す */
     @Override
     public DirectoryAmiga getData() {
-        return m_data.data();
+        return data.data();
     }
 
     /** アイテムをコピー */
     @Override
     public boolean copyData(byte[] amiga) {
-        if (!m_data.isValid()) return false;
+        if (!data.isValid()) return false;
 
-        m_data.copy(amiga); // TODO why only this class does deep copy?
-//        m_data.data().blockNum = amiga.blockNum;
+        data.copy(amiga); // TODO why only this class does deep copy?
+//        data.data().blockNum = amiga.blockNum;
 //
 //        // ポインタではなく内容をコピー
-//        AmigaBlockPre src_pre = amiga.pre;
-//        AmigaBlockPre dst_pre = m_data.data().pre;
-//        dst_pre.type = src_pre.type;
-//        dst_pre.headerKey = src_pre.headerKey;
+//        AmigaBlockPre blockPre = amiga.pre;
+//        AmigaBlockPre dstPre = data.data().pre;
+//        dstPre.type = blockPre.type;
+//        dstPre.headerKey = blockPre.headerKey;
 //
-//        AmigaHeaderPost src_post = amiga.post.h;
-//        AmigaHeaderPost dst_post = m_data.data().post.h;
+//        AmigaHeaderPost srcPost = amiga.post.h;
+//        AmigaHeaderPost dstPost = data.data().post.h;
 //
-//        dst_post.nameLen = src_post.nameLen;
-//        System.arraycopy(src_post.name, 0, dst_post.name, 0, dst_post.name.length);
+//        dstPost.nameLen = srcPost.nameLen;
+//        System.arraycopy(srcPost.name, 0, dstPost.name, 0, dstPost.name.length);
 //
-//        dst_post.protect = src_post.protect;
+//        dstPost.protect = srcPost.protect;
 //
-//        dst_post.uid = src_post.uid;
-//        dst_post.gid = src_post.gid;
+//        dstPost.uid = srcPost.uid;
+//        dstPost.gid = srcPost.gid;
 //
-//        dst_post.days = src_post.days;
-//        dst_post.mins = src_post.mins;
-//        dst_post.ticks = src_post.ticks;
+//        dstPost.days = srcPost.days;
+//        dstPost.mins = srcPost.mins;
+//        dstPost.ticks = srcPost.ticks;
 //
-//        dst_post.parentDir = src_post.parentDir;
-//        dst_post.secType = src_post.secType;
+//        dstPost.parentDir = srcPost.parentDir;
+//        dstPost.secType = srcPost.secType;
 
         return true;
     }
@@ -1303,21 +1321,21 @@ public class DiskBasicDirItemAmiga extends DiskBasicDirItem<DirectoryAmiga> {
     /** ディレクトリをクリア ファイル新規作成時 */
     @Override
     public void clearData() {
-        m_data.data().blockNum = 0;
+        data.data().blockNum = 0;
 
         // ポインタはクリアしない
     }
 
     /** 最初のグループ番号を設定 */
     @Override
-    public void setStartGroup(int fileunit_num, int val, int size) {
-        m_data.data().blockNum = val;
+    public void setStartGroup(int fileUnitNum, int val, int size) {
+        data.data().blockNum = val;
     }
 
     /** 最初のグループ番号を返す */
     @Override
-    public int getStartGroup(int fileunit_num) {
-        return m_data.data().blockNum;
+    public int getStartGroup(int fileUnitNum) {
+        return data.data().blockNum;
     }
 
     public boolean preExportDataFile(String filename) {

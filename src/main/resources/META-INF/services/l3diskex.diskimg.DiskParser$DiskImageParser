@@ -1,0 +1,16 @@
+l3diskex.diskimg.parser.Disk2MGParser
+l3diskex.diskimg.parser.DiskADCParser
+l3diskex.diskimg.parser.DiskCQMParser
+l3diskex.diskimg.parser.DiskD88Parser
+l3diskex.diskimg.parser.DiskDIMParser
+l3diskex.diskimg.parser.DiskDmkParser
+l3diskex.diskimg.parser.DiskDskParser
+l3diskex.diskimg.parser.DiskFDIParser
+l3diskex.diskimg.parser.DiskG64Parser
+l3diskex.diskimg.parser.DiskHfeParser
+l3diskex.diskimg.parser.DiskIMDParser
+l3diskex.diskimg.parser.DiskJV3Parser
+l3diskex.diskimg.parser.DiskPlainParser
+l3diskex.diskimg.parser.DiskSTRParser
+l3diskex.diskimg.parser.DiskTD0Parser
+l3diskex.diskimg.parser.DiskVFDParser

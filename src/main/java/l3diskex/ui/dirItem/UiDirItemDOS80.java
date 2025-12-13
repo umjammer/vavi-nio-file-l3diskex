@@ -8,6 +8,7 @@ package l3diskex.ui.dirItem;
 
 import javax.swing.BoxLayout;
 
+import l3diskex.basicfmt.BasicCommon.KeyValArray;
 import l3diskex.basicfmt.DiskBasicDirItem.DiskBasicDirItemAttr;
 import l3diskex.basicfmt.diritem.DiskBasicDirItemDOS80;
 import l3diskex.basicfmt.DiskBasicError;
@@ -66,5 +67,20 @@ public class UiDirItemDOS80 extends UiDirItem {
     public boolean isEndAddressEditableInAttrDialog(IntNameBox parent) {
         // Determine if end address field should be editable
         return true;
+    }
+
+    //
+    // ダイアログ用
+    //
+
+    @Override
+    public void setInternalDataInAttrDialog(KeyValArray vals) {
+        vals.add("NAME", dirItem.data.data().name, dirItem.data.data().name.length);
+
+        if (!dirItem.data2.isValid()) return;
+
+        // TODO serialize?
+//        vals.add("GRPS", dirItem.data2.data().grps, dirItem.data2.data().grps.length);
+//        vals.add("RESERVED", dirItem.data2.data().reserved, dirItem.data2.data().reserved));
     }
 }

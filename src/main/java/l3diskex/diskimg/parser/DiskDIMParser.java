@@ -18,11 +18,14 @@ import vavi.io.SeekableDataInputStream;
 import vavi.util.serdes.Element;
 import vavi.util.serdes.Serdes;
 
-import static l3diskex.diskimg.DiskParam.gDiskTemplates;
+import static l3diskex.diskimg.DiskParam.diskTemplates;
 
 
 /**
  * DIFC.X DIMディスクイメージパーサ
+ *
+ * @see "https://web.archive.org/web/20010617113151/http://www6.airnet.ne.jp/gun/x68k/difc/difc.html"
+ * @see "https://stdkmd.net/xeij/source/FDMedia.htm"
  */
 public class DiskDIMParser extends DiskPlainParser {
 
@@ -52,46 +55,52 @@ public class DiskDIMParser extends DiskPlainParser {
         byte overtrack;
     }
 
-    public DiskDIMParser(DiskImageFile file, short mod_flags, DiskResult result) {
-        super(file, mod_flags, result);
+    @Override
+    public boolean isSupported(String type) {
+        return "difcdim".equalsIgnoreCase(type);
+    }
+
+    @Override
+    public void init(DiskImageFile file, short modFlags, DiskResult result) {
+        super.init(file, modFlags, result);
     }
 
     /**
      * DIMファイルの解析
      *
-     * @param istream     入力ディスクイメージ
-     * @param disk_number ディスク番号
-     * @param disk_param  ディスクパラメータ
+     * @param iStream    入力ディスクイメージ
+     * @param diskNumber ディスク番号
+     * @param diskParam  ディスクパラメータ
      * @return オフセット（最後のデータ位置）
      */
     @Override
-    public int parseDisk(InputStream istream, int disk_number, DiskParam disk_param) throws IOException {
-        if (istream.available() < DimDskHeader.SIZE) {
+    public int parseDisk(InputStream iStream, int diskNumber, DiskParam diskParam) throws IOException {
+        if (iStream.available() < DimDskHeader.SIZE) {
             // too short
             result.setError(DiskResult.ERRV_DISK_TOO_SMALL, 0);
             return result.getValid();
         }
         DimDskHeader header = new DimDskHeader();
-        Serdes.Util.deserialize(istream, header);
+        Serdes.Util.deserialize(iStream, header);
 
-        ((SeekableDataInputStream) istream).position(0x100);
-        int fileLength = istream.available() + 0x100;
+        ((SeekableDataInputStream) iStream).position(0x100);
+        int fileLength = iStream.available() + 0x100;
 
-        DiskImageDisk disk = file.newImageDisk(disk_number);
+        DiskImageDisk disk = file.newImageDisk(diskNumber);
 
         // パラメータの計算値がディスクサイズの２倍なら
         // 表面にのみデータをセット
         int dummySide = -1;
-        if (fileLength * 2 <= disk_param.calcDiskSize()) {
-            dummySide = disk_param.getSideNumberBaseOnDisk() + 1;
+        if (fileLength * 2 <= diskParam.calcDiskSize()) {
+            dummySide = diskParam.getSideNumberBaseOnDisk() + 1;
         }
 
         int offset = disk.getOffsetStart();
         int offsetPos = 0;
-        int trackNum = disk_param.getTrackNumberBaseOnDisk();
-        int tracksPerSide = disk_param.getTracksPerSide() + trackNum;
-        int sideNumSt = disk_param.getSideNumberBaseOnDisk();
-        int sideNumEd = disk_param.getSidesPerDisk() + sideNumSt;
+        int trackNum = diskParam.getTrackNumberBaseOnDisk();
+        int tracksPerSide = diskParam.getTracksPerSide() + trackNum;
+        int sideNumSt = diskParam.getSideNumberBaseOnDisk();
+        int sideNumEd = diskParam.getSidesPerDisk() + sideNumSt;
         for (; trackNum < tracksPerSide && result.getValid() >= 0; trackNum++) {
             for (int sideNum = sideNumSt; sideNum < sideNumEd && result.getValid() >= 0; sideNum++) {
                 boolean isDummyTrack = sideNum == dummySide;
@@ -99,7 +108,7 @@ public class DiskDIMParser extends DiskPlainParser {
                     // トラック情報がないのでダミーのトラックを作成
                     isDummyTrack = true;
                 }
-                offset += parseTrack(istream, offsetPos, offset, disk_number, disk_param, trackNum, sideNum, isDummyTrack, disk);
+                offset += parseTrack(iStream, offsetPos, offset, diskNumber, diskParam, trackNum, sideNum, isDummyTrack, disk);
                 offsetPos++;
             }
         }
@@ -119,34 +128,34 @@ public class DiskDIMParser extends DiskPlainParser {
 
     /** DIMファイルの解析 */
     @Override
-    public int parse(InputStream istream, DiskParam disk_param) throws IOException {
-        if (disk_param == null) {
+    public int parse(InputStream iStream, DiskParam diskParam) throws IOException {
+        if (diskParam == null) {
             result.setError(DiskResult.ERRV_INVALID_DISK, 0);
             return result.getValid();
         }
 
-        ((SeekableDataInputStream) istream).position(0x100);
+        ((SeekableDataInputStream) iStream).position(0x100);
 
-        parseDisk(istream,
+        parseDisk(iStream,
                 0,
-                disk_param);
+                diskParam);
 
         return result.getValid();
     }
 
     /** チェック */
     @Override
-    public int check(InputStream istream, List<DiskTypeHint> disk_hints, DiskParam disk_param, List<DiskParam> disk_params, DiskParam manual_param) throws IOException {
-        ((SeekableDataInputStream) istream).position(0);
+    public int check(InputStream iStream, List<DiskTypeHint> diskHints, DiskParam diskParam, List<DiskParam> diskParams, DiskParam manualParam) throws IOException {
+        ((SeekableDataInputStream) iStream).position(0);
 
-        int fileLength = istream.available();
+        int fileLength = iStream.available();
         if (fileLength < DimDskHeader.SIZE) {
             // too short
             result.setError(DiskResult.ERRV_DISK_TOO_SMALL, 0);
             return result.getValid();
         }
         DimDskHeader header = new DimDskHeader();
-        Serdes.Util.deserialize(istream, header);
+        Serdes.Util.deserialize(iStream, header);
         // ヘッダ文字列チェック
         if (!Arrays.equals(header.ident, DISK_DIM_HEADER.getBytes())) {
             // not disk
@@ -188,17 +197,17 @@ public class DiskDIMParser extends DiskPlainParser {
         // ディスクテンプレートから探す
         DiskParam dummy = new DiskParam();
 
-        if (disk_hints != null) {
+        if (diskHints != null) {
             // パラメータヒントあり
-            for (int retry = 0; retry < 2 && disk_params.isEmpty(); retry++) {
+            for (int retry = 0; retry < 2 && diskParams.isEmpty(); retry++) {
                 // 優先順位の高い候補を追加
-                for (int i = 0; i < disk_hints.size(); i++) {
-                    int kind = disk_hints.get(i).getKind();
+                for (DiskTypeHint diskHint : diskHints) {
+                    int kind = diskHint.getKind();
                     if (kind != header.type) {
                         continue;
                     }
-                    String hint = disk_hints.get(i).getHint();
-                    DiskParam param = gDiskTemplates.find(hint);
+                    String hint = diskHint.getHint();
+                    DiskParam param = diskTemplates.find(hint);
                     if (param != null) {
                         // ファイルサイズが一致
                         // or トラック数が一致
@@ -206,7 +215,7 @@ public class DiskDIMParser extends DiskPlainParser {
                         if (streamSize == param.calcDiskSize() ||
                                 tracksPerSide == param.getTracksPerSide() ||
                                 retry > 0) {
-                            disk_params.add(param);
+                            diskParams.add(param);
                         }
                     }
                 }
@@ -214,10 +223,10 @@ public class DiskDIMParser extends DiskPlainParser {
         }
 
         // その他に同じパラメータの候補を追加
-        gDiskTemplates.find(sidesPerDisk, tracksPerSide, sectorsPerTrack, sectorSize, disk_params, !disk_params.isEmpty());
+        diskTemplates.find(sidesPerDisk, tracksPerSide, sectorsPerTrack, sectorSize, diskParams, !diskParams.isEmpty());
 
-        if (disk_params.isEmpty()) {
-            manual_param.setDiskParam(
+        if (diskParams.isEmpty()) {
+            manualParam.setDiskParam(
                     sidesPerDisk,
                     tracksPerSide,
                     sectorsPerTrack,

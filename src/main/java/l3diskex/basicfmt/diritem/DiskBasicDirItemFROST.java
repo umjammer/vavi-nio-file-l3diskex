@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.ResourceBundle;
 
 import l3diskex.Utils;
-import l3diskex.basicfmt.BasicCommon.DirectoryT;
+import l3diskex.basicfmt.BasicCommon.Directory;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
@@ -23,14 +23,16 @@ import l3diskex.diskimg.DiskParam.SectorParam;
 import vavi.util.serdes.Element;
 import vavi.util.serdes.Serdes;
 
-import static l3diskex.Config.gConfig;
+import static l3diskex.Config.config;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_BASIC_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_BINARY_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_DATA_MASK;
+import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_DIRECTORY_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_MACHINE_MASK;
+import static l3diskex.basicfmt.type.DiskBasicTypeFROST.FORMAT_TYPE_FROST;
 
 
-/// ディレクトリ１アイテム Frost-DOS
+/** ディレクトリ１アイテム Frost-DOS */
 public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
 
     private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
@@ -39,7 +41,7 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
      * ディレクトリエントリ Frost-DOS (16bytes)
      */
     @Serdes(bigEndian = false)
-    public static class DirectoryFrost implements DirectoryT {
+    public static class DirectoryFrost implements Directory {
 
         @Element(sequence = 1)
         public byte[] name = new byte[6];
@@ -52,7 +54,7 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
         @Element(sequence = 5)
         public byte sector;
         @Element(sequence = 6)
-        public short loadAddr;
+        public short loadAddress;
         @Element(sequence = 7)
         public short size;
 
@@ -73,7 +75,7 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
     public static final int FILETYPE_FROST_RGB = 0x02;
 
     /// Frost-DOS 属性名
-    public static final Map<String, Object> gTypeNameFROST_1 = new LinkedHashMap<>() {{
+    public static final Map<String, Object> typeNameFROST1 = new LinkedHashMap<>() {{
         put("BAS", FILETYPE_FROST_BAS);
         put("BIN", FILETYPE_FROST_BIN);
         put("RGB", FILETYPE_FROST_RGB);
@@ -84,27 +86,36 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
     //
 
     /** ディレクトリデータ */
-    private final DiskBasicDirData<DirectoryFrost> m_data = new DiskBasicDirData<>();
+    private final DiskBasicDirData<DirectoryFrost> data = new DiskBasicDirData<>();
 
-    public DiskBasicDirItemFROST(DiskBasic basic) {
-        super(basic);
-
-        m_data.alloc(DirectoryFrost.class);
+    @Override
+    public boolean isSupported(int formatType) {
+        return formatType == FORMAT_TYPE_FROST;
     }
 
-    public DiskBasicDirItemFROST(DiskBasic basic, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP) {
-        super(basic, n_sector, n_secpos, n_data, dataP);
+    @Override
+    public void init(DiskBasic basic) throws IOException {
+        super.init(basic);
 
-        m_data.attach(DirectoryFrost.class, n_data, dataP);
+        data.alloc(DirectoryFrost.class);
     }
 
-    public DiskBasicDirItemFROST(DiskBasic basic, int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP, SectorParam n_next, boolean[] n_unuse) throws IOException {
-        super(basic, n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next, n_unuse);
+    @Override
+    public void init(DiskBasic basic, DiskImageSector sector, int sectorPos, byte[] data, int dataPos) throws IOException {
+        super.init(basic, sector, sectorPos, data, dataPos);
 
-        m_data.attach(DirectoryFrost.class, n_data, dataP);
+        this.data.attach(DirectoryFrost.class, data, dataPos);
+    }
 
-        used(checkUsed(n_unuse[0]));
-        n_unuse[0] = (n_unuse[0] || (m_data.data().name[0] == (byte) 0xff));
+    @Override
+    public void init(DiskBasic basic, int num, DiskBasicGroupItem groupItem, DiskImageSector sector, int sectorPos,
+                     byte[] data, int dataPos, SectorParam next, boolean[] unuse) throws IOException {
+        super.init(basic, num, groupItem, sector, sectorPos, data, dataPos, next, unuse);
+
+        this.data.attach(DirectoryFrost.class, data, dataPos);
+
+        used(checkUsed(unuse[0]));
+        unuse[0] = (unuse[0] || (this.data.data().name[0] == (byte) 0xff));
 
         // ファイルサイズとグループ数を計算
         calcFileSize();
@@ -114,10 +125,11 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
      * アイテムへのポインタを設定
      */
     @Override
-    public void setDataPtr(int n_num, DiskBasicGroupItem n_gitem, DiskImageSector n_sector, int n_secpos, byte[] n_data, int dataP, SectorParam n_next) throws IOException {
-        super.setDataPtr(n_num, n_gitem, n_sector, n_secpos, n_data, dataP, n_next);
+    public void setData(int num, DiskBasicGroupItem groupItem, DiskImageSector sector, int sectorPos,
+                        byte[] data, int dataPos, SectorParam next) throws IOException {
+        super.setData(num, groupItem, sector, sectorPos, data, dataPos, next);
 
-        m_data.attach(DirectoryFrost.class, n_data, dataP);
+        this.data.attach(DirectoryFrost.class, data, dataPos);
     }
 
     /**
@@ -126,8 +138,8 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
     @Override
     protected byte[] getFileNamePos(int num, int[] size, int[] len) {
         if (num == 0) {
-            size[0] = len[0] = m_data.data().name.length;
-            return m_data.data().name;
+            size[0] = len[0] = data.data().name.length;
+            return data.data().name;
         } else {
             size[0] = len[0] = 0;
             return null;
@@ -139,8 +151,8 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
      */
     @Override
     protected byte[] getFileExtPos(int[] len) {
-        len[0] = m_data.data().ext.length;
-        return m_data.data().ext;
+        len[0] = data.data().ext.length;
+        return data.data().ext;
     }
 
     /**
@@ -148,7 +160,7 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
      */
     @Override
     public int getFileType1() {
-        return m_data.data().type & 0xff;
+        return data.data().type & 0xff;
     }
 
     /**
@@ -156,14 +168,14 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
      */
     @Override
     protected void setFileType1(int val) {
-        m_data.data().type = (byte) (val & 0xff);
+        data.data().type = (byte) (val & 0xff);
     }
 
     /**
      * 属性１の文字列
      */
     String convFileType1Str(int t1) {
-        return rb.getString(Utils.keyAt(gTypeNameFROST_1, convFileType1Pos(t1)));
+        return rb.getString(Utils.keyAt(typeNameFROST1, convFileType1Pos(t1)));
     }
 
     /**
@@ -171,7 +183,7 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
      */
     @Override
     public boolean checkUsed(boolean unuse) {
-        return !unuse && this.m_data.data().name[0] != 0 && this.m_data.data().name[0] != (byte) 0xff;
+        return !unuse && this.data.data().name[0] != 0 && this.data.data().name[0] != (byte) 0xff;
     }
 
     /**
@@ -179,10 +191,10 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
      */
     @Override
     public boolean check(boolean[] last) {
-        if (!m_data.isValid()) return false;
+        if (!data.isValid()) return false;
 
         boolean valid = true;
-        if (m_data.data().name[0] == (byte) 0xff) {
+        if (data.data().name[0] == (byte) 0xff) {
             last[0] = true;
             return valid;
         }
@@ -199,7 +211,7 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
     @Override
     public boolean delete() {
         // 削除はエントリの先頭にコードを入れるだけ
-        m_data.fill(basic.invertUint8(basic.diskBasicParam.getDeleteCode()), 1);
+        data.fill(basic.invertUint8(basic.getDeleteCode()), 1);
         used(false);
         return true;
     }
@@ -209,36 +221,36 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
      */
     @Override
     public boolean hasEndMark() {
-        return ((m_data.data().name[0] & 0xff) == basic.diskBasicParam.getGroupUnusedCode());
+        return ((data.data().name[0] & 0xff) == basic.getGroupUnusedCode());
     }
 
     /**
      * 次のアイテムにENDマークを入れる
      */
     @Override
-    public void setEndMark(DiskBasicDirItem<?> next_item) {
-        if (next_item == null) return;
+    public void setEndMark(DiskBasicDirItem<?> nextItem) {
+        if (nextItem == null) return;
 
-        if (hasEndMark()) ((DiskBasicDirItemFROST) next_item).m_data.data().name[0] = (byte) basic.diskBasicParam.getGroupUnusedCode();
+        if (hasEndMark()) ((DiskBasicDirItemFROST) nextItem).data.data().name[0] = (byte) basic.getGroupUnusedCode();
     }
 
     /**
      * 属性を設定
      */
     @Override
-    public void setFileAttr(DiskBasicFileType file_type) {
-        int ftype = file_type.getType();
-        if (ftype == -1) return;
+    public void setFileAttr(DiskBasicFileType fileType) {
+        int fType = fileType.getType();
+        if (fType == -1) return;
 
         int t1 = 0;
-        if (file_type.getFormat() == basic.getFormatTypeNumber()) {
+        if (fileType.getFormat() == basic.getFormatTypeNumber()) {
             // 同じOS
-            t1 = file_type.getOrigin();
+            t1 = fileType.getOrigin();
         } else {
             // 違うOS
-            if ((ftype & FILE_TYPE_MACHINE_MASK.getValue()) != 0) {
+            if ((fType & FILE_TYPE_MACHINE_MASK.getValue()) != 0) {
                 t1 = FILETYPE_FROST_BIN;
-            } else if ((ftype & FILE_TYPE_DATA_MASK.getValue()) != 0) {
+            } else if ((fType & FILE_TYPE_DATA_MASK.getValue()) != 0) {
                 t1 = FILETYPE_FROST_RGB;
             } else {
                 t1 = FILETYPE_FROST_BAS;
@@ -258,23 +270,27 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
     @Override
     public DiskBasicFileType getFileAttr() {
         int t1 = getFileType1();
-        int val = 0;
+        int type = 0;
         switch (t1) {
             case FILETYPE_FROST_BIN:
-                val = FILE_TYPE_MACHINE_MASK.getValue();    // machine
-                val |= FILE_TYPE_BINARY_MASK.getValue();    // binary
+                type = FILE_TYPE_MACHINE_MASK.getValue();    // machine
+                type |= FILE_TYPE_BINARY_MASK.getValue();    // binary
                 break;
             case FILETYPE_FROST_RGB:
-                val = FILE_TYPE_DATA_MASK.getValue();       // data
-                val |= FILE_TYPE_BINARY_MASK.getValue();    // binary
+                type = FILE_TYPE_DATA_MASK.getValue();       // data
+                type |= FILE_TYPE_BINARY_MASK.getValue();    // binary
                 break;
             default:
-                val = FILE_TYPE_BASIC_MASK.getValue();      // basic
-                val |= FILE_TYPE_BINARY_MASK.getValue();    // binary
+                type = FILE_TYPE_BASIC_MASK.getValue();      // basic
+                type |= FILE_TYPE_BINARY_MASK.getValue();    // binary
                 break;
         }
 
-        return new DiskBasicFileType(basic.getFormatTypeNumber(), val, t1);
+        if (isValidDirectory()) { // TODO ad-hoc if this is a root directory set directory type bit
+            type |= FILE_TYPE_DIRECTORY_MASK.getValue();
+        }
+
+        return new DiskBasicFileType(basic.getFormatTypeNumber(), type, t1);
     }
 
     /**
@@ -290,7 +306,7 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
      */
     @Override
     public void setFileSize(int val) {
-        m_data.data().size = basic.orderUint16((short) val);
+        data.data().size = basic.orderUint16((short) val);
         groups.setSize(val);
     }
 
@@ -299,7 +315,7 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
      */
     @Override
     public int getFileSize() {
-        int val = basic.orderUint16(m_data.data().size) & 0xffff;
+        int val = basic.orderUint16(data.data().size) & 0xffff;
         if (val == 0) val = groups.getSize();
         return val;
     }
@@ -308,62 +324,62 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
      * ファイルサイズとグループ数を計算する
      */
     @Override
-    public void calcFileUnitSize(int fileunit_num) throws IOException {
+    public void calcFileUnitSize(int fileUnitNum) throws IOException {
         if (!isUsed()) return;
 
-        getUnitGroups(fileunit_num, groups);
+        getUnitGroups(fileUnitNum, groups);
     }
 
     /**
      * 指定ディレクトリのすべてのグループを取得
      */
     @Override
-    public void getUnitGroups(int fileunit_num, DiskBasicGroups group_items) throws IOException {
-        int calc_file_size = 0;
-        int calc_groups = 0;
+    public void getUnitGroups(int fileUnitNum, DiskBasicGroups groupItems) throws IOException {
+        int calcFileSize = 0;
+        int calcGroups = 0;
 
         // 16bit FAT (track & sector)
         boolean rc = true;
-        int group_num = getStartGroup(fileunit_num);
+        int groupNum = getStartGroup(fileUnitNum);
         boolean working = true;
         int limit = basic.getFatEndGroup() + 1;
         while (working) {
-            int next_group = type.getGroupNumber(group_num);
-            if (next_group == group_num) {
+            int nextGroup = type.getGroupNumber(groupNum);
+            if (nextGroup == groupNum) {
                 // 同じポジションならエラー
                 rc = false;
-            } else if (next_group >= basic.diskBasicParam.getGroupSystemCode()) {
+            } else if (nextGroup >= basic.getGroupSystemCode()) {
                 // システム領域はエラー(0xfefe)
                 rc = false;
-            } else if (next_group == basic.diskBasicParam.getGroupFinalCode()) {
+            } else if (nextGroup == basic.getGroupFinalCode()) {
                 // 最終グループ(0xfdfd)
-                addGroups(group_num, next_group, group_items);
-                calc_file_size += (basic.getSectorSize() / basic.diskBasicParam.getGroupsPerSector());
-                calc_groups++;
+                addGroups(groupNum, nextGroup, groupItems);
+                calcFileSize += (basic.getSectorSize() / basic.getGroupsPerSector());
+                calcGroups++;
                 working = false;
-            } else if (next_group > basic.getFatEndGroup()) {
+            } else if (nextGroup > basic.getFatEndGroup()) {
                 // グループ番号がおかしい
                 rc = false;
             } else {
-                addGroups(group_num, next_group, group_items);
-                calc_file_size += (basic.getSectorSize() / basic.diskBasicParam.getGroupsPerSector());
-                calc_groups++;
-                group_num = next_group;
+                addGroups(groupNum, nextGroup, groupItems);
+                calcFileSize += (basic.getSectorSize() / basic.getGroupsPerSector());
+                calcGroups++;
+                groupNum = nextGroup;
                 limit--;
             }
             working = working && rc && (limit >= 0);
         }
 
-        int inter_file_size = getFileSize();
-        if (inter_file_size == 0) {
-            inter_file_size = calc_file_size;
+        int interFileSize = getFileSize();
+        if (interFileSize == 0) {
+            interFileSize = calcFileSize;
         }
-        group_items.setNums(calc_groups);
-        group_items.setSize(inter_file_size);
-        group_items.setSizePerGroup(FROST_GROUP_SIZE);
+        groupItems.setNums(calcGroups);
+        groupItems.setSize(interFileSize);
+        groupItems.setSizePerGroup(FROST_GROUP_SIZE);
 
         if (limit < 0) {
-            // too large or infinit loop
+            // too large or infinite loop
             rc = false;
         }
     }
@@ -371,27 +387,27 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
     /**
      * グループを追加する
      */
-    private void addGroups(int group_num, int next_group, DiskBasicGroups group_items) {
-        int[] trk = {-1}, sid = {-1}, sec = {-1}, div = {0}, divs = {0};
-        basic.calcNumFromSectorPosForGroup(group_num, trk, sid, sec, div, divs);
-        group_items.add(group_num, next_group, trk[0], sid[0], sec[0], sec[0], div[0], divs[0]);
+    private void addGroups(int groupNum, int nextGroup, DiskBasicGroups groupItems) {
+        int[] track = {-1}, side = {-1}, sector = {-1}, div = {0}, divs = {0};
+        basic.calcNumFromSectorPosForGroup(groupNum, track, side, sector, div, divs);
+        groupItems.add(groupNum, nextGroup, track[0], side[0], sector[0], sector[0], div[0], divs[0]);
     }
 
     /**
      * 最初のグループ番号をセット
      */
     @Override
-    public void setStartGroup(int fileunit_num, int val, int size) {
-        m_data.data().track = (byte) (val / basic.diskBasicParam.getGroupsPerTrack());
-        m_data.data().sector = (byte) ((val % basic.diskBasicParam.getGroupsPerTrack()) + 1);
+    public void setStartGroup(int fileUnitNum, int val, int size) {
+        data.data().track = (byte) (val / basic.getGroupsPerTrack());
+        data.data().sector = (byte) ((val % basic.getGroupsPerTrack()) + 1);
     }
 
     /**
      * 最初のグループ番号を返す
      */
     @Override
-    public int getStartGroup(int fileunit_num) {
-        return (m_data.data().track & 0xff) * basic.diskBasicParam.getGroupsPerTrack() + (m_data.data().sector & 0xff) - 1;
+    public int getStartGroup(int fileUnitNum) {
+        return (data.data().track & 0xff) * basic.getGroupsPerTrack() + (data.data().sector & 0xff) - 1;
     }
 
     /**
@@ -415,7 +431,7 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
      */
     @Override
     public int getStartAddress() {
-        return basic.orderUint16(m_data.data().loadAddr);
+        return basic.orderUint16(data.data().loadAddress) & 0xffff;
     }
 
     /**
@@ -423,7 +439,7 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
      */
     @Override
     public void setStartAddress(int val) {
-        m_data.data().loadAddr = basic.orderUint16((short) val);
+        data.data().loadAddress = basic.orderUint16((short) val);
     }
 
     /**
@@ -432,7 +448,7 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
     @Override
     public boolean needCheckEofCode() {
         // Asc形式のときはEOFコードが必要
-        return false; //(((GetFileType1() & (FILETYPE_FROST_MACHINE | FILETYPE_FROST_BINARY)) == 0) && (external_attr == 0));
+        return false; //(((getFileType1() & (FILETYPE_FROST_MACHINE | FILETYPE_FROST_BINARY)) == 0) && (externalAttr == 0));
     }
 
     /**
@@ -440,7 +456,7 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
      */
     @Override
     public int getDataSize() {
-        return m_data.getDataSize();
+        return data.getDataSize();
     }
 
     /**
@@ -448,7 +464,7 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
      */
     @Override
     public DirectoryFrost getData() {
-        return m_data.data();
+        return data.data();
     }
 
     /**
@@ -456,7 +472,7 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
      */
     @Override
     public boolean copyData(byte[] val) {
-        return m_data.copy(val);
+        return data.copy(val);
     }
 
     /**
@@ -464,7 +480,7 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
      */
     @Override
     public void clearData() {
-        m_data.fill(basic.diskBasicParam.getDeleteCode());
+        data.fill(basic.getDeleteCode());
     }
 
     /**
@@ -472,7 +488,7 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
      */
     @Override
     public boolean preExportDataFile(String[] filename) {
-        if (!gConfig.isAddExtensionExport()) return true;
+        if (!config.isAddExtensionExport()) return true;
 
         // 拡張子を付加する
         if (!isDirectory()) {
@@ -493,8 +509,8 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
      */
     @Override
     public boolean preImportDataFile(String[] filename) {
-        if (gConfig.isDecideAttrImport()) {
-            isContainAttrByExtension(filename[0], gTypeNameFROST_1, TYPE_NAME_FROST_BAS, TYPE_NAME_FROST_RGB, filename, null, null);
+        if (config.isDecideAttrImport()) {
+            isContainAttrByExtension(filename[0], typeNameFROST1, TYPE_NAME_FROST_BAS, TYPE_NAME_FROST_RGB, filename, null, null);
         }
         filename[0] = remakeFileNameAndExtStr(filename[0]);
         return true;
@@ -507,7 +523,7 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
     public int convOriginalTypeFromFileName(String filename) {
         int[] t1 = {0};
         // 拡張子で属性を設定する
-        if (!isContainAttrByExtension(filename, gTypeNameFROST_1, TYPE_NAME_FROST_BAS, TYPE_NAME_FROST_RGB, null, t1, null)) {
+        if (!isContainAttrByExtension(filename, typeNameFROST1, TYPE_NAME_FROST_BAS, TYPE_NAME_FROST_RGB, null, t1, null)) {
             t1[0] = FILETYPE_FROST_BIN;
         }
         return t1[0];
@@ -532,12 +548,12 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
      */
     @Override
     public void setInternalDataInAttrDialog(KeyValArray vals) {
-        vals.add("NAME", m_data.data().name, m_data.data().name.length);
-        vals.add("EXT", m_data.data().ext, m_data.data().ext.length);
-        vals.add("TYPE", m_data.data().type & 0xff);
-        vals.add("TRACK", m_data.data().track & 0xff);
-        vals.add("SECTOR", m_data.data().sector & 0xff);
-        vals.add("LOAD_ADDR", (byte) m_data.data().loadAddr, basic.isBigEndian());
-        vals.add("SIZE", (byte) m_data.data().size, basic.isBigEndian());
+        vals.add("NAME", data.data().name, data.data().name.length);
+        vals.add("EXT", data.data().ext, data.data().ext.length);
+        vals.add("TYPE", data.data().type & 0xff);
+        vals.add("TRACK", data.data().track & 0xff);
+        vals.add("SECTOR", data.data().sector & 0xff);
+        vals.add("LOAD_ADDR", (byte) data.data().loadAddress, basic.isBigEndian());
+        vals.add("SIZE", (byte) data.data().size, basic.isBigEndian());
     }
 }

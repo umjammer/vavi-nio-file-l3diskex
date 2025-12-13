@@ -7,7 +7,7 @@ package l3diskex.basicfmt.type;
 import java.io.IOException;
 import java.util.List;
 
-import l3diskex.basicfmt.BasicCommon.DirectoryT;
+import l3diskex.basicfmt.BasicCommon.Directory;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.DiskBasic;
@@ -29,10 +29,11 @@ import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailabili
 /**
  * MZ Baseの処理
  */
-public class DiskBasicTypeMZBase<T extends DirectoryT> extends DiskBasicType<T> {
+public abstract class DiskBasicTypeMZBase<T extends Directory> extends DiskBasicType<T> {
 
-    public DiskBasicTypeMZBase(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<T> dir) {
-        super(basic, fat, dir);
+    @Override
+    public void init(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<T> dir) {
+        super.init(basic, fat, dir);
     }
 
     /** FAT 位置をセット */
@@ -141,33 +142,32 @@ public class DiskBasicTypeMZBase<T extends DirectoryT> extends DiskBasicType<T> 
 
         // 使用済みかチェック
         int grps = 0;
-        FatAvailability fsts = FAT_AVAIL_FREE;
-        for (int gnum = 0; gnum <= basic.getFatEndGroup(); gnum++) {
-            if (gnum < dataStartGroup) {
+        FatAvailability fatStatus = FAT_AVAIL_FREE;
+        for (int groupNum = 0; groupNum <= basic.getFatEndGroup(); groupNum++) {
+            if (groupNum < dataStartGroup) {
                 used++;
-                fsts = FAT_AVAIL_SYSTEM;
-            } else if (isUsedGroupNumber(gnum)) {
+                fatStatus = FAT_AVAIL_SYSTEM;
+            } else if (isUsedGroupNumber(groupNum)) {
                 used++;
-                fsts = FAT_AVAIL_FREE;
-            } else if (gnum >= dataStartGroup) {
+                fatStatus = FAT_AVAIL_FREE;
+            } else if (groupNum >= dataStartGroup) {
                 grps++;
-                fsts = FAT_AVAIL_USED;
+                fatStatus = FAT_AVAIL_USED;
             }
-            fatAvailability.add(fsts, 0, 0);
+            fatAvailability.add(fatStatus, 0, 0);
         }
 
         // ディレクトリエントリのグループ
         List<DiskBasicDirItem<T>> items = dir.getCurrentItems(null);
         if (items != null) {
-            for (int idx = 0; idx < items.size(); idx++) {
-                DiskBasicDirItem<T> item = items.get(idx);
+            for (DiskBasicDirItem<T> item : items) {
                 if (item == null || !item.isUsed()) continue;
 
                 // グループ番号のマップを調べる
-                int gcnt = item.getGroupCount();
-                if (gcnt > 0) {
-				DiskBasicGroupItem gitem = item.getGroup(gcnt - 1);
-                    int gnum = gitem.group;
+                int groupCount = item.getGroupCount();
+                if (groupCount > 0) {
+                    DiskBasicGroupItem groupItem = item.getGroup(groupCount - 1);
+                    int gnum = groupItem.group;
                     if (gnum <= basic.getFatEndGroup()) {
                         fatAvailability.set(gnum, FAT_AVAIL_USED_LAST);
                     }
@@ -175,7 +175,7 @@ public class DiskBasicTypeMZBase<T extends DirectoryT> extends DiskBasicType<T> 
             }
         }
 
-        int fsize = grps * basic.getSectorsPerGroup() * basic.getSectorSize();
+        int fSize = grps * basic.getSectorsPerGroup() * basic.getSectorSize();
 
         fatAvailability.setFreeSize(0);
         fatAvailability.setFreeGroups(0);
@@ -183,18 +183,18 @@ public class DiskBasicTypeMZBase<T extends DirectoryT> extends DiskBasicType<T> 
 
     /** 未使用が連続している位置をさがす */
     public int findContinuousArea(int groupSize, int[] groupStart) throws IOException {
-        int cnt = 0;
-        for (int gnum = getGroupNumber(0); gnum <= basic.getFatEndGroup() && cnt < groupSize; gnum++) {
-            if (!isUsedGroupNumber(gnum)) {
-                if (cnt == 0) {
-                    groupStart[0] = gnum;
+        int count = 0;
+        for (int groupNum = getGroupNumber(0); groupNum <= basic.getFatEndGroup() && count < groupSize; groupNum++) {
+            if (!isUsedGroupNumber(groupNum)) {
+                if (count == 0) {
+                    groupStart[0] = groupNum;
                 }
-                cnt++;
+                count++;
             } else {
-                cnt = 0;
+                count = 0;
             }
         }
-        return cnt;
+        return count;
     }
 
     /** グループを確保して使用中にする */
@@ -248,7 +248,7 @@ public class DiskBasicTypeMZBase<T extends DirectoryT> extends DiskBasicType<T> 
     /** セクタデータを指定コードで埋める */
     @Override
     public void fillSector(DiskImageTrack track, DiskImageSector sector) {
-        sector.fill(basic.invertUint8(basic.diskBasicParam.getFillCodeOnFormat()));
+        sector.fill(basic.invertUint8(basic.getFillCodeOnFormat()));
     }
 
     /** 指定したグループ番号の FAT 領域を削除する */

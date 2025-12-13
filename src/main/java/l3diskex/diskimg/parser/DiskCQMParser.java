@@ -20,13 +20,17 @@ import vavi.util.ByteUtil;
 import vavi.util.serdes.Element;
 import vavi.util.serdes.Serdes;
 
-import static l3diskex.diskimg.DiskParam.gDiskTemplates;
+import static l3diskex.diskimg.DiskParam.diskTemplates;
 
 
-/// CopyQMディスクパーサ
+/**
+ * CopyQMディスクパーサ
+ *
+ * @see "http://www.bitsavers.org/pdf/sydex/CopyQM_Oct94.pdf"
+ */
 public class DiskCQMParser extends DiskPlainParser {
 
-    /// Copy QM形式ヘッダ
+    /** Copy QM形式ヘッダ */
     @Serdes(bigEndian = false)
     public static class CqmDskHeader {
 
@@ -94,19 +98,25 @@ public class DiskCQMParser extends DiskPlainParser {
         int headCrc;
     }
 
-    public DiskCQMParser(DiskImageFile file, short mod_flags, DiskResult result) {
-        super(file, mod_flags, result);
+    @Override
+    public boolean isSupported(String type) {
+        return "cqmimg".equalsIgnoreCase(type);
+    }
+
+    @Override
+    public void init(DiskImageFile file, short modFlags, DiskResult result) {
+        super.init(file, modFlags, result);
     }
 
     /** データを展開 */
-    private int expandData(InputStream istream, OutputStream ostream) throws IOException {
+    private static int expandData(InputStream iStream, OutputStream oStream) throws IOException {
         int size = 0;
 
         byte[] buf = new byte[2];
 
         int len = 1;
         while (len > 0) {
-            len = istream.readNBytes(buf, 0, 2);
+            len = iStream.readNBytes(buf, 0, 2);
             if (len < 2) {
                 break;
             }
@@ -116,21 +126,21 @@ public class DiskCQMParser extends DiskPlainParser {
             if (n < 0) {
                 // negative
                 // copy next byte
-                len = istream.read(buf, 0, 1);
+                len = iStream.read(buf, 0, 1);
                 if (len < 1) break;
                 for (int i = 0; i < -n; i++) {
-                    ostream.write(buf[0] & 0xff);
+                    oStream.write(buf[0] & 0xff);
                     size++;
                 }
             } else if (n > 0) {
                 // positive
                 // read n bytes
                 byte[] c = new byte[n];
-                len = istream.readNBytes(c, 0, len);
+                len = iStream.readNBytes(c, 0, len);
                 if (len == 0) {
                     break;
                 }
-                ostream.write(c, 0, len);
+                oStream.write(c, 0, len);
 
                 size += len;
             } else {
@@ -142,23 +152,23 @@ public class DiskCQMParser extends DiskPlainParser {
     }
 
     @Override
-    public int parse(InputStream istream, DiskParam disk_param) throws IOException {
-        if (disk_param == null) {
+    public int parse(InputStream iStream, DiskParam diskParam) throws IOException {
+        if (diskParam == null) {
             result.setError(DiskResult.ERRV_INVALID_DISK, 0, 0);
             return result.getValid();
         }
 
-        ((SeekableDataInputStream) istream).position(0);
+        ((SeekableDataInputStream) iStream).position(0);
 
-        if (istream.available() < CqmDskHeader.SIZE) {
+        if (iStream.available() < CqmDskHeader.SIZE) {
             result.setError(DiskResult.ERRV_DISK_TOO_SMALL, 0);
             return result.getValid();
         }
         CqmDskHeader header = new CqmDskHeader();
-        Serdes.Util.deserialize(istream, header);
+        Serdes.Util.deserialize(iStream, header);
         int comment_length = header.commentLength;
 
-        ((SeekableDataInputStream) istream).position(CqmDskHeader.SIZE + comment_length); // wxFromCurrent
+        ((SeekableDataInputStream) iStream).position(CqmDskHeader.SIZE + comment_length); // wxFromCurrent
 
         //
         int sectorSize = header.sectorSize;
@@ -170,34 +180,36 @@ public class DiskCQMParser extends DiskPlainParser {
 
         // Expand the data into a byte array
         ByteArrayOutputStream otemp = new ByteArrayOutputStream(diskSizeHint);
-        expandData(istream, otemp);
+        expandData(iStream, otemp);
 
         ByteArrayInputStream itemp = new ByteArrayInputStream(otemp.toByteArray());
 
-        int sts = super.parse(itemp, disk_param);
+        int sts = super.parse(itemp, diskParam);
 
         return sts;
     }
 
-    public int check(InputStream istream,
-                     List<DiskParam> disk_params,
-                     DiskParam manual_param,
-                     List<DiskTypeHint> hints) throws IOException {
-        ((SeekableDataInputStream) istream).position(0);
+    @Override
+    public int check(InputStream iStream,
+                     List<DiskTypeHint> hints,
+                     DiskParam diskParam,
+                     List<DiskParam> diskParams,
+                     DiskParam manualParam) throws IOException {
+        ((SeekableDataInputStream) iStream).position(0);
 
-        if (istream.available() < CqmDskHeader.SIZE) {
+        if (iStream.available() < CqmDskHeader.SIZE) {
             // too short
             result.setError(DiskResult.ERRV_DISK_TOO_SMALL, 0);
             return result.getValid();
         }
         CqmDskHeader header = new CqmDskHeader();
-        Serdes.Util.deserialize(istream, header);
+        Serdes.Util.deserialize(iStream, header);
         if (header.ident[0] != (byte) 'C' || header.ident[1] != (byte) 'Q' || header.ident[2] != (byte) 0x14) {
             // not CopyCQ image
             return -1;
         }
         int sectorSize = header.sectorSize;
-        if (sectorSize <= 0 || sectorSize > 4096) {
+        if (sectorSize <= 0 || sectorSize > 0x1000) {
             // invalid
             result.setError(DiskResult.ERRV_SECTOR_SIZE_HEADER, 0, sectorSize);
             return result.getValid();
@@ -226,16 +238,16 @@ public class DiskCQMParser extends DiskPlainParser {
 
         // Look for a matching template
         DiskParam dummy = new DiskParam();
-        DiskParam param = gDiskTemplates.findStrict(sidesPerDisk, tracksPerSide, sectorsPerTrack, sectorSize,
+        DiskParam param = diskTemplates.findStrict(sidesPerDisk, tracksPerSide, sectorsPerTrack, sectorSize,
                 interleave, dummy.getTrackNumberBaseOnDisk(), dummy.getSideNumberBaseOnDisk(), dummy.getSectorNumberBaseOnDisk(), 0,
                 dummy.getSingles(), dummy.getParticularTracks());
         if (param != null) {
-            disk_params.add(param);
+            diskParams.add(param);
         }
 
         // If no template – create a manual parameter
-        if (disk_params.isEmpty()) {
-            manual_param.setDiskParam(
+        if (diskParams.isEmpty()) {
+            manualParam.setDiskParam(
                     sidesPerDisk,
                     tracksPerSide,
                     sectorsPerTrack,

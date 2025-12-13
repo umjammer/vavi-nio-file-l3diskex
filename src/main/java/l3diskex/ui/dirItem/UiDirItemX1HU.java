@@ -38,8 +38,8 @@ import static l3diskex.basicfmt.diritem.DiskBasicDirItemX1HU.TYPE_NAME_X1HU_PASS
 import static l3diskex.basicfmt.diritem.DiskBasicDirItemX1HU.TYPE_NAME_X1HU_RANDOM;
 import static l3diskex.basicfmt.diritem.DiskBasicDirItemX1HU.TYPE_NAME_X1HU_READ_ONLY;
 import static l3diskex.basicfmt.diritem.DiskBasicDirItemX1HU.TYPE_NAME_X1HU_SWORD;
-import static l3diskex.basicfmt.diritem.DiskBasicDirItemX1HU.gTypeNameX1HU_1;
-import static l3diskex.basicfmt.diritem.DiskBasicDirItemX1HU.gTypeNameX1HU_2;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemX1HU.typeNameX1Hu1;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemX1HU.typeNameX1Hu2;
 import static l3diskex.ui.IntNameBox.INTNAME_NEW_FILE;
 import static l3diskex.ui.dirItem.UiDirItemFLEX.IDC_CHECK_ATTR1;
 
@@ -77,7 +77,7 @@ public class UiDirItemX1HU extends UiDirItem {
 
         String[] types1 = new String[TYPE_NAME_X1HU_END];
         for (int i = TYPE_NAME_X1HU_BINARY; i < TYPE_NAME_X1HU_END; i++) {
-            types1[i] = rb.getString(Utils.keyAt(gTypeNameX1HU_1, i));
+            types1[i] = rb.getString(Utils.keyAt(typeNameX1Hu1, i));
         }
 
         comType1 = new JComboBox(parent, IDC_COMBO_TYPE1, new WxDefaultPosition(), new WxDefaultSize(), types1);
@@ -89,9 +89,9 @@ public class UiDirItemX1HU extends UiDirItem {
 
         BoxLayout staType4 = new WxStaticBoxLayout(null, WxStaticBox.newWxStaticBox(parent, wxID_ANY, rb.getString("File Attributes")), wxVERTICAL);
         GridLayout szrG = new GridLayout(2, 2, 4);
-        for (int i = 0; gTypeNameX1HU_2.size(); i++) {
-            chkAttr1 = new JCheckBox(parent, IDC_CHECK_ATTR1 + i, rb.getString(Utils.keyAt(gTypeNameX1HU_2, i)));
-            chkAttr1.setValue((file_type_2 & (int) Utils.valueAt(gTypeNameX1HU_2, i)) != 0);
+        for (int i = 0; typeNameX1Hu2.size(); i++) {
+            chkAttr1 = new JCheckBox(parent, IDC_CHECK_ATTR1 + i, rb.getString(Utils.keyAt(typeNameX1Hu2, i)));
+            chkAttr1.setValue((file_type_2 & (int) Utils.valueAt(typeNameX1Hu2, i)) != 0);
             szrG.add(chkAttr1);
             if (i == TYPE_NAME_X1HU_PASSWORD) {
                 chkEncrypt = chkAttr1;
@@ -153,7 +153,7 @@ public class UiDirItemX1HU extends UiDirItem {
         for (int i = 0; i <= TYPE_NAME_X1HU_READ_ONLY; i++) {
             JCheckBox chkAttr1 = (JCheckBox) parent.getComponent(IDC_CHECK_ATTR1 + i);
             if (chkAttr1.getValue()) {
-                val |= (int) Utils.valueAt(gTypeNameX1HU_2, i);
+                val |= (int) Utils.valueAt(typeNameX1Hu2, i);
             }
         }
         return val;
@@ -163,29 +163,24 @@ public class UiDirItemX1HU extends UiDirItem {
     private int calcFileTypeFromPos(int pos) {
         int val = 0;
         int ext = 0;
-        switch (pos) {
-            case TYPE_NAME_X1HU_BINARY:
-                val = FILETYPE_X1HU_BINARY;
-                break;
-            case TYPE_NAME_X1HU_BASIC:
-                val = FILETYPE_X1HU_BASIC;
-                break;
-            case TYPE_NAME_X1HU_ASCII:
+        val = switch (pos) {
+            case TYPE_NAME_X1HU_BINARY -> FILETYPE_X1HU_BINARY;
+            case TYPE_NAME_X1HU_BASIC -> FILETYPE_X1HU_BASIC;
+            case TYPE_NAME_X1HU_ASCII -> {
                 ext = EXTERNAL_X1_DEFAULT;
-                val = FILETYPE_X1HU_ASCII;
-                break;
-            case TYPE_NAME_X1HU_DIRECTORY:
-                val = FILETYPE_X1HU_DIRECTORY;
-                break;
-            case TYPE_NAME_X1HU_RANDOM:
+                yield FILETYPE_X1HU_ASCII;
+            }
+            case TYPE_NAME_X1HU_DIRECTORY -> FILETYPE_X1HU_DIRECTORY;
+            case TYPE_NAME_X1HU_RANDOM -> {
                 ext = EXTERNAL_X1_RANDOM;
-                val = FILETYPE_X1HU_ASCII;
-                break;
-            case TYPE_NAME_X1HU_SWORD:
+                yield FILETYPE_X1HU_ASCII;
+            }
+            case TYPE_NAME_X1HU_SWORD -> {
                 ext = EXTERNAL_X1_SWORD;
-                val = FILETYPE_X1HU_ASCII;
-                break;
-        }
+                yield FILETYPE_X1HU_ASCII;
+            }
+            default -> val;
+        };
         return (ext << 16 | val);
     }
 

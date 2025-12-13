@@ -29,39 +29,40 @@ import l3diskex.basicfmt.DiskBasicDirItem;
 import l3diskex.basicfmt.DiskBasicError;
 import l3diskex.basicfmt.DiskBasicFat;
 import l3diskex.basicfmt.DiskBasicParam;
+import l3diskex.basicfmt.DiskBasicParam.DiskBasicFormat;
 import l3diskex.basicfmt.DiskBasicType;
 import l3diskex.basicfmt.diritem.DiskBasicDirItemAmiga;
 import l3diskex.basicfmt.diritem.DiskBasicDirItemAmiga.AmigaBlockPre;
 import l3diskex.basicfmt.diritem.DiskBasicDirItemAmiga.AmigaFileDataPre;
-import l3diskex.basicfmt.DiskBasicParam.DiskBasicFormat;
 import l3diskex.basicfmt.diritem.DiskBasicDirItemAmiga.AmigaRootBlockPost;
 import l3diskex.basicfmt.diritem.DiskBasicDirItemAmiga.DirectoryAmiga;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import vavi.util.serdes.Element;
 import vavi.util.serdes.Serdes;
 
+import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_FREE;
+import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_SYSTEM;
+import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_USED;
+import static l3diskex.basicfmt.DiskBasicTemplates.diskBasicTemplates;
 import static l3diskex.basicfmt.diritem.DiskBasicDirItemAmiga.FILETYPE_MASK_AMIGA_DATA;
 import static l3diskex.basicfmt.diritem.DiskBasicDirItemAmiga.FILETYPE_MASK_AMIGA_HEADER;
 import static l3diskex.basicfmt.diritem.DiskBasicDirItemAmiga.FILETYPE_MASK_AMIGA_ROOT;
 import static l3diskex.basicfmt.diritem.DiskBasicDirItemAmiga.KEY_FAST_FILE_SYSTEM;
 import static l3diskex.basicfmt.diritem.DiskBasicDirItemAmiga.KEY_INTERNATIONAL;
-import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_FREE;
-import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_SYSTEM;
-import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailability.FAT_AVAIL_USED;
-import static l3diskex.basicfmt.DiskBasicTemplates.gDiskBasicTemplates;
+import static l3diskex.basicfmt.type.DiskBasicTypeAmiga.AmigaOneBitmap.addBitmap;
 
 
 /**
  Amiga DOS の処理
 
  DiskBasicParam
- @li FastFileSystem FFSかどうか(bool)
+ <li>FastFileSystem FFSかどうか(bool)</li>
  */
 public class DiskBasicTypeAmiga extends DiskBasicType<DirectoryAmiga> {
 
     private static final Logger logger = System.getLogger(DiskBasicTypeAmiga.class.getName());
 
-    /** Amiga Boot Block (all Big Endien) */
+    /** Amiga Boot Block (all Big Endian) */
     @Serdes
     static class AmigaBootBlock {
 
@@ -71,10 +72,10 @@ public class DiskBasicTypeAmiga extends DiskBasicType<DirectoryAmiga> {
         @Element(sequence = 1)
         byte[] type = new byte[4];
         @Element(sequence = 2)
-        int check_sum;
+        int checkSum;
         /** number of root block */
         @Element(sequence = 3)
-        int root_block;
+        int rootBlock;
         /** boot program */
         @Element(sequence = 4)
         byte[] program = new byte[500];
@@ -85,7 +86,7 @@ public class DiskBasicTypeAmiga extends DiskBasicType<DirectoryAmiga> {
     static class AmigaBitmapBlock {
 
         @Element(sequence = 1)
-        int check_sum;
+        int checkSum;
         /** block size - 4 */
         @Element(sequence = 2)
         int[] map;
@@ -94,166 +95,170 @@ public class DiskBasicTypeAmiga extends DiskBasicType<DirectoryAmiga> {
     /** AMIGA ビットマップ 1つ */
     static class AmigaOneBitmap {
 
-        int m_block_num;
-        int m_block_size;
-        AmigaBitmapBlock m_map;
+        int blockNum;
+        int blockSize;
+        AmigaBitmapBlock map;
 
-        /// 指定位置のビットを変更する
-        /// @param block_num  ブロック番号(2..)
-        /// @param use セットする場合true
-        public void modify(int block_num, boolean use) {
-            int pos = block_num >> 5;
-            int bit = block_num & 0x1f;
-            int dat = (1 << bit);
+        /**
+         * 指定位置のビットを変更する
+         * @param blockNum  ブロック番号(2..)
+         * @param use セットする場合true
+         */
+        public void modify(int blockNum, boolean use) {
+            int pos = blockNum >> 5;
+            int bit = blockNum & 0x1f;
+            int data = (1 << bit);
             if (use) {
-                m_map.map[pos] &= ~dat;
+                map.map[pos] &= ~data;
             } else {
-                m_map.map[pos] |= dat;
+                map.map[pos] |= data;
             }
         }
 
-        /// 指定位置が空いているか
-        /// @param block_num  ブロック番号(2..)
-        /// @return 空いている場合 true
-        public boolean isFree(int block_num) {
-            int pos = block_num >> 5;
-            int bit = block_num & 0x1f;
-            int dat = (1 << bit);
-            return ((m_map.map[pos] & dat) != 0);
+        /**
+         * 指定位置が空いているか
+         * @param blockNum  ブロック番号(2..)
+         * @return 空いている場合 true
+         */
+        public boolean isFree(int blockNum) {
+            int pos = blockNum >> 5;
+            int bit = blockNum & 0x1f;
+            int data = (1 << bit);
+            return ((map.map[pos] & data) != 0);
         }
 
-        /// 指定ブロックまですべて未使用にする
-        /// @param block_num 最終ブロック番号
-        public void freeAll(int block_num) {
-            if (block_num >= getBlockNums()) {
-                block_num = getBlockNums() - 1;
+        /**
+         * 指定ブロックまですべて未使用にする
+         * @param blockNum 最終ブロック番号
+         */
+        public void freeAll(int blockNum) {
+            if (blockNum >= getNumOfBlocks()) {
+                blockNum = getNumOfBlocks() - 1;
             }
-            int pos = block_num >> 5;
-            int bit = block_num & 0x1f;
+            int pos = blockNum >> 5;
+            int bit = blockNum & 0x1f;
             for (int p = 0; p < pos; p++) {
-                m_map.map[p] = 0xffff_ffff;
+                map.map[p] = 0xffff_ffff;
             }
-            int dat = ((1 << (bit + 1)) - 1);
-            m_map.map[pos] = dat;
+            int data = ((1 << (bit + 1)) - 1);
+            map.map[pos] = data;
         }
 
         /** ブロック数を返す */
-        public int getBlockNums() {
-            return (m_block_size - 4) * 8;
+        public int getNumOfBlocks() {
+            return (blockSize - 4) * 8;
         }
 
         /** チェックサムの更新 */
         public void updateCheckSum() {
             try {
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                Serdes.Util.serialize(m_map, baos);
-                m_map.check_sum = DiskBasicTypeAmiga.calcCheckSumOnBootBlock(baos.toByteArray(), m_block_size);
+                Serdes.Util.serialize(map, baos);
+                map.checkSum = DiskBasicTypeAmiga.calcCheckSumOnBootBlock(baos.toByteArray(), blockSize);
             } catch (Exception e) {
 logger.log(Level.TRACE, e.getMessage());
             }
         }
 
         public int getBlockNumber() {
-            return m_block_num;
+            return blockNum;
         }
-    }
 
-    static class AmigaBitmap {
+        //
+        // AmigaBitmap
+        //
 
-        List<AmigaOneBitmap> list = new ArrayList<>();
-
-        /// ビットマップを追加
-        /// @param block_num  ブロック番号
-        /// @param mapBuffer  マップのあるバッファ
-        /// @param block_size バッファサイズ
-        public void addBitmap(int block_num, byte[] mapBuffer, int block_size) throws IOException {
+        /**
+         * ビットマップを追加
+         *
+         * @param blockNum  ブロック番号
+         * @param mapBuffer マップのあるバッファ
+         * @param blockSize バッファサイズ
+         */
+        public static void addBitmap(List<AmigaOneBitmap> list, int blockNum, byte[] mapBuffer, int blockSize) throws IOException {
             AmigaBitmapBlock b = new AmigaBitmapBlock();
             Serdes.Util.deserialize(new ByteArrayInputStream(mapBuffer), mapBuffer);
             AmigaOneBitmap o = new AmigaOneBitmap();
-            o.m_block_num = block_num;
-            o.m_block_size = block_size;
-            o.m_map = b;
+            o.blockNum = blockNum;
+            o.blockSize = blockSize;
+            o.map = b;
             list.add(o);
         }
 
-        /// 指定位置のビットを変更する
-        /// @param block_num  ブロック番号(2..)
-        /// @param use セットする場合true
-        public void modify(int block_num, boolean use) {
-            if (block_num < 2) return;
+        /**
+         * 指定位置のビットを変更する
+         *
+         * @param blockNum ブロック番号(2..)
+         * @param use      セットする場合true
+         */
+        public static void modify(List<AmigaOneBitmap> list, int blockNum, boolean use) {
+            if (blockNum < 2) return;
 
-            block_num -= 2;
-            for (int i = 0; i < size(); i++) {
-                AmigaOneBitmap item = get(i);
-                int itemBlockNums = item.getBlockNums();
-                if (block_num < itemBlockNums) {
-                    item.modify(block_num, use);
+            blockNum -= 2;
+            for (AmigaOneBitmap item : list) {
+                int itemBlockNums = item.getNumOfBlocks();
+                if (blockNum < itemBlockNums) {
+                    item.modify(blockNum, use);
                     break;
                 }
-                block_num -= itemBlockNums;
+                blockNum -= itemBlockNums;
             }
         }
 
-        /// 指定位置が空いているか
-        /// @param block_num  ブロック番号(2..)
-        /// @return 空いている場合 true
-        public boolean isFree(int block_num) {
-            if (block_num < 2) return false;
+        /**
+         * 指定位置が空いているか
+         *
+         * @param blockNum ブロック番号(2..)
+         * @return 空いている場合 true
+         */
+        public static boolean isFree(List<AmigaOneBitmap> list, int blockNum) {
+            if (blockNum < 2) return false;
 
-            block_num -= 2;
-            for (int i = 0; i < size(); i++) {
-                AmigaOneBitmap item = get(i);
-                int itemBlockNums = item.getBlockNums();
-                if (block_num < itemBlockNums) {
-                    return item.isFree(block_num);
+            blockNum -= 2;
+            for (AmigaOneBitmap item : list) {
+                int itemBlockNums = item.getNumOfBlocks();
+                if (blockNum < itemBlockNums) {
+                    return item.isFree(blockNum);
                 }
-                block_num -= itemBlockNums;
+                blockNum -= itemBlockNums;
             }
             return false;
         }
 
-        /// 指定ブロックまですべて未使用にする
-        /// @param block_num 最終ブロック番号
-        public void freeAll(int block_num) {
-            if (block_num < 2) return;
+        /**
+         * 指定ブロックまですべて未使用にする
+         *
+         * @param blockNum 最終ブロック番号
+         */
+        public static void freeAll(List<AmigaOneBitmap> list, int blockNum) {
+            if (blockNum < 2) return;
 
-            block_num -= 2;
-            for (int i = 0; i < size(); i++) {
-                AmigaOneBitmap item = get(i);
-                int itemBlockNums = item.getBlockNums();
-                if (block_num < itemBlockNums) {
-                    item.freeAll(block_num);
+            blockNum -= 2;
+            for (AmigaOneBitmap item : list) {
+                int itemBlockNums = item.getNumOfBlocks();
+                if (blockNum < itemBlockNums) {
+                    item.freeAll(blockNum);
                 } else {
                     item.freeAll(0xffff_ffff);
                 }
-                block_num -= itemBlockNums;
+                blockNum -= itemBlockNums;
             }
         }
 
         /** ブロック数を返す */
-        public int getBlockNums() {
-            int block_nums = 0;
-            for (int i = 0; i < size(); i++) {
-                AmigaOneBitmap item = get(i);
-                block_nums += item.getBlockNums();
+        public static int getNumOfBlocks(List<AmigaOneBitmap> list) {
+            int blockNums = 0;
+            for (AmigaOneBitmap item : list) {
+                blockNums += item.getNumOfBlocks();
             }
-            return block_nums;
+            return blockNums;
         }
 
         /** チェックサムの更新 */
-        public void updateCheckSum() {
-            for (int i = 0; i < size(); i++) {
-                AmigaOneBitmap item = get(i);
+        public static void updateCheckSum(List<AmigaOneBitmap> list) {
+            for (AmigaOneBitmap item : list) {
                 item.updateCheckSum();
             }
-        }
-
-        public AmigaOneBitmap get(int i) {
-            return list.get(i);
-        }
-
-        public int size() {
-            return list.size();
         }
     }
 
@@ -262,21 +267,29 @@ logger.log(Level.TRACE, e.getMessage());
     //
 
     /** Root Block */
-    private final DirectoryAmiga m_root = new DirectoryAmiga();
+    private final DirectoryAmiga root = new DirectoryAmiga();
     /** Bitmap Blocks */
-    private final AmigaBitmap m_bitmap = new AmigaBitmap();
+    private final List<AmigaOneBitmap> bitmap = new ArrayList<>();
 
-    public DiskBasicTypeAmiga(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryAmiga> dir) {
-        super(basic, fat, dir);
+    public static final int FORMAT_TYPE_AMIGA = 21;
 
-        m_root.blockNum = 0;
-        m_root.pre = null;
-        m_root.post = null;
+    @Override
+    public boolean isSupported(int typeNumber) {
+        return typeNumber == FORMAT_TYPE_AMIGA;
+    }
+
+    @Override
+    public void init(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryAmiga> dir) {
+        super.init(basic, fat, dir);
+
+        root.blockNum = 0;
+        root.pre = null;
+        root.post = null;
     }
 
     @Override
     public void setGroupNumber(int num, int val) {
-        m_bitmap.modify(num, val != 0);
+        AmigaOneBitmap.modify(bitmap, num, val != 0);
     }
 
     @Override
@@ -286,11 +299,11 @@ logger.log(Level.TRACE, e.getMessage());
 
     @Override
     public boolean isUsedGroupNumber(int num) {
-        return !m_bitmap.isFree(num);
+        return !AmigaOneBitmap.isFree(bitmap, num);
     }
 
     @Override
-    public int getNextGroupNumber(int num, int sector_pos) {
+    public int getNextGroupNumber(int num, int sectorPos) {
         return INVALID_GROUP_NUMBER;
     }
 
@@ -300,31 +313,31 @@ logger.log(Level.TRACE, e.getMessage());
     }
 
     @Override
-    public int getNextEmptyGroupNumber(int curr_group) {
-        int next_group_num = getEmptyGroupNumber();
-        if (next_group_num == INVALID_GROUP_NUMBER) {
+    public int getNextEmptyGroupNumber(int currentGroup) {
+        int nextGroupNum = getEmptyGroupNumber();
+        if (nextGroupNum == INVALID_GROUP_NUMBER) {
             return INVALID_GROUP_NUMBER;
         }
 
-        if (chainGroups(curr_group, next_group_num) < 0) {
+        if (chainGroups(currentGroup, nextGroupNum) < 0) {
             return INVALID_GROUP_NUMBER;
         }
 
-        return next_group_num;
+        return nextGroupNum;
     }
 
     // check / assign FAT area
     @Override
-    public double checkFat(boolean is_formatting) {
-        double valid_ratio = 1.0;
-        return valid_ratio;
+    public double checkFat(boolean isFormatting) {
+        double validRatio = 1.0;
+        return validRatio;
     }
 
     @Override
-    public double parseParamOnDisk(boolean is_formatting) throws IOException {
-        if (is_formatting) return 0;
+    public double parseParamOnDisk(boolean isFormatting) throws IOException {
+        if (isFormatting) return 0;
 
-        double valid_ratio = 1.0;
+        double validRatio = 1.0;
 
         //
         // boot block
@@ -346,25 +359,25 @@ logger.log(Level.TRACE, e.getMessage());
             return -1.0;
         }
         // Fast File System か
-        boolean disk_is_fast = (bb.type[3] != 'K' && (bb.type[3] & 1) != 0);
-        boolean param_is_fast = basic.diskBasicParam.getVariousBoolParam(KEY_FAST_FILE_SYSTEM);
-        if (disk_is_fast != param_is_fast) {
+        boolean diskIsFast = (bb.type[3] != 'K' && (bb.type[3] & 1) != 0);
+        boolean paramIsFast = basic.getVariousBoolParam(KEY_FAST_FILE_SYSTEM);
+        if (diskIsFast != paramIsFast) {
             return -1.0;
         }
-        basic.diskBasicParam.setVariousParam(KEY_INTERNATIONAL, (bb.type[3] & 6) == 2 || (bb.type[3] & 6) == 4);
+        basic.setVariousParam(KEY_INTERNATIONAL, (bb.type[3] & 6) == 2 || (bb.type[3] & 6) == 4);
 
         //
         // root block
         //
-        m_root.blockNum = bb.root_block;
-        if (m_root.blockNum < 2 || m_root.blockNum > basic.diskBasicParam.getFatEndGroup()) {
+        root.blockNum = bb.rootBlock;
+        if (root.blockNum < 2 || root.blockNum > basic.getFatEndGroup()) {
             // ブート領域かディスクをオーバしている
-            if (valid_ratio >= 0.0) valid_ratio *= 0.8;
-            m_root.blockNum = basic.diskBasicParam.getManagedTrackNumber() * basic.diskBasicParam.getSidesPerDiskOnBasic() * basic.getSectorsPerTrackOnBasic() + basic.diskBasicParam.getDirStartSector() - 1;
+            if (validRatio >= 0.0) validRatio *= 0.8;
+            root.blockNum = basic.getManagedTrackNumber() * basic.getSidesPerDiskOnBasic() * basic.getSectorsPerTrackOnBasic() + basic.getDirStartSector() - 1;
         }
-        int[] root_track = new int[1];
-        int[] root_side = new int[1];
-        sector = basic.getSectorFromGroup(m_root.blockNum, root_track, root_side);
+        int[] rootTrack = new int[1];
+        int[] rootSide = new int[1];
+        sector = basic.getSectorFromGroup(root.blockNum, rootTrack, rootSide);
         if (sector == null) {
             return -1.0;
         }
@@ -372,8 +385,8 @@ logger.log(Level.TRACE, e.getMessage());
         if (b == null) {
             return -1.0;
         }
-        m_root.pre = new AmigaBlockPre();
-        Serdes.Util.deserialize(new ByteArrayInputStream(b, 0, b.length), m_root.pre);
+        root.pre = new AmigaBlockPre();
+        Serdes.Util.deserialize(new ByteArrayInputStream(b, 0, b.length), root.pre);
         // hash_tableはセクタサイズ（ブロックサイズ）で可変
         int offset = basic.getSectorSize() - AmigaRootBlockPost.SIZE;
         if (offset < 0) {
@@ -383,73 +396,73 @@ logger.log(Level.TRACE, e.getMessage());
         if (b == null) {
             return -1.0;
         }
-        m_root.post = new AmigaRootBlockPost();
-        Serdes.Util.deserialize(new ByteArrayInputStream(b, offset, b.length - offset), m_root.post);
-        basic.diskBasicParam.setManagedTrackNumber(root_track[0]);
-        basic.diskBasicParam.setDirStartSector(sector.getSectorNumber());
+        root.post = new AmigaRootBlockPost();
+        Serdes.Util.deserialize(new ByteArrayInputStream(b, offset, b.length - offset), root.post);
+        basic.setManagedTrackNumber(rootTrack[0]);
+        basic.setDirStartSector(sector.getSectorNumber());
 
         //
         // ビットマップ
         //
-        if (m_root.post.u.r.bmFlag == -1) {
+        if (root.post.u.r.bmFlag == -1) {
             for (int i = 0; i < 25; i++) {
-                int num = m_root.post.u.r.bmPages[i];
+                int num = root.post.u.r.bmPages[i];
                 if (num < 2) {
                     continue;
                 }
                 sector = basic.getSectorFromGroup(num);
                 if (sector == null) {
                     // Why?
-                    valid_ratio = 0.2;
+                    validRatio = 0.2;
                     break;
                 }
-                m_bitmap.addBitmap(num, sector.getSectorBuffer(), sector.getSectorSize());
+                addBitmap(bitmap, num, sector.getSectorBuffer(), sector.getSectorSize());
             }
         } else {
-            valid_ratio = 0.2;
+            validRatio = 0.2;
         }
-        basic.diskBasicParam.setSectorsPerFat(m_bitmap.size());
-        basic.diskBasicParam.setFatEndGroup(basic.diskBasicParam.getSidesPerDiskOnBasic() * basic.diskBasicParam.getTracksPerSideOnBasic() * basic.getSectorsPerTrackOnBasic() - 1);
+        basic.setSectorsPerFat(bitmap.size());
+        basic.setFatEndGroup(basic.getSidesPerDiskOnBasic() * basic.getTracksPerSideOnBasic() * basic.getSectorsPerTrackOnBasic() - 1);
 
         //
         // ディレクトリエリア
         //
 
         // root block の hash table を追跡
-        int max_ht = m_root.pre.tableSize;
-        int calc_max_ht = (basic.getSectorSize() - AmigaBlockPre.SIZE - AmigaRootBlockPost.SIZE + 4) / 4;
-        if (max_ht > calc_max_ht) {
-            valid_ratio = -1.0;
-            max_ht = calc_max_ht;
+        int maxHashtable = root.pre.tableSize;
+        int calcMaxHashtable = (basic.getSectorSize() - AmigaBlockPre.SIZE - AmigaRootBlockPost.SIZE + 4) / 4;
+        if (maxHashtable > calcMaxHashtable) {
+            validRatio = -1.0;
+            maxHashtable = calcMaxHashtable;
         }
 
-        for (int ht = 0; ht < max_ht; ht++) {
-            int num = m_root.pre.u.table[ht];
+        for (int hashtable = 0; hashtable < maxHashtable; hashtable++) {
+            int num = root.pre.u.table[hashtable];
             if (num > 0 && num < 2) {
                 // boot領域にある？
-                if (valid_ratio > 0.0) valid_ratio *= 0.5;
+                if (validRatio > 0.0) validRatio *= 0.5;
             } else if (num > basic.getFatEndGroup()) {
                 // 範囲外
-                if (valid_ratio > 0.0) valid_ratio *= 0.5;
+                if (validRatio > 0.0) validRatio *= 0.5;
             }
         }
 
-        return valid_ratio;
+        return validRatio;
     }
 
     @Override
-    public void getStartNumOnFat(int[] track_num, int[] side_num, int[] sector_num) {
-        if (!m_bitmap.list.isEmpty()) {
-            AmigaOneBitmap item = m_bitmap.get(0);
-            getNumFromSectorPos(item.getBlockNumber(), track_num, side_num, sector_num);
+    public void getStartNumOnFat(int[] trackNum, int[] sideNum, int[] sectorNum) {
+        if (!bitmap.isEmpty()) {
+            AmigaOneBitmap item = bitmap.getFirst();
+            getNumFromSectorPos(item.getBlockNumber(), trackNum, sideNum, sectorNum);
         }
     }
 
     @Override
-    public void getEndNumOnFat(int[] track_num, int[] side_num, int[] sector_num) {
-        if (!m_bitmap.list.isEmpty()) {
-            AmigaOneBitmap item = m_bitmap.get(m_bitmap.size() - 1);
-            getNumFromSectorPos(item.getBlockNumber(), track_num, side_num, sector_num);
+    public void getEndNumOnFat(int[] trackNum, int[] sideNum, int[] sectorNum) {
+        if (!bitmap.isEmpty()) {
+            AmigaOneBitmap item = bitmap.getLast();
+            getNumFromSectorPos(item.getBlockNumber(), trackNum, sideNum, sectorNum);
         }
     }
 
@@ -460,52 +473,52 @@ logger.log(Level.TRACE, e.getMessage());
 
     // check / assign directory area
     @Override
-    public boolean calcGroupsOnRootDirectory(int start_sector, int end_sector, DiskBasicGroups group_items) throws IOException {
-        group_items.clear();
+    public boolean calcGroupsOnRootDirectory(int startSector, int endSector, DiskBasicGroups groupItems) throws IOException {
+        groupItems.clear();
 
-        if (m_root.pre == null) {
+        if (root.pre == null) {
             return false;
         }
         boolean valid = true;
 
-        int limit = basic.diskBasicParam.getFatEndGroup() + 1;
-        int max_blks = m_root.pre.tableSize;
+        int limit = basic.getFatEndGroup() + 1;
+        int maxBlocks = root.pre.tableSize;
 
-        valid = DiskBasicDirItemAmiga.getDirectoryGroups(basic, m_root.pre.u.table, max_blks, limit, group_items);
+        valid = DiskBasicDirItemAmiga.getDirectoryGroups(basic, root.pre.u.table, maxBlocks, limit, groupItems);
 
         return valid;
     }
 
     @Override
-    public boolean assignRootDirectory(int start_sector, int end_sector, DiskBasicGroups group_items, DiskBasicDirItem<DirectoryAmiga> dir_item) throws IOException {
-        boolean sts = super.assignRootDirectory(start_sector, end_sector, group_items, dir_item);
-        if (dir_item != null) {
-            int[] trk = new int[1];
-            int[] sid = new int[1];
-            DiskImageSector sector = basic.getSectorFromGroup(m_root.blockNum, trk, sid);
-            dir_item.setDataPtr(0, null, sector, 0, sector.getSectorBuffer(), 0, null);
+    public boolean assignRootDirectory(int startSector, int endSector, DiskBasicGroups groupItems, DiskBasicDirItem<DirectoryAmiga> dirItem) throws IOException {
+        boolean sts = super.assignRootDirectory(startSector, endSector, groupItems, dirItem);
+        if (dirItem != null) {
+            int[] track = new int[1];
+            int[] side = new int[1];
+            DiskImageSector sector = basic.getSectorFromGroup(root.blockNum, track, side);
+            dirItem.setData(0, null, sector, 0, sector.getSectorBuffer(), 0, null);
         }
-        DiskBasicDirItemAmiga.renumberInDirectory(basic, dir_item.getChildren());
+        DiskBasicDirItemAmiga.renumberInDirectory(basic, dirItem.getChildren());
         return sts;
     }
 
     @Override
-    public boolean assignDirectory(boolean is_root, DiskBasicGroups group_items, DiskBasicDirItem<DirectoryAmiga> dir_item) throws IOException {
-        boolean sts = super.assignDirectory(is_root, group_items, dir_item);
-        DiskBasicDirItemAmiga.renumberInDirectory(basic, dir_item.getChildren());
-        return sts;
+    public boolean assignDirectory(boolean isRoot, DiskBasicGroups groupItems, DiskBasicDirItem<DirectoryAmiga> dirItem) throws IOException {
+        boolean status = super.assignDirectory(isRoot, groupItems, dirItem);
+        DiskBasicDirItemAmiga.renumberInDirectory(basic, dirItem.getChildren());
+        return status;
     }
 
     @Override
-    public int initializeSectorsAsDirectory(DiskBasicGroups group_items, int[] file_size, int[] size_remain, DiskBasicError errinfo) {
-        size_remain[0] = 0;
+    public int initializeSectorsAsDirectory(DiskBasicGroups groupItems, int[] fileSize, int[] sizeRemain, DiskBasicError errInfo) {
+        sizeRemain[0] = 0;
         return 0;
     }
 
     @Override
-    public int finishAssigningDirectory(int[] pos, int[] size, int[] size_remain) {
+    public int finishAssigningDirectory(int[] pos, int[] size, int[] sizeRemain) {
         if (pos[0] > 0) {
-            size_remain[0] += size[0];
+            sizeRemain[0] += size[0];
             return -1;
         }
         return 0;
@@ -513,47 +526,46 @@ logger.log(Level.TRACE, e.getMessage());
 
     // disk size
     @Override
-    public void getUsableDiskSize(int[] disk_size, int[] group_size) {
-        group_size[0] = basic.diskBasicParam.getFatEndGroup() - 1;
-        group_size[0] -= m_bitmap.size();
-        disk_size[0] = group_size[0] * basic.getSectorSize();
+    public void getUsableDiskSize(int[] diskSize, int[] groupSize) {
+        groupSize[0] = basic.getFatEndGroup() - 1;
+        groupSize[0] -= bitmap.size();
+        diskSize[0] = groupSize[0] * basic.getSectorSize();
     }
 
     @Override
     public void calcDiskFreeSize(boolean wrote) {
         fatAvailability.clear();
 
-        int block_size = basic.getSectorSize();
-        if (!basic.diskBasicParam.getVariousBoolParam(KEY_FAST_FILE_SYSTEM)) {
-            block_size -= AmigaFileDataPre.SIZE - 1;
+        int blockSize = basic.getSectorSize();
+        if (!basic.getVariousBoolParam(KEY_FAST_FILE_SYSTEM)) {
+            blockSize -= AmigaFileDataPre.SIZE - 1;
         }
 
         // BITMAP table
-        for (int num = 0; num <= basic.diskBasicParam.getFatEndGroup(); num++) {
+        for (int num = 0; num <= basic.getFatEndGroup(); num++) {
             if (num < 2) {
                 fatAvailability.add(FAT_AVAIL_SYSTEM, 0, 0);
-            } else if (m_bitmap.isFree(num)) {
-                fatAvailability.add(FAT_AVAIL_FREE, block_size, 1);
+            } else if (AmigaOneBitmap.isFree(bitmap, num)) {
+                fatAvailability.add(FAT_AVAIL_FREE, blockSize, 1);
             } else {
                 fatAvailability.add(FAT_AVAIL_USED, 0, 0);
             }
         }
 
-        fatAvailability.set(m_root.blockNum, FAT_AVAIL_SYSTEM);
+        fatAvailability.set(root.blockNum, FAT_AVAIL_SYSTEM);
 
-        for (int i = 0; i < m_bitmap.size(); i++) {
-            AmigaOneBitmap item = m_bitmap.get(i);
+        for (AmigaOneBitmap item : bitmap) {
             fatAvailability.set(item.getBlockNumber(), FAT_AVAIL_SYSTEM);
         }
     }
 
     @Override
-    public boolean prepareToSaveFile(InputStream istream, int[] file_size, DiskBasicDirItem<DirectoryAmiga> pitem, DiskBasicDirItem<DirectoryAmiga> nitem, DiskBasicError errinfo) {
+    public boolean prepareToSaveFile(InputStream iStream, int[] fileSize, DiskBasicDirItem<DirectoryAmiga> pItem, DiskBasicDirItem<DirectoryAmiga> nItem, DiskBasicError errInfo) {
         return true;
     }
 
     @Override
-    public int allocateUnitGroups(int fileunit_num, DiskBasicDirItem<DirectoryAmiga> item, int data_size, AllocateGroupFlags flags, DiskBasicGroups[] group_items) throws IOException {
+    public int allocateUnitGroups(int fileUnitNum, DiskBasicDirItem<DirectoryAmiga> item, int dataSize, AllocateGroupFlags flags, DiskBasicGroups[] groupItems) throws IOException {
         int groups = 0;
 
         int rc = 0;
@@ -563,34 +575,34 @@ logger.log(Level.TRACE, e.getMessage());
             return 0;
         }
 
-        int block_size = basic.getSectorSize();
-        if (!basic.diskBasicParam.getVariousBoolParam(KEY_FAST_FILE_SYSTEM)) {
+        int blockSize = basic.getSectorSize();
+        if (!basic.getVariousBoolParam(KEY_FAST_FILE_SYSTEM)) {
             // OFSなら24バイト減らす
-            block_size -= AmigaFileDataPre.SIZE - 1;
+            blockSize -= AmigaFileDataPre.SIZE - 1;
         }
-        int remain = data_size;
-        int limit = basic.diskBasicParam.getFatEndGroup() + 1;
-        int group_num = INVALID_GROUP_NUMBER;
-        int prev_group_num = 0;
-        int prev_remain = 0;
+        int remain = dataSize;
+        int limit = basic.getFatEndGroup() + 1;
+        int groupNum = INVALID_GROUP_NUMBER;
+        int prevGroupNum = 0;
+        int prevRemain = 0;
 
-        DiskBasicDirItemAmiga aitem = (DiskBasicDirItemAmiga) item;
-        int block_nums = aitem.getDataBlockNums();
-        int block_idx = block_nums - 1;
+        DiskBasicDirItemAmiga aItem = (DiskBasicDirItemAmiga) item;
+        int blockNums = aItem.getNumOfDataBlocks();
+        int blockIndex = blockNums - 1;
         int extension = -1;
-        int header_block_num = aitem.getStartGroup(fileunit_num);
+        int headerBlockNum = aItem.getStartGroup(fileUnitNum);
 
         while (remain > 0 && limit >= 0 && rc >= 0) {
-            if (block_idx < 0) {
+            if (blockIndex < 0) {
                 // データテーブルがいっぱいになったので
                 // extensionブロックを新たに確保する
-                int ex_num = getEmptyGroupNumber();
-                if (ex_num == INVALID_GROUP_NUMBER) {
+                int extentionNum = getEmptyGroupNumber();
+                if (extentionNum == INVALID_GROUP_NUMBER) {
                     // 空きなし
                     rc = -2;
                     break;
                 }
-                DiskImageSector sector = basic.getSectorFromGroup(ex_num);
+                DiskImageSector sector = basic.getSectorFromGroup(extentionNum);
                 if (sector == null) {
                     rc = -2;
                     break;
@@ -601,52 +613,52 @@ logger.log(Level.TRACE, e.getMessage());
                     break;
                 }
                 // 使用済みにする
-                setGroupNumber(ex_num, 1);
+                setGroupNumber(extentionNum, 1);
 
                 // extensionブロックへのリンクを作成
-                aitem.setExtension(ex_num);
-                aitem.setHighSeq(block_nums);
+                aItem.setExtension(extentionNum);
+                aItem.setHighSeq(blockNums);
 
                 // aitem切替
-                aitem = (DiskBasicDirItemAmiga) dir.newItem(sector, extension, buffer, 0);
+                aItem = (DiskBasicDirItemAmiga) dir.newItem(sector, extension, buffer, 0);
 
                 sector.fill((byte) 0);
-                aitem.initForExtensionBlock(header_block_num);
-                block_nums = aitem.getDataBlockNums();
-                block_idx = block_nums - 1;
+                aItem.initForExtensionBlock(headerBlockNum);
+                blockNums = aItem.getNumOfDataBlocks();
+                blockIndex = blockNums - 1;
 
                 extension++;
             }
 
             // 空きをさがす
-            group_num = getEmptyGroupNumber();
-            if (group_num == INVALID_GROUP_NUMBER) {
+            groupNum = getEmptyGroupNumber();
+            if (groupNum == INVALID_GROUP_NUMBER) {
                 rc = groups > 0 ? -2 : -1;
                 break;
             }
 
             // 使用済みにする
-            if (prev_group_num > 0) {
-                basic.getNumsFromGroup(prev_group_num, group_num, basic.getSectorSize(), prev_remain, group_items[0]);
+            if (prevGroupNum > 0) {
+                basic.getNumsFromGroup(prevGroupNum, groupNum, basic.getSectorSize(), prevRemain, groupItems[0]);
             }
-            prev_group_num = group_num;
-            prev_remain = remain;
+            prevGroupNum = groupNum;
+            prevRemain = remain;
 
-            setGroupNumber(group_num, 1);
-            aitem.setDataBlock(block_idx, group_num);
+            setGroupNumber(groupNum, 1);
+            aItem.setDataBlock(blockIndex, groupNum);
 
             groups++;
-            remain -= block_size;
+            remain -= blockSize;
             limit--;
 
-            block_idx--;
+            blockIndex--;
         }
 
-        if (prev_group_num > 0) {
-            basic.getNumsFromGroup(prev_group_num, 0, basic.getSectorSize(), prev_remain, group_items[0]);
+        if (prevGroupNum > 0) {
+            basic.getNumsFromGroup(prevGroupNum, 0, basic.getSectorSize(), prevRemain, groupItems[0]);
         }
 
-        aitem.setHighSeq(block_nums - block_idx - 1);
+        aItem.setHighSeq(blockNums - blockIndex - 1);
 
         if (limit < 0) {
             // 無限ループ？
@@ -657,35 +669,38 @@ logger.log(Level.TRACE, e.getMessage());
     }
 
     @Override
-    public int chainGroups(int group_num, int append_group_num) {
+    public int chainGroups(int groupNum, int appendGroupNum) {
         return 0;
     }
 
     @Override
-    public int getStartSectorFromGroup(int group_num) {
-        return group_num;
+    public int getStartSectorFromGroup(int groupNum) {
+        return groupNum;
     }
 
     @Override
-    public int getEndSectorFromGroup(int group_num, int next_group, int sector_start, int sector_size, int remain_size) {
-        return group_num;
+    public int getEndSectorFromGroup(int groupNum, int nextGroup, int sectorStart, int sectorSize, int remainSize) {
+        return groupNum;
     }
 
     @Override
-    public DiskBasicDirItem<DirectoryAmiga> getEmptyDirectoryItem(DiskBasicDirItem<DirectoryAmiga> parent, List<DiskBasicDirItem<DirectoryAmiga>> items, DiskBasicDirItem<DirectoryAmiga> pitem, DiskBasicDirItem<DirectoryAmiga>[] next_item) throws IOException {
-        DiskBasicDirItem<DirectoryAmiga> match_item = null;
+    public DiskBasicDirItem<DirectoryAmiga> getEmptyDirectoryItem(
+            DiskBasicDirItem<DirectoryAmiga> parent, List<DiskBasicDirItem<DirectoryAmiga>> items,
+            DiskBasicDirItem<DirectoryAmiga> pItem, DiskBasicDirItem<DirectoryAmiga>[] nextItem) throws IOException {
+
+        DiskBasicDirItem<DirectoryAmiga> matchItem = null;
         byte[] name = new byte[32];
         int[] len = {name.length};
-        int[] elen = new int[1];
+        int[] eLen = new int[1];
 
         // ファイル名からハッシュ番号を算出し、ハッシュテーブルに関連付ける
-        if (parent != null && pitem != null) {
+        if (parent != null && pItem != null) {
             if (!parent.getFileAttr().isDirectory()) {
-                return match_item;
+                return matchItem;
             }
 
             // ファイル名を得る
-            pitem.getNativeFileName(name, len, null, elen);
+            pItem.getNativeFileName(name, len, null, eLen);
             // ハッシュ番号を計算
             int hash = createHashNumberFromName(name, len[0]);
 
@@ -693,26 +708,26 @@ logger.log(Level.TRACE, e.getMessage());
             int new_num = getEmptyGroupNumber();
             if (new_num == INVALID_GROUP_NUMBER) {
                 // 空きなし
-                return match_item;
+                return matchItem;
             }
 
             // 実際にセクタがあるか
             DiskImageSector sector = basic.getSectorFromGroup(new_num);
             if (sector == null) {
-                return match_item;
+                return matchItem;
             }
             byte[] buffer = sector.getSectorBuffer();
             if (buffer == null) {
-                return match_item;
+                return matchItem;
             }
 
             // ヘッダ情報をセット
-            DiskBasicDirItemAmiga apitem = (DiskBasicDirItemAmiga) pitem;
+            DiskBasicDirItemAmiga apitem = (DiskBasicDirItemAmiga) pItem;
             apitem.setStartGroup(0, new_num);
             apitem.initForHeaderBlock(parent.getStartGroup(0));
 
             // アイテムを新規作成
-            match_item = dir.newItem(sector, 0, buffer, 0);
+            matchItem = dir.newItem(sector, 0, buffer, 0);
 
             // セクタにヘッダ情報をセット
             sector.fill((byte) 0);
@@ -721,32 +736,32 @@ logger.log(Level.TRACE, e.getMessage());
             setGroupNumber(new_num, 1);
 
             // 親ディレクトリをセット
-            match_item.setParent(parent);
+            matchItem.setParent(parent);
 
             // ハッシュ番号を登録
             DiskBasicDirItemAmiga aparent = (DiskBasicDirItemAmiga) parent;
-            aparent.chainHashNumber(hash, new_num, match_item);
+            aparent.chainHashNumber(hash, new_num, matchItem);
 
             // ディレクトリリストに追加する
             int limit = basic.getFatEndGroup() + 1;
             int[] tables = aparent.getBlockTable();
-            int nums = aparent.getDataBlockNums();
+            int nums = aparent.getNumOfDataBlocks();
 
             if (items == null) {
                 parent.createChildren();
                 items = parent.getChildren();
             }
-            DiskBasicDirItemAmiga.insertItemInDirectory(basic, tables, nums, limit, items, match_item);
+            DiskBasicDirItemAmiga.insertItemInDirectory(basic, tables, nums, limit, items, matchItem);
 
-            return match_item;
+            return matchItem;
         }
-        return match_item;
+        return matchItem;
     }
 
     // directory
     @Override
-    public boolean isRootDirectory(int group_num) {
-        return (group_num == m_root.blockNum);
+    public boolean isRootDirectory(int groupNum) {
+        return groupNum == root.blockNum;
     }
 
     @Override
@@ -755,9 +770,11 @@ logger.log(Level.TRACE, e.getMessage());
     }
 
     @Override
-    public void additionalProcessOnMadeDirectory(DiskBasicDirItem<DirectoryAmiga> item, DiskBasicGroups group_items, DiskBasicDirItem<DirectoryAmiga> parent_item) {
+    public void additionalProcessOnMadeDirectory(
+            DiskBasicDirItem<DirectoryAmiga> item, DiskBasicGroups groupItems, DiskBasicDirItem<DirectoryAmiga> parentItem) {
+
         // ビットマップのチェックサムを更新する
-        m_bitmap.updateCheckSum();
+        AmigaOneBitmap.updateCheckSum(bitmap);
 
         // 日時
         LocalDateTime tm = LocalDateTime.now();
@@ -785,18 +802,18 @@ logger.log(Level.TRACE, e.getMessage());
     public boolean additionalProcessOnFormatted(DiskBasicIdentifiedData data) throws IOException {
         DiskImageSector sector;
 
-        boolean is_ffs = basic.diskBasicParam.getVariousBoolParam(KEY_FAST_FILE_SYSTEM);
-        boolean is_intr = false;
-        boolean is_dirc = false;
+        boolean isFfs = basic.getVariousBoolParam(KEY_FAST_FILE_SYSTEM);
+        boolean isI18n = false;
+        boolean isDirectory = false;
 
-        int track_num;
-        int sector_num;
+        int trackNum;
+        int sectorNum;
 
         //
         // Boot Block を作成
         //
-        int blk = 0;
-        sector = basic.getSectorFromGroup(blk);
+        int block = 0;
+        sector = basic.getSectorFromGroup(block);
         sector.fill((byte) 0);
         byte[] b = sector.getSectorBuffer();
         AmigaBootBlock boot = new AmigaBootBlock();
@@ -804,67 +821,67 @@ logger.log(Level.TRACE, e.getMessage());
         boot.type[0] = (byte) 'D';
         boot.type[1] = (byte) 'O';
         boot.type[2] = (byte) 'S';
-        if (is_ffs) {
+        if (isFfs) {
             boot.type[3] |= 1;
         }
-        if (is_intr) {
+        if (isI18n) {
             boot.type[3] |= 2;
-            if (is_dirc) boot.type[3] += 2;
+            if (isDirectory) boot.type[3] += 2;
         }
 
-        DiskBasicParam default_param = gDiskBasicTemplates.findType("", basic.getBasicTypeName());
-        track_num = default_param.getManagedTrackNumber();
-        sector_num = default_param.getDirStartSector();
-        basic.diskBasicParam.setManagedTrackNumber(track_num);
-        basic.diskBasicParam.setDirStartSector(sector_num);
+        DiskBasicParam defaultParam = diskBasicTemplates.findType("", basic.getBasicTypeName());
+        trackNum = defaultParam.getManagedTrackNumber();
+        sectorNum = defaultParam.getDirStartSector();
+        basic.setManagedTrackNumber(trackNum);
+        basic.setDirStartSector(sectorNum);
 
-        int root_block = getSectorPosFromNumS(track_num, sector_num);
-        boot.root_block = root_block;
+        int rootBlock = getSectorPosFromNumS(trackNum, sectorNum);
+        boot.rootBlock = rootBlock;
 
         //
         // bitmapブロックを確保
         //
-        basic.diskBasicParam.setFatEndGroup(basic.getSidesPerDiskOnBasic() * basic.getTracksPerSideOnBasic() * basic.getSectorsPerTrackOnBasic() - 1);
-        m_bitmap.list.clear();
-        blk = root_block;
+        basic.setFatEndGroup(basic.getSidesPerDiskOnBasic() * basic.getTracksPerSideOnBasic() * basic.getSectorsPerTrackOnBasic() - 1);
+        bitmap.clear();
+        block = rootBlock;
         do {
-            blk++;
-            sector = basic.getSectorFromGroup(blk);
-            m_bitmap.addBitmap(blk, sector.getSectorBuffer(), sector.getSectorSize());
-        } while (m_bitmap.getBlockNums() < basic.getFatEndGroup() + 1);
+            block++;
+            sector = basic.getSectorFromGroup(block);
+            addBitmap(bitmap, block, sector.getSectorBuffer(), sector.getSectorSize());
+        } while (AmigaOneBitmap.getNumOfBlocks(bitmap) < basic.getFatEndGroup() + 1);
 
-        m_bitmap.freeAll(basic.getFatEndGroup());
+        AmigaOneBitmap.freeAll(bitmap, basic.getFatEndGroup());
 
-        basic.diskBasicParam.setSectorsPerFat(m_bitmap.size());
+        basic.setSectorsPerFat(bitmap.size());
 
         //
         // Root Block を作成
         //
-        sector = basic.getSectorFromGroup(root_block);
+        sector = basic.getSectorFromGroup(rootBlock);
         sector.fill((byte) 0);
-        m_root.blockNum = root_block;
+        root.blockNum = rootBlock;
         byte[] rootBuffer = sector.getSectorBuffer();
-        m_root.pre = new AmigaBlockPre();
-        Serdes.Util.deserialize(new ByteArrayInputStream(rootBuffer), m_root.pre);
-        m_root.pre.type = FILETYPE_MASK_AMIGA_HEADER;
+        root.pre = new AmigaBlockPre();
+        Serdes.Util.deserialize(new ByteArrayInputStream(rootBuffer), root.pre);
+        root.pre.type = FILETYPE_MASK_AMIGA_HEADER;
 
         int val = (sector.getSectorSize() - AmigaBlockPre.SIZE - AmigaRootBlockPost.SIZE + 4) / 4;
-        m_root.pre.tableSize = val;
+        root.pre.tableSize = val;
 
-        m_root.post = new AmigaRootBlockPost();
-        Serdes.Util.deserialize(new ByteArrayInputStream(rootBuffer, AmigaBlockPre.SIZE + val * 4 - 4, rootBuffer.length - (AmigaBlockPre.SIZE + val * 4 - 4)), m_root.post);
-        m_root.post.u.r.bmFlag = -1;
-        for (int i = 0; i < m_bitmap.size(); i++) {
-            val = m_bitmap.get(i).getBlockNumber();
-            m_root.post.u.r.bmPages[i] = val;
-            m_bitmap.modify(val, true);
+        root.post = new AmigaRootBlockPost();
+        Serdes.Util.deserialize(new ByteArrayInputStream(rootBuffer, AmigaBlockPre.SIZE + val * 4 - 4, rootBuffer.length - (AmigaBlockPre.SIZE + val * 4 - 4)), root.post);
+        root.post.u.r.bmFlag = -1;
+        for (int i = 0; i < bitmap.size(); i++) {
+            val = bitmap.get(i).getBlockNumber();
+            root.post.u.r.bmPages[i] = val;
+            AmigaOneBitmap.modify(bitmap, val, true);
         }
 
-        m_root.post.u.r.secType = FILETYPE_MASK_AMIGA_ROOT;
+        root.post.u.r.secType = FILETYPE_MASK_AMIGA_ROOT;
 
-        if (is_ffs && is_dirc) {
+        if (isFfs && isDirectory) {
             // block number to first directory cache block
-            m_root.post.u.r.extension = 0;
+            root.post.u.r.extension = 0;
         }
 
         // 日時
@@ -877,19 +894,21 @@ logger.log(Level.TRACE, e.getMessage());
         setIdentifiedData(data);
 
         // bitmapをセット
-        m_bitmap.modify(root_block, true);
+        AmigaOneBitmap.modify(bitmap, rootBlock, true);
 
         // チェックサムを計算
-        m_bitmap.updateCheckSum();
-        m_root.pre.checkSum = calcCheckSumOnBootBlock(rootBuffer, basic.getSectorSize());
+        AmigaOneBitmap.updateCheckSum(bitmap);
+        root.pre.checkSum = calcCheckSumOnBootBlock(rootBuffer, basic.getSectorSize());
 
         return true;
     }
 
-    /// チェックサムを計算
-    ///
-    /// @param data ブロックデータ
-    /// @param size ブロックサイズ
+    /**
+     * チェックサムを計算
+     *
+     * @param data ブロックデータ
+     * @param size ブロックサイズ
+     */
     static int calcCheckSum(byte[] data, int size) {
         IntBuffer dp = ByteBuffer.wrap(data).order(ByteOrder.LITTLE_ENDIAN).asIntBuffer();
         int newsum = 0;
@@ -916,43 +935,45 @@ logger.log(Level.TRACE, e.getMessage());
     /**
      * データの読み込み/比較処理
      *
-     * @param fileunit_num  ファイル番号
-     * @param item          ディレクトリアイテム
-     * @param istream       [in,out] 入力ストリーム ベリファイ時に使用 データ読み出し時は null
-     * @param ostream       [in,out] 出力先 データ読み出し時に使用 ベリファイ時は null
-     * @param sector_buffer セクタバッファ
-     * @param sector_size   バッファサイズ
-     * @param remain_size   残りサイズ
-     * @param sector_num    セクタ番号
-     * @param sector_end    最終セクタ番号
+     * @param fileUnitNum  ファイル番号
+     * @param item         ディレクトリアイテム
+     * @param iStream      [in,out] 入力ストリーム ベリファイ時に使用 データ読み出し時は {@code null}
+     * @param oStream      [in,out] 出力先 データ読み出し時に使用 ベリファイ時は {@code null}
+     * @param sectorBuffer セクタバッファ
+     * @param sectorSize   バッファサイズ
+     * @param remainSize   残りサイズ
+     * @param sectorNum    セクタ番号
+     * @param sectorEnd    最終セクタ番号
      * @return >=0: 処理したサイズ, -1: 比較不一致
      */
     @Override
-    public int accessFile(int fileunit_num, DiskBasicDirItem<DirectoryAmiga> item, InputStream istream, OutputStream ostream, byte[] sector_buffer, int sector_size, int remain_size, int sector_num, int sector_end) throws IOException {
+    public int accessFile(int fileUnitNum, DiskBasicDirItem<DirectoryAmiga> item, InputStream iStream, OutputStream oStream, byte[] sectorBuffer, int sectorSize, int remainSize, int sectorNum, int sectorEnd) throws IOException {
         int bufferOffset = 0;
-        int size = sector_size;
+        int size = sectorSize;
 
-        if (!basic.diskBasicParam.getVariousBoolParam(KEY_FAST_FILE_SYSTEM)) {
+        if (!basic.getVariousBoolParam(KEY_FAST_FILE_SYSTEM)) {
             // OFSなら24バイト減らす
             size -= AmigaFileDataPre.SIZE - 1;
             bufferOffset += AmigaFileDataPre.SIZE - 1;
         }
-        if (remain_size < size) {
-            size = remain_size;
+        if (remainSize < size) {
+            size = remainSize;
         }
 
-        if (ostream != null) {
+        byte[] temp;
+        if (oStream != null) {
             // 書き出し
-            temp.setData(Arrays.copyOfRange(sector_buffer, bufferOffset, bufferOffset + size), size, basic.isDataInverted());
-            ostream.write(temp.getData(), 0, temp.getSize());
+            temp = Arrays.copyOfRange(sectorBuffer, bufferOffset, bufferOffset + size);
+            if (basic.isDataInverted()) Common.invertMemory(temp, temp.length);
+            oStream.write(temp, 0, temp.length);
         }
-        if (istream != null) {
+        if (iStream != null) {
             // 読み込んで比較
-            temp.setSize(size);
-            istream.readNBytes(temp.getData(), 0, temp.getSize());
-            temp.invertData(basic.isDataInverted());
+            temp = new byte[size];
+            iStream.readNBytes(temp, 0, temp.length);
+            if (basic.isDataInverted()) Common.invertMemory(temp, temp.length);
 
-            if (!Arrays.equals(temp.getData(), 0, size, sector_buffer, bufferOffset, bufferOffset + size)) {
+            if (!Arrays.equals(temp, 0, size, sectorBuffer, bufferOffset, bufferOffset + size)) {
                 // データが異なる
                 return -1;
             }
@@ -961,34 +982,34 @@ logger.log(Level.TRACE, e.getMessage());
     }
 
     @Override
-    public int calcDataSizeOnLastSector(DiskBasicDirItem<DirectoryAmiga> item, InputStream istream, OutputStream ostream, byte[] sector_buffer, int sectorOffset, int sector_size, int remain_size) {
+    public int calcDataSizeOnLastSector(DiskBasicDirItem<DirectoryAmiga> item, InputStream iStream, OutputStream oStream, byte[] sector_buffer, int sectorOffset, int sector_size, int remain_size) {
         return remain_size;
     }
 
     @Override
     public boolean isEnoughFileSize(int size) {
-        int block_size = basic.getSectorSize();
-        if (!basic.diskBasicParam.getVariousBoolParam(KEY_FAST_FILE_SYSTEM)) {
+        int blockSize = basic.getSectorSize();
+        if (!basic.getVariousBoolParam(KEY_FAST_FILE_SYSTEM)) {
             // OFSなら24バイト減らす
-            block_size -= AmigaFileDataPre.SIZE - 1;
+            blockSize -= AmigaFileDataPre.SIZE - 1;
         }
 
-        int table_cnt = (basic.getSectorSize() -
+        int tableCount = (basic.getSectorSize() -
                 AmigaBlockPre.SIZE - AmigaRootBlockPost.SIZE + 4) / 4;
 
-        int data_cnt = (size + block_size - 1) / block_size;
-        int header_cnt = 1 + data_cnt / table_cnt;
+        int dataCount = (size + blockSize - 1) / blockSize;
+        int headerCount = 1 + dataCount / tableCount;
 
-        return (getFreeGroupSize() >= (header_cnt + data_cnt));
+        return getFreeGroupSize() >= (headerCount + dataCount);
     }
 
     @Override
-    public int writeFile(DiskBasicDirItem<DirectoryAmiga> item, InputStream istream, byte[] buffer, int size, int remain, int sector_num, int group_num, int next_group, int sector_end, int seq_num) throws IOException {
+    public int writeFile(DiskBasicDirItem<DirectoryAmiga> item, InputStream iStream, byte[] buffer, int size, int remain, int sectorNum, int groupNum, int nextGroup, int sectorEnd, int seqNum) throws IOException {
         int len = 0;
         AmigaFileDataPre pre = null;
         int bufferOffset = 0;
 
-        if (!basic.diskBasicParam.getVariousBoolParam(KEY_FAST_FILE_SYSTEM)) {
+        if (!basic.getVariousBoolParam(KEY_FAST_FILE_SYSTEM)) {
             // OFSなら24バイト減らす
             pre = new AmigaFileDataPre();
             Serdes.Util.deserialize(new ByteArrayInputStream(buffer), pre);
@@ -999,14 +1020,14 @@ logger.log(Level.TRACE, e.getMessage());
         if (remain <= size) {
             // 残り少ない
             if (remain < 0) remain = 0;
-            if (remain > 0) istream.readNBytes(buffer, bufferOffset, remain);
+            if (remain > 0) iStream.readNBytes(buffer, bufferOffset, remain);
             if (size > remain) {
                 Arrays.fill(buffer, remain, size, (byte) 0);
             }
             len = remain;
         } else {
             // 継続
-            istream.readNBytes(buffer, bufferOffset, size);
+            iStream.readNBytes(buffer, bufferOffset, size);
             len = size;
         }
 
@@ -1016,12 +1037,12 @@ logger.log(Level.TRACE, e.getMessage());
             int val = FILETYPE_MASK_AMIGA_DATA;
             pre.o.type = val;
             val = aitem.getStartGroup(0);
-            pre.o.header_key = val;
-            val = seq_num + 1;
-            pre.o.seq_num = val;
-            val = (remain > size ? size : remain);
-            pre.o.data_size = val;
-            pre.o.next_data = next_group;
+            pre.o.headerKey = val;
+            val = seqNum + 1;
+            pre.o.seqNum = val;
+            val = remain > size ? size : remain;
+            pre.o.dataSize = val;
+            pre.o.nextData = nextGroup;
         }
 
         return len;
@@ -1030,43 +1051,43 @@ logger.log(Level.TRACE, e.getMessage());
     @Override
     public void additionalProcessOnSavedFile(DiskBasicDirItem<DirectoryAmiga> item) {
         // ビットマップのチェックサムを更新する
-        m_bitmap.updateCheckSum();
+        AmigaOneBitmap.updateCheckSum(bitmap);
 
-        DiskBasicDirItemAmiga aitem = (DiskBasicDirItemAmiga) item;
-        aitem.updateCheckSumAll();
+        DiskBasicDirItemAmiga aItem = (DiskBasicDirItemAmiga) item;
+        aItem.updateCheckSumAll();
 
         DiskBasicDirItem<DirectoryAmiga> parent = item.getParent();
         if (parent == null) return;
 
-        DiskBasicDirItemAmiga aparent = (DiskBasicDirItemAmiga) parent;
+        DiskBasicDirItemAmiga aParent = (DiskBasicDirItemAmiga) parent;
 
         // 親ディレクトリの日時を更新する（ルートディレクトリの場合も含む）
         LocalDateTime tm = LocalDateTime.now();
-        aparent.setFileModifyDateTime(tm);
+        aParent.setFileModifyDateTime(tm);
 
         // ルートディレクトリのボリューム日時を更新する
         setVolumeDateTime(tm);
 
         // 親ディレクトリのチェックサムを更新する
-        aparent.updateCheckSum();
+        aParent.updateCheckSum();
 
         // ルートディレクトリのチェックサムを更新する
-        if (aparent.getParent() != null) updateCheckSumOnRoot();
+        if (aParent.getParent() != null) updateCheckSumOnRoot();
     }
 
     @Override
     public void additionalProcessOnRenamedFile(DiskBasicDirItem<DirectoryAmiga> item) throws IOException {
         byte[] name = new byte[32];
         int[] len = {name.length};
-        int[] elen = new int[1];
+        int[] eLen = new int[1];
 
         // ファイル名を得る
-        item.getNativeFileName(name, len, null, elen);
+        item.getNativeFileName(name, len, null, eLen);
         // ハッシュ番号を計算
-        int hash_num = createHashNumberFromName(name, len[0]);
+        int hashNum = createHashNumberFromName(name, len[0]);
 
-        DiskBasicDirItemAmiga aitem = (DiskBasicDirItemAmiga) item;
-        if (hash_num == aitem.getHashNumber()) {
+        DiskBasicDirItemAmiga aItem = (DiskBasicDirItemAmiga) item;
+        if (hashNum == aItem.getHashNumber()) {
             // ハッシュ番号が同じなら変更なし
             return;
         }
@@ -1074,33 +1095,33 @@ logger.log(Level.TRACE, e.getMessage());
         DiskBasicDirItem<DirectoryAmiga> parent = item.getParent();
         if (parent == null) return;
 
-        DiskBasicDirItemAmiga aparent = (DiskBasicDirItemAmiga) parent;
+        DiskBasicDirItemAmiga aParent = (DiskBasicDirItemAmiga) parent;
 
         int limit = basic.getFatEndGroup() + 1;
-        int[] tables = aparent.getBlockTable();
-        int nums = aparent.getDataBlockNums();
+        int[] tables = aParent.getBlockTable();
+        int tableSize = aParent.getNumOfDataBlocks();
 
         // ディレクトリリストから削除する
-        DiskBasicDirItemAmiga.deleteItemInDirectory(basic, tables, nums, limit, parent.getChildren(), item);
+        DiskBasicDirItemAmiga.deleteItemInDirectory(basic, tables, tableSize, limit, parent.getChildren(), item);
 
         // ハッシュ番号を登録
-        int block_num = item.getStartGroup(0);
-        aparent.chainHashNumber(hash_num, block_num, item);
+        int blockNum = item.getStartGroup(0);
+        aParent.chainHashNumber(hashNum, blockNum, item);
 
         // ディレクトリリストに追加する
-        DiskBasicDirItemAmiga.insertItemInDirectory(basic, tables, nums, limit, parent.getChildren(), item);
+        DiskBasicDirItemAmiga.insertItemInDirectory(basic, tables, tableSize, limit, parent.getChildren(), item);
     }
 
     @Override
-    public void deleteGroupNumber(int group_num) {
+    public void deleteGroupNumber(int groupNum) {
         // 未使用にする
-        setGroupNumber(group_num, 0);
+        setGroupNumber(groupNum, 0);
     }
 
     @Override
     public boolean additionalProcessOnDeletedFile(DiskBasicDirItem<DirectoryAmiga> item) {
         // ビットマップのチェックサムを更新する
-        m_bitmap.updateCheckSum();
+        AmigaOneBitmap.updateCheckSum(bitmap);
 
         // ディレクトリリストから削除する
         DiskBasicDirItem<DirectoryAmiga> parent = item.getParent();
@@ -1110,9 +1131,9 @@ logger.log(Level.TRACE, e.getMessage());
 
         int limit = basic.getFatEndGroup() + 1;
         int[] tables = aparent.getBlockTable();
-        int nums = aparent.getDataBlockNums();
+        int tableSize = aparent.getNumOfDataBlocks();
 
-        DiskBasicDirItemAmiga.deleteItemInDirectory(basic, tables, nums, limit, parent.getChildren(), item);
+        DiskBasicDirItemAmiga.deleteItemInDirectory(basic, tables, tableSize, limit, parent.getChildren(), item);
 
         // 親ディレクトリの日時を更新する（ルートディレクトリの場合も含む）
         LocalDateTime tm = LocalDateTime.now();
@@ -1137,20 +1158,22 @@ logger.log(Level.TRACE, e.getMessage());
 
     @Override
     public void getIdentifiedData(DiskBasicIdentifiedData data) {
-        if (m_root.post == null) return;
+        if (root.post == null) return;
 
         // volume name in root
-        byte[] name = new byte[m_root.post.u.r.diskName.length + 1];
-        int len = m_root.post.u.r.diskNameLen & 0xff;
-        System.arraycopy(m_root.post.u.r.diskName, 0, name, 0, len);
+        byte[] name = new byte[root.post.u.r.diskName.length + 1];
+        int len = root.post.u.r.diskNameLen & 0xff;
+        System.arraycopy(root.post.u.r.diskName, 0, name, 0, len);
 
-        String wname = new String(name, 0, len, basic.getCharCodes().charset());
-        data.setVolumeName(wname);
+        StringBuilder sb = new StringBuilder();
+        basic.getCharCodes().convToString(name, 0, len, sb, -1);
+        String wName = sb.toString();
+        data.setVolumeName(wName);
         data.setVolumeNameMaxLength(name.length);
 
         // volume date in root
-        LocalDateTime tm = DiskBasicDirItemAmiga.convDateToTm(m_root.post.u.r.cDays).atTime(
-                DiskBasicDirItemAmiga.convTimeToTm(m_root.post.u.r.cMins, m_root.post.u.r.cTicks));
+        LocalDateTime tm = DiskBasicDirItemAmiga.convDateToTm(root.post.u.r.cDays).atTime(
+                DiskBasicDirItemAmiga.convTimeToTm(root.post.u.r.cMins, root.post.u.r.cTicks));
         String datetime = Utils.formatYMDStr(tm.toLocalDate());
         datetime += " ";
         datetime += Utils.formatHMSStr(tm.toLocalTime());
@@ -1159,25 +1182,29 @@ logger.log(Level.TRACE, e.getMessage());
 
     @Override
     public void setIdentifiedData(DiskBasicIdentifiedData data) {
-        if (m_root.post == null) return;
+        if (root.post == null) return;
 
-        DiskBasicFormat fmt = basic.getFormatType();
+        DiskBasicFormat format = basic.getFormatType();
 
-        if (fmt.hasVolumeName()) {
-            byte[] name = data.getVolumeName().getBytes(basic.getCharCodes().charset());
-            System.arraycopy(name, 0, m_root.post.u.r.diskName, 0, name.length + 1);
-            m_root.post.u.r.diskNameLen = (byte) (name.length & 0xff);
+        if (format.hasVolumeName()) {
+            byte[] name = new byte[root.post.u.r.diskName.length + 1];
+            basic.getCharCodes().convToChars(data.getVolumeName(), name, name.length);
+            System.arraycopy(name, 0, root.post.u.r.diskName, 0, name.length + 1);
+            root.post.u.r.diskNameLen = (byte) (name.length & 0xff);
         }
     }
 
     /** ルートのチェックサムを計算 */
     public void updateCheckSumOnRoot() {
-        DiskBasicDirItem<DirectoryAmiga> aroot = dir.getRootItem();
-        ((DiskBasicDirItemAmiga) aroot).updateCheckSum();
+        DiskBasicDirItem<DirectoryAmiga> aRoot = dir.getRootItem();
+        ((DiskBasicDirItemAmiga) aRoot).updateCheckSum();
     }
 
-    /// ルートの更新日時をセット
-    /// @param tm 日時
+    /**
+     * ルートの更新日時をセット
+     *
+     * @param tm 日時
+     */
     public void setModifyDateTime(LocalDateTime tm) {
         int[] days = new int[1];
         int[] mins = new int[1];
@@ -1185,14 +1212,17 @@ logger.log(Level.TRACE, e.getMessage());
         DiskBasicDirItemAmiga.convDateFromTm(tm.toLocalDate(), days);
         DiskBasicDirItemAmiga.convTimeFromTm(tm, mins, ticks);
 
-        AmigaRootBlockPost r = m_root.post.u.r;
+        AmigaRootBlockPost r = root.post.u.r;
         r.rDays = days[0];
         r.rMins = mins[0];
         r.rTicks = ticks[0];
     }
 
-    /// ルートのボリューム日時をセット
-    /// @param tm 日時
+    /**
+     * ルートのボリューム日時をセット
+     *
+     * @param tm 日時
+     */
     public void setVolumeDateTime(LocalDateTime tm) {
         int[] days = new int[1];
         int[] mins = new int[1];
@@ -1200,14 +1230,17 @@ logger.log(Level.TRACE, e.getMessage());
         DiskBasicDirItemAmiga.convDateFromTm(tm.toLocalDate(), days);
         DiskBasicDirItemAmiga.convTimeFromTm(tm, mins, ticks);
 
-        AmigaRootBlockPost r = m_root.post.u.r;
+        AmigaRootBlockPost r = root.post.u.r;
         r.vDays = days[0];
         r.vMins = mins[0];
         r.vTicks = ticks[0];
     }
 
-    /// ルートの作成日時をセット
-    /// @param tm 日時
+    /**
+     * ルートの作成日時をセット
+     *
+     * @param tm 日時
+     */
     public void setCreateDateTime(LocalDateTime tm) {
         int[] days = new int[1];
         int[] mins = new int[1];
@@ -1215,48 +1248,51 @@ logger.log(Level.TRACE, e.getMessage());
         DiskBasicDirItemAmiga.convDateFromTm(tm.toLocalDate(), days);
         DiskBasicDirItemAmiga.convTimeFromTm(tm, mins, ticks);
 
-        AmigaRootBlockPost r = m_root.post.u.r;
+        AmigaRootBlockPost r = root.post.u.r;
         r.cDays = days[0];
         r.cMins = mins[0];
         r.cTicks = ticks[0];
     }
 
-    /// 空き位置を返す
-    /// @return INVALID_GROUP_NUMBER: 空きなし
+    /**
+     * 空き位置を返す
+     *
+     * @return INVALID_GROUP_NUMBER: 空きなし
+     */
     private int getEmptyGroupNumberM() {
-        int new_num = INVALID_GROUP_NUMBER;
-        int num_of_secs = basic.getSectorsPerTrackOnBasic() * basic.getSidesPerDiskOnBasic();
-        int sta_trk = 0;
-        int end_trk = 0;
-        int ndir = 1;
+        int newNum = INVALID_GROUP_NUMBER;
+        int numOfSectors = basic.getSectorsPerTrackOnBasic() * basic.getSidesPerDiskOnBasic();
+        int startTrack = 0;
+        int endTrack = 0;
+        int direction = 1;
 
         for (int i = 0; i < 2; i++) {
             switch (i) {
                 case 0:
                     // 外側へ検索
-                    sta_trk = basic.getManagedTrackNumber();
-                    end_trk = basic.getTracksPerSideOnBasic() + basic.getTrackNumberBaseOnDisk();
-                    ndir = 1;
+                    startTrack = basic.getManagedTrackNumber();
+                    endTrack = basic.getTracksPerSideOnBasic() + basic.getTrackNumberBaseOnDisk();
+                    direction = 1;
                     break;
                 case 1:
                     // 内側へ検索
-                    sta_trk = basic.getManagedTrackNumber() - 1;
-                    end_trk = basic.getTrackNumberBaseOnDisk() - 1;
-                    ndir = -1;
+                    startTrack = basic.getManagedTrackNumber() - 1;
+                    endTrack = basic.getTrackNumberBaseOnDisk() - 1;
+                    direction = -1;
                     break;
             }
 
-            for (int trk_num = sta_trk; trk_num != end_trk && new_num == INVALID_GROUP_NUMBER; trk_num += ndir) {
-                for (int sec_num = 0; sec_num < num_of_secs; sec_num++) {
-                    int num = getSectorPosFromNumS(trk_num, sec_num + basic.getSectorNumberBase());
-                    if (m_bitmap.isFree(num)) {
-                        new_num = num;
+            for (int trackNum = startTrack; trackNum != endTrack && newNum == INVALID_GROUP_NUMBER; trackNum += direction) {
+                for (int sectorNum = 0; sectorNum < numOfSectors; sectorNum++) {
+                    int num = getSectorPosFromNumS(trackNum, sectorNum + basic.getSectorNumberBase());
+                    if (AmigaOneBitmap.isFree(bitmap, num)) {
+                        newNum = num;
                         break;
                     }
                 }
             }
         }
-        return new_num;
+        return newNum;
     }
 
     /**
@@ -1268,16 +1304,16 @@ logger.log(Level.TRACE, e.getMessage());
      */
     private int createHashNumberFromName(byte[] name, int size) {
         int hash;
-        int bsize = (basic.getSectorSize() - AmigaBlockPre.SIZE - AmigaRootBlockPost.SIZE + 4) / 4;
-        boolean is_intr = basic.diskBasicParam.getVariousBoolParam(KEY_INTERNATIONAL);
+        int bSize = (basic.getSectorSize() - AmigaBlockPre.SIZE - AmigaRootBlockPost.SIZE + 4) / 4;
+        boolean isI18n = basic.getVariousBoolParam(KEY_INTERNATIONAL);
 
-        int l = hash = Common.str_length(name, size, (byte) 0);
+        int l = hash = Common.getStringLength(name, size, (byte) 0);
         for (int i = 0; i < l; i++) {
             hash *= 13;
-            hash += DiskBasicDirItemAmiga.upper(name[i], is_intr);
+            hash += DiskBasicDirItemAmiga.upper(name[i], isI18n);
             hash &= 0x7ff;
         }
-        hash %= bsize;
+        hash %= bSize;
 
         return hash;
     }

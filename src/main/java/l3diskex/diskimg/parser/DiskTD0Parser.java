@@ -8,6 +8,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
+import java.util.prefs.Preferences;
 
 import l3diskex.diskimg.DiskImage.DiskImageDisk;
 import l3diskex.diskimg.DiskImage.DiskImageFile;
@@ -16,17 +18,21 @@ import l3diskex.diskimg.DiskImage.DiskImageTrack;
 import l3diskex.diskimg.DiskParam;
 import l3diskex.diskimg.DiskParser.DiskImageParser;
 import l3diskex.diskimg.DiskResult;
+import l3diskex.diskimg.FileParam.DiskTypeHint;
 import vavi.io.SeekableDataInputStream;
 import vavi.util.serdes.Element;
 import vavi.util.serdes.Serdes;
 
 
 /**
- * Teledisk td0ディスクパーサ
+ * Teledisk td0 ディスクパーサ
+ *
+ * @see "https://dn721605.ca.archive.org/0/items/td0-format-docs/TD0NOTES.TXT"
+ * @see "http://dunfield.classiccmp.org/img42841/teledisk.htm"
  */
 public class DiskTD0Parser extends DiskImageParser {
 
-    /// Teledisk td0 ディスクイメージヘッダ
+    /** Teledisk td0 ディスクイメージヘッダ */
     @Serdes
     public static class Td0ImageHeader {
 
@@ -39,7 +45,7 @@ public class DiskTD0Parser extends DiskImageParser {
         @Element(sequence = 3)
         public byte checkSequence;
         @Element(sequence = 4)
-        public byte telediskVersion;
+        public byte teleDiskVersion;
         @Element(sequence = 5)
         public byte dataRate;
         @Element(sequence = 6)
@@ -54,7 +60,7 @@ public class DiskTD0Parser extends DiskImageParser {
         public short crc;
     }
 
-    /// Teledisk td0 コメントヘッダ
+    /** Teledisk td0 コメントヘッダ */
     @Serdes
     public static class Td0CommentHeader {
 
@@ -80,7 +86,7 @@ public class DiskTD0Parser extends DiskImageParser {
         public byte[] buf = new byte[10];
     }
 
-    /// Teledisk td0 トラックヘッダ
+    /** Teledisk td0 トラックヘッダ */
     @Serdes
     public static class Td0TrackHeader {
 
@@ -96,7 +102,7 @@ public class DiskTD0Parser extends DiskImageParser {
         public byte crc;
     }
 
-    /// Teledisk td0 セクタヘッダ
+    /** Teledisk td0 セクタヘッダ */
     @Serdes
     public static class Td0SectorHeader {
 
@@ -114,7 +120,7 @@ public class DiskTD0Parser extends DiskImageParser {
         public byte flags;
     }
 
-    /// Teledisk td0 データヘッダ
+    /** Teledisk td0 データヘッダ */
     @Serdes
     public static class Td0DataHeader {
 
@@ -124,25 +130,25 @@ public class DiskTD0Parser extends DiskImageParser {
         public int size;
     }
 
-    // TODO: Advanced compress version is not supported.
-    private final boolean m_isCompressed;
+    // TODO Advanced compress version is not supported.
+    private boolean isCompressed;
 
     /**
      * セクタデータの作成
      */
-    private int parseSector(InputStream istream, int diskNumber, int sectorNums, Object userData, DiskImageTrack track) throws IOException {
-        int len = istream.available();
+    private int parseSector(InputStream iStream, int diskNumber, int numOfSectors, Object userData, DiskImageTrack track) throws IOException {
+        int len = iStream.available();
         if (len < Td0SectorHeader.SIZE) {
             result.setError(DiskResult.ERRV_DISK_TOO_SMALL, diskNumber);
             return 0;
         }
-        Td0SectorHeader hSector = new Td0SectorHeader();
-        Serdes.Util.deserialize(istream, hSector);
+        Td0SectorHeader sectorHeader = new Td0SectorHeader();
+        Serdes.Util.deserialize(iStream, sectorHeader);
 
-        int trackNumber = hSector.trackNum & 0xff;
-        int sideNumber = hSector.sideNum & 0xff;
-        int sectorNumber = hSector.sectorNum & 0xff;
-        int sectorSize = hSector.sectorSize & 0xff;
+        int trackNumber = sectorHeader.trackNum & 0xff;
+        int sideNumber = sectorHeader.sideNum & 0xff;
+        int sectorNumber = sectorHeader.sectorNum & 0xff;
+        int sectorSize = sectorHeader.sectorSize & 0xff;
 
         if (sectorSize > 7) {
             // セクタサイズが大きすぎる
@@ -153,18 +159,18 @@ public class DiskTD0Parser extends DiskImageParser {
         sectorSize = 128 << sectorSize;
 
         // セクタ作成
-        DiskImageSector sector = track.newImageSector(trackNumber, sideNumber, sectorNumber, sectorSize, sectorNums, false, 0);
+        DiskImageSector sector = track.newImageSector(trackNumber, sideNumber, sectorNumber, sectorSize, numOfSectors, false, 0);
         track.add(sector);
 
-        if ((hSector.flags & 0x04) != 0) {
+        if ((sectorHeader.flags & 0x04) != 0) {
             // deleted mark
             sector.setDeletedMark(true);
         }
 
         byte[] buffer = sector.getSectorBuffer();
-        int buflen = sector.getSectorBufferSize();
+        int bufLen = sector.getSectorBufferSize();
 
-        decodeData(istream, diskNumber, buffer, buflen);
+        decodeData(iStream, diskNumber, buffer, bufLen);
 
         sector.clearModify();
 
@@ -175,25 +181,25 @@ public class DiskTD0Parser extends DiskImageParser {
     /**
      * トラックデータの作成
      */
-    private int parseTrack(InputStream istream, int diskNumber, int offsetPos, int offset, DiskImageDisk disk) throws IOException {
-        int len = istream.available();
+    private int parseTrack(InputStream iStream, int diskNumber, int offsetPos, int offset, DiskImageDisk disk) throws IOException {
+        int len = iStream.available();
         if (len < Td0TrackHeader.SIZE) {
             result.setError(DiskResult.ERRV_DISK_TOO_SMALL, diskNumber);
             return -1;
         }
-        Td0TrackHeader hTrack = new Td0TrackHeader();
-        Serdes.Util.deserialize(istream, hTrack);
-        if (hTrack.numOfSectors == (byte) 0xff) {
+        Td0TrackHeader trackHeader = new Td0TrackHeader();
+        Serdes.Util.deserialize(iStream, trackHeader);
+        if (trackHeader.numOfSectors == (byte) 0xff) {
             return -1;
         }
 
         // トラックの作成
-        DiskImageTrack track = disk.newImageTrack(hTrack.trackNum & 0xff, hTrack.sideNum & 0xff, offsetPos, 1);
-        disk.setMaxTrackNumber(hTrack.trackNum & 0xff);
+        DiskImageTrack track = disk.newImageTrack(trackHeader.trackNum & 0xff, trackHeader.sideNum & 0xff, offsetPos, 1);
+        disk.setMaxTrackNumber(trackHeader.trackNum & 0xff);
 
         int d88TrackSize = 0;
-        for (int pos = 0; pos < (hTrack.numOfSectors & 0xff) && result.getValid() >= 0; pos++) {
-            d88TrackSize += parseSector(istream, diskNumber, hTrack.numOfSectors & 0xff, null, track);
+        for (int pos = 0; pos < (trackHeader.numOfSectors & 0xff) && result.getValid() >= 0; pos++) {
+            d88TrackSize += parseSector(iStream, diskNumber, trackHeader.numOfSectors & 0xff, null, track);
         }
 
         if (result.getValid() >= 0) {
@@ -219,12 +225,12 @@ public class DiskTD0Parser extends DiskImageParser {
     /**
      * TD0ファイルを解析
      *
-     * @param istream    解析対象データ
+     * @param iStream    解析対象データ
      * @param diskNumber ディスク番号
      * @return -1: finish parsing, 0: parse next disk
      */
-    private int parseDisk(InputStream istream, int diskNumber) throws IOException {
-        int len = istream.available();
+    private int parseDisk(InputStream iStream, int diskNumber) throws IOException {
+        int len = iStream.available();
         if (len == 0) {
             // no disk 解析終り
             return -1;
@@ -233,19 +239,19 @@ public class DiskTD0Parser extends DiskImageParser {
             result.setError(DiskResult.ERRV_DISK_TOO_SMALL, diskNumber);
             return result.getValid();
         }
-        Td0ImageHeader hImage = new Td0ImageHeader();
-        Serdes.Util.deserialize(istream, hImage);
+        Td0ImageHeader imageHeader = new Td0ImageHeader();
+        Serdes.Util.deserialize(iStream, imageHeader);
 
-        len = istream.available();
+        len = iStream.available();
         if (len < Td0CommentHeader.SIZE) {
             result.setError(DiskResult.ERRV_DISK_TOO_SMALL, diskNumber);
             return result.getValid();
         }
-        Td0CommentHeader hComment = new Td0CommentHeader();
-        Serdes.Util.deserialize(istream, hComment);
+        Td0CommentHeader commentHeader = new Td0CommentHeader();
+        Serdes.Util.deserialize(iStream, commentHeader);
 
-        int commentLength = hComment.dataLength;
-        istream.skipNBytes(commentLength);
+        int commentLength = commentHeader.dataLength;
+        iStream.skipNBytes(commentLength);
 
         // ディスク作成
         DiskImageDisk disk = file.newImageDisk(diskNumber);
@@ -254,7 +260,7 @@ public class DiskTD0Parser extends DiskImageParser {
         int d88Offset = disk.getOffsetStart(); // header size
         int d88OffsetPos = 0;
         for (int pos = 0; pos < 204; pos++) {
-            int offset = parseTrack(istream, diskNumber, d88OffsetPos, d88Offset, disk);
+            int offset = parseTrack(iStream, diskNumber, d88OffsetPos, d88Offset, disk);
             if (offset == -1) {
                 break;
             }
@@ -280,16 +286,16 @@ public class DiskTD0Parser extends DiskImageParser {
     }
 
     /** 繰り返しデータを展開 */
-    private int decodeRepeatedData(InputStream istream, int diskNumber, int pos, int slen, int repeat, byte[] buffer, int buflen) throws IOException {
-        byte[] ptn = new byte[slen];
+    private int decodeRepeatedData(InputStream iStream, int diskNumber, int pos, int sLen, int repeat, byte[] buffer, int bufLen) throws IOException {
+        byte[] pattern = new byte[sLen];
 
-        int len = istream.readNBytes(ptn, 0, slen);
+        int len = iStream.readNBytes(pattern, 0, sLen);
         if (len == 0) {
             return pos;
         }
-        for (int j = 0; j < repeat && pos < buflen; j++) {
-            for (int i = 0; i < slen && pos < buflen; i++) {
-                buffer[pos] = ptn[i];
+        for (int j = 0; j < repeat && pos < bufLen; j++) {
+            for (int i = 0; i < sLen && pos < bufLen; i++) {
+                buffer[pos] = pattern[i];
                 pos++;
             }
         }
@@ -297,9 +303,9 @@ public class DiskTD0Parser extends DiskImageParser {
     }
 
     /** ベタデータを展開 */
-    private int decodePlainData(InputStream istream, int diskNumber, int pos, int slen, byte[] buffer, int buflen) throws IOException {
-        for (int i = 0; i < slen && pos < buflen && istream.available() > 0; i++) {
-            int b = istream.read();
+    private int decodePlainData(InputStream iStream, int diskNumber, int pos, int sLen, byte[] buffer, int bufLen) throws IOException {
+        for (int i = 0; i < sLen && pos < bufLen && iStream.available() > 0; i++) {
+            int b = iStream.read();
             if (b == -1) break;
             buffer[pos] = (byte) b;
             pos++;
@@ -308,19 +314,19 @@ public class DiskTD0Parser extends DiskImageParser {
     }
 
     /** データを展開してバッファに書き込む */
-    private int decodeData(InputStream istream, int diskNumber, byte[] buffer, int buflen) throws IOException {
-        int len = istream.available();
+    private int decodeData(InputStream iStream, int diskNumber, byte[] buffer, int bufLen) throws IOException {
+        int len = iStream.available();
         if (len < Td0DataHeader.SIZE) {
             result.setError(DiskResult.ERRV_DISK_TOO_SMALL, diskNumber);
             return 0;
         }
-        Td0DataHeader hData = new Td0DataHeader();
-        Serdes.Util.deserialize(istream, hData);
+        Td0DataHeader dataHeader = new Td0DataHeader();
+        Serdes.Util.deserialize(iStream, dataHeader);
 
         // データブロックを先読みする
-        byte[] data = new byte[hData.size];
-        len = istream.readNBytes(data, 0, hData.size);
-        if (len < hData.size) {
+        byte[] data = new byte[dataHeader.size];
+        len = iStream.readNBytes(data, 0, dataHeader.size);
+        if (len < dataHeader.size) {
             result.setError(DiskResult.ERRV_DISK_TOO_SMALL, diskNumber);
             return 0;
         }
@@ -328,56 +334,68 @@ public class DiskTD0Parser extends DiskImageParser {
         baos.write(data);
         baos.write(0);
 
-        ByteArrayInputStream itemp = new ByteArrayInputStream(baos.toByteArray());
+        ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
 
         int pos = 0;
-        int method = itemp.read();
+        int method = bais.read();
         if (method == 0) {
             // ベタ
-            pos = decodePlainData(itemp, diskNumber, pos, hData.size, buffer, buflen);
+            pos = decodePlainData(bais, diskNumber, pos, dataHeader.size, buffer, bufLen);
         } else if (method == 1) {
             // 繰り返しデータ
-            int repeat = itemp.read();
-            repeat |= (itemp.read() << 8);
-            pos = decodeRepeatedData(itemp, diskNumber, pos, 2, repeat, buffer, buflen);
+            int repeat = bais.read();
+            repeat |= (bais.read() << 8);
+            pos = decodeRepeatedData(bais, diskNumber, pos, 2, repeat, buffer, bufLen);
         } else if (method == 2) {
             do {
-                int sub = itemp.read();
+                int sub = bais.read();
                 if (sub == 0) {
                     // ベタデータ
-                    int slen = itemp.read();
-                    pos = decodePlainData(itemp, diskNumber, pos, slen, buffer, buflen);
+                    int slen = bais.read();
+                    pos = decodePlainData(bais, diskNumber, pos, slen, buffer, bufLen);
                 } else {
                     // 繰り返しデータ
-                    int slen = sub * 2;
-                    int repeat = itemp.read() | (itemp.read() << 8);
-                    pos = decodeRepeatedData(itemp, diskNumber, pos, slen, repeat, buffer, buflen);
+                    int sLen = sub * 2;
+                    int repeat = bais.read() | (bais.read() << 8);
+                    pos = decodeRepeatedData(bais, diskNumber, pos, sLen, repeat, buffer, bufLen);
                 }
-            } while (pos < buflen);
+            } while (pos < bufLen);
         }
         return pos;
+    }
+
+    @Override
+    public boolean isSupported(String type) {
+        return "teletd0".equalsIgnoreCase(type);
+    }
+
+    @Override
+    public void init(DiskImageFile file, short modFlags, DiskResult result) {
+        super.init(file, modFlags, result);
+
+        isCompressed = false;
     }
 
     /**
      * チェック
      */
     @Override
-    public int check(InputStream istream) throws IOException {
-        ((SeekableDataInputStream) istream).position(0);
+    public int check(InputStream iStream) throws IOException {
+        ((SeekableDataInputStream) iStream).position(0);
 
-        int len = istream.available();
+        int len = iStream.available();
         if (len < Td0ImageHeader.SIZE) {
             // too short
             return -1;
         }
         Td0ImageHeader header = new Td0ImageHeader();
-        Serdes.Util.deserialize(istream, header);
+        Serdes.Util.deserialize(iStream, header);
         if (header.ident[0] != 'T' || header.ident[1] != 'D') {
             // not TD0 image
             // note that "td" (lower) which advanced compress version is not supported.
             return -1;
         }
-        if (header.telediskVersion != (byte) 0x15) {
+        if (header.teleDiskVersion != (byte) 0x15) {
             // support only 1.5 version
             return -1;
         }
@@ -390,23 +408,19 @@ public class DiskTD0Parser extends DiskImageParser {
         return 0;
     }
 
-    /**
-     * 解析
-     */
     @Override
-    public int parse(InputStream istream, DiskParam diskParam) throws IOException {
-        ((SeekableDataInputStream) istream).position(0);
+    public int check(InputStream iStream, List<DiskTypeHint> hints, DiskParam diskParam, List<DiskParam> diskParams, DiskParam manualParam) throws IOException {
+        return check(iStream);
+    }
+
+    @Override
+    public int parse(InputStream iStream, DiskParam diskParam) throws IOException {
+        ((SeekableDataInputStream) iStream).position(0);
         for (int diskNumber = 0; ; diskNumber++) {
-            if (parseDisk(istream, diskNumber) < 0) {
+            if (parseDisk(iStream, diskNumber) < 0) {
                 break;
             }
         }
         return result.getValid();
-    }
-
-    public DiskTD0Parser(DiskImageFile file, short modFlags, DiskResult result) {
-        super(file, modFlags, result);
-
-        m_isCompressed = false;
     }
 }

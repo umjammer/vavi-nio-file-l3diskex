@@ -17,22 +17,22 @@ import java.util.Map;
 import java.util.ResourceBundle;
 
 import l3diskex.Utils;
-import l3diskex.basicfmt.BasicCommon.DirectoryT;
+import l3diskex.basicfmt.BasicCommon.Directory;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasicDirItem;
-import l3diskex.basicfmt.diritem.DiskBasicDirItemXDOS.DirectoryXdos;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemXDOS.DirectoryXDos;
 import l3diskex.basicfmt.diritem.DiskBasicDirItemXDOS.DiskBasicDirItemXDOSChain;
-import l3diskex.basicfmt.diritem.DiskBasicDirItemXDOS.XdosChainT;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemXDOS.XDosChain;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
 import vavi.util.serdes.Element;
 import vavi.util.serdes.Serdes;
 
-import static l3diskex.Config.gConfig;
+import static l3diskex.Config.config;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_ASCII_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_BASIC_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_BINARY_MASK;
@@ -42,10 +42,11 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_HIDDEN_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_MACHINE_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_READONLY_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_SYSTEM_MASK;
+import static l3diskex.basicfmt.type.DiskBasicTypeXDOS.FORMAT_TYPE_XDOS;
 
 
-/// ディレクトリ１アイテム X-DOS Base
-public class DiskBasicDirItemXDOS extends DiskBasicDirItemXDOSBase<DirectoryXdos> {
+/** ディレクトリ１アイテム X-DOS Base */
+public class DiskBasicDirItemXDOS extends DiskBasicDirItemXDOSBase<DirectoryXDos> {
 
     private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
 
@@ -53,7 +54,7 @@ public class DiskBasicDirItemXDOS extends DiskBasicDirItemXDOSBase<DirectoryXdos
      * X-DOSセグメント情報
      */
     @Serdes(bigEndian = false)
-    public static class XdosSeg {
+    public static class XDosSeg {
 
         @Element(sequence = 1)
         public byte track;
@@ -67,10 +68,10 @@ public class DiskBasicDirItemXDOS extends DiskBasicDirItemXDOSBase<DirectoryXdos
      * ディレクトリエントリ X-DOS X1 (32bytes)
      */
     @Serdes(bigEndian = false)
-    public static class DirectoryXdos implements DirectoryT {
+    public static class DirectoryXDos implements Directory {
 
         @Element(sequence = 1)
-        public short ftype; // big endien
+        public short fType; // big endien
         @Element(sequence = 1)
         public byte[] name = new byte[16];
         @Element(sequence = 1)
@@ -86,78 +87,71 @@ public class DiskBasicDirItemXDOS extends DiskBasicDirItemXDOSBase<DirectoryXdos
         @Element(sequence = 1)
         public byte attr; // アトリビュート
         @Element(sequence = 1)
-        public XdosSeg start = new XdosSeg();
+        public XDosSeg start = new XDosSeg();
 
         public static final int SIZE = 32;
     }
 
 
-    public static class XdosSubTypeT {
+    public static class XDosSubType {
 
         public int start;
         public int end;
         public String desc;
 
-        XdosSubTypeT(int start, int end, String desc) {
+        XDosSubType(int start, int end, String desc) {
             this.start = start;
             this.end = end;
             this.desc = desc;
         }
     }
 
-    private static final XdosSubTypeT[] xdosSubTypes3cmd = {
-            new XdosSubTypeT(0x00, 0x00, "Default"),
-            new XdosSubTypeT(0x10, 0x10, "SX-BASIC"),
-            new XdosSubTypeT(0x11, 0x11, "XASM"),
-            new XdosSubTypeT(0x12, 0x12, "XEDIT"),
-            new XdosSubTypeT(0x13, 0x13, "SLANG"),
-            new XdosSubTypeT(-1, -1, null)
+    private static final XDosSubType[] xDosSubTypes3cmd = {
+            new XDosSubType(0x00, 0x00, "Default"),
+            new XDosSubType(0x10, 0x10, "SX-BASIC"),
+            new XDosSubType(0x11, 0x11, "XASM"),
+            new XDosSubType(0x12, 0x12, "XEDIT"),
+            new XDosSubType(0x13, 0x13, "SLANG"),
+            new XDosSubType(-1, -1, null)
     };
 
-    private static final XdosSubTypeT[] xdosSubTypes5sub = {
-            new XdosSubTypeT(0x00, 0x00, "Default"),
-            new XdosSubTypeT(0x01, 0x01, "Printer"),
-            new XdosSubTypeT(0x10, 0x17, "overley module (turbo/MZ)"),
-            new XdosSubTypeT(0x18, 0x1f, "overley module (nomal X1)"),
-            new XdosSubTypeT(0x20, 0x2f, "access module"),
-            new XdosSubTypeT(-1, -1, null)
+    private static final XDosSubType[] xDosSubTypes5sub = {
+            new XDosSubType(0x00, 0x00, "Default"),
+            new XDosSubType(0x01, 0x01, "Printer"),
+            new XDosSubType(0x10, 0x17, "overley module (turbo/MZ)"),
+            new XDosSubType(0x18, 0x1f, "overley module (nomal X1)"),
+            new XDosSubType(0x20, 0x2f, "access module"),
+            new XDosSubType(-1, -1, null)
     };
 
-    private static final XdosSubTypeT[] xdosSubTypes7sys = {
-            new XdosSubTypeT(0x00, 0x00, "X-DOS System (turbo)"),
-            new XdosSubTypeT(0x01, 0x01, "X-DOS System (nomal X1)"),
-            new XdosSubTypeT(0x02, 0x02, "X-DOS System (MZ-2500)"),
-            new XdosSubTypeT(-1, -1, null)
+    private static final XDosSubType[] xDosSubTypes7sys = {
+            new XDosSubType(0x00, 0x00, "X-DOS System (turbo)"),
+            new XDosSubType(0x01, 0x01, "X-DOS System (nomal X1)"),
+            new XDosSubType(0x02, 0x02, "X-DOS System (MZ-2500)"),
+            new XDosSubType(-1, -1, null)
     };
 
-    public static final XdosSubTypeT[][] xdosSubTypes = {
+    public static final XDosSubType[][] xDosSubTypes = {
             null,
             null,
             null,
-            xdosSubTypes3cmd,
+            xDosSubTypes3cmd,
             null,
-            xdosSubTypes5sub,
+            xDosSubTypes5sub,
             null,
-            xdosSubTypes7sys,
+            xDosSubTypes7sys,
             null,
             null
     };
 
-    static class XdosSegT {
+    /** X-DOSチェイン情報 (FAM) */
+    static class XDosChain {
 
-        byte track;
-        byte sector;
-        byte size;
-    }
+        XDosSeg[] seg = new XDosSeg[170];
 
-    /// X-DOSチェイン情報 (FAM)
-    static class XdosChainT {
-
-        XdosSegT[] seg = new XdosSegT[170];
-
-        public XdosChainT() {
+        public XDosChain() {
             for (int i = 0; i < 170; i++) {
-                seg[i] = new XdosSegT();
+                seg[i] = new XDosSeg();
             }
         }
     }
@@ -181,7 +175,7 @@ public class DiskBasicDirItemXDOS extends DiskBasicDirItemXDOSBase<DirectoryXdos
 
     static final int FILE_TYPE_KANJI_MASK = 0x1000000;
 
-    public static final Map<String, Object> gTypeNameXDOS1 = new LinkedHashMap<>() {{
+    public static final Map<String, Object> typeNameXDOS1 = new LinkedHashMap<>() {{
             put("NUL", FILETYPE_XDOS_NUL); // 0x00
             put("BIN", FILETYPE_XDOS_BIN); // 0x01
             put("BAS", FILETYPE_XDOS_BAS); // 0x02
@@ -205,11 +199,11 @@ public class DiskBasicDirItemXDOS extends DiskBasicDirItemXDOSBase<DirectoryXdos
     static final int TYPE_NAME_XDOS_DIC = 8;
     static final int TYPE_NAME_XDOS_DIR = 9;
 
-    public static final String[] gTypeNameXDOS2 = {
-        ("Hidden"),				// 0x80
-        ("Write Protected"),	// 0x40
-        ("System"),				// 0x20
-        ("Kanji"),				// 0x10
+    public static final String[] typeNameXDOS2 = {
+        "Hidden",          // 0x80
+        "Write Protected", // 0x40
+        "System",          // 0x20
+        "Kanji",           // 0x10
     };
 
     static final int TYPE_NAME_XDOS2_HIDDEN = 0;
@@ -222,14 +216,12 @@ public class DiskBasicDirItemXDOS extends DiskBasicDirItemXDOSBase<DirectoryXdos
 
         private DiskBasic basic;
         private DiskImageSector sector;
-        private XdosChainT chain;
-        private boolean chainOwnmake;
+        private XDosChain chain;
 
         public DiskBasicDirItemXDOSChain() {
             basic = null;
             sector = null;
             chain = null;
-            chainOwnmake = false;
         }
 
         public DiskBasicDirItemXDOSChain(DiskBasicDirItemXDOSChain src) {
@@ -238,31 +230,22 @@ public class DiskBasicDirItemXDOS extends DiskBasicDirItemXDOSBase<DirectoryXdos
 
         public void dup(DiskBasicDirItemXDOSChain src) {
             sector = src.sector;
-            if (src.chainOwnmake) {
-                chain = new XdosChainT();
-                for (int i = 0; i < 170; i++) {
-                    chain.seg[i].track = src.chain.seg[i].track;
-                    chain.seg[i].sector = src.chain.seg[i].sector;
-                    chain.seg[i].size = src.chain.seg[i].size;
-                }
-            } else {
-                chain = src.chain;
+            chain = new XDosChain();
+            for (int i = 0; i < 170; i++) {
+                chain.seg[i].track = src.chain.seg[i].track;
+                chain.seg[i].sector = src.chain.seg[i].sector;
+                chain.seg[i].size = src.chain.seg[i].size;
             }
-            chainOwnmake = src.chainOwnmake;
         }
 
-        public void set(DiskBasic nBasic, DiskImageSector nSector, XdosChainT nChain) {
-            basic = nBasic;
-            sector = nSector;
-            if (chainOwnmake) chain = null;
-            chain = nChain;
-            chainOwnmake = false;
+        public void set(DiskBasic basic, DiskImageSector sector, XDosChain chain) {
+            this.basic = basic;
+            this.sector = sector;
+            this.chain = chain;
         }
 
         public void alloc() {
-            if (chainOwnmake) chain = null;
-            chain = new XdosChainT();
-            chainOwnmake = true;
+            chain = new XDosChain();
             for (int i = 0; i < 170; i++) {
                 chain.seg[i].track = 0;
                 chain.seg[i].sector = 0;
@@ -286,80 +269,88 @@ public class DiskBasicDirItemXDOS extends DiskBasicDirItemXDOSBase<DirectoryXdos
             return chain != null;
         }
 
-        public int getSectorPos(int idx) {
-            if (chain == null || idx >= 170) return 0;
-            return (chain.seg[idx].track & 0xFF) * basic.diskBasicParam.getSectorsPerTrackOnBasic() + (chain.seg[idx].sector & 0xFF) - 1;
+        public int getSectorPos(int index) {
+            if (chain == null || index >= 170) return 0;
+            return (chain.seg[index].track & 0xff) * basic.getSectorsPerTrackOnBasic() + (chain.seg[index].sector & 0xff) - 1;
         }
 
         public int getSectors() {
             if (chain == null) return 0;
-            int cnt = 0;
+            int count = 0;
             for (int i = 0; i < 170; i++) {
                 if (chain.seg[i].track == 0) {
                     break;
                 }
-                cnt += (chain.seg[i].size & 0xFF);
+                count += (chain.seg[i].size & 0xFF);
             }
-            return cnt;
+            return count;
         }
 
-        public int getSectors(int idx) {
-            if (chain == null || idx >= 170) return 0;
-            return chain.seg[idx].size & 0xFF;
+        public int getSectors(int index) {
+            if (chain == null || index >= 170) return 0;
+            return chain.seg[index].size & 0xFF;
         }
 
-        public void addSectorPos(int idx, int val) {
-            if (chain == null || idx >= 170) return;
-            if (chain.seg[idx].size == 0) {
+        public void addSectorPos(int index, int val) {
+            if (chain == null || index >= 170) return;
+            if (chain.seg[index].size == 0) {
                 val++;
-                chain.seg[idx].track = (byte) (val / basic.diskBasicParam.getSectorsPerTrackOnBasic());
-                chain.seg[idx].sector = (byte) (val % basic.diskBasicParam.getSectorsPerTrackOnBasic());
+                chain.seg[index].track = (byte) (val / basic.getSectorsPerTrackOnBasic());
+                chain.seg[index].sector = (byte) (val % basic.getSectorsPerTrackOnBasic());
             }
-            chain.seg[idx].size++;
+            chain.seg[index].size++;
         }
 
-        public void setSectors(int idx, int val) {
-            if (chain == null || idx >= 170) return;
-            chain.seg[idx].size = (byte) val;
+        public void setSectors(int index, int val) {
+            if (chain == null || index >= 170) return;
+            chain.seg[index].size = (byte) val;
         }
 
-        public boolean getSegment(int idx, int[] groupNum, int[] size) {
+        public boolean getSegment(int index, int[] groupNum, int[] size) {
             if (chain == null) return false;
-            groupNum[0] = (chain.seg[idx].track & 0xFF) * basic.diskBasicParam.getSectorsPerTrackOnBasic() + (chain.seg[idx].sector & 0xFF) - 1;
-            size[0] = chain.seg[idx].size & 0xFF;
-            return chain.seg[idx].track != 0;
+            groupNum[0] = (chain.seg[index].track & 0xff) * basic.getSectorsPerTrackOnBasic() + (chain.seg[index].sector & 0xff) - 1;
+            size[0] = chain.seg[index].size & 0xff;
+            return chain.seg[index].track != 0;
         }
 
-        public void setBasic(DiskBasic nBasic) {
-            basic = nBasic;
+        public void setBasic(DiskBasic basic) {
+            this.basic = basic;
         }
     }
 
     /** ディレクトリデータ */
-    private DiskBasicDirData<DirectoryXdos> mData = new DiskBasicDirData<>();
+    private final DiskBasicDirData<DirectoryXDos> data = new DiskBasicDirData<>();
 
-    protected DiskBasicDirItemXDOS(DiskBasic basic, int nNum, DiskBasicGroupItem nGitem, DiskImageSector nSector, int nSecpos, byte[] nData, int dataP, SectorParam nNext, boolean[] nUnuse, boolean[] nInherit) {
-        super(basic, nNum, nGitem, nSector, nSecpos, nData, dataP, nNext, nUnuse);
+    protected void init(DiskBasic basic, int num, DiskBasicGroupItem groupItem, DiskImageSector sector, int secPos, byte[] data, int dataP, SectorParam next, boolean[] unuse, boolean[] inherit) throws IOException {
+        super.init(basic, num, groupItem, sector, secPos, data, dataP, next, unuse);
     }
 
-    public DiskBasicDirItemXDOS(DiskBasic basic) {
-        super(basic);
-
-        mData.alloc(DirectoryXdos.class);
+    @Override
+    public boolean isSupported(int formatType) {
+        return formatType == FORMAT_TYPE_XDOS;
     }
 
-    public DiskBasicDirItemXDOS(DiskBasic basic, DiskImageSector nSector, int nSecpos, byte[] nData, int dataP) {
-        super(basic, nSector, nSecpos, nData, dataP);
+    @Override
+    public void init(DiskBasic basic) throws IOException {
+        super.init(basic);
 
-        mData.attach(DirectoryXdos.class, nData, dataP);
+        data.alloc(DirectoryXDos.class);
     }
 
-    public DiskBasicDirItemXDOS(DiskBasic basic, int nNum, DiskBasicGroupItem nGitem, DiskImageSector nSector, int nSecpos, byte[] nData, int dataP, SectorParam nNext, boolean[] nUnuse) throws IOException {
-        super(basic, nNum, nGitem, nSector, nSecpos, nData, dataP, nNext, nUnuse);
+    @Override
+    public void init(DiskBasic basic, DiskImageSector sector, int sectorPos, byte[] data, int dataP) throws IOException {
+        super.init(basic, sector, sectorPos, data, dataP);
 
-        mData.attach(DirectoryXdos.class, nData, dataP);
+        this.data.attach(DirectoryXDos.class, data, dataP);
+    }
 
-        used(checkUsed(nUnuse[0]));
+    @Override
+    public void init(DiskBasic basic, int num, DiskBasicGroupItem groupItem, DiskImageSector sector, int sectorPos, byte[] data, int dataP, SectorParam next, boolean[] unuse) throws IOException {
+        super.init(basic, num, groupItem, sector, sectorPos, data, dataP, next, unuse);
+
+        this.data.attach(DirectoryXDos.class, data, dataP);
+
+        used(checkUsed(unuse[0]));
 
         // チェインセクタへのポインタをセット
         if (isUsed()) {
@@ -375,17 +366,17 @@ public class DiskBasicDirItemXDOS extends DiskBasicDirItemXDOSBase<DirectoryXdos
     }
 
     @Override
-    public void setDataPtr(int nNum, DiskBasicGroupItem nGitem, DiskImageSector nSector, int nSecpos, byte[] nData, int dataP, SectorParam nNext) throws IOException {
-        super.setDataPtr(nNum, nGitem, nSector, nSecpos, nData, dataP, nNext);
+    public void setData(int num, DiskBasicGroupItem groupItem, DiskImageSector sector, int sectorPos, byte[] data, int dataPos, SectorParam next) throws IOException {
+        super.setData(num, groupItem, sector, sectorPos, data, dataPos, next);
 
-        mData.attach(DirectoryXdos.class, nData, dataP);
+        this.data.attach(DirectoryXDos.class, data, dataPos);
     }
 
     @Override
     protected byte[] getFileNamePos(int num, int[] size, int[] len) {
         if (num == 0) {
-            size[0] = len[0] = mData.data().name.length;
-            return mData.data().name;
+            size[0] = len[0] = data.data().name.length;
+            return data.data().name;
         } else {
             size[0] = len[0] = 0;
             return null;
@@ -394,21 +385,21 @@ public class DiskBasicDirItemXDOS extends DiskBasicDirItemXDOSBase<DirectoryXdos
 
     @Override
     public int getFileType1() {
-        return mData.data().ftype & 0xffff;
+        return data.data().fType & 0xffff;
     }
 
     @Override
     protected void setFileType1(int val) {
-        mData.data().ftype = (short) val;
+        data.data().fType = (short) val;
     }
 
     /** 属性１の文字列 */
     public String convFileType1Str(int t1) {
         String str = "";
         if (t1 <= 0x0800) {
-            str = rb.getString(Utils.keyAt(gTypeNameXDOS1, t1 >> 8));
+            str = rb.getString(Utils.keyAt(typeNameXDOS1, t1 >> 8));
         } else if (t1 == 0x8000) {
-            str = rb.getString(Utils.keyAt(gTypeNameXDOS1, 9));
+            str = rb.getString(Utils.keyAt(typeNameXDOS1, 9));
         } else if ((t1 & 0x8000) != 0) {
             // ユーザファイルタイプ
             str = convUserFileTypeToStr(t1);
@@ -418,12 +409,12 @@ public class DiskBasicDirItemXDOS extends DiskBasicDirItemXDOSBase<DirectoryXdos
 
     @Override
     public int getFileType2() {
-        return mData.data().attr & 0xff;
+        return data.data().attr & 0xff;
     }
 
     @Override
     protected void setFileType2(int val) {
-        mData.data().attr = (byte) (val & 0xff);
+        data.data().attr = (byte) (val & 0xff);
     }
 
     @Override
@@ -456,10 +447,10 @@ public class DiskBasicDirItemXDOS extends DiskBasicDirItemXDOSBase<DirectoryXdos
 
     @Override
     public boolean check(boolean[] last) {
-        if (!mData.isValid()) return false;
+        if (!data.isValid()) return false;
 
         boolean valid = true;
-        if (mData.data().ftype == (short) 0xffff && mData.data().start.track == (byte) 0xff) {
+        if (data.data().fType == (short) 0xffff && data.data().start.track == (byte) 0xff) {
             last[0] = true;
             return valid;
         }
@@ -480,15 +471,15 @@ public class DiskBasicDirItemXDOS extends DiskBasicDirItemXDOSBase<DirectoryXdos
     @Override
     public boolean delete() {
         // 削除はエントリの先頭にコードを入れるだけ
-        mData.fill(basic.invertUint8(basic.diskBasicParam.getDeleteCode()), 1);
+        data.fill(basic.invertUint8(basic.getDeleteCode()), 1);
         used(false);
         return true;
     }
 
     @Override
     public void setFileAttr(DiskBasicFileType fileType) {
-        int ftype = fileType.getType();
-        if (ftype == -1) return;
+        int fType = fileType.getType();
+        if (fType == -1) return;
 
         int t1 = 0;
         int t2 = 0;
@@ -502,15 +493,15 @@ public class DiskBasicDirItemXDOS extends DiskBasicDirItemXDOSBase<DirectoryXdos
             t1 &= 0xffff;
         } else {
             // 違うOSの場合
-            if ((ftype & FILE_TYPE_DIRECTORY_MASK.getValue()) != 0) {
+            if ((fType & FILE_TYPE_DIRECTORY_MASK.getValue()) != 0) {
                 t1 = FILETYPE_XDOS_DIR;
-            } else if ((ftype & FILE_TYPE_BASIC_MASK.getValue()) != 0) {
+            } else if ((fType & FILE_TYPE_BASIC_MASK.getValue()) != 0) {
                 t1 = FILETYPE_XDOS_BAS;
-            } else if ((ftype & FILE_TYPE_MACHINE_MASK.getValue()) != 0) {
+            } else if ((fType & FILE_TYPE_MACHINE_MASK.getValue()) != 0) {
                 t1 = FILETYPE_XDOS_BIN;
-            } else if ((ftype & FILE_TYPE_SYSTEM_MASK.getValue()) != 0) {
+            } else if ((fType & FILE_TYPE_SYSTEM_MASK.getValue()) != 0) {
                 t1 = FILETYPE_XDOS_SYS;
-            } else if ((ftype & FILE_TYPE_BINARY_MASK.getValue()) != 0) {
+            } else if ((fType & FILE_TYPE_BINARY_MASK.getValue()) != 0) {
                 t1 = FILETYPE_XDOS_CMD;
             }
             t1 <<= 8;
@@ -522,8 +513,8 @@ public class DiskBasicDirItemXDOS extends DiskBasicDirItemXDOSBase<DirectoryXdos
     @Override
     public DiskBasicFileType getFileAttr() {
         int val = 0;
-        int typ1 = getFileType1();
-        switch (typ1 >> 8) {
+        int type1 = getFileType1();
+        switch (type1 >> 8) {
             case 1:	// OBJ
                 val |= FILE_TYPE_MACHINE_MASK.getValue();
                 break;
@@ -556,22 +547,22 @@ public class DiskBasicDirItemXDOS extends DiskBasicDirItemXDOSBase<DirectoryXdos
                 break;
         }
 
-        int typ2 = getFileType2();
-        if ((typ2 & FILETYPE_XDOS2_HIDDEN) != 0) {
+        int type2 = getFileType2();
+        if ((type2 & FILETYPE_XDOS2_HIDDEN) != 0) {
             val |= FILE_TYPE_HIDDEN_MASK.getValue();
         }
-        if ((typ2 & FILETYPE_XDOS2_READONLY) != 0) {
+        if ((type2 & FILETYPE_XDOS2_READONLY) != 0) {
             val |= FILE_TYPE_READONLY_MASK.getValue();
         }
-        if ((typ2 & FILETYPE_XDOS2_SYSTEM) != 0) {
+        if ((type2 & FILETYPE_XDOS2_SYSTEM) != 0) {
             val |= FILE_TYPE_SYSTEM_MASK.getValue();
         }
-        if ((typ2 & FILETYPE_XDOS2_KANJI) != 0) {
+        if ((type2 & FILETYPE_XDOS2_KANJI) != 0) {
             val |= FILE_TYPE_KANJI_MASK;
         }
 
         // 独自属性にはファイル種類そのまま入れる
-        int extended = (typ1 | (typ2 << 16));
+        int extended = (type1 | (type2 << 16));
 
         return new DiskBasicFileType(basic.getFormatTypeNumber(), val, extended);
     }
@@ -583,55 +574,55 @@ public class DiskBasicDirItemXDOS extends DiskBasicDirItemXDOSBase<DirectoryXdos
         int typ2 = getFileType2();
         if ((typ2 & FILETYPE_XDOS2_HIDDEN) != 0) {
             if (!str.isEmpty()) str += ", ";
-            str += rb.getString(gTypeNameXDOS2[TYPE_NAME_XDOS2_HIDDEN]);
+            str += rb.getString(typeNameXDOS2[TYPE_NAME_XDOS2_HIDDEN]);
         }
         if ((typ2 & FILETYPE_XDOS2_READONLY) != 0) {
             if (!str.isEmpty()) str += ", ";
-            str += rb.getString(gTypeNameXDOS2[TYPE_NAME_XDOS2_READONLY]);
+            str += rb.getString(typeNameXDOS2[TYPE_NAME_XDOS2_READONLY]);
         }
         if ((typ2 & FILETYPE_XDOS2_SYSTEM) != 0) {
             if (!str.isEmpty()) str += ", ";
-            str += rb.getString(gTypeNameXDOS2[TYPE_NAME_XDOS2_SYSTEM]);
+            str += rb.getString(typeNameXDOS2[TYPE_NAME_XDOS2_SYSTEM]);
         }
         if ((typ2 & FILETYPE_XDOS2_KANJI) != 0) {
             if (!str.isEmpty()) str += ", ";
-            str += rb.getString(gTypeNameXDOS2[TYPE_NAME_XDOS2_KANJI]);
+            str += rb.getString(typeNameXDOS2[TYPE_NAME_XDOS2_KANJI]);
         }
         return str;
     }
 
     @Override
     public void setFileSize(int val) {
-        mData.data().fileSize = (short) val;
+        data.data().fileSize = (short) val;
         groups.setSize(val);
     }
 
     @Override
     public int getFileSize() {
-        return mData.data().fileSize & 0xffff;
+        return data.data().fileSize & 0xffff;
     }
 
     @Override
-    public void setStartGroup(int fileunitNum, int val, int size) {
-        mData.data().start.track = (byte) (val / basic.diskBasicParam.getSectorsPerTrackOnBasic());
-        mData.data().start.sector = (byte) ((val % basic.diskBasicParam.getSectorsPerTrackOnBasic()) + 1);
-        mData.data().start.size = (byte) size;
+    public void setStartGroup(int fileUnitNum, int val, int size) {
+        data.data().start.track = (byte) (val / basic.getSectorsPerTrackOnBasic());
+        data.data().start.sector = (byte) ((val % basic.getSectorsPerTrackOnBasic()) + 1);
+        data.data().start.size = (byte) size;
     }
 
     @Override
-    public int getStartGroup(int fileunitNum) {
-        return (mData.data().start.track & 0xff) * basic.diskBasicParam.getSectorsPerTrackOnBasic() + (mData.data().start.sector & 0xff) - 1;
+    public int getStartGroup(int fileUnitNum) {
+        return (data.data().start.track & 0xff) * basic.getSectorsPerTrackOnBasic() + (data.data().start.sector & 0xff) - 1;
     }
 
     @Override
     public void setExtraGroup(int val) {
-        mData.data().start.track = (byte) (val / basic.diskBasicParam.getSectorsPerTrackOnBasic());
-        mData.data().start.sector = (byte) ((val % basic.diskBasicParam.getSectorsPerTrackOnBasic()) + 1);
+        data.data().start.track = (byte) (val / basic.getSectorsPerTrackOnBasic());
+        data.data().start.sector = (byte) ((val % basic.getSectorsPerTrackOnBasic()) + 1);
     }
 
     @Override
     public int getExtraGroup() {
-        return (mData.data().start.track & 0xff) * basic.diskBasicParam.getSectorsPerTrackOnBasic() + (mData.data().start.sector & 0xff) - 1;
+        return (data.data().start.track & 0xff) * basic.getSectorsPerTrackOnBasic() + (data.data().start.sector & 0xff) - 1;
     }
 
     @Override
@@ -641,13 +632,13 @@ public class DiskBasicDirItemXDOS extends DiskBasicDirItemXDOSBase<DirectoryXdos
 
     @Override
     public LocalDate getFileCreateDate(LocalDateTime tm) {
-        int date = mData.data().date & 0xffff;
+        int date = data.data().date & 0xffff;
         return convDateToTm(date);
     }
 
     @Override
     public LocalTime getFileCreateTime(LocalDateTime tm) {
-        int time = mData.data().time & 0xffff;
+        int time = data.data().time & 0xffff;
         return convTimeToTm(time);
     }
 
@@ -655,7 +646,7 @@ public class DiskBasicDirItemXDOS extends DiskBasicDirItemXDOSBase<DirectoryXdos
     public void setFileCreateDate(LocalDateTime tm) {
         if (tm.getYear() >= 0 && tm.getMonth().ordinal() >= 0) {
             int date = convTmToDate(tm);
-            mData.data().date = (short) date;
+            data.data().date = (short) date;
         }
     }
 
@@ -663,7 +654,7 @@ public class DiskBasicDirItemXDOS extends DiskBasicDirItemXDOSBase<DirectoryXdos
     public void setFileCreateTime(LocalDateTime tm) {
         if (tm.getHour() >= 0 && tm.getMinute() >= 0) {
             int time = convTmToTime(tm);
-            mData.data().time = (short) time;
+            data.data().time = (short) time;
         }
     }
 
@@ -700,54 +691,54 @@ public class DiskBasicDirItemXDOS extends DiskBasicDirItemXDOSBase<DirectoryXdos
 
     @Override
     public int getStartAddress() {
-        int addr = mData.data().loadAddr;
+        int addr = data.data().loadAddr;
         return basic.orderUint16((short) addr);
     }
 
     @Override
     public int getExecuteAddress() {
-        int addr = mData.data().execAddr;
+        int addr = data.data().execAddr;
         return basic.orderUint16((short) addr);
     }
 
     @Override
     public void setStartAddress(int val) {
-        mData.data().loadAddr = basic.orderUint16((short) val);
+        data.data().loadAddr = basic.orderUint16((short) val);
     }
 
     @Override
     public void setExecuteAddress(int val) {
-        mData.data().execAddr = basic.orderUint16((short) val);
+        data.data().execAddr = basic.orderUint16((short) val);
     }
 
     @Override
     public int getDataSize() {
-        return mData.getDataSize();
+        return data.getDataSize();
     }
 
     @Override
-    public DirectoryXdos getData() {
-        return mData.data();
+    public DirectoryXDos getData() {
+        return data.data();
     }
 
     @Override
     public boolean copyData(byte[] val) {
-        return mData.copy(val, getDataSize());
+        return data.copy(val, getDataSize());
     }
 
     @Override
     public void clearData() {
-        mData.fill(basic.diskBasicParam.getDeleteCode(), getDataSize());
+        data.fill(basic.getDeleteCode(), getDataSize());
     }
 
     @Override
     public void initialData() {
-        mData.fill(basic.diskBasicParam.getFillCodeOnDir(), getDataSize());
+        data.fill(basic.getFillCodeOnDir(), getDataSize());
     }
 
     @Override
     public boolean preExportDataFile(String[] filename) {
-        if (!gConfig.isAddExtensionExport()) return true;
+        if (!config.isAddExtensionExport()) return true;
 
         // 拡張子を付加する
         if (!isDirectory()) {
@@ -765,9 +756,9 @@ public class DiskBasicDirItemXDOS extends DiskBasicDirItemXDOSBase<DirectoryXdos
 
     @Override
     public boolean preImportDataFile(String[] filename) {
-        if (gConfig.isDecideAttrImport()) {
+        if (config.isDecideAttrImport()) {
             int[] p1 = new int[1];
-            isContainAttrByExtension(filename[0], gTypeNameXDOS1, TYPE_NAME_XDOS_BIN, TYPE_NAME_XDOS_DIC, filename, null, p1);
+            isContainAttrByExtension(filename[0], typeNameXDOS1, TYPE_NAME_XDOS_BIN, TYPE_NAME_XDOS_DIC, filename, null, p1);
             if (!(TYPE_NAME_XDOS_BIN <= p1[0] && p1[0] <= TYPE_NAME_XDOS_DIC)) {
                 String fn = Path.of(filename[0]).getFileName().toString();
                 // 拡張子は除く
@@ -782,7 +773,7 @@ public class DiskBasicDirItemXDOS extends DiskBasicDirItemXDOSBase<DirectoryXdos
     public int convOriginalTypeFromFileName(String filename) {
         int t1 = 0;
         int[] typeRef = new int[1];
-        if (isContainAttrByExtension(filename, gTypeNameXDOS1, TYPE_NAME_XDOS_BIN, TYPE_NAME_XDOS_DIC, null, typeRef, null)) {
+        if (isContainAttrByExtension(filename, typeNameXDOS1, TYPE_NAME_XDOS_BIN, TYPE_NAME_XDOS_DIC, null, typeRef, null)) {
             t1 = (typeRef[0] << 8);
         } else {
             String ext = Utils.getExt(filename).toUpperCase();
@@ -803,48 +794,51 @@ public class DiskBasicDirItemXDOS extends DiskBasicDirItemXDOSBase<DirectoryXdos
 
     @Override
     public void setInternalDataInAttrDialog(KeyValArray vals) throws IOException {
-        vals.add("FTYPE", (byte) mData.data().ftype, true);
-        vals.add("NAME", mData.data().name, mData.data().name.length);
-        vals.add("LOAD_ADDR", (byte) mData.data().loadAddr, basic.isBigEndian());
-        vals.add("FILE_SIZE", (byte) mData.data().fileSize, basic.isBigEndian());
-        vals.add("EXEC_ADDR", (byte) mData.data().execAddr, basic.isBigEndian());
-        vals.add("DATE", (byte) mData.data().date, true);
-        vals.add("TIME", (byte) mData.data().time, true);
-        vals.add("ATTR", mData.data().attr);
+        vals.add("FTYPE", (byte) data.data().fType, true);
+        vals.add("NAME", data.data().name, data.data().name.length);
+        vals.add("LOAD_ADDR", (byte) data.data().loadAddr, basic.isBigEndian());
+        vals.add("FILE_SIZE", (byte) data.data().fileSize, basic.isBigEndian());
+        vals.add("EXEC_ADDR", (byte) data.data().execAddr, basic.isBigEndian());
+        vals.add("DATE", (byte) data.data().date, true);
+        vals.add("TIME", (byte) data.data().time, true);
+        vals.add("ATTR", data.data().attr);
         ByteArrayOutputStream os = new ByteArrayOutputStream();
-        Serdes.Util.serialize(mData.data().start, os);
+        Serdes.Util.serialize(data.data().start, os);
         vals.add("START", os.toByteArray(), os.size());
     }
 }
 
 /// ディレクトリ１アイテム X-DOS Base
-abstract class DiskBasicDirItemXDOSBase<T extends DirectoryT> extends DiskBasicDirItem<T> {
+abstract class DiskBasicDirItemXDOSBase<T extends Directory> extends DiskBasicDirItem<T> {
 
     static final int XDOS_CHAIN_SEGMENTS = 170;
 
     /** チェイン情報 */
     protected DiskBasicDirItemXDOSChain chain = new DiskBasicDirItemXDOSChain();
 
-    protected DiskBasicDirItemXDOSBase(DiskBasic basic, int nNum, DiskBasicGroupItem nGitem, DiskImageSector nSector, int nSecpos, byte[] nData, int dataP, SectorParam nNext, boolean[] nUnuse, boolean nInherit) {
-        super(basic, nNum, nGitem, nSector, nSecpos, nData, dataP, nNext, nUnuse);
+    protected void init(DiskBasic basic, int num, DiskBasicGroupItem groupItem, DiskImageSector sector, int secPos, byte[] data, int dataP, SectorParam next, boolean[] unuse, boolean inherit) throws IOException {
+        super.init(basic, num, groupItem, sector, secPos, data, dataP, next, unuse);
     }
 
-    public DiskBasicDirItemXDOSBase(DiskBasic basic) {
-        super(basic);
+    @Override
+    public void init(DiskBasic basic) throws IOException {
+        super.init(basic);
 
         chain.setBasic(basic);
         chain.alloc();
     }
 
-    public DiskBasicDirItemXDOSBase(DiskBasic basic, DiskImageSector nSector, int nSecpos, byte[] nData, int dataP) {
-        super(basic, nSector, nSecpos, nData, dataP);
+    @Override
+    public void init(DiskBasic basic, DiskImageSector sector, int sectorPos, byte[] data, int dataP) throws IOException {
+        super.init(basic, sector, sectorPos, data, dataP);
 
         chain.setBasic(basic);
         chain.alloc();
     }
 
-    public DiskBasicDirItemXDOSBase(DiskBasic basic, int nNum, DiskBasicGroupItem nGitem, DiskImageSector nSector, int nSecpos, byte[] nData, int dataP, SectorParam nNext, boolean[] nUnuse) {
-        super(basic, nNum, nGitem, nSector, nSecpos, nData, dataP, nNext, nUnuse);
+    @Override
+    public void init(DiskBasic basic, int num, DiskBasicGroupItem groupItem, DiskImageSector sector, int sectorPos, byte[] data, int dataP, SectorParam next, boolean[] unuse) throws IOException {
+        super.init(basic, num, groupItem, sector, sectorPos, data, dataP, next, unuse);
     }
 
     protected boolean allocateItem() {
@@ -860,7 +854,7 @@ abstract class DiskBasicDirItemXDOSBase<T extends DirectoryT> extends DiskBasicD
         if (groupNum != 0) {
             DiskImageSector sector = basic.getSectorFromGroup(groupNum);
             if (sector != null) {
-                XdosChainT x = new XdosChainT();
+                XDosChain x = new XDosChain();
                 Serdes.Util.deserialize(sector.getSectorBuffer(), x);
                 chain.set(basic, sector, x);
             }
@@ -869,10 +863,10 @@ abstract class DiskBasicDirItemXDOSBase<T extends DirectoryT> extends DiskBasicD
 
     /** グループを追加する */
     protected void addGroups(int groupNum, int nextGroup, DiskBasicGroups groupItems) {
-        int[] trk = new int[1], sid = new int[1], sec = new int[1], div = new int[1], divs = new int[1];
-        trk[0] = sid[0] = sec[0] = -1;
-        basic.calcNumFromSectorPosForGroup(groupNum, trk, sid, sec, div, divs);
-        groupItems.add(groupNum, nextGroup, trk[0], sid[0], sec[0], sec[0], div[0], divs[0]);
+        int[] track = new int[1], side = new int[1], sector = new int[1], div = new int[1], divs = new int[1];
+        track[0] = side[0] = sector[0] = -1;
+        basic.calcNumFromSectorPosForGroup(groupNum, track, side, sector, div, divs);
+        groupItems.add(groupNum, nextGroup, track[0], side[0], sector[0], sector[0], div[0], divs[0]);
     }
 
     @Override
@@ -900,25 +894,25 @@ abstract class DiskBasicDirItemXDOSBase<T extends DirectoryT> extends DiskBasicD
     }
 
     @Override
-    public void calcFileUnitSize(int fileunitNum) {
+    public void calcFileUnitSize(int fileUnitNum) {
         if (!isUsed()) return;
 
-        getUnitGroups(fileunitNum, groups);
+        getUnitGroups(fileUnitNum, groups);
     }
 
     @Override
-    public void getUnitGroups(int fileunitNum, DiskBasicGroups groupItems) {
+    public void getUnitGroups(int fileUnitNum, DiskBasicGroups groupItems) {
         int calcFileSize = 0;
         int calcGroups = 0;
 
         if (getFileAttr().isDirectory()) {
             // ディレクトリの場合
-            int groupNum = getStartGroup(fileunitNum);
-            for (int idx = 0; idx < basic.diskBasicParam.getSubDirGroupSize(); idx++) {
-                addGroups(groupNum, idx + 1 != basic.diskBasicParam.getSubDirGroupSize() ? groupNum + 1 : 0, groupItems);
+            int groupNum = getStartGroup(fileUnitNum);
+            for (int idx = 0; idx < basic.getSubDirGroupSize(); idx++) {
+                addGroups(groupNum, idx + 1 != basic.getSubDirGroupSize() ? groupNum + 1 : 0, groupItems);
                 groupNum++;
                 calcGroups++;
-                calcFileSize += basic.diskBasicParam.getSectorsPerGroup() * basic.getSectorSize();
+                calcFileSize += basic.getSectorsPerGroup() * basic.getSectorSize();
             }
         } else {
             // ファイルの場合
@@ -927,20 +921,20 @@ abstract class DiskBasicDirItemXDOSBase<T extends DirectoryT> extends DiskBasicD
 
             if (!chain.isValid()) return;
 
-            for (int idx = 0; idx < XDOS_CHAIN_SEGMENTS; idx++) {
+            for (int index = 0; index < XDOS_CHAIN_SEGMENTS; index++) {
                 int[] groupNum = new int[1];
-                int[] size = new int[1];
-                if (!chain.getSegment(idx, groupNum, size)) {
+                int[] sgoupSize = new int[1];
+                if (!chain.getSegment(index, groupNum, sgoupSize)) {
                     break;
                 }
-                if (idx != 0) {
+                if (index != 0) {
                     if (groupItems.size() > 0) {
                         DiskBasicGroupItem gitem = groupItems.last();
                         gitem.next = groupNum[0];
                     }
                 }
-                for (int siz = 0; siz < size[0]; siz++) {
-                    int nextGrp = (siz + 1 != size[0] ? groupNum[0] + 1 : 0);
+                for (int size = 0; size < sgoupSize[0]; size++) {
+                    int nextGrp = (size + 1 != sgoupSize[0] ? groupNum[0] + 1 : 0);
                     addGroups(groupNum[0], nextGrp, groupItems);
                     groupNum[0]++;
                     calcGroups++;
@@ -949,7 +943,7 @@ abstract class DiskBasicDirItemXDOSBase<T extends DirectoryT> extends DiskBasicD
         }
         groupItems.setNums(calcGroups);
         groupItems.setSize(calcFileSize);
-        groupItems.setSizePerGroup(basic.getSectorSize() * basic.diskBasicParam.getSectorsPerGroup());
+        groupItems.setSizePerGroup(basic.getSectorSize() * basic.getSectorsPerGroup());
     }
 
     @Override
@@ -969,15 +963,15 @@ abstract class DiskBasicDirItemXDOSBase<T extends DirectoryT> extends DiskBasicD
     }
 
     @Override
-    public void setChainSector(DiskImageSector sector, byte[] data, DiskBasicDirItem<T> pitem) throws IOException {
-        XdosChainT x = new XdosChainT();
+    public void setChainSector(DiskImageSector sector, byte[] data, DiskBasicDirItem<T> pItem) throws IOException {
+        XDosChain x = new XDosChain();
         Serdes.Util.deserialize(data, x);
         chain.set(basic, sector, x);
     }
 
     @Override
-    public void addChainGroupNumber(int idx, int val) {
-        chain.addSectorPos(idx, val);
+    public void addChainGroupNumber(int index, int val) {
+        chain.addSectorPos(index, val);
     }
 
     @Override
@@ -1020,11 +1014,11 @@ abstract class DiskBasicDirItemXDOSBase<T extends DirectoryT> extends DiskBasicD
     }
 
     @Override
-    public int recalcFileSizeOnSave(InputStream istream, int fileSize) {
+    public int recalcFileSizeOnSave(InputStream iStream, int fileSize) throws IOException {
         // ファイルの最終が終端記号で終わっているかを調べる
         // ただし、ファイルサイズがクラスタサイズと合うなら終端記号は不要
-        if ((fileSize % (basic.getSectorSize() * basic.diskBasicParam.getSectorsPerGroup())) != 0) {
-            fileSize = checkEofCode(istream, fileSize);
+        if ((fileSize % (basic.getSectorSize() * basic.getSectorsPerGroup())) != 0) {
+            fileSize = checkEofCode(iStream, fileSize);
         }
         return fileSize;
     }

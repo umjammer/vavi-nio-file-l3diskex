@@ -81,7 +81,7 @@ public class UiDiskDiskAttr extends JPanel {
         /* ----- btnChange ------------------------------------------------ */
         btnChange = new JButton("Change");
         btnChange.setEnabled(false);
-        btnChange.addActionListener(e -> OnButtonChange(e));
+        btnChange.addActionListener(this::OnButtonChange);
         szrButtons.add(btnChange);
 
         /* ----- comDensity ------------------------------------------------ */
@@ -92,13 +92,13 @@ public class UiDiskDiskAttr extends JPanel {
             comDensity.addItem("Density 1");
         }
         comDensity.setSelectedIndex(0);
-        comDensity.addActionListener(e -> OnComboDensity(e));
+        comDensity.addActionListener(this::OnComboDensity);
         szrButtons.add(comDensity);
 
         /* ----- chkWprotect ---------------------------------------------- */
         chkWprotect = new JCheckBox("Write Protect");
         chkWprotect.setEnabled(false);
-        chkWprotect.addItemListener(e -> OnCheckWriteProtect(e));
+        chkWprotect.addItemListener(this::OnCheckWriteProtect);
         szrButtons.add(chkWprotect);
 
         add(szrButtons);

@@ -6,12 +6,14 @@ package l3diskex.diskimg.parser;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
 import java.util.ArrayList;
 import java.util.List;
 
 import l3diskex.diskimg.DiskParam;
 import l3diskex.diskimg.DiskResult;
-import l3diskex.diskimg.parser.Disk2MGParser.TwomgHeader;
+import l3diskex.diskimg.parser.Disk2MGParser.TwoMgHeader;
 import l3diskex.diskimg.DiskImage.DiskImageFile;
 import l3diskex.diskimg.DiskParam.DiskParticular;
 import l3diskex.diskimg.FileParam.DiskTypeHint;
@@ -19,13 +21,19 @@ import vavi.io.SeekableDataInputStream;
 import vavi.util.serdes.Element;
 import vavi.util.serdes.Serdes;
 
-import static l3diskex.diskimg.DiskParam.gDiskTemplates;
+import static l3diskex.diskimg.DiskParam.diskTemplates;
 
 
-/// Apple Disk Copyディスクパーサー
+/**
+ * Apple Disk Copy ディスクパーサー
+ *
+ * @see "https://www.discferret.com/wiki/Apple_DiskCopy_4.2"
+ */
 public class DiskADCParser extends DiskPlainParser {
 
-    /// Apple Disk Copyヘッダ 84bytes
+    private static final Logger logger = System.getLogger(DiskADCParser.class.getName());
+
+    /** Apple Disk Copyヘッダ 84bytes */
     @Serdes
     public static class AdcHeader {
 
@@ -34,59 +42,66 @@ public class DiskADCParser extends DiskPlainParser {
         @Element(sequence = 1, value = "byte")
         int labelLength;
         @Element(sequence = 2)
-        byte[] label = new byte[63];   // 63 bytes
+        byte[] label = new byte[63];
         @Element(sequence = 3)
-        int dataSize;         // big‑endian
+        int dataSize; // big‑endian
         @Element(sequence = 4)
-        int resourceSize;     // big‑endian
+        int resourceSize; // big‑endian
         @Element(sequence = 5)
         int createDate;
         @Element(sequence = 6)
         int modifyDate;
         @Element(sequence = 7)
-        byte[] unknown = new byte[4];   // 4 bytes
-    }
-
-    public DiskADCParser(DiskImageFile file, short modFlags, DiskResult result) {
-        super(file, modFlags, result);
+        byte[] unknown = new byte[4];
     }
 
     @Override
-    public int parse(InputStream istream, DiskParam diskParam) throws IOException {
+    public boolean isSupported(String type) {
+        return "adc".equalsIgnoreCase(type);
+    }
+
+    @Override
+    public void init(DiskImageFile file, short modFlags, DiskResult result) {
+        super.init(file, modFlags, result);
+    }
+
+    @Override
+    public int parse(InputStream iStream, DiskParam diskParam) throws IOException {
         if (diskParam == null) {
             result.setError(DiskResult.ERRV_INVALID_DISK, 0);
             return result.getValid();
         }
 
-        ((SeekableDataInputStream) istream).position(0);
+        ((SeekableDataInputStream) iStream).position(0);
 
-        if (istream.available() < TwomgHeader.SIZE) {
+        if (iStream.available() < TwoMgHeader.SIZE) {
             // too short
             result.setError(DiskResult.ERRV_DISK_TOO_SMALL, 0);
             return result.getValid();
         }
         AdcHeader header = new AdcHeader();
-        Serdes.Util.deserialize(istream, header);
+        Serdes.Util.deserialize(iStream, header);
 
-        return super.parse(istream, diskParam);
+        return super.parse(iStream, diskParam);
     }
 
     @Override
-    public int check(InputStream istream,
+    public int check(InputStream iStream,
                      List<DiskTypeHint> diskHints,
                      DiskParam diskParam,
                      List<DiskParam> diskParams,
                      DiskParam manualParam) throws IOException {
-        ((SeekableDataInputStream) istream).position(0);
-        int streamLen = istream.available();
+        ((SeekableDataInputStream) iStream).position(0);
+        int streamLen = iStream.available();
+logger.log(Level.TRACE, "streamLen: " +  streamLen);
 
-        if (istream.available() < TwomgHeader.SIZE) {
+        if (iStream.available() < TwoMgHeader.SIZE) {
             // too short
             result.setError(DiskResult.ERRV_DISK_TOO_SMALL, 0);
             return result.getValid();
         }
         AdcHeader header = new AdcHeader();
-        Serdes.Util.deserialize(istream, header);
+        Serdes.Util.deserialize(iStream, header);
 
         // ラベル長の末尾が0かどうか
         if (header.labelLength > 63 || header.label[header.labelLength] != 0) {
@@ -134,7 +149,7 @@ public class DiskADCParser extends DiskPlainParser {
         }
 
         // look up a matching template
-        DiskParam param = gDiskTemplates.findStrict(sidesPerDisk, tracksPerSide, sectorsPerTrack, sectorSize,
+        DiskParam param = diskTemplates.findStrict(sidesPerDisk, tracksPerSide, sectorsPerTrack, sectorSize,
                 1, 0, 0, 0, 0,
                 sd, pt);
         if (param != null) {

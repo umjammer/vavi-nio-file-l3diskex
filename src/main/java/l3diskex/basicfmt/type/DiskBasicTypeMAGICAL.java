@@ -17,7 +17,7 @@ import l3diskex.basicfmt.DiskBasicFat;
 import l3diskex.basicfmt.DiskBasicFat.DiskBasicFatBuffer;
 import l3diskex.basicfmt.DiskBasicType;
 import l3diskex.basicfmt.diritem.DiskBasicDirItemMAGICAL.DirectoryMagical;
-import l3diskex.basicfmt.diritem.DiskBasicDirItemXDOS.XdosSeg;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemXDOS.XDosSeg;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import vavi.util.serdes.Serdes;
 
@@ -26,48 +26,56 @@ import vavi.util.serdes.Serdes;
  Magical DOSの処理
 
  DiskBasicParam
- @li DirStartPositionOnRoot : ルートディレクトリ開始セクタのエントリの開始位置
- @li DirStartPosition       : サブディレクトリ開始セクタのエントリの開始位置
- @li SubDirGroupSize        : サブディレクトリの初期グループ数
+ <li>DirStartPositionOnRoot : ルートディレクトリ開始セクタのエントリの開始位置</li>
+ <li>DirStartPosition       : サブディレクトリ開始セクタのエントリの開始位置</li>
+ <li>SubDirGroupSize        : サブディレクトリの初期グループ数</li>
  */
 public class DiskBasicTypeMAGICAL extends DiskBasicTypeXDOS<DirectoryMagical> {
 
-    private static final int MAGICAL_FAT_START = 0xA8;   // 0xa8
+    private static final int MAGICAL_FAT_START = 0xa8;
 
-    public DiskBasicTypeMAGICAL(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryMagical> dir) {
-        super(basic, fat, dir);
+    public static final int FORMAT_TYPE_MAGICAL = 53;
+
+    @Override
+    public boolean isSupported(int typeNumber) {
+        return typeNumber == FORMAT_TYPE_MAGICAL;
     }
 
     @Override
-    public int getContinuousArea(int group_size) {
-        int new_num = DiskBasicType.INVALID_GROUP_NUMBER;
+    public void init(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryMagical> dir) {
+        super.init(basic, fat, dir);
+    }
 
-        DiskBasicFatBuffer fatbuf = fat.getDiskBasicFatBuffer(0, 0);
-        if (fatbuf == null) {
-            return new_num;
+    @Override
+    public int getContinuousArea(int groupSize) {
+        int newNum = DiskBasicType.INVALID_GROUP_NUMBER;
+
+        DiskBasicFatBuffer fatBuf = fat.getDiskBasicFatBuffer(0, 0);
+        if (fatBuf == null) {
+            return newNum;
         }
-        int cnt = 0;
-        for (int gnum = 0; gnum <= basic.getFatEndGroup() && cnt < group_size; gnum++) {
-            if (!isUsedGroupNumber(gnum)) {
-                if (cnt == 0) new_num = gnum;
-                cnt++;
+        int count = 0;
+        for (int g = 0; g <= basic.getFatEndGroup() && count < groupSize; g++) {
+            if (!isUsedGroupNumber(g)) {
+                if (count == 0) newNum = g;
+                count++;
             } else {
-                new_num = DiskBasicType.INVALID_GROUP_NUMBER;
-                cnt = 0;
+                newNum = DiskBasicType.INVALID_GROUP_NUMBER;
+                count = 0;
             }
         }
-        return new_num;
+        return newNum;
     }
 
     @Override
-    public double checkFat(boolean is_formatting) {
-        double valid_ratio = 1.0;
+    public double checkFat(boolean isFormatting) {
+        double validRatio = 1.0;
 
         byte[] hed = new byte[2];
         hed[0] = 0;
         hed[1] = (byte) basic.getSectorsPerTrackOnBasic();
         hed[1] |= 0x40;
-        DiskImageSector sector = basic.getManagedSector(basic.diskBasicParam.getFatStartSector() - 1);
+        DiskImageSector sector = basic.getManagedSector(basic.getFatStartSector() - 1);
         if (sector != null) {
             if (sector.find(hed, 2) < 0) {
                 return -1.0;
@@ -76,12 +84,12 @@ public class DiskBasicTypeMAGICAL extends DiskBasicTypeXDOS<DirectoryMagical> {
             // セクタ数チェック
             for (int i = 2; i < basic.getTracksPerSide() * basic.getSidesPerDiskOnBasic(); i++) {
                 if (sector.get(i) != hed[1]) {
-                    valid_ratio -= 0.5;
-                    if (valid_ratio < 0.0) break;
+                    validRatio -= 0.5;
+                    if (validRatio < 0.0) break;
                 }
             }
         }
-        return valid_ratio;
+        return validRatio;
     }
 
     @Override
@@ -91,11 +99,11 @@ public class DiskBasicTypeMAGICAL extends DiskBasicTypeXDOS<DirectoryMagical> {
 
     @Override
     public void additionalProcessOnMadeDirectory(DiskBasicDirItem<DirectoryMagical> item,
-                                                 DiskBasicGroups group_items,
-                                                 DiskBasicDirItem<DirectoryMagical> parent_item) throws IOException {
-        if (group_items.size() == 0) return;
+                                                 DiskBasicGroups groupItems,
+                                                 DiskBasicDirItem<DirectoryMagical> parentItem) throws IOException {
+        if (groupItems.size() == 0) return;
 
-        DiskBasicGroupItem group = group_items.get(0);
+        DiskBasicGroupItem group = groupItems.get(0);
         item.setStartGroup(0, group.group, basic.getSubDirGroupSize());
 
         DiskImageSector sector = basic.getSector(group.track, group.side, group.sectorStart);
@@ -105,32 +113,32 @@ public class DiskBasicTypeMAGICAL extends DiskBasicTypeXDOS<DirectoryMagical> {
         if (buf == null) return;
 
         // セクタの先頭をクリア
-        sector.fill((byte) 0, basic.diskBasicParam.getDirStartPos(), 0);
+        sector.fill((byte) 0, basic.getDirStartPos(), 0);
 
         // セクタ名を設定
         byte[] name = new byte[32];
-        int nlen = name.length;
-        item.getFileName(name, nlen);
-        sector.copy(name, nlen);
+        int nameLen = name.length;
+        item.getFileName(name, nameLen);
+        sector.copy(name, nameLen);
 
-        int parent_group = DiskBasicType.INVALID_GROUP_NUMBER;
-        if (parent_item != null) {
+        int parentGroup = DiskBasicType.INVALID_GROUP_NUMBER;
+        if (parentItem != null) {
             // 親がサブディレクトリ
-            parent_group = parent_item.getStartGroup(0);
+            parentGroup = parentItem.getStartGroup(0);
         }
-        if (parent_group == DiskBasicType.INVALID_GROUP_NUMBER) {
+        if (parentGroup == DiskBasicType.INVALID_GROUP_NUMBER) {
             // ルート
-            parent_group = basic.diskBasicParam.getDirStartSector() - 1;
+            parentGroup = basic.getDirStartSector() - 1;
         }
 
         // サイズ
-        int[] trk = new int[1], sid = new int[1], sec = new int[1];
-        basic.calcNumFromSectorPosForGroup(parent_group, trk, sid, sec, null, null);
+        int[] track = new int[1], side = new int[1], sectorNum = new int[1];
+        basic.calcNumFromSectorPosForGroup(parentGroup, track, side, sectorNum, null, null);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        XdosSeg s = new XdosSeg();
-        s.track = (byte) (trk[0] * basic.getSidesPerDiskOnBasic() + sid[0]);
-        s.sector = (byte) sec[0];
-        s.size = (byte) (1 + basic.diskBasicParam.getDirEndSector() - basic.diskBasicParam.getDirStartSector());
+        XDosSeg s = new XDosSeg();
+        s.track = (byte) (track[0] * basic.getSidesPerDiskOnBasic() + side[0]);
+        s.sector = (byte) sectorNum[0];
+        s.size = (byte) (1 + basic.getDirEndSector() - basic.getDirStartSector());
         Serdes.Util.serialize(s, baos);
         baos.reset();
         sector.copy(baos.toByteArray(), 3, 0x71);
@@ -143,23 +151,23 @@ public class DiskBasicTypeMAGICAL extends DiskBasicTypeXDOS<DirectoryMagical> {
     @Override
     public boolean additionalProcessOnFormatted(DiskBasicIdentifiedData data) throws IOException {
         // IPL
-        DiskImageSector sector = basic.getSectorFromSectorPos(basic.diskBasicParam.getFatStartSector() - 1);
+        DiskImageSector sector = basic.getSectorFromSectorPos(basic.getFatStartSector() - 1);
         if (sector != null) {
-            sector.fill(basic.invertUint8(basic.diskBasicParam.getFillCodeOnFAT()));
-            byte[] ipl = basic.diskBasicParam.getVariousStringParam("IPLString").getBytes();
+            sector.fill(basic.invertUint8(basic.getFillCodeOnFAT()));
+            byte[] ipl = basic.getVariousStringParam("IPLString").getBytes();
             int len = Math.min(ipl.length, 32);
-            basic.invertMem(ipl, len);
+            basic.invertMemory(ipl, len);
             sector.copy(ipl, len);
         }
 
         // FAT area
-        sector = basic.getSectorFromSectorPos(basic.diskBasicParam.getFatStartSector() - 1);
+        sector = basic.getSectorFromSectorPos(basic.getFatStartSector() - 1);
         if (sector != null) {
-            sector.fill(basic.invertUint8(basic.diskBasicParam.getFillCodeOnFAT()));
+            sector.fill(basic.invertUint8(basic.getFillCodeOnFAT()));
             // セクタ数
             byte val = (byte) (0x40 | basic.getSectorsPerTrackOnBasic());
-            int trks = basic.getTracksPerSideOnBasic() * basic.getSidesPerDiskOnBasic();
-            sector.fill(val, trks, 0);
+            int tracks = basic.getTracksPerSideOnBasic() * basic.getSidesPerDiskOnBasic();
+            sector.fill(val, tracks, 0);
             // トラック0は予約
             sector.fill((byte) (basic.getParamDensity() >> 4), 1, 0);
             sector.fill((byte) 0, 1, 1);
@@ -171,26 +179,25 @@ public class DiskBasicTypeMAGICAL extends DiskBasicTypeXDOS<DirectoryMagical> {
             map[1] = (byte) (mapi & 0xFF);
 
             sector.fill((byte) 0, 4, MAGICAL_FAT_START);   // track 0
-            for (int i = 2; i < trks; i++) {
+            for (int i = 2; i < tracks; i++) {
                 sector.copy(map, 2, i * 2 + MAGICAL_FAT_START);
             }
         }
 
         // DIR
-        for (int pos = basic.diskBasicParam.getDirStartSector();
-             pos <= basic.diskBasicParam.getDirEndSector(); pos++) {
+        for (int pos = basic.getDirStartSector(); pos <= basic.getDirEndSector(); pos++) {
             sector = basic.getSectorFromSectorPos(pos - 1);
             if (sector != null) {
-                sector.fill(basic.invertUint8(basic.diskBasicParam.getFillCodeOnDir()));
-                if (pos == basic.diskBasicParam.getDirStartSector()) {
-                    sector.fill(basic.invertUint8(basic.diskBasicParam.getFillCodeOnFAT()), basic.diskBasicParam.getDirStartPosOnRoot(), 0);
+                sector.fill(basic.invertUint8(basic.getFillCodeOnDir()));
+                if (pos == basic.getDirStartSector()) {
+                    sector.fill(basic.invertUint8(basic.getFillCodeOnFAT()), basic.getDirStartPosOnRoot(), 0);
                     // サイズ
-                    int[] trk = new int[1], sid = new int[1], sec = new int[1];
-                    basic.calcNumFromSectorPosForGroup(pos - 1, trk, sid, sec, null, null);
-                    XdosSeg s = new XdosSeg();
-                    s.track = (byte) (trk[0] * basic.getSidesPerDiskOnBasic() + sid[0]);
-                    s.sector = (byte) sec[0];
-                    s.size = (byte) (1 + basic.diskBasicParam.getDirEndSector() - basic.diskBasicParam.getDirStartSector());
+                    int[] track = new int[1], side = new int[1], sectorNum = new int[1];
+                    basic.calcNumFromSectorPosForGroup(pos - 1, track, side, sectorNum, null, null);
+                    XDosSeg s = new XDosSeg();
+                    s.track = (byte) (track[0] * basic.getSidesPerDiskOnBasic() + side[0]);
+                    s.sector = (byte) sectorNum[0];
+                    s.size = (byte) (1 + basic.getDirEndSector() - basic.getDirStartSector());
                     ByteArrayOutputStream baos = new ByteArrayOutputStream();
                     Serdes.Util.serialize(s, baos);
                     sector.copy(baos.toByteArray(), 3, 0x74);

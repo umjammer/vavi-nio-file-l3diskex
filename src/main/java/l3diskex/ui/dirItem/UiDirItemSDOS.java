@@ -22,7 +22,7 @@ import static l3diskex.basicfmt.diritem.DiskBasicDirItemSDOS.FILETYPE_SDOS_BAS2;
 import static l3diskex.basicfmt.diritem.DiskBasicDirItemSDOS.IDC_COMBO_TYPE1;
 import static l3diskex.basicfmt.diritem.DiskBasicDirItemSDOS.TYPE_NAME_SDOS_DAT;
 import static l3diskex.basicfmt.diritem.DiskBasicDirItemSDOS.TYPE_NAME_SDOS_OBJ;
-import static l3diskex.basicfmt.diritem.DiskBasicDirItemSDOS.gTypeNameSDOS_1;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemSDOS.typeNameSdos1;
 import static l3diskex.ui.IntNameBox.INTNAME_NEW_FILE;
 
 
@@ -76,9 +76,9 @@ public class UiDirItemSDOS extends UiDirItem {
         file_type_1 = type1_arr[0];
         // file_type_2 = type2_arr[0]; // Not used in the original C++ snippet after this call
 
-        String[] types1 = new String[gTypeNameSDOS_1.size()];
+        String[] types1 = new String[typeNameSdos1.size()];
         int i = 0;
-        for (String k : gTypeNameSDOS_1.keySet()) {
+        for (String k : typeNameSdos1.keySet()) {
             types1[i++] = rb.getString(k);
         }
 
@@ -131,7 +131,7 @@ public class UiDirItemSDOS extends UiDirItem {
         if (t1 < 0) t1 = FILETYPE_SDOS_BAS1;
 
         // Map list position (TYPE_NAME_SDOS_XXX) to actual file type value (FILETYPE_SDOS_XXX)
-        int fileTypeOrigin = (int) Utils.valueAt(gTypeNameSDOS_1, t1);
+        int fileTypeOrigin = (int) Utils.valueAt(typeNameSdos1, t1);
 
         attr.setFileAttr(dirItem.getBasic().getFormatTypeNumber(), 0, fileTypeOrigin);
 

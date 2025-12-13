@@ -24,7 +24,7 @@ import static l3diskex.basicfmt.diritem.DiskBasicDirItemTFDOS.TYPE_NAME_TFDOS_DB
 import static l3diskex.basicfmt.diritem.DiskBasicDirItemTFDOS.TYPE_NAME_TFDOS_READ_ONLY;
 import static l3diskex.basicfmt.diritem.DiskBasicDirItemTFDOS.TYPE_NAME_TFDOS_TEX;
 import static l3diskex.basicfmt.diritem.DiskBasicDirItemTFDOS.TYPE_NAME_TFDOS_UNKNOWN;
-import static l3diskex.basicfmt.diritem.DiskBasicDirItemTFDOS.gTypeNameTFDOS;
+import static l3diskex.basicfmt.diritem.DiskBasicDirItemTFDOS.typeNameTfDos;
 import static l3diskex.ui.IntNameBox.INTNAME_IMPORT_INTERNAL;
 import static l3diskex.ui.IntNameBox.INTNAME_NEW_FILE;
 
@@ -60,7 +60,7 @@ public class UiDirItemTFDOS extends UiDirItem {
 
         StaticBoxSizer staType1 = new StaticBoxSizer(new StaticBox(parent, "File Type"), VERTICAL);
 
-        String[] types1 = dirItem.createChoiceForAttrDialog(dirItem.getBasic(), gTypeNameTFDOS, TYPE_NAME_TFDOS_READ_ONLY);
+        String[] types1 = dirItem.createChoiceForAttrDialog(dirItem.getBasic(), typeNameTfDos, TYPE_NAME_TFDOS_READ_ONLY);
         Choice comType1 = new Choice(parent, IDC_COMBO_TYPE1, types1);
         comType1.setSelection(file_type_1);
         staType1.add(comType1, flags);

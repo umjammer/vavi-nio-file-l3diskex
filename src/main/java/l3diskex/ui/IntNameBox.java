@@ -382,7 +382,7 @@ public class IntNameBox extends JDialog {
                 row.add(String.format("%d", item.side));
                 row.add(String.format("%d", item.sectorStart));
                 row.add(String.format("%d", item.sectorEnd));
-                row.add(String.format("%d/%d", item.divNum + 1, item.divNums));
+                row.add(String.format("%d/%d", item.divNum + 1, item.numOfDivs));
                 model.addElement(row);
             }
         }

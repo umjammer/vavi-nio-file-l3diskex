@@ -30,7 +30,7 @@ import static java.lang.System.getLogger;
 
 
 /**
- * X68000/PC9801用DSKSTR ディスクパーサ
+ * X68000/PC9801用 DSK STR ディスクパーサ
  */
 public class DiskSTRParser extends DiskImageParser {
 
@@ -41,9 +41,9 @@ public class DiskSTRParser extends DiskImageParser {
      */
     public static class Expand2FIFOBuffer extends Utils.FIFOBuffer {
 
-        private long mLastPos;
-        private long[] mIstrPos = new long[9];
-        private long[] mEstrPos = new long[9];
+        private long lastPos;
+        private final long[] iStreamPos = new long[9];
+        private final long[] eStreamPos = new long[9];
 
         public Expand2FIFOBuffer() {
             super();
@@ -53,84 +53,77 @@ public class DiskSTRParser extends DiskImageParser {
         @Override
         public void clear() {
             super.clear();
-            mLastPos = 0;
-            Arrays.fill(mIstrPos, 0);
-            Arrays.fill(mEstrPos, 0);
+            lastPos = 0;
+            Arrays.fill(iStreamPos, 0);
+            Arrays.fill(eStreamPos, 0);
         }
 
         public void setLastPos(long val) {
-            mLastPos = val;
+            lastPos = val;
         }
 
         public long getLastPos() {
-            return mLastPos;
+            return lastPos;
         }
 
         public void setIStreamPos(int idx, long val) {
-            mIstrPos[idx] = val;
+            iStreamPos[idx] = val;
         }
 
         public void setEStreamPos(int idx, long val) {
-            mEstrPos[idx] = val;
+            eStreamPos[idx] = val;
         }
 
         public long getIStreamPos(int idx) {
-            return mIstrPos[idx];
+            return iStreamPos[idx];
         }
 
         public long getEStreamPos(int idx) {
-            return mEstrPos[idx];
+            return eStreamPos[idx];
         }
     }
 
-    private int mCompressType;
+    private int compressType;
     /** 入力データの圧縮形式 0:非圧縮 bit0:1次圧縮 bit1:2次圧縮 */
-    private Expand2FIFOBuffer mEstream = new Expand2FIFOBuffer();
+    private Expand2FIFOBuffer eStream = new Expand2FIFOBuffer();
 
-    /**
-     * DSKSTRヘッダ
-     */
-    private static class str_header_t {
+    /** DSKSTRヘッダ */
+    private static class StrHeader {
 
-        int datasize; // BE
+        int dataSize; // BE
         byte[] reserved = new byte[28];
 
-        public int getSize() {
-            return 4 + 28;
-        }
+        public static final int SIZE = 4 + 28;
 
         public void read(InputStream is) throws IOException {
-            byte[] buf = new byte[getSize()];
-            if (is.read(buf) != getSize()) {
+            byte[] buf = new byte[SIZE];
+            if (is.read(buf) != SIZE) {
                 throw new IOException("Failed to read DSKSTR header");
             }
             ByteBuffer bb = ByteBuffer.wrap(buf).order(ByteOrder.BIG_ENDIAN);
-            datasize = bb.getInt();
+            dataSize = bb.getInt();
             bb.get(reserved);
         }
     }
 
-    /**
-     * DSKSTRトラックヘッダ
-     */
-    private static class str_track_header_t {
+    /** DSKSTRトラックヘッダ */
+    private static class StrTrackHeader {
 
         byte attr;
         byte secs;
         short off1; // BE
         short off2;
-        short offd;
+        short offD;
         short dat1;
         short dat2;
         byte[] reserved = new byte[4];
 
-        public int getSize() {
-            return 1 + 1 + 2 + 2 + 2 + 2 + 2 + 4;
-        }
+        public static final int SIZE = 1 + 1 + 2 + 2 + 2 + 2 + 2 + 4;
 
+        // TODO Serdes
         public void read(InputStream is) throws IOException {
-            byte[] buf = new byte[getSize()];
-            if (is.read(buf) != getSize()) {
+            byte[] buf = new byte[SIZE];
+            if (is.read(buf) != SIZE) {
                 throw new IOException("Failed to read DSKSTR track header");
             }
             ByteBuffer bb = ByteBuffer.wrap(buf).order(ByteOrder.BIG_ENDIAN);
@@ -138,7 +131,7 @@ public class DiskSTRParser extends DiskImageParser {
             secs = bb.get();
             off1 = bb.getShort();
             off2 = bb.getShort();
-            offd = bb.getShort();
+            offD = bb.getShort();
             dat1 = bb.getShort();
             dat2 = bb.getShort();
             bb.get(reserved);
@@ -153,27 +146,24 @@ public class DiskSTRParser extends DiskImageParser {
         }
 
         public short getOffdLE() {
-            return Short.reverseBytes(offd);
+            return Short.reverseBytes(offD);
         }
     }
 
-    /**
-     * セクタID
-     */
-    private static class str_sector_id_t {
+    /** セクタID */
+    private static class StrSectorId {
 
         byte c;
         byte h;
         byte r;
         byte n;
 
-        public int getSize() {
-            return 4;
-        }
+        public static final int SIZE = 4;
 
+        // TODO Serdes
         public void read(InputStream is) throws IOException {
-            byte[] buf = new byte[getSize()];
-            if (is.read(buf) != getSize()) {
+            byte[] buf = new byte[SIZE];
+            if (is.read(buf) != SIZE) {
                 throw new IOException("Failed to read DSKSTR sector ID");
             }
             ByteBuffer bb = ByteBuffer.wrap(buf);
@@ -184,39 +174,41 @@ public class DiskSTRParser extends DiskImageParser {
         }
     }
 
-    public DiskSTRParser(DiskImageFile file, short modFlags, DiskResult result) {
-        super(file, modFlags, result);
-        mCompressType = 0;
+    @Override
+    public boolean isSupported(String type) {
+        return "dskstr".equalsIgnoreCase(type);
     }
 
-    // デストラクタはJavaにはないので不要
+    @Override
+    public void init(DiskImageFile file, short modFlags, DiskResult result) {
+        super.init(file, modFlags, result);
+        compressType = 0;
+    }
 
     /**
      * セクタデータの作成
      *
-     * @param istream       ディスクイメージ
+     * @param iStream       ディスクイメージ
      * @param diskNumber    ディスク番号
      * @param trackNumber   トラック番号
      * @param sideNumber    サイド番号
-     * @param sectorNums    セクタ数
+     * @param numOfSectors  セクタ数
      * @param sectorNumber  セクタ番号
      * @param sectorSize    セクタサイズ
      * @param singleDensity 単密度か
      * @param track         トラック
      * @return ヘッダ込みのセクタサイズ
      */
-    private int parseSector(InputStream istream, int diskNumber, int trackNumber, int sideNumber, int sectorNums, int sectorNumber, int sectorSize, boolean singleDensity, DiskImageTrack track) throws IOException {
+    private static int parseSector(InputStream iStream, int diskNumber, int trackNumber, int sideNumber, int numOfSectors,
+                                   int sectorNumber, int sectorSize, boolean singleDensity, DiskImageTrack track) throws IOException {
         // セクタ作成
-        DiskImageSector sector = track.newImageSector(trackNumber, sideNumber, sectorNumber, sectorSize, sectorNums, false, 0);
+        DiskImageSector sector = track.newImageSector(trackNumber, sideNumber, sectorNumber, sectorSize, numOfSectors, false, 0);
         track.add(sector);
 
         byte[] buffer = sector.getSectorBuffer();
 
         // plain data
-        int readLen = istream.read(buffer, 0, sectorSize);
-        if (readLen != sectorSize) {
-            // throw new IOException("Failed to read sector data"); // EOFでなければエラーだが、ここでは省略
-        }
+        iStream.readNBytes(buffer, 0, sectorSize);
 
         sector.setSingleDensity(singleDensity);
         sector.clearModify();
@@ -228,64 +220,60 @@ public class DiskSTRParser extends DiskImageParser {
     /**
      * トラックデータの作成
      *
-     * @param istream    ディスクイメージ
+     * TODO check seekable
+     *
+     * @param iStream    ディスクイメージ
      * @param diskNumber ディスク番号
      * @param offsetPos  オフセット番号
      * @param offset     オフセット位置
      * @param disk       ディスク
-     * @return -1:エラー or 終り >0:トラックサイズ
+     * @return -1: エラー or 終り, >0: トラックサイズ
      */
-    private int parseTrack(InputStream istream, int diskNumber, int offsetPos, int offset, DiskImageDisk disk) throws IOException {
-        str_track_header_t hTrack = new str_track_header_t();
+    private int parseTrack(InputStream iStream, int diskNumber, int offsetPos, int offset, DiskImageDisk disk) throws IOException {
+        StrTrackHeader trackHeader = new DiskSTRParser.StrTrackHeader();
 
         // 圧縮データを展開
         ByteArrayOutputStream oestream = new ByteArrayOutputStream();
-        int oelimit = hTrack.getSize();
-        int rc = expandFirst(istream, oestream, oelimit);
+        int oeLimit = StrTrackHeader.SIZE;
+        int rc = expandFirst(iStream, oestream, oeLimit);
 
         // ヘッダをチェック
         byte[] trackHeaderBytes = oestream.toByteArray();
-        ByteArrayInputStream iestreamHeader = new ByteArrayInputStream(trackHeaderBytes);
-        int len = 0;
-        try {
-            hTrack.read(iestreamHeader);
-            len = trackHeaderBytes.length;
-        } catch (IOException e) {
-            // Error during reading header
-            len = 0;
-        }
+        ByteArrayInputStream ieStreamHeader = new ByteArrayInputStream(trackHeaderBytes);
+        trackHeader.read(ieStreamHeader);
+        int len = trackHeaderBytes.length;
 
-        if (rc < 0 || len < hTrack.getSize() || hTrack.attr == 0) {
+        if (rc < 0 || len < StrTrackHeader.SIZE || trackHeader.attr == 0) {
             // end of file
             return -1;
         }
 
-        int sectorsPerTrack = hTrack.secs & 0xFF;
+        int sectorsPerTrack = trackHeader.secs & 0xFF;
         if (sectorsPerTrack <= 0) {
             result.setError(DiskResult.ERRV_DISK_HEADER, diskNumber);
             return -1;
         }
 
         // データ開始位置
-        oelimit = hTrack.getOffdLE() & 0xFFFF;
+        oeLimit = trackHeader.getOffdLE() & 0xffff;
         // 圧縮データを展開つづき
-        rc = expandNext(istream, oestream, oelimit);
+        rc = expandNext(iStream, oestream, oeLimit);
 
         byte[] attr = new byte[256];
         Arrays.fill(attr, (byte) 0);
 
-        str_sector_id_t[] id = new str_sector_id_t[256];
-        for (int i = 0; i < id.length; i++) id[i] = new str_sector_id_t();
+        DiskSTRParser.StrSectorId[] id = new StrSectorId[256];
+        for (int i = 0; i < id.length; i++) id[i] = new StrSectorId();
 
         trackHeaderBytes = oestream.toByteArray();
-        ByteArrayInputStream iestream = new ByteArrayInputStream(trackHeaderBytes);
+        ByteArrayInputStream ieStream = new ByteArrayInputStream(trackHeaderBytes);
 
         // セクタ属性を得る
-        iestream.skip(hTrack.getOff1LE() & 0xFFFF);
+        ieStream.skipNBytes(trackHeader.getOff1LE() & 0xffff);
 
         for (int sec = 0; sec < sectorsPerTrack; sec += 4) {
             // 4バイト境界
-            int readLen = iestream.read(attr, sec, 4);
+            int readLen = ieStream.read(attr, sec, 4);
             if (readLen < 4) {
                 result.setError(DiskResult.ERRV_DISK_HEADER, diskNumber);
                 return -1;
@@ -293,50 +281,51 @@ public class DiskSTRParser extends DiskImageParser {
         }
 
         // セクタIDを得る
-        iestream.skip(hTrack.getOff2LE() & 0xFFFF);
+        ieStream.skipNBytes(trackHeader.getOff2LE() & 0xffff);
 
         for (int sec = 0; sec < sectorsPerTrack; sec++) {
             // C H R N
             try {
-                id[sec].read(iestream);
-                len = id[sec].getSize();
+                id[sec].read(ieStream);
+                len = StrSectorId.SIZE;
             } catch (IOException e) {
                 len = 0;
             }
 
-            if (len < id[sec].getSize()) {
+            if (len < StrSectorId.SIZE) {
                 result.setError(DiskResult.ERRV_DISK_HEADER, diskNumber);
                 return -1;
             }
 
-            int sectorSize = (128 << (id[sec].n & 0xFF));
-            if ((id[sec].n & 0xFF) > 5) {
-                result.setError(DiskResult.ERRV_SECTOR_SIZE_SECTOR, diskNumber, id[sec].c & 0xFF, id[sec].h & 0xFF, id[sec].r & 0xFF, id[sec].n & 0xFF, sectorSize);
+            int sectorSize = (128 << (id[sec].n & 0xff));
+            if ((id[sec].n & 0xff) > 5) {
+                result.setError(DiskResult.ERRV_SECTOR_SIZE_SECTOR, diskNumber, id[sec].c & 0xff, id[sec].h & 0xFF, id[sec].r & 0xff, id[sec].n & 0xff, sectorSize);
                 return -1;
             }
-            oelimit += sectorSize;
+            oeLimit += sectorSize;
         }
 
         // 圧縮データを展開つづき
-        rc = expandNext(istream, oestream, oelimit);
+        rc = expandNext(iStream, oestream, oeLimit);
         trackHeaderBytes = oestream.toByteArray();
 
-        DiskImageTrack track = null;
-        int d88TrackSize = 0;
-        iestream = new ByteArrayInputStream(trackHeaderBytes);
-        iestream.skip(hTrack.getOffdLE() & 0xFFFF);
+        DiskImageTrack track;
+        int trackSize = 0;
+        ieStream = new ByteArrayInputStream(trackHeaderBytes);
+        ieStream.skipNBytes(trackHeader.getOffdLE() & 0xffff);
 
         // トラックの作成
-        track = disk.newImageTrack(id[0].c & 0xFF, id[0].h & 0xFF, offsetPos, 1);
-        disk.setMaxTrackNumber(id[0].c & 0xFF);
+        track = disk.newImageTrack(id[0].c & 0xff, id[0].h & 0xff, offsetPos, 1);
+        disk.setMaxTrackNumber(id[0].c & 0xff);
 
         for (int pos = 0; pos < sectorsPerTrack && result.getValid() >= 0; pos++) {
-            int sectorSize = (128 << (id[pos].n & 0xFF));
-            d88TrackSize += parseSector(iestream, diskNumber, id[pos].c & 0xFF, id[pos].h & 0xFF, sectorsPerTrack, id[pos].r & 0xFF, sectorSize, (attr[pos] & 0x40) == 0, track);
+            int sectorSize = (128 << (id[pos].n & 0xff));
+            trackSize += parseSector(ieStream, diskNumber, id[pos].c & 0xff, id[pos].h & 0xff,
+                    sectorsPerTrack, id[pos].r & 0xff, sectorSize, (attr[pos] & 0x40) == 0, track);
         }
 
         // 入力データの位置を補正
-        adjustIStream(istream);
+        adjustIStream(iStream);
 
         if (result.getValid() >= 0) {
             // インターリーブの計算
@@ -345,7 +334,7 @@ public class DiskSTRParser extends DiskImageParser {
 
         if (result.getValid() >= 0) {
             // トラックサイズ設定
-            track.setSize(d88TrackSize);
+            track.setSize(trackSize);
             // サイド番号は各セクタのID Hに合わせる
             track.setSideNumber(track.getMajorIDH());
 
@@ -353,24 +342,21 @@ public class DiskSTRParser extends DiskImageParser {
             disk.add(track);
             // オフセット設定
             disk.setOffset(offsetPos, offset);
-        } else {
-            // track is auto-deleted in java garbage collection if not referenced
         }
 
-        return d88TrackSize;
+        return trackSize;
     }
 
     /**
      * ファイルを解析
      *
-     * @param istream    解析対象データ
+     * @param iStream    解析対象データ
      * @param diskNumber ディスク番号
-     * @return -1: finish parsing
-     * @return 0: parse next disk
+     * @return -1: finish parsing, 0: parse next disk
      */
-    private int parseDisk(InputStream istream, int diskNumber) throws IOException {
+    private int parseDisk(InputStream iStream, int diskNumber) throws IOException {
         // skip header
-        if (parseHeader(istream, diskNumber) < 0) {
+        if (parseHeader(iStream, diskNumber) < 0) {
             return -1;
         }
 
@@ -381,7 +367,7 @@ public class DiskSTRParser extends DiskImageParser {
         int d88Offset = disk.getOffsetStart(); // header size
         int d88OffsetPos = 0;
         for (int pos = 0; pos < 204; pos++) {
-            int offset = parseTrack(istream, diskNumber, d88OffsetPos, d88Offset, disk);
+            int offset = parseTrack(iStream, diskNumber, d88OffsetPos, d88Offset, disk);
             if (offset == -1) {
                 break;
             }
@@ -409,18 +395,17 @@ public class DiskSTRParser extends DiskImageParser {
     /**
      * ヘッダ解析
      *
-     * @param istream    解析対象データ
+     * @param iStream    解析対象データ
      * @param diskNumber ディスク番号
-     * @return -1: エラー
-     * @return 0:
+     * @return -1: エラー, 0:
      */
-    private int parseHeader(InputStream istream, int diskNumber) throws IOException {
+    private int parseHeader(InputStream iStream, int diskNumber) throws IOException {
         byte[] buf = new byte[16];
         int len = 1;
 
         // Skip until 0x1a
         do {
-            if (istream.read(buf, 0, buf.length) != buf.length) {
+            if (iStream.read(buf, 0, buf.length) != buf.length) {
                 // too short
                 return -1;
             }
@@ -433,7 +418,7 @@ public class DiskSTRParser extends DiskImageParser {
             }
         } while (len > 0);
 
-        if (istream.read(buf, 0, buf.length) != buf.length) {
+        if (iStream.read(buf, 0, buf.length) != buf.length) {
             // too short
             return -1;
         }
@@ -442,15 +427,15 @@ public class DiskSTRParser extends DiskImageParser {
             return -1;
         }
 
-        str_header_t header = new str_header_t();
+        DiskSTRParser.StrHeader header = new DiskSTRParser.StrHeader();
         try {
-            header.read(istream);
-            len = header.getSize();
+            header.read(iStream);
+            len = StrHeader.SIZE;
         } catch (IOException e) {
             len = 0;
         }
 
-        if (len < header.getSize()) {
+        if (len < StrHeader.SIZE) {
             // too short
             return -1;
         }
@@ -461,25 +446,23 @@ public class DiskSTRParser extends DiskImageParser {
     /**
      * 入力ストリームの位置を補正する
      *
-     * @param istream 元データ
+     * @param iStream 元データ
      */
-    private void adjustIStream(InputStream istream) throws IOException {
-        if ((mCompressType & 2) != 0) {
+    private void adjustIStream(InputStream iStream) throws IOException {
+        if ((compressType & 2) != 0) {
             // 2次圧縮の場合、入力データを読み過ぎている場合があるので位置を補正する
             int match = -1;
-            long readPos = mEstream.getReadPos();
+            long readPos = eStream.getReadPos();
             for (int i = 0; i < 8; i++) {
-                if (mEstream.getEStreamPos(i) < readPos && readPos <= mEstream.getEStreamPos(i + 1)) {
+                if (eStream.getEStreamPos(i) < readPos && readPos <= eStream.getEStreamPos(i + 1)) {
                     match = i;
                     break;
                 }
             }
             if (match >= 0) {
-                long targetPos = mEstream.getIStreamPos(match + 1);
+                long targetPos = eStream.getIStreamPos(match + 1);
 
-                if (istream instanceof SeekableDataInputStream) {
-                    ((SeekableDataInputStream) istream).position(targetPos);
-                }
+                ((SeekableDataInputStream) iStream).position(targetPos);
             }
         }
     }
@@ -487,39 +470,39 @@ public class DiskSTRParser extends DiskImageParser {
     /**
      * 圧縮データを判定して展開
      *
-     * @param istream 元データ
-     * @param ostream 展開後データ
-     * @param olimit  出力バッファサイズ
-     * @return -1:no data
+     * @param iStream 元データ
+     * @param oStream 展開後データ
+     * @param oLimit  出力バッファサイズ
+     * @return -1: no data
      */
-    private int expandFirst(InputStream istream, OutputStream ostream, int olimit) throws IOException {
+    private int expandFirst(InputStream iStream, OutputStream oStream, int oLimit) throws IOException {
         // データなし？
-        if (istream.available() == 0) {
+        if (iStream.available() == 0) {
             return -1;
         }
 
         // 最初のデータ
-        mCompressType = 0;
-        int pos = (int) ((SeekableDataInputStream) istream).position();
-        int ch = istream.read();
-        ((SeekableDataInputStream) istream).position(pos);
+        compressType = 0;
+        int pos = (int) ((SeekableDataInputStream) iStream).position();
+        int ch = iStream.read();
+        ((SeekableDataInputStream) iStream).position(pos);
 
         if (ch == 0x08 || ch == 0x0c) {
-            mCompressType = 1;
+            compressType = 1;
         } else if (ch == 0xff) { // Using 0xff as a sentinel for 2nd compression in the original code, though -1 might be used for EOF
-            mCompressType = 2;
+            compressType = 2;
         }
 
-        mEstream.clear();
-        if ((mCompressType & 2) != 0) {
+        eStream.clear();
+        if ((compressType & 2) != 0) {
             // 2次圧縮データを展開
-            expand2(istream, ostream, olimit, true);
-        } else if ((mCompressType & 1) != 0) {
+            expand2(iStream, oStream, oLimit, true);
+        } else if ((compressType & 1) != 0) {
             // 1次圧縮データを展開
-            expand1(istream, ostream, olimit);
+            expand1(iStream, oStream, oLimit);
         } else {
             // 非圧縮データ
-            expand0(istream, ostream, olimit);
+            expand0(iStream, oStream, oLimit);
         }
         return 0;
     }
@@ -527,20 +510,20 @@ public class DiskSTRParser extends DiskImageParser {
     /**
      * 圧縮データを展開つづき
      *
-     * @param istream 元データ
-     * @param ostream 展開後データ
-     * @param olimit  出力バッファサイズ
+     * @param iStream 元データ
+     * @param oStream 展開後データ
+     * @param oLimit  出力バッファサイズ
      */
-    private int expandNext(InputStream istream, OutputStream ostream, int olimit) throws IOException {
-        if ((mCompressType & 2) != 0) {
+    private int expandNext(InputStream iStream, OutputStream oStream, int oLimit) throws IOException {
+        if ((compressType & 2) != 0) {
             // 2次圧縮データを展開
-            expand2(istream, ostream, olimit, false);
-        } else if ((mCompressType & 1) != 0) {
+            expand2(iStream, oStream, oLimit, false);
+        } else if ((compressType & 1) != 0) {
             // 1次圧縮データとみなす
-            expand1(istream, ostream, olimit);
+            expand1(iStream, oStream, oLimit);
         } else {
             // 非圧縮データ
-            expand0(istream, ostream, olimit);
+            expand0(iStream, oStream, oLimit);
         }
         return 0;
     }
@@ -548,29 +531,29 @@ public class DiskSTRParser extends DiskImageParser {
     /**
      * 2次圧縮データを展開
      *
-     * @param istream 元データ
-     * @param ostream 展開後データ
-     * @param olimit  出力バッファサイズ
+     * @param iStream 元データ
+     * @param oStream 展開後データ
+     * @param oLimit  出力バッファサイズ
      * @param first   最初か
      */
-    private void expand2(InputStream istream, OutputStream ostream, int olimit, boolean first) throws IOException {
+    private void expand2(InputStream iStream, OutputStream oStream, int oLimit, boolean first) throws IOException {
         boolean cont;
         do {
-            expand2Element(istream);
+            expand2Element(iStream);
             if (first) {
                 // 1次圧縮しているか
-                int ch = mEstream.peekByte();
+                int ch = eStream.peekByte();
                 if (ch == 0x08 || ch == 0x0c) {
-                    mCompressType |= 1;
+                    compressType |= 1;
                 }
                 first = false;
             }
-            if ((mCompressType & 1) != 0) {
+            if ((compressType & 1) != 0) {
                 // 1次圧縮データを展開
-                cont = expand1Element(ostream, olimit);
+                cont = expand1Element(oStream, oLimit);
             } else {
                 // 非圧縮データ
-                cont = expand0Element(ostream, olimit);
+                cont = expand0Element(oStream, oLimit);
             }
         } while (cont);
     }
@@ -578,99 +561,99 @@ public class DiskSTRParser extends DiskImageParser {
     /**
      * 2次圧縮データを展開
      *
-     * @param istream 元データ
+     * @param iStream 元データ
      * estreamを入力ストリームとする
      */
-    private void expand2Element(InputStream istream) throws IOException {
-        byte[] ibuf = new byte[16];
-        int ibufLen;
+    private void expand2Element(InputStream iStream) throws IOException {
+        byte[] iBuf = new byte[16];
+        int iBufLen;
         byte[] buf = new byte[256];
 
-        int ch = istream.read();
+        int ch = iStream.read();
         if (ch == -1) return; // EOF
 
-        int ipos = (int) ((SeekableDataInputStream) istream).position();
-        mEstream.setIStreamPos(0, ipos);
-        mEstream.setEStreamPos(0, mEstream.getWritePos());
+        int ipos = (int) ((SeekableDataInputStream) iStream).position();
+        eStream.setIStreamPos(0, ipos);
+        eStream.setEStreamPos(0, eStream.getWritePos());
 
         int cmd = (ch & 0xff);
 
-        ibufLen = 0;
+        iBufLen = 0;
         int tempCmd = cmd;
         for (int i = 0; i < 8; i++) {
             if ((tempCmd & 1) != 0) {
-                ibufLen++;
-                mEstream.setLastPos(ipos + ibufLen);
+                iBufLen++;
+                eStream.setLastPos(ipos + iBufLen);
             } else {
-                ibufLen += 2;
+                iBufLen += 2;
             }
-            mEstream.setIStreamPos(i + 1, ipos + ibufLen);
+            eStream.setIStreamPos(i + 1, ipos + iBufLen);
             tempCmd >>= 1;
         }
 
-        Arrays.fill(ibuf, (byte) 0);
-        istream.readNBytes(ibuf, 0, ibufLen);
+        Arrays.fill(iBuf, (byte) 0);
+        iStream.readNBytes(iBuf, 0, iBufLen);
 
         tempCmd = cmd;
-        ibufLen = 0;
+        iBufLen = 0;
         for (int i = 0; i < 8; i++) {
             if ((tempCmd & 1) != 0) {
                 // そのまま出力
-                mEstream.appendByte(ibuf[ibufLen++]);
-                mEstream.setEStreamPos(i + 1, mEstream.getWritePos());
+                eStream.appendByte(iBuf[iBufLen++]);
+                eStream.setEStreamPos(i + 1, eStream.getWritePos());
             } else {
-                int d1 = ibuf[ibufLen++] & 0xFF;
-                int d2 = ibuf[ibufLen++] & 0xFF;
+                int d1 = iBuf[iBufLen++] & 0xFF;
+                int d2 = iBuf[iBufLen++] & 0xFF;
 
                 int len = (d2 & 0xf) + 3;
-                int idx = ((d2 & 0xf0) << 4) | d1;
-                idx += 18;
+                int index = ((d2 & 0xf0) << 4) | d1;
+                index += 18;
 
                 // コピー元となるデータ位置を計算
-                int elen = mEstream.getWritePos();
-                if (elen >= 0x2000) {
-                    idx += (elen & ~0xfff) - 0x1000;
-                } else if (elen < idx) {
-                    idx -= 0x1000;
+                int eLen = eStream.getWritePos();
+                if (eLen >= 0x2000) {
+                    index += (eLen & ~0xfff) - 0x1000;
+                } else if (eLen < index) {
+                    index -= 0x1000;
                 }
 
-                // idx: 展開後データの絶対位置となる
-                if (idx >= 0) {
+                // index: 展開後データの絶対位置となる
+                if (index >= 0) {
                     // ポジション補正
-                    if (!(elen <= idx + 0x1000 && idx < elen)) {
-                        idx += 0x1000;
+                    if (!(eLen <= index + 0x1000 && index < eLen)) {
+                        index += 0x1000;
                     }
 
                     // 元データを取得
-                    byte[] data = mEstream.getData();
+                    byte[] data = eStream.getData();
 
-                    int blen = Math.min(len, elen - idx);
-                    System.arraycopy(data, idx, buf, 0, blen);
+                    int bLen = Math.min(len, eLen - index);
+                    System.arraycopy(data, index, buf, 0, bLen);
 
-                    int bpos = blen;
+                    int bpos = bLen;
                     while (bpos < len) {
                         // データを埋め合わせる
-                        int copyLen = Math.min(len - bpos, blen);
+                        int copyLen = Math.min(len - bpos, bLen);
                         System.arraycopy(buf, 0, buf, bpos, copyLen);
                         bpos += copyLen;
                     }
                 } else {
                     // 負になる場合は仮想的な位置で計算
-                    int nlen = -idx;
-                    if (nlen > len) nlen = len;
-                    if (nlen > 0) {
-                        Arrays.fill(buf, 0, nlen, (byte) 0);
+                    int nLen = -index;
+                    if (nLen > len) nLen = len;
+                    if (nLen > 0) {
+                        Arrays.fill(buf, 0, nLen, (byte) 0);
                     }
-                    int plen = (len + idx);
+                    int plen = (len + index);
                     if (plen > 0) {
-                        byte[] data = mEstream.getData();
-                        System.arraycopy(data, 0, buf, nlen, plen);
+                        byte[] data = eStream.getData();
+                        System.arraycopy(data, 0, buf, nLen, plen);
                     }
                 }
 
                 // 展開データに追記
-                mEstream.appendData(buf, len);
-                mEstream.setEStreamPos(i + 1, mEstream.getWritePos());
+                eStream.appendData(buf, len);
+                eStream.setEStreamPos(i + 1, eStream.getWritePos());
             }
             tempCmd >>= 1;
         }
@@ -679,157 +662,158 @@ public class DiskSTRParser extends DiskImageParser {
     /**
      * 1次圧縮データを展開
      *
-     * @param istream 元データ
-     * @param ostream 展開後データ
-     * @param olimit  出力バッファサイズ
+     * @param iStream 元データ
+     * @param oStream 展開後データ
+     * @param oLimit  出力バッファサイズ
      */
-    private void expand1(InputStream istream, OutputStream ostream, int olimit) throws IOException {
+    private void expand1(InputStream iStream, OutputStream oStream, int oLimit) throws IOException {
         byte[] buf = new byte[16];
 
-        boolean cont = (mEstream.remain() == 0);
+        boolean continuable = (eStream.remain() == 0);
         do {
-            if (cont) {
-                int len = istream.read(buf, 0, buf.length);
+            if (continuable) {
+                int len = iStream.read(buf, 0, buf.length);
                 if (len > 0) {
-                    mEstream.appendData(buf, len);
+                    eStream.appendData(buf, len);
                 }
             }
-            cont = expand1Element(ostream, olimit);
-        } while (cont);
+            continuable = expand1Element(oStream, oLimit);
+        } while (continuable);
 
-        if (mEstream.remain() > 0) {
-            int pos = (int) ((SeekableDataInputStream) istream).position();
-            ((SeekableDataInputStream) istream).position(pos - mEstream.remain());
-            mEstream.setWritePos(mEstream.getReadPos());
+        if (eStream.remain() > 0) {
+            int pos = (int) ((SeekableDataInputStream) iStream).position();
+            ((SeekableDataInputStream) iStream).position(pos - eStream.remain());
+            eStream.setWritePos(eStream.getReadPos());
         }
     }
 
     /**
      * 1次圧縮データを展開
      *
-     * @param ostream 展開後データ
-     * @param olimit  出力バッファサイズ
-     * @return 出力データサイズがolimitに達したらfalse
-     * estreamを入力ストリームとする
+     * eStream を入力ストリームとする
+     *
+     * @param oStream 展開後データ
+     * @param oLimit  出力バッファサイズ
+     * @return 出力データサイズが oLimit に達したら false
      */
-    private boolean expand1Element(OutputStream ostream, int olimit) throws IOException {
-        int siz;
-        int osize = 0;
-        if (ostream instanceof ByteArrayOutputStream) {
-            osize = ((ByteArrayOutputStream) ostream).size();
+    private boolean expand1Element(OutputStream oStream, int oLimit) throws IOException {
+        int size;
+        int oSize = 0;
+        if (oStream instanceof ByteArrayOutputStream) {
+            oSize = ((ByteArrayOutputStream) oStream).size();
         }
         byte[] buf = new byte[128];
 
         do {
             // 先頭文字チェック
-            int ch = mEstream.peekByte();
+            int ch = eStream.peekByte();
             if (ch == -1) {
                 break;
             }
-            siz = (ch & 0xff);
+            size = (ch & 0xff);
             if (ch < 0x80) {
-                if (siz == 0) siz = 0x80;
+                if (size == 0) size = 0x80;
             } else {
-                siz = 1;
+                size = 1;
             }
-            if (mEstream.remain() < (siz + 1)) {
+            if (eStream.remain() < (size + 1)) {
                 break;
             }
 
             // 展開
-            ch = mEstream.getByte();
-            siz = (ch & 0xff);
+            ch = eStream.getByte();
+            size = (ch & 0xff);
             if (ch < 0x80) {
-                if (siz == 0) siz = 0x80;
-                siz = mEstream.getData(buf, siz);
-                ostream.write(buf, 0, siz);
-                osize += siz;
+                if (size == 0) size = 0x80;
+                size = eStream.getData(buf, size);
+                oStream.write(buf, 0, size);
+                oSize += size;
             } else {
-                siz = (ch & 0x7f);
-                ch = mEstream.getByte();
-                if (siz == 0) siz = 0x80;
-                Arrays.fill(buf, 0, siz, (byte) ch);
-                ostream.write(buf, 0, siz);
-                osize += siz;
+                size = (ch & 0x7f);
+                ch = eStream.getByte();
+                if (size == 0) size = 0x80;
+                Arrays.fill(buf, 0, size, (byte) ch);
+                oStream.write(buf, 0, size);
+                oSize += size;
             }
-        } while (osize < olimit);
+        } while (oSize < oLimit);
 
-        return (osize < olimit);
+        return oSize < oLimit;
     }
 
     /**
      * 非圧縮データをそのまま展開
      *
-     * @param istream 元データ
-     * @param ostream 展開後データ
-     * @param olimit  出力バッファサイズ
+     * @param iStream 元データ
+     * @param oStream 展開後データ
+     * @param oLimit  出力バッファサイズ
      */
-    private void expand0(InputStream istream, OutputStream ostream, int olimit) throws IOException {
-        int siz;
+    private static void expand0(InputStream iStream, OutputStream oStream, int oLimit) throws IOException {
+        int size;
         int osize = 0;
-        if (ostream instanceof ByteArrayOutputStream) {
-            osize = ((ByteArrayOutputStream) ostream).size();
+        if (oStream instanceof ByteArrayOutputStream) {
+            osize = ((ByteArrayOutputStream) oStream).size();
         }
         byte[] buf = new byte[128];
 
-        while (osize < olimit) {
-            siz = Math.min(buf.length, olimit - osize);
+        while (osize < oLimit) {
+            size = Math.min(buf.length, oLimit - osize);
 
-            siz = istream.read(buf, 0, siz);
-            if (siz <= 0) {
+            size = iStream.read(buf, 0, size);
+            if (size <= 0) {
                 break;
             }
-            ostream.write(buf, 0, siz);
-            osize += siz;
+            oStream.write(buf, 0, size);
+            osize += size;
         }
     }
 
     /**
      * 非圧縮データをそのまま展開
      *
-     * @param ostream 展開後データ
-     * @param olimit  出力バッファサイズ
-     * @return 出力データサイズがolimitに達したらfalse
-     * estreamを入力ストリームとする
+     * eStream を入力ストリームとする
+     *
+     * @param oStream 展開後データ
+     * @param oLimit  出力バッファサイズ
+     * @return 出力データサイズが oLimit に達したら false
      */
-    private boolean expand0Element(OutputStream ostream, int olimit) throws IOException {
+    private boolean expand0Element(OutputStream oStream, int oLimit) throws IOException {
         int siz;
         int osize = 0;
-        if (ostream instanceof ByteArrayOutputStream) {
-            osize = ((ByteArrayOutputStream) ostream).size();
+        if (oStream instanceof ByteArrayOutputStream) {
+            osize = ((ByteArrayOutputStream) oStream).size();
         }
         byte[] buf = new byte[128];
 
-        while (osize < olimit) {
-            siz = Math.min(buf.length, olimit - osize);
+        while (osize < oLimit) {
+            siz = Math.min(buf.length, oLimit - osize);
 
-            siz = mEstream.getData(buf, siz);
+            siz = eStream.getData(buf, siz);
             if (siz == 0) {
                 break;
             }
-            ostream.write(buf, 0, siz);
+            oStream.write(buf, 0, siz);
             osize += siz;
         }
-        return (osize < olimit);
+        return (osize < oLimit);
     }
 
     @Override
-    public int check(InputStream istream, List<DiskTypeHint> diskHints, DiskParam diskParam, List<DiskParam> diskParams, DiskParam manualParam) {
-        return -1;
+    public int check(InputStream iStream, List<DiskTypeHint> diskHints, DiskParam diskParam, List<DiskParam> diskParams, DiskParam manualParam) throws IOException {
+        return check(iStream);
     }
 
     /**
      * チェック
      *
-     * @param istream 解析対象データ
-     * @return 1 選択ダイアログ表示
-     * @return 0 正常（候補が複数ある時はダイアログ表示）
+     * @param iStream 解析対象データ
+     * @return 1: 選択ダイアログ表示, 0: 正常（候補が複数ある時はダイアログ表示）
      */
     @Override
-    public int check(InputStream istream) throws IOException {
-        ((SeekableDataInputStream) istream).position(0);
+    public int check(InputStream iStream) throws IOException {
+        ((SeekableDataInputStream) iStream).position(0);
 
-        if (parseHeader(istream, 0) < 0) {
+        if (parseHeader(iStream, 0) < 0) {
             return -1;
         }
 
@@ -839,18 +823,16 @@ public class DiskSTRParser extends DiskImageParser {
     /**
      * ファイルを解析
      *
-     * @param istream   解析対象データ
+     * @param iStream   解析対象データ
      * @param diskParam パラメータ通常不要
-     * @return 0 正常
-     * @return -1 エラーあり
-     * @return 1 警告あり
+     * @return 0: 正常, -1: エラーあり, 1: 警告あり
      */
     @Override
-    public int parse(InputStream istream, DiskParam diskParam) throws IOException {
-        ((SeekableDataInputStream) istream).position(0);
+    public int parse(InputStream iStream, DiskParam diskParam) throws IOException {
+        ((SeekableDataInputStream) iStream).position(0);
 
         for (int diskNumber = 0; diskNumber < 1; diskNumber++) {
-            if (parseDisk(istream, diskNumber) < 0) {
+            if (parseDisk(iStream, diskNumber) < 0) {
                 break;
             }
         }

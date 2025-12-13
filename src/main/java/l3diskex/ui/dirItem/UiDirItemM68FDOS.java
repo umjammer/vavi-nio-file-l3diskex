@@ -52,7 +52,7 @@ public class UiDirItemM68FDOS extends UiDirItem {
             // chkAttr = (JCheckBox)parent.FindWindow(53 + i); // IDC_CHECK_ATTR + i
             // if (chkAttr == null) continue;
             // if (chkAttr.GetValue()) {
-            //     val |= M68FDOSData.gTypeNameM68FDOS[i].value;
+            //     val |= M68FDOSData.typeNameM68FDos[i].value;
             // }
         }
         return val;
@@ -89,8 +89,8 @@ public class UiDirItemM68FDOS extends UiDirItem {
             //     hbox = new wxBoxLayout(0); // wxHORIZONTAL
             //     staType1.Add(hbox);
             // }
-            // chkAttr = new JCheckBox(parent, 53 + i, M68FDOSData.gTypeNameM68FDOS[i].name); // IDC_CHECK_ATTR + i
-            // chkAttr.SetValue((file_type_1[0] & M68FDOSData.gTypeNameM68FDOS[i].value) != 0);
+            // chkAttr = new JCheckBox(parent, 53 + i, M68FDOSData.typeNameM68FDos[i].name); // IDC_CHECK_ATTR + i
+            // chkAttr.SetValue((file_type_1[0] & M68FDOSData.typeNameM68FDos[i].value) != 0);
             // hbox.Add(chkAttr, flags);
         }
 

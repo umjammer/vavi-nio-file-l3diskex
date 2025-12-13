@@ -106,7 +106,7 @@ public class RawParamBox extends JDialog {
         JButton okBtn = new JButton("OK");
         JButton cancelBtn = new JButton("Cancel");
 
-        okBtn.addActionListener(e -> onOK(e));
+        okBtn.addActionListener(this::onOK);
         cancelBtn.addActionListener(e -> dispose());
 
         buttonPanel.add(okBtn);

@@ -4,8 +4,6 @@
 
 package l3diskex.diskimg;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.lang.System.Logger;
 import java.lang.System.Logger.Level;
@@ -18,11 +16,12 @@ import java.util.List;
 import java.util.Map;
 
 import l3diskex.ResultInfo;
+import l3diskex.Utils;
 import l3diskex.basicfmt.DiskBasic;
 import vavi.io.SeekableDataInputStream;
 
 import static l3diskex.basicfmt.DiskBasic.clearParseAndAssign;
-import static l3diskex.diskimg.DiskParam.gDiskTemplates;
+import static l3diskex.diskimg.DiskParam.diskTemplates;
 
 
 /** ディスクイメージ入出力 */
@@ -81,10 +80,10 @@ public abstract class DiskImage {
     public static abstract class DiskImageSector {
 
         /** sector number(ID Rと同じ) */
-        protected int mNum;
+        protected int num;
 
-        public DiskImageSector(int nNum) {
-            mNum = nNum;
+        public DiskImageSector(int num) {
+            this.num = num;
         }
 
         /** セクタのデータを置き換える */
@@ -135,12 +134,12 @@ public abstract class DiskImage {
 
         /** セクタ番号を返す(ID Rと同じ) */
         public int getSectorNumber() {
-            return mNum;
+            return num;
         }
 
         /** セクタ番号を設定 */
         public void setSectorNumber(int val) {
-            mNum = val;
+            num = val;
         }
 
         /** 削除マークがついているか */
@@ -274,7 +273,7 @@ public abstract class DiskImage {
 
         /** セクタ内容の比較 */
         public static int compare(DiskImageSector item1, DiskImageSector item2) {
-            return item1.mNum - item2.mNum;
+            return item1.num - item2.num;
         }
 
         /** セクタ番号の比較 */
@@ -309,21 +308,21 @@ public abstract class DiskImage {
 
         protected DiskImageDisk parent;
         /** track number */
-        protected int mTrkNum;
+        protected int trackNum;
         /** side number */
-        protected int mSidNum;
+        protected int sideNum;
         /** position of offset table in header */
-        protected int mOffsetPos;
+        protected int offsetPos;
         /** track size */
-        protected int mSize;
+        protected int size;
         /** interleave of sector */
-        protected int mInterleave;
+        protected int interleave;
 
         /** num of sectors (original / pre save) */
         protected List<DiskImageSector> sectors;
 
         /** extra data */
-        protected int mOrigSectors;
+        protected int originalSectors;
         /** extra data size */
         protected byte[] extraData;
 
@@ -331,59 +330,64 @@ public abstract class DiskImage {
 
         public DiskImageTrack(DiskImageDisk disk) {
             parent = disk;
-            mTrkNum = 0;
-            mSidNum = 0;
+            trackNum = 0;
+            sideNum = 0;
             sectors = null;
-            mSize = 0;
-            mInterleave = 1;
-            mOrigSectors = 0;
+            size = 0;
+            interleave = 1;
+            originalSectors = 0;
             extraData = null;
             extraSize = 0;
         }
 
-        /// @param disk        ディスク
-        /// @param nTrkNum     トラック番号
-        /// @param nSidNum     サイド番号
-        /// @param nOffsetPos  オフセットインデックス
-        /// @param nInterleave インターリーブ
-        public DiskImageTrack(DiskImageDisk disk, int nTrkNum, int nSidNum, int nOffsetPos, int nInterleave) {
+        /**
+         * @param disk       ディスク
+         * @param trackNum   トラック番号
+         * @param sideNum    サイド番号
+         * @param offsetPos  オフセットインデックス
+         * @param interleave インターリーブ
+         */
+        public DiskImageTrack(DiskImageDisk disk, int trackNum, int sideNum, int offsetPos, int interleave) {
             parent = disk;
-            mTrkNum = nTrkNum;
-            mSidNum = nSidNum;
-            mOffsetPos = nOffsetPos;
+            this.trackNum = trackNum;
+            this.sideNum = sideNum;
+            this.offsetPos = offsetPos;
             sectors = null;
-            mSize = 0;
-            mInterleave = nInterleave;
-            mOrigSectors = 0;
+            size = 0;
+            this.interleave = interleave;
+            originalSectors = 0;
             extraData = null;
             extraSize = 0;
         }
 
         /** インスタンス作成 */
-        public abstract DiskImageSector newImageSector(int nNum, DiskImageSectorHeader nHeader, byte[] nData);
+        public abstract DiskImageSector newImageSector(int num, DiskImageSectorHeader header, byte[] data);
 
         /** インスタンス作成 */
         public abstract DiskImageSector newImageSector(int trackNumber, int sideNumber, int sectorNumber, int sectorSize, int numberOfSector, boolean singleDensity /* = false */, int status /* = 0 */);
 
-        /// セクタを追加する
-        ///
-        /// @return セクタ数
+        /**
+         * セクタを追加する
+         *
+         * @return セクタ数
+         */
         public int add(DiskImageSector newsec) {
             if (sectors == null) sectors = new ArrayList<>();
             sectors.add(newsec);
-            mOrigSectors = sectors.size();
-            return mOrigSectors;
+            originalSectors = sectors.size();
+            return originalSectors;
         }
 
-        /// トラック内のセクタデータを置き換える
-        ///
-        /// @param srcTrack
-        /// @return 0:正常 -1:エラー 1:置換できないセクタあり
+        /**
+         * トラック内のセクタデータを置き換える
+         *
+         * @param srcTrack target track
+         * @return 0:正常 -1:エラー 1:置換できないセクタあり
+         */
         public int replace(DiskImageTrack srcTrack) {
             int rc = 0;
             if (sectors == null) return -1;
-            for (int i = 0; i < sectors.size(); i++) {
-                DiskImageSector tagSector = sectors.get(i);
+            for (DiskImageSector tagSector : sectors) {
                 DiskImageSector srcSector = srcTrack.getSector(tagSector.getSectorNumber());
                 if (srcSector == null) {
                     continue;
@@ -395,27 +399,31 @@ public abstract class DiskImage {
             return rc;
         }
 
-        /// トラックに新規セクタを追加する
-        ///
-        /// @param trknum   新規セクタのトラック番号(ID C)
-        /// @param sidnum   新規セクタのサイド番号(ID H)
-        /// @param secnum   新規セクタのセクタ番号(ID R)
-        /// @param secsize  新規セクタのセクタサイズ(128,256,512,1024,2048)
-        /// @param sdensity 新規セクタが単密度か
-        /// @param status   新規セクタのステータス(通常0)
-        /// @return 0 正常
-        public int addNewSector(int trknum, int sidnum, int secnum, int secsize, boolean sdensity, int status) {
+        /**
+         * トラックに新規セクタを追加する
+         *
+         * @param trackNum 新規セクタのトラック番号 (ID C)
+         * @param sideNum  新規セクタのサイド番号 (ID H)
+         * @param secNum   新規セクタのセクタ番号 (ID R)
+         * @param secSize  新規セクタのセクタサイズ (128,256,512,1024,2048)
+         * @param sDensity 新規セクタが単密度か
+         * @param status   新規セクタのステータス (通常0)
+         * @return 0 正常
+         */
+        public int addNewSector(int trackNum, int sideNum, int secNum, int secSize, boolean sDensity, int status) {
             int rc = 0;
-            DiskImageSector newSector = newImageSector(trknum, sidnum, secnum, secsize, 1, sdensity, status);
+            DiskImageSector newSector = newImageSector(trackNum, sideNum, secNum, secSize, 1, sDensity, status);
             add(newSector);
             decreaseExtraDataSize(newSector.getSize());
             shrinkAndCalcOffsets(false);
             return rc;
         }
 
-        /// トラック内の指定位置のセクタを削除する
-        ///
-        /// @param pos セクタ位置
+        /**
+         * トラック内の指定位置のセクタを削除する
+         *
+         * @param pos セクタ位置
+         */
         public int deleteSectorByIndex(int pos) {
             int rc = 0;
             if (sectors == null || pos < 0 || pos >= sectors.size()) return -1;
@@ -428,11 +436,13 @@ public abstract class DiskImage {
             return rc;
         }
 
-        /// トラック内の指定セクタを削除する
-        ///
-        /// @param startSectorNum 開始セクタ番号
-        /// @param endSectorNum   終了セクタ番号 -1なら全て
-        /// @return 0:正常 -1:エラー
+        /**
+         * トラック内の指定セクタを削除する
+         *
+         * @param startSectorNum 開始セクタ番号
+         * @param endSectorNum   終了セクタ番号 -1 なら全て
+         * @return 0: 正常, -1: エラー
+         */
         public int deleteSectors(int startSectorNum, int endSectorNum) {
             int rc = 0;
             if (sectors == null) return -1;
@@ -508,23 +518,23 @@ public abstract class DiskImage {
         }
 
         public int getTrackNumber() {
-            return mTrkNum;
+            return trackNum;
         }
 
         public void setTrackNumber(int val) {
-            mTrkNum = val;
+            trackNum = val;
         }
 
         public int getSideNumber() {
-            return mSidNum;
+            return sideNum;
         }
 
         public void setSideNumber(int val) {
-            mSidNum = val;
+            sideNum = val;
         }
 
         public int getOffsetPos() {
-            return mOffsetPos;
+            return offsetPos;
         }
 
         /** トラック内の最小セクタ番号を返す */
@@ -567,19 +577,19 @@ public abstract class DiskImage {
         }
 
         public int getSize() {
-            return mSize;
+            return size;
         }
 
         public void setSize(int val) {
-            mSize = val;
+            size = val;
         }
 
         public int getInterleave() {
-            return mInterleave;
+            return interleave;
         }
 
         public void setInterleave(int val) {
-            mInterleave = val;
+            interleave = val;
         }
 
         /** インターリーブを計算して設定 */
@@ -590,7 +600,7 @@ public abstract class DiskImage {
                 setInterleave(1);
                 return;
             }
-            int start = sectors.get(0).getSectorNumber();
+            int start = sectors.getFirst().getSectorNumber();
             int next = start + 1;
             int state = 0;
             int intl = 0;
@@ -631,11 +641,13 @@ public abstract class DiskImage {
             return cnt;
         }
 
-        /// 指定セクタ番号のセクタを返す
-        ///
-        /// @param sectorNumber セクタ番号
-        /// @param density      密度で絞る 0:倍密度 1:単密度 -1:条件から除外
-        /// @return セクタ or null
+        /**
+         * 指定セクタ番号のセクタを返す
+         *
+         * @param sectorNumber セクタ番号
+         * @param density      密度で絞る 0:倍密度 1:単密度 -1:条件から除外
+         * @return セクタ or null
+         */
         public DiskImageSector getSector(int sectorNumber, int density) {
             DiskImageSector sector = null;
             if (sectors != null) {
@@ -782,7 +794,7 @@ public abstract class DiskImage {
         /** 変更されているか */
         public boolean isModified() {
             if (sectors == null) return false;
-            if (mOrigSectors != sectors.size()) return true;
+            if (originalSectors != sectors.size()) return true;
             boolean modified = false;
             for (DiskImageSector sector : sectors) {
                 if (sector == null) continue;
@@ -801,12 +813,12 @@ public abstract class DiskImage {
                 if (sector == null) continue;
                 sector.clearModify();
             }
-            mOrigSectors = sectors.size();
+            originalSectors = sectors.size();
         }
 
         /** トラック番号とサイド番号の比較 */
         public static int compare(DiskImageTrack item1, DiskImageTrack item2) {
-            return ((item1.mTrkNum - item2.mTrkNum) | (item1.mSidNum - item2.mSidNum));
+            return ((item1.trackNum - item2.trackNum) | (item1.sideNum - item2.sideNum));
         }
 
         /**
@@ -814,7 +826,7 @@ public abstract class DiskImage {
          *
          * <pre>
          * interleave = 2 の時
-         * sector_nums[0] = sector_offset, sector_nums[2] = sector_offset + 1, sector_nums[4] = sector_offset + 2, ... となる
+         * numOfSectors[0] = sector_offset, numOfSectors[2] = sector_offset + 1, numOfSectors[4] = sector_offset + 2, ... となる
          * </pre>
          *
          * @param interleave   インターリーブ(1...)
@@ -871,92 +883,101 @@ public abstract class DiskImage {
 
         protected DiskImageFile parent;
         /** disk number */
-        protected int mNum;
+        protected int num;
         /** disk name */
-        protected String mName;
+        protected String name;
         /** write protected ? */
-        protected boolean mWriteProtect;
+        protected boolean writeProtect;
 
         /** usually header size */
-        protected int mOffsetStart;
+        protected int offsetStart;
 
         protected List<DiskImageTrack> tracks;
-        protected int mMaxTrackNumber;
+        protected int maxTrackNumber;
 
         /** 解析したパラメータ */
         protected DiskParam origParam;
         /** ディスクパラメータを変更したか */
-        protected boolean mParamChanged;
+        protected boolean paramChanged;
 
         protected List<DiskBasic> basics;
 
-        /// @param file ファイルイメージ
-        /// @param nNum ディスク番号
-        public DiskImageDisk(DiskImageFile file, int nNum) {
+        /**
+         * @param file ファイルイメージ
+         * @param num ディスク番号
+         */
+        public DiskImageDisk(DiskImageFile file, int num) {
             parent = file;
-            mNum = nNum;
-            mWriteProtect = false;
+            this.num = num;
+            writeProtect = false;
             tracks = null;
-            mOffsetStart = 0;
-            mParamChanged = false;
+            offsetStart = 0;
+            paramChanged = false;
             basics = new ArrayList<>();
         }
 
-        /// @param file          ファイルイメージ
-        /// @param nNum          ディスク番号
-        /// @param nParam        ディスクパラメータ
-        /// @param nDiskname     ディスク名
-        /// @param nWriteProtect 書き込み禁止か
-        public DiskImageDisk(DiskImageFile file, int nNum, DiskParam nParam, String nDiskname, boolean nWriteProtect) {
-            super(nParam);
+        /**
+         * @param file         ファイルイメージ
+         * @param num          ディスク番号
+         * @param param        ディスクパラメータ
+         * @param diskName     ディスク名
+         * @param writeProtect 書き込み禁止か
+         */
+        public DiskImageDisk(DiskImageFile file, int num, DiskParam param, String diskName, boolean writeProtect) {
+            super(param);
             parent = file;
-            mNum = nNum;
-            mName = nDiskname;
-            mWriteProtect = nWriteProtect;
+            this.num = num;
+            name = diskName;
+            this.writeProtect = writeProtect;
             tracks = null;
-            mOffsetStart = 0;
-            mParamChanged = false;
+            offsetStart = 0;
+            paramChanged = false;
             basics = new ArrayList<>();
         }
 
-        /// @param file    ファイルイメージ
-        /// @param nNum    ディスク番号
-        /// @param nHeader ディスクヘッダ
-        public DiskImageDisk(DiskImageFile file, int nNum, DiskImageDiskHeader nHeader) {
+        /**
+         * @param file   ファイルイメージ
+         * @param num    ディスク番号
+         * @param header ディスクヘッダ
+         */
+        public DiskImageDisk(DiskImageFile file, int num, DiskImageDiskHeader header) {
             super();
             parent = file;
-            mNum = nNum;
-            mName = nHeader.getName(false);
-            mWriteProtect = nHeader.isWriteProtected();
+            this.num = num;
+            name = header.getName(false);
+            writeProtect = header.isWriteProtected();
             tracks = null;
-            mOffsetStart = 0;
-            mParamChanged = false;
+            offsetStart = 0;
+            paramChanged = false;
             basics = new ArrayList<>();
         }
 
         public abstract DiskImageTrack newImageTrack();
 
-        public abstract DiskImageTrack newImageTrack(int nTrkNum, int nSidNum, int nOffsetPos, int nInterleave);
+        public abstract DiskImageTrack newImageTrack(int trackNum, int sideNum, int offsetPos, int interleave);
 
-        /// ディスクにトラックを追加
-        ///
-        /// @return トラック数
-        public int add(DiskImageTrack newtrk) {
+        /**
+         * ディスクにトラックを追加
+         *
+         * @return トラック数
+         */
+        public int add(DiskImageTrack newTrack) {
             if (tracks == null) tracks = new ArrayList<>();
-            tracks.add(newtrk);
+            tracks.add(newTrack);
             return tracks.size();
         }
 
-        /// ディスクの内容を置き換える
-        ///
-        /// @param sideNumber    サイド番号
-        /// @param srcDisk       置換元のディスクイメージ
-        /// @param srcSideNumber 置換元のディスクイメージのサイド番号
+        /**
+         * ディスクの内容を置き換える
+         *
+         * @param sideNumber    サイド番号
+         * @param srcDisk       置換元のディスクイメージ
+         * @param srcSideNumber 置換元のディスクイメージのサイド番号
+         */
         public int replace(int sideNumber, DiskImageDisk srcDisk, int srcSideNumber) {
             int rc = 0;
             if (tracks == null) return -1;
-            for (int i = 0; i < tracks.size(); i++) {
-                DiskImageTrack tagTrack = tracks.get(i);
+            for (DiskImageTrack tagTrack : tracks) {
                 int tagSideNumber = tagTrack.getSideNumber();
                 if (sideNumber >= 0) {
                     if (tagSideNumber != sideNumber) {
@@ -983,28 +1004,29 @@ public abstract class DiskImage {
             return rc;
         }
 
-        /// ディスクにトラックを追加
-        ///
-        /// @param sideNumber サイド番号 両面なら-1
+        /**
+         * ディスクにトラックを追加
+         *
+         * @param sideNumber サイド番号 両面なら -1
+         */
         public int addNewTrack(int sideNumber) {
             int rc = 0;
             DiskImageTrack srcTrack = null;
-            int trkNum = -1;
-            int sidNum = -1;
-            int maxSidNum = -1;
-            for (int pos = 0; pos < tracks.size(); pos++) {
-                DiskImageTrack track = tracks.get(pos);
-                if (track.getTrackNumber() > trkNum && (sideNumber < 0 || sideNumber == track.getSideNumber())) {
-                    trkNum = track.getTrackNumber();
-                    sidNum = track.getSideNumber();
-                    if (sidNum > maxSidNum) {
-                        maxSidNum = sidNum;
+            int trackNum = -1;
+            int sideNum = -1;
+            int maxSideNum = -1;
+            for (DiskImageTrack track : tracks) {
+                if (track.getTrackNumber() > trackNum && (sideNumber < 0 || sideNumber == track.getSideNumber())) {
+                    trackNum = track.getTrackNumber();
+                    sideNum = track.getSideNumber();
+                    if (sideNum > maxSideNum) {
+                        maxSideNum = sideNum;
                     }
                     srcTrack = track;
-                } else if (sideNumber < 0 && track.getSideNumber() > sidNum) {
-                    sidNum = track.getSideNumber();
-                    if (sidNum > maxSidNum) {
-                        maxSidNum = sidNum;
+                } else if (sideNumber < 0 && track.getSideNumber() > sideNum) {
+                    sideNum = track.getSideNumber();
+                    if (sideNum > maxSideNum) {
+                        maxSideNum = sideNum;
                     }
                     srcTrack = track;
                 }
@@ -1016,15 +1038,15 @@ public abstract class DiskImage {
             if (sectors == null) {
                 return -1;
             }
-            if (sideNumber < 0 && sidNum < maxSidNum) {
-                sidNum++;
+            if (sideNumber < 0 && sideNum < maxSideNum) {
+                sideNum++;
             } else {
-                trkNum++;
-                sidNum = (sideNumber < 0 ? 0 : sideNumber);
+                trackNum++;
+                sideNum = (sideNumber < 0 ? 0 : sideNumber);
             }
             int limitPos = getCreatableTracks();
             int offsetPos = 0;
-            for (int pos = (sideNumber < 0 ? 0 : sideNumber); pos < limitPos; pos += (sideNumber < 0 ? 1 : maxSidNum + 1)) {
+            for (int pos = (sideNumber < 0 ? 0 : sideNumber); pos < limitPos; pos += (sideNumber < 0 ? 1 : maxSideNum + 1)) {
                 if (getOffset(pos) == 0) {
                     offsetPos = pos;
                     break;
@@ -1033,30 +1055,32 @@ public abstract class DiskImage {
             if (offsetPos == 0) {
                 return -1;
             }
-            DiskImageTrack newTrack = newImageTrack(trkNum, sidNum, offsetPos, srcTrack.getInterleave());
-            int trkSize = 0;
+            DiskImageTrack newTrack = newImageTrack(trackNum, sideNum, offsetPos, srcTrack.getInterleave());
+            int trackSize = 0;
             for (int pos = 0; pos < sectors.size(); pos++) {
                 DiskImageSector sector = sectors.get(pos);
-                int secNum = sector.getIDR();
-                int secSize = sector.getSectorSize();
+                int sectorNum = sector.getIDR();
+                int sectorSize = sector.getSectorSize();
                 boolean sdensity = sector.isSingleDensity();
-                DiskImageSector newSector = newTrack.newImageSector(trkNum, sidNum, secNum, secSize, sectors.size(), sdensity, 0);
+                DiskImageSector newSector = newTrack.newImageSector(trackNum, sideNum, sectorNum, sectorSize, sectors.size(), sdensity, 0);
                 newTrack.add(newSector);
-                trkSize += newSector.getSize();
+                trackSize += newSector.getSize();
             }
             newTrack.increaseExtraDataSize(srcTrack.getExtraDataSize());
-            trkSize += newTrack.getExtraDataSize();
-            newTrack.setSize(trkSize);
+            trackSize += newTrack.getExtraDataSize();
+            newTrack.setSize(trackSize);
             add(newTrack);
             calcOffsets();
             return rc;
         }
 
-        /// トラックを削除する
-        ///
-        /// @param startOffsetPos 削除開始トラック位置(0 ... 163)
-        /// @param endOffsetPos   削除終了トラック位置(0 ... 163)
-        /// @param sideNumber     特定のサイドのみ削除する場合 >= 0 , 全サイドの場合 = -1
+        /**
+         * トラックを削除する
+         *
+         * @param startOffsetPos 削除開始トラック位置(0 ... 163)
+         * @param endOffsetPos   削除終了トラック位置(0 ... 163)
+         * @param sideNumber     特定のサイドのみ削除する場合 >= 0 , 全サイドの場合 = -1
+         */
         public void deleteTracks(int startOffsetPos, int endOffsetPos, int sideNumber) {
             if (tracks == null) return;
             boolean removed = false;
@@ -1096,9 +1120,8 @@ public abstract class DiskImage {
             for (int pos = 0; pos < limitPos; pos++) {
                 setOffset(pos, 0);
             }
-            int maxOffset = mOffsetStart;
-            for (int i = 0; i < tracks.size(); i++) {
-                DiskImageTrack track = tracks.get(i);
+            int maxOffset = offsetStart;
+            for (DiskImageTrack track : tracks) {
                 if (track == null) continue;
                 int pos = track.getOffsetPos();
                 if (pos < 0 || pos >= limitPos) continue;
@@ -1128,7 +1151,7 @@ public abstract class DiskImage {
         }
 
         public int getNumber() {
-            return mNum;
+            return num;
         }
 
         public String getName(boolean real) {
@@ -1153,11 +1176,13 @@ public abstract class DiskImage {
             return tracks;
         }
 
-        /// 指定トラックを返す
-        ///
-        /// @param trackNumber トラック番号（シリンダ）
-        /// @param sideNumber  サイド番号（ヘッド）
-        /// @return トラック
+        /**
+         * 指定トラックを返す
+         *
+         * @param trackNumber トラック番号（シリンダ）
+         * @param sideNumber  サイド番号（ヘッド）
+         * @return トラック
+         */
         public DiskImageTrack getTrack(int trackNumber, int sideNumber) {
             DiskImageTrack track = null;
             if (tracks != null) {
@@ -1171,10 +1196,12 @@ public abstract class DiskImage {
             return track;
         }
 
-        /// 指定トラックを返す
-        ///
-        /// @param index 位置
-        /// @return トラック
+        /**
+         * 指定トラックを返す
+         *
+         * @param index 位置
+         * @return トラック
+         */
         public DiskImageTrack getTrack(int index) {
             DiskImageTrack track = null;
             if (tracks != null && index < tracks.size()) {
@@ -1183,10 +1210,12 @@ public abstract class DiskImage {
             return track;
         }
 
-        /// 指定オフセット値からトラックを返す
-        ///
-        /// @param offset オフセット位置
-        /// @return トラック
+        /**
+         * 指定オフセット値からトラックを返す
+         *
+         * @param offset オフセット位置
+         * @return トラック
+         */
         public DiskImageTrack getTrackByOffset(int offset) {
             DiskImageTrack track = null;
             if (tracks != null) {
@@ -1203,25 +1232,34 @@ public abstract class DiskImage {
         }
 
         public DiskImageSector getSector(int trackNumber, int sideNumber, int sectorNumber) {
-            return getSector(trackNumber, sideNumber, sideNumber, -1);
+            return getSector(trackNumber, sideNumber, sectorNumber, -1);
         }
 
-        /// 指定セクタを返す
-        ///
-        /// @param trackNumber  トラック番号（シリンダ）
-        /// @param sideNumber   サイド番号（ヘッド）
-        /// @param sectorNumber セクタ番号（レコード）
-        /// @param density      密度で絞る 0:倍密度 1:単密度 -1:条件から除外
-        /// @return セクタ
+        /**
+         * 指定セクタを返す
+         *
+         * @param trackNumber  トラック番号（シリンダ）
+         * @param sideNumber   サイド番号（ヘッド）
+         * @param sectorNumber セクタ番号（レコード）
+         * @param density      密度で絞る 0: 倍密度, 1: 単密度, -1: 条件から除外
+         * @return セクタ
+         */
         public DiskImageSector getSector(int trackNumber, int sideNumber, int sectorNumber, int density) {
-            DiskImageTrack trk = getTrack(trackNumber, sideNumber);
-            if (trk == null) return null;
-            return trk.getSector(sectorNumber, density);
+            DiskImageTrack track = getTrack(trackNumber, sideNumber);
+            if (track == null) return null;
+            return track.getSector(sectorNumber, density);
         }
 
-        /// ディスクの中でもっともらしいパラメータを設定
-        ///
-        /// @return パラメータ
+        /**
+         * ディスクの中でもっともらしいパラメータを設定
+         * <p>
+         * system property
+         * <li>`l3diskex.normalize.enabled` ... do normalize after fetch params or not default {@code true}</li>
+         * This is used for cases where the analysis incorrectly identifies 3 surfaces,
+         * which can prevent a suitable template from being found.
+         *
+         * @return パラメータ
+         */
         public DiskParam calcMajorNumber() {
             Map<Integer, Integer>[] sectorNumbersMap = new HashMap[2];
             sectorNumbersMap[0] = new HashMap<>();
@@ -1243,54 +1281,50 @@ public abstract class DiskImage {
             List<DiskParticular> singles = new ArrayList<>();
 
             if (tracks != null) {
-                for (int ti = 0; ti < tracks.size(); ti++) {
-                    DiskImageTrack t = tracks.get(ti);
+                for (DiskImageTrack t : tracks) {
+                    int trackNum = t.getTrackNumber();
+                    int sideNum = t.getSideNumber();
+//logger.log(Level.TRACE, "trackNum: " + trackNum + ", sideNum: " + sideNum);
 
-                    int trkNum = t.getTrackNumber();
-                    int sidNum = t.getSideNumber();
+                    trackNumberMin = IntHashMapUtil.minValue(trackNumberMin, trackNum);
+                    trackNumberMax = IntHashMapUtil.maxValue(trackNumberMax, trackNum);
 
-                    trackNumberMin = IntHashMapUtil.minValue(trackNumberMin, trkNum);
-                    trackNumberMax = IntHashMapUtil.maxValue(trackNumberMax, trkNum);
-
-                    if (trkNum > 0) {
-                        sideNumberMin = IntHashMapUtil.minValue(sideNumberMin, sidNum);
-                        sideNumberMax = IntHashMapUtil.maxValue(sideNumberMax, sidNum);
+                    if (trackNum > 0) {
+                        sideNumberMin = IntHashMapUtil.minValue(sideNumberMin, sideNum);
+                        sideNumberMax = IntHashMapUtil.maxValue(sideNumberMax, sideNum);
                     }
 
                     IntHashMapUtil.increaseValue(sectorSizeMap, t.getMaxSectorSize());
                     IntHashMapUtil.increaseValue(interleaveMap, t.getInterleave());
 
-                    sidNum &= 0x7f;
+                    sideNum &= 0x7f;
 
-                    if (sidNum >= 0 && sidNum < 2) {
-                        IntHashMapUtil.increaseValue(sectorNumbersMap[sidNum], t.getSectorsPerTrack());
+                    if (sideNum >= 0 && sideNum < 2) {
+                        IntHashMapUtil.increaseValue(sectorNumbersMap[sideNum], t.getSectorsPerTrack());
                     }
 
-                    if (trkNum > 0 && sidNum < 2) {
-                        int secNumMax = t.getMaxSectorNumber();
-                        int secNumMin = t.getMinSectorNumber();
-                        if (sidNum == 0) {
-                            sectorNumberMaxSide0 = IntHashMapUtil.maxValue(sectorNumberMaxSide0, secNumMax);
-                            sectorNumberMinSide0 = IntHashMapUtil.minValue(sectorNumberMinSide0, secNumMin);
+                    if (trackNum > 0 && sideNum < 2) {
+                        int sectorNumMax = t.getMaxSectorNumber();
+                        int sectorNumMin = t.getMinSectorNumber();
+                        if (sideNum == 0) {
+                            sectorNumberMaxSide0 = IntHashMapUtil.maxValue(sectorNumberMaxSide0, sectorNumMax);
+                            sectorNumberMinSide0 = IntHashMapUtil.minValue(sectorNumberMinSide0, sectorNumMin);
                         } else {
-                            sectorNumberMinSide1 = IntHashMapUtil.minValue(sectorNumberMinSide1, secNumMin);
+                            sectorNumberMinSide1 = IntHashMapUtil.minValue(sectorNumberMinSide1, sectorNumMin);
                         }
                     }
 
                     List<DiskImageSector> sectors = t.getSectors();
                     if (sectors != null) {
                         List<DiskParticular> sis = new ArrayList<>();
-                        for (int si = 0; si < sectors.size(); si++) {
-                            DiskImageSector s = sectors.get(si);
+                        for (DiskImageSector s : sectors) {
                             if (s != null && s.isSingleDensity()) {
                                 DiskParticular sd = new DiskParticular(t.getTrackNumber(), t.getSideNumber(), s.getSectorNumber(), 1, s.getSectorsPerTrack(), s.getSectorSize());
                                 sis.add(sd);
                             }
                         }
                         DiskParticular.uniqueSectors(t.getSectorsPerTrack(), sis);
-                        for (int si = 0; si < sis.size(); si++) {
-                            singles.add(sis.get(si));
-                        }
+                        singles.addAll(sis);
                     }
                 }
             }
@@ -1298,6 +1332,15 @@ public abstract class DiskImage {
             interleaveMax = IntHashMapUtil.getMaxKeyOnMaxValue(interleaveMap);
 
             sidesPerDisk = sideNumberMax + 1 - sideNumberMin;
+
+            if (Boolean.parseBoolean(System.getProperty("l3diskex.normalize.enabled", "true"))) {
+                // normalize a parameter
+                if (sidesPerDisk > 2) {
+logger.log(Level.TRACE, "NORMALIZE: sidesPerDisk: 2 <- " + sidesPerDisk);
+                    sidesPerDisk = Math.min(sidesPerDisk, 2);
+                }
+            }
+logger.log(Level.TRACE, "sidesPerDisk: " + sidesPerDisk + ", sideNumberMax: " + sideNumberMax + ", sideNumberMin: " + sideNumberMin);
 
             if (tracks != null) {
                 int trackCount = (tracks.size() + sidesPerDisk - 1) / sidesPerDisk;
@@ -1308,12 +1351,12 @@ public abstract class DiskImage {
 
             boolean diskSingleType = false;
             if (tracks != null) {
-                if (sectorMaxSize == 128 && sideNumberMax == 0 && mMaxTrackNumber > trackNumberMax) {
+                if (sectorMaxSize == 128 && sideNumberMax == 0 && maxTrackNumber > trackNumberMax) {
                     diskSingleType = true;
                     sideNumberMax++;
                     sidesPerDisk++;
-                    for (int ti = 0; ti < tracks.size(); ti++) {
-                        DiskImageTrack t = tracks.get(ti);
+logger.log(Level.TRACE, "sidesPerDisk: " + sidesPerDisk);
+                    for (DiskImageTrack t : tracks) {
                         if ((t.getOffsetPos() & 1) != 0) {
                             t.setSideNumber(1);
                         }
@@ -1327,7 +1370,7 @@ public abstract class DiskImage {
             sectorSize = sectorMaxSize;
             interleave = interleaveMax;
 
-            if (sidesPerDisk > 1 && sectorNumberMinSide1 != 0x7fffffff && sectorNumberMaxSide0 < sectorNumberMinSide1) {
+            if (sidesPerDisk > 1 && sectorNumberMinSide1 != 0x7fff_ffff && sectorNumberMaxSide0 < sectorNumberMinSide1) {
                 numberingSector = 1;
                 int secNumMaj = 0;
                 secNumMaj = IntHashMapUtil.getMaxKeyOnMaxValue(sectorNumbersMap[0]);
@@ -1341,21 +1384,20 @@ public abstract class DiskImage {
                 sectorsPerTrack = (secNumMaj[0] > secNumMaj[1] ? secNumMaj[0] : secNumMaj[1]);
             }
 
-            List<DiskParticular> ptracks = new ArrayList<>();
+            List<DiskParticular> pTracks = new ArrayList<>();
             if (tracks != null) {
-                for (int ti = 0; ti < tracks.size(); ti++) {
-                    DiskImageTrack t = tracks.get(ti);
+                for (DiskImageTrack t : tracks) {
                     if (t == null) continue;
                     List<DiskImageSector> ss = t.getSectors();
                     if (ss == null) continue;
                     if (ss.size() != sectorsPerTrack) {
-                        ptracks.add(new DiskParticular(t.getTrackNumber(), t.getSideNumber(), -1, 1, ss.size(), t.getMaxSectorSize()));
+                        pTracks.add(new DiskParticular(t.getTrackNumber(), t.getSideNumber(), -1, 1, ss.size(), t.getMaxSectorSize()));
                     }
                 }
-                DiskParticular.uniqueTracks(tracksPerSide, sidesPerDisk, false, ptracks);
+                DiskParticular.uniqueTracks(tracksPerSide, sidesPerDisk, false, pTracks);
             }
 
-            DiskParam diskParam = gDiskTemplates.find(sidesPerDisk, tracksPerSide, sectorsPerTrack, sectorSize, interleave, trackNumberMin, sideNumberMin, sectorNumberMinSide0, numberingSector, singles, ptracks);
+            DiskParam diskParam = diskTemplates.find(sidesPerDisk, tracksPerSide, sectorsPerTrack, sectorSize, interleave, trackNumberMin, sideNumberMin, sectorNumberMinSide0, numberingSector, singles, pTracks);
             if (diskParam != null) {
                 setDiskTypeName(diskParam.getDiskTypeName());
                 setReversible(diskParam.isReversible());
@@ -1374,45 +1416,48 @@ public abstract class DiskImage {
             allocDiskBasics();
             setOriginalParam(this);
 
+logger.log(Level.TRACE, "diskParam: " + diskParam);
             return diskParam;
         }
 
-        /// ディスクの内容を初期化する(0パディング)
-        ///
-        /// @param selectedSide >=0なら指定サイドのみ初期化
+        /**
+         * ディスクの内容を初期化する(0パディング)
+         *
+         * @param selectedSide >=0なら指定サイドのみ初期化
+         */
         public boolean initialize(int selectedSide) {
             if (tracks == null) {
                 return false;
             }
 
             boolean rc = true;
-            for (int trackPos = 0; trackPos < tracks.size(); trackPos++) {
-                DiskImageTrack track = tracks.get(trackPos);
+            for (DiskImageTrack track : tracks) {
                 if (selectedSide >= 0) {
                     if (selectedSide != track.getSideNumber()) {
                         continue;
                     }
                 }
 
-                List<DiskImageSector> secs = track.getSectors();
-                if (secs == null) {
+                List<DiskImageSector> sectors = track.getSectors();
+                if (sectors == null) {
                     continue;
                 }
 
-                for (int secPos = 0; secPos < secs.size(); secPos++) {
-                    DiskImageSector sec = secs.get(secPos);
-                    if (sec != null) {
-                        sec.fill((byte) 0, -1, 0);
+                for (DiskImageSector sector : sectors) {
+                    if (sector != null) {
+                        sector.fill((byte) 0, -1, 0);
                     }
                 }
             }
             return rc;
         }
 
-        /// ディスクのトラックを作り直す
-        ///
-        /// @param param        パラメータ
-        /// @param selectedSide >=0なら指定サイドのみ初期化
+        /**
+         * ディスクのトラックを作り直す
+         *
+         * @param param        パラメータ
+         * @param selectedSide >= 0 なら指定サイドのみ初期化
+         */
         public boolean rebuild(DiskParam param, int selectedSide) {
             if (selectedSide >= 0) {
                 setDiskParam(param.getSidesPerDisk(), param.getTracksPerSide(), param.getSectorsPerTrack(), param.getSectorSize(), param.getParamDensity(), param.getInterleave(), param.getSingles(), param.getParticularTracks());
@@ -1424,8 +1469,8 @@ public abstract class DiskImage {
             String diskname = "";
             DiskImageCreator cr = new DiskImageCreator(diskname, param, false, null, result);
             boolean rc = true;
-            int trk = param.getTrackNumberBaseOnDisk();
-            int trks = param.getTracksPerSide() + trk;
+            int trackNum = param.getTrackNumberBaseOnDisk();
+            int numOfTracks = param.getTracksPerSide() + trackNum;
             int sid = 0;
             int sides = param.getSidesPerDisk();
             for (int pos = 0; pos < getCreatableTracks(); pos++) {
@@ -1447,16 +1492,16 @@ public abstract class DiskImage {
                         offset = getOffsetStart();
                     }
                 }
-                int trackSize = cr.createTrack(trk, sid, pos, offset, this);
+                int trackSize = cr.createTrack(trackNum, sid, pos, offset, this);
                 setOffset(pos, offset);
                 setSize(offset + trackSize);
 
                 sid++;
                 if (sid >= sides || selectedSide >= 0) {
-                    trk++;
+                    trackNum++;
                     sid = 0;
                 }
-                if (trk >= trks) {
+                if (trackNum >= numOfTracks) {
                     setMaxTrackNumber(pos);
                     break;
                 }
@@ -1507,19 +1552,19 @@ public abstract class DiskImage {
         }
 
         public int getOffsetStart() {
-            return mOffsetStart;
+            return offsetStart;
         }
 
         public void setOffsetStart(int val) {
-            mOffsetStart = val;
+            offsetStart = val;
         }
 
         public int getMaxTrackNumber() {
-            return mMaxTrackNumber;
+            return maxTrackNumber;
         }
 
         public void setMaxTrackNumber(int pos) {
-            mMaxTrackNumber = pos;
+            maxTrackNumber = pos;
         }
 
         public int getCreatableTracks() {
@@ -1549,8 +1594,7 @@ public abstract class DiskImage {
         /** 変更済みをクリア */
         public void clearModify() {
             if (tracks != null) {
-                for (int trackNum = 0; trackNum < tracks.size(); trackNum++) {
-                    DiskImageTrack track = tracks.get(trackNum);
+                for (DiskImageTrack track : tracks) {
                     if (track == null) continue;
                     track.clearModify();
                 }
@@ -1562,8 +1606,7 @@ public abstract class DiskImage {
             boolean found = false;
             List<DiskImageTrack> tracks = getTracks();
             if (tracks != null) {
-                for (int num = 0; num < tracks.size(); num++) {
-                    DiskImageTrack trk = tracks.get(num);
+                for (DiskImageTrack trk : tracks) {
                     if (trk == null) continue;
                     if (sideNumber >= 0) {
                         if (sideNumber != trk.getSideNumber()) continue;
@@ -1584,21 +1627,21 @@ public abstract class DiskImage {
         }
 
         public void setParamChanged(boolean val) {
-            mParamChanged = val;
+            paramChanged = val;
         }
 
         public boolean getParamChanged() {
-            return mParamChanged;
+            return paramChanged;
         }
 
-        /// DISK BASIC領域を確保
+        /// DISK BASIC領域を確保 */
         public void allocDiskBasics() {
             DiskBasic nullDiskBasic = new DiskBasic();
             basics.add(nullDiskBasic);
             if (reversible) basics.add(nullDiskBasic);
         }
 
-        /// DISK BASICを返す
+        /// DISK BASICを返す */
         public DiskBasic getDiskBasic(int idx) {
             if (idx < 0) idx = 0;
             return basics.get(idx);
@@ -1608,11 +1651,11 @@ public abstract class DiskImage {
             return basics;
         }
 
-        /// DISK BASICをクリア
+        /// DISK BASICをクリア */
         public void clearDiskBasics() {
             if (basics == null) return;
-            for (int idx = 0; idx < basics.size(); idx++) {
-                DiskBasic basic = getDiskBasic(idx);
+            for (int index = 0; index < basics.size(); index++) {
+                DiskBasic basic = getDiskBasic(index);
                 if (basic == null) continue;
                 basic.clearParseAndAssign(false);
             }
@@ -1621,8 +1664,8 @@ public abstract class DiskImage {
         /** キャラクターコードマップ番号設定 */
         public void setCharCode(String name) {
             if (basics == null) return;
-            for (int idx = 0; idx < basics.size(); idx++) {
-                DiskBasic basic = getDiskBasic(idx);
+            for (int index = 0; index < basics.size(); index++) {
+                DiskBasic basic = getDiskBasic(index);
                 if (basic == null) continue;
                 basic.setCharCode(name);
             }
@@ -1630,7 +1673,7 @@ public abstract class DiskImage {
 
         /** ディスク番号を比較 */
         public static int compare(DiskImageDisk item1, DiskImageDisk item2) {
-            return item1.mNum - item2.mNum;
+            return item1.num - item2.num;
         }
 
         protected int sidesPerDisk;
@@ -1646,49 +1689,55 @@ public abstract class DiskImage {
     public static abstract class DiskImageFile {
 
         /** イメージ */
-        protected DiskImage pImage;
+        protected DiskImage image;
         /** ディスク */
         protected List<DiskImageDisk> disks;
         /** 変更フラグ 追加したかどうか */
         protected List<Short> mods;
 
         /** BASIC種類ヒント */
-        protected String mBasicTypeHint = "";
+        protected String basicTypeHint = "";
 
         public DiskImageFile(DiskImage image) {
-            pImage = image;
+            this.image = image;
             disks = null;
             mods = null;
         }
 
-        /// インスタンス作成
-        ///
-        /// @param nNum ディスク番号
-        public abstract DiskImageDisk newImageDisk(int nNum);
+        /**
+         * インスタンス作成
+         *
+         * @param num ディスク番号
+         */
+        public abstract DiskImageDisk newImageDisk(int num);
 
-        /// インスタンス作成
-        ///
-        /// @param nNum          ディスク番号
-        /// @param nParam        ディスクパラメータ
-        /// @param nDiskname     ディスク名
-        /// @param nWriteProtect 書き込み禁止か
-        public abstract DiskImageDisk newImageDisk(int nNum, DiskParam nParam, String nDiskname, boolean nWriteProtect);
+        /**
+         * インスタンス作成
+         *
+         * @param num          ディスク番号
+         * @param param        ディスクパラメータ
+         * @param diskName     ディスク名
+         * @param writeProtect 書き込み禁止か
+         */
+        public abstract DiskImageDisk newImageDisk(int num, DiskParam param, String diskName, boolean writeProtect);
 
-        /// インスタンス作成
-        ///
-        /// @param nNum    ディスク番号
-        /// @param nHeader ディスクヘッダ
-        public abstract DiskImageDisk newImageDisk(int nNum, DiskImageDiskHeader nHeader);
+        /**
+         * インスタンス作成
+         *
+         * @param num    ディスク番号
+         * @param header ディスクヘッダ
+         */
+        public abstract DiskImageDisk newImageDisk(int num, DiskImageDiskHeader header);
 
         // 変更フラグ 追加したかどうか
         public static final short MODIFY_NONE = 0;
         public static final short MODIFY_ADD = 1;
 
         /** ディスクを追加 */
-        public int add(DiskImageDisk newdsk, short modFlags) {
+        public int add(DiskImageDisk newDisk, short modFlags) {
             if (disks == null) disks = new ArrayList<>();
             if (mods == null) mods = new ArrayList<>();
-            disks.add(newdsk);
+            disks.add(newDisk);
             mods.add(modFlags);
             return disks.size();
         }
@@ -1711,11 +1760,11 @@ public abstract class DiskImage {
         }
 
         /** ディスクを削除 */
-        public boolean delete(int idx) {
-            DiskImageDisk disk = getDisk(idx);
+        public boolean delete(int index) {
+            DiskImageDisk disk = getDisk(index);
             if (disk == null) return false;
-            disks.remove(idx);
-            mods.remove(idx);
+            disks.remove(index);
+            mods.remove(index);
             return true;
         }
 
@@ -1725,10 +1774,10 @@ public abstract class DiskImage {
         }
 
         /** ディスクを返す */
-        public DiskImageDisk getDisk(int idx) {
+        public DiskImageDisk getDisk(int index) {
             if (disks == null) return null;
-            if (idx >= disks.size()) return null;
-            return disks.get(idx);
+            if (index >= disks.size()) return null;
+            return disks.get(index);
         }
 
         public boolean isModified() {
@@ -1762,171 +1811,282 @@ public abstract class DiskImage {
         }
 
         public String getBasicTypeHint() {
-            return mBasicTypeHint;
+            return basicTypeHint;
         }
 
         public void setBasicTypeHint(String val) {
-            mBasicTypeHint = val;
+            basicTypeHint = val;
         }
 
         /** イメージを返す */
         public DiskImage getImage() {
-            return pImage;
+            return image;
         }
     }
 
-    protected String mFilename;
-    protected DiskImageFile pFile;
-    protected DiskResult mResult = new DiskResult();
-    protected String mFormatType;
+    protected Path filename;
+    protected DiskImageFile file;
+    protected DiskResult result = new DiskResult();
+    protected String formatType;
 
+    /** ファイル構造体を作成 */
     protected void newFile(String filepath) {
-        if (pFile != null) {
-            pFile = null;
+        if (file != null) {
+            file = null;
         }
-        pFile = newImageFile();
-        mFilename = filepath;
+        file = newImageFile();
+        filename = Path.of(filepath);
     }
 
+    /** ファイル構造体をクリア */
     protected void clearFile() {
-        pFile = null;
+        file = null;
     }
 
     public DiskImage() {
-        pFile = null;
+        file = null;
     }
 
+    /** インスタンス作成 */
     public abstract DiskImageFile newImageFile();
 
-    public int create(String diskname, DiskParam param, boolean writeProtect, String basicHint) {
-        mResult.clear();
+    /**
+     * 新規作成
+     *
+     * @param diskName     ディスク名
+     * @param param        ディスクパラメータ
+     * @param writeProtect 書き込み禁止
+     * @param basicHint    DISK BASIC種類のヒント
+     * @return 0 正常
+     * @return -1 エラーあり
+     * @return 1 警告あり
+     */
+    public int create(String diskName, DiskParam param, boolean writeProtect, String basicHint) {
+        result.clear();
+
         newFile("");
-        pFile.setBasicTypeHint(basicHint);
-        DiskImageCreator cr = new DiskImageCreator(diskname, param, writeProtect, pFile, mResult);
+        file.setBasicTypeHint(basicHint);
+        DiskImageCreator cr = new DiskImageCreator(diskName, param, writeProtect, file, result);
         int validDisk = cr.create();
+
+        // エラーあり
         if (validDisk < 0) {
             clearFile();
         }
         return validDisk;
     }
 
-    public int add(String diskname, DiskParam param, boolean writeProtect, String basicHint) {
-        if (pFile == null) return 0;
-        mResult.clear();
-        pFile.setBasicTypeHint(basicHint);
-        DiskImageCreator cr = new DiskImageCreator(diskname, param, writeProtect, pFile, mResult);
+    /**
+     * 追加で新規作成
+     *
+     * @param diskName     ディスク名
+     * @param param        ディスクパラメータ
+     * @param writeProtect 書き込み禁止
+     * @param basicHint    DISK BASIC種類のヒント
+     * @return 0: 正常, -1: エラーあり, 1: 警告あり
+     */
+    public int add(String diskName, DiskParam param, boolean writeProtect, String basicHint) {
+        if (file == null) return 0;
+
+        result.clear();
+
+        file.setBasicTypeHint(basicHint);
+        DiskImageCreator cr = new DiskImageCreator(diskName, param, writeProtect, file, result);
         int validDisk = cr.add();
+
         return validDisk;
     }
 
-    public int add(String filepath, String fileFormat, DiskParam paramHint) {
-        if (pFile == null) return 0;
-        mResult.clear();
-        try {
-            FileInputStream fstream = new FileInputStream(filepath);
-            DiskParser ps = new DiskParser(filepath, fstream, pFile, mResult);
-            int validDisk = ps.parseAdd(fileFormat, paramHint);
-            return validDisk;
-        } catch (IOException e) {
-            mResult.setError(DiskResult.ERR_CANNOT_OPEN);
-            return -1;
-        }
+    /**
+     * ファイルを追加
+     *
+     * @param filepath   ファイルパス
+     * @param fileFormat ファイルの形式名 ("d88", "plain"など)
+     * @param paramHint  ディスクパラメータヒント ("plain" 時のみ)
+     * @return 0: 正常, -1: エラーあり, 1: 警告あり
+     */
+    public int add(String filepath, String fileFormat, DiskParam paramHint) throws IOException {
+        // ファイル開いていない
+        if (file == null) return 0;
+
+        result.clear();
+
+        SeekableDataInputStream fstream = new SeekableDataInputStream(Files.newByteChannel(Path.of(filepath)));
+
+        DiskParser ps = new DiskParser(filepath, fstream, file, result);
+        int validDisk = ps.parseAdd(fileFormat, paramHint);
+
+        return validDisk;
     }
 
-    public int open(String filepath, String fileFormat, DiskParam paramHint) {
-        mResult.clear();
-        try {
-            Path p = Path.of(filepath);
-            SeekableDataInputStream fstream = new SeekableDataInputStream(Files.newByteChannel(p));
-            newFile(filepath);
-            DiskParser ps = new DiskParser(filepath, fstream, pFile, mResult);
-            int validDisk = ps.parse(fileFormat, paramHint);
-            if (validDisk < 0) {
-                clearFile();
-            } else {
-                setFormatType(fileFormat);
-            }
-            return validDisk;
-        } catch (IOException e) {
-            logger.log(Level.ERROR, e.getMessage(), e);
-            mResult.setError(DiskResult.ERR_CANNOT_OPEN);
-            return -1;
+    /**
+     * ファイルを開く
+     *
+     * @param filepath   ファイルパス
+     * @param fileFormat ファイルの形式名 ("d88", "plain"など)
+     * @param paramHint  ディスクパラメータヒント ("plain" 時のみ)
+     * @return 0: 正常, -1: エラーあり, 1: 警告あり
+     */
+    public int open(String filepath, String fileFormat, DiskParam paramHint) throws IOException {
+        result.clear();
+
+        // ファイルを開く
+        SeekableDataInputStream fStream = new SeekableDataInputStream(Files.newByteChannel(Path.of(filepath)));
+
+        newFile(filepath);
+        DiskParser parser = new DiskParser(filepath, fStream, file, result);
+        int validDisk = parser.parse(fileFormat, paramHint);
+
+        if (validDisk < 0) {
+            // エラーあり
+            clearFile();
+        } else {
+            setFormatType(fileFormat);
         }
+
+        return validDisk;
     }
 
-    public int check(String filepath, String fileFormat, List<DiskParam> params, DiskParam manualParam) {
-        mResult.clear();
-        try {
-            SeekableDataInputStream fstream = new SeekableDataInputStream(Files.newByteChannel(Path.of(filepath)));
-            DiskParser ps = new DiskParser(filepath, fstream, pFile, mResult);
-            return ps.check(fileFormat, params, manualParam);
-        } catch (IOException e) {
-            mResult.setError(DiskResult.ERR_CANNOT_OPEN);
-            return -1;
-        }
+    /**
+     * ファイルを開く前のチェック
+     *
+     * @param filepath    ファイルパス
+     * @param fileFormat  [in,out] ファイルの形式名 ("d88", "plain", "" など)
+     * @param params      [out]  ディスクパラメータの候補
+     * @param manualParam [out]  候補がないときのパラメータヒント
+     * @return 0: 問題なし, -1: エラーあり, 1: 警告あり
+     */
+    public int check(String filepath, String[] fileFormat, List<DiskParam> params, DiskParam manualParam) throws IOException {
+        result.clear();
+
+        // ファイルを開く
+        SeekableDataInputStream fStream = new SeekableDataInputStream(Files.newByteChannel(Path.of(filepath)));
+
+        DiskParser parser = new DiskParser(filepath, fStream, file, result);
+        return parser.check(fileFormat, params, manualParam);
     }
 
+    /** 閉じる */
     public void close() {
         clearFile();
-        mFilename = "";
+        filename = null;
     }
 
+    /**
+     * ストリームの内容をファイルに保存できるか
+     *
+     * @param fileFormat 保存ファイルのフォーマット
+     */
     public int canSave(String fileFormat) {
-        DiskWriter dw = new DiskWriter(this, mResult);
+        DiskWriter dw = new DiskWriter(this, result);
         return dw.canSave(fileFormat);
     }
 
+    /**
+     * ストリームの内容をファイルに保存
+     *
+     * @param filepath   保存先ファイルパス
+     * @param fileFormat 保存ファイルのフォーマット
+     * @param options    保存時のオプション
+     * @return 0: 正常, -1: エラー
+     */
     public int save(String filepath, String fileFormat, DiskWriteOptions options) throws IOException {
-        DiskWriter dw = new DiskWriter(this, filepath, options, mResult);
-        return dw.save(fileFormat);
+        DiskWriter writer = new DiskWriter(this, filepath, options, result);
+        return writer.save(fileFormat);
     }
 
+    /**
+     * ストリームの内容をファイルに保存
+     *
+     * @param diskNumber ディスク番号
+     * @param sideNumber サイド番号
+     * @param filepath   保存先ファイルパス
+     * @param fileFormat 保存ファイルのフォーマット
+     * @param options    保存時のオプション
+     * @return 0: 正常, -1: エラー
+     */
     public int saveDisk(int diskNumber, int sideNumber, String filepath, String fileFormat, DiskWriteOptions options) throws IOException {
-        DiskWriter dw = new DiskWriter(this, filepath, options, mResult);
-        return dw.saveDisk(diskNumber, sideNumber, fileFormat);
+        DiskWriter writer = new DiskWriter(this, filepath, options, result);
+        return writer.saveDisk(diskNumber, sideNumber, fileFormat);
     }
 
+    /**
+     * ディスクを削除
+     *
+     * @param diskNumber ディスク番号
+     * @return true
+     */
     public boolean delete(int diskNumber) {
-        if (pFile == null) return false;
-        pFile.delete(diskNumber);
+        if (file == null) return false;
+        file.delete(diskNumber);
         return true;
     }
 
-    public int parseForReplace(int diskNumber, int sideNumber, String filepath, String fileFormat, DiskParam paramHint, DiskImageFile srcFile, DiskImageDisk[] tagDisk) {
-        if (pFile == null) return 0;
-        mResult.clear();
-        try {
-            FileInputStream fstream = new FileInputStream(filepath);
-            DiskParser ps = new DiskParser(filepath, fstream, srcFile, mResult);
-            int validDisk = ps.parse(fileFormat, paramHint);
-            if (validDisk < 0) {
-                return validDisk;
-            }
-            tagDisk[0] = pFile.getDisk(diskNumber);
-            if (tagDisk[0] == null) {
-                mResult.setError(DiskResult.ERR_NO_DATA);
-                return mResult.getValid();
-            }
-            return 0;
-        } catch (IOException e) {
-            mResult.setError(DiskResult.ERR_CANNOT_OPEN);
-            return -1;
+    /**
+     * 置換元のディスクを解析
+     *
+     * @param diskNumber ディスク番号
+     * @param sideNumber サイド番号
+     * @param filepath   ファイルパス
+     * @param fileFormat ファイルの形式名 ("d88", "plain" など)
+     * @param paramHint  ディスクパラメータヒント ("plain" 時のみ)
+     * @param srcFile    [out] ソースディスク
+     * @param targetDisk [out] ターゲットディスク
+     * @return 0: 正常, -1: エラーあり, 1: 警告あり
+     */
+    public int parseForReplace(int diskNumber, int sideNumber, String filepath, String fileFormat, DiskParam paramHint, DiskImageFile srcFile, DiskImageDisk[] targetDisk) throws IOException {
+        if (file == null) return 0;
+
+        result.clear();
+
+        SeekableDataInputStream fstream = new SeekableDataInputStream(Files.newByteChannel(Path.of(filepath)));
+
+        DiskParser parser = new DiskParser(filepath, fstream, srcFile, result);
+        int validDisk = parser.parse(fileFormat, paramHint);
+
+        // エラーあり
+        if (validDisk < 0) {
+            return validDisk;
         }
+
+        // ディスクを選択
+        targetDisk[0] = file.getDisk(diskNumber);
+        if (targetDisk[0] == null) {
+            result.setError(DiskResult.ERR_NO_DATA);
+            return result.getValid();
+        }
+
+        return 0;
     }
 
-    public int replaceDisk(int diskNumber, int sideNumber, DiskImageDisk srcDisk, int srcSideNumber, DiskImageDisk tagDisk) {
-        if (pFile == null) return 0;
-        mResult.clear();
+    /**
+     * ファイルでディスクを置換
+     *
+     * @param diskNumber    ディスク番号
+     * @param sideNumber    サイド番号
+     * @param srcDisk       ソースディスク
+     * @param srcSideNumber ソース側のサイド番号
+     * @param tagDisk       ターゲットディスク
+     * @return 0: 正常, -1: エラーあり, 1: 警告あり
+     */
+    public int replaceDisk(int diskNumber, int sideNumber, DiskImage.DiskImageDisk srcDisk, int srcSideNumber, DiskImageDisk tagDisk) {
+        if (file == null) return 0;
+
+        result.clear();
+
         int validDisk = tagDisk.replace(sideNumber, srcDisk, srcSideNumber);
         if (validDisk != 0) {
-            mResult.setError(DiskResult.ERR_REPLACE);
+            result.setError(DiskResult.ERR_REPLACE);
         }
+
         return validDisk;
     }
 
+    /** ディスク名を設定 */
     public boolean setDiskName(int diskNumber, String newname) {
         DiskImageDisk disk = getDisk(diskNumber);
         if (disk == null) return false;
+
         if (!disk.getName(false).equals(newname)) {
             disk.setName(newname);
             disk.setModify();
@@ -1935,102 +2095,115 @@ public abstract class DiskImage {
         return false;
     }
 
+    /** ディスク名を返す */
     public String getDiskName(int diskNumber, boolean real) {
         DiskImageDisk disk = getDisk(diskNumber);
         if (disk == null) return "";
         return disk.getName(real);
     }
 
+    /** ディスクを変更したか */
     public boolean isModified() {
         boolean modified = false;
-        if (pFile != null) {
-            modified = pFile.isModified();
+        if (file != null) {
+            modified = file.isModified();
         }
         return modified;
     }
 
+    /** ディスクファイルを返す */
     public DiskImageFile getFile() {
-        return pFile;
+        return file;
     }
 
+    /** ディスク枚数 */
     public int countDisks() {
-        if (pFile == null) return 0;
-        return pFile.count();
+        if (file == null) return 0;
+        return file.count();
     }
 
+    /** ディスク一覧を返す */
     public List<DiskImageDisk> getDisks() {
-        if (pFile == null) return null;
-        return pFile.getDisks();
+        if (file == null) return null;
+        return file.getDisks();
     }
 
+    /** 指定した位置のディスクを返す */
     public DiskImageDisk getDisk(int index) {
-        if (pFile == null) return null;
-        return pFile.getDisk(index);
+        if (file == null) return null;
+        return file.getDisk(index);
     }
 
+    /** 指定した位置のディスクのタイプ */
     public int getDiskTypeNumber(int index) {
-        if (pFile == null) return -1;
-        DiskImageDisk disk = pFile.getDisk(index);
+        if (file == null) return -1;
+        DiskImageDisk disk = file.getDisk(index);
         if (disk == null) return -1;
-        return gDiskTemplates.indexOf(disk.getDiskTypeName());
+        return diskTemplates.indexOf(disk.getDiskTypeName());
     }
 
+    /** 作成可能なトラック数を返す */
     public int getCreatableTracks() {
         return 0;
     }
 
+    /** ファイル名を返す */
     public String getFileName() {
-        return new File(mFilename).getName();
+        return filename.getFileName().toString();
     }
 
+    /** ファイル拡張子を返す */
     public String getFileExt() {
-        String name = new File(mFilename).getName();
-        int lastDot = name.lastIndexOf('.');
-        return lastDot > 0 ? name.substring(lastDot + 1) : "";
+        return Utils.getExt(getFileName());
     }
 
+    /** ファイル名ベースを返す */
     public String getFileNameBase() {
-        String name = new File(mFilename).getName();
+        String name = getFileName();
         int lastDot = name.lastIndexOf('.');
         return lastDot > 0 ? name.substring(0, lastDot) : name;
     }
 
+    /** ファイルパスを返す */
     public String getFilePath() {
-        return mFilename;
+        return filename.toAbsolutePath().toString();
     }
 
+    /** パスを返す */
     public String getPath() {
-        return new File(mFilename).getParent();
+        return filename.getParent().toString();
     }
 
+    /** ファイル名を設定 */
     public void setFileName(String path) {
-        mFilename = path;
+        filename = Path.of(path);
     }
 
+    /** ファイル拡張子を設定 */
     public void setFileExt(String ext) {
-        String base = getFileNameBase();
-        String dir = getPath();
-        mFilename = (dir != null ? dir + File.separator : "") + base + "." + ext;
+        filename = filename.getParent().resolve(getFileNameBase() + "." + ext);
     }
 
+    /** ファイルのフォーマット種類を返す */
     public String getFormatType() {
-        return mFormatType;
+        return formatType;
     }
 
+    /** ファイルのフォーマット種類を設定 */
     public void setFormatType(String formatType) {
-        mFormatType = formatType;
+        this.formatType = formatType;
     }
 
+    /** DISK BASICが一致するか */
     public boolean matchDiskBasic(DiskBasic target) {
         boolean match = false;
         List<DiskImageDisk> disks = getDisks();
         if (disks == null) return false;
-        for (int i = 0; i < disks.size(); i++) {
-            DiskImageDisk disk = disks.get(i);
+        for (DiskImageDisk disk : disks) {
             List<DiskBasic> basics = disk.getDiskBasics();
             if (basics == null) return false;
-            for (int j = 0; j < basics.size(); j++) {
-                if (target == basics.get(j)) {
+            for (DiskBasic basic : basics) {
+                if (target == basic) {
                     match = true;
                     break;
                 }
@@ -2039,51 +2212,61 @@ public abstract class DiskImage {
         return match;
     }
 
+    /** DISK BASICの解析状態をクリア */
     public void clearDiskBasicParseAndAssign(int diskNumber, int sideNumber) {
         DiskImageDisk disk = getDisk(diskNumber);
         if (disk == null) return;
-        if (pFile != null) {
-            pFile.setBasicTypeHint("");
+
+        if (file != null) {
+            file.setBasicTypeHint("");
         }
+
         List<DiskBasic> basics = disk.getDiskBasics();
         if (basics == null) return;
         clearParseAndAssign(basics, sideNumber);
     }
 
+    /** キャラクターコードマップ番号設定 */
     public void setCharCode(String name) {
         List<DiskImageDisk> disks = getDisks();
         if (disks == null) return;
-        for (int i = 0; i < disks.size(); i++) {
-            DiskImageDisk disk = disks.get(i);
+        for (DiskImageDisk disk : disks) {
             disk.setCharCode(name);
         }
     }
 
+    /** 密度文字列を返す */
     public int getDensityNames(List<String> arr) {
         return 0;
     }
 
+    /** 密度リストを検索 */
     public int findDensity(int val) {
         return -1;
     }
 
+    /** 密度リストを検索 */
     public int findDensityByIndex(int idx) {
         return -1;
     }
 
+    /** 密度リストの指定位置の値を返す */
     public byte getDensity(int idx) {
         return 0;
     }
 
+    /** エラーメッセージ */
     public List<String> getErrorMessage(int maxrow) {
-        return mResult.getMessages(maxrow);
+        return result.getMessages(maxrow);
     }
 
+    /** エラーメッセージを表示 */
     public void showErrorMessage() {
-        ResultInfo.showMessage(mResult.getValid(), mResult.getMessages(-1));
+        ResultInfo.showMessage(result.getValid(), result.getMessages(-1));
     }
 
+    /** エラー警告メッセージを表示 */
     public int showErrWarnMessage() {
-        return ResultInfo.showErrWarnMessage(mResult.getValid(), mResult.getMessages(-1));
+        return ResultInfo.showErrWarnMessage(result.getValid(), result.getMessages(-1));
     }
 }

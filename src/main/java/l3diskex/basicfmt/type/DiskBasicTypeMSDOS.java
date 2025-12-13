@@ -25,10 +25,10 @@ import l3diskex.diskimg.DiskImage.DiskImageSector;
 import vavi.util.serdes.Element;
 import vavi.util.serdes.Serdes;
 
-import static l3diskex.basicfmt.BasicCommon.DiskBasicFormatType.FORMAT_TYPE_UNKNOWN;
+import static l3diskex.basicfmt.BasicCommon.FORMAT_TYPE_UNKNOWN;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_DIRECTORY_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_VOLUME_MASK;
-import static l3diskex.basicfmt.DiskBasicTemplates.gDiskBasicTemplates;
+import static l3diskex.basicfmt.DiskBasicTemplates.diskBasicTemplates;
 
 
 /**
@@ -36,46 +36,58 @@ import static l3diskex.basicfmt.DiskBasicTemplates.gDiskBasicTemplates;
  * <p>
  * DiskBasicParam 固有のパラメータ
  *
- * @li MediaID  メディアID
- * @li IgnoreParameter  セクタ1のパラメータを無視するか
+ * <li>MediaID  メディアID</li>
+ * <li>IgnoreParameter  セクタ1のパラメータを無視するか</li>
  */
 public class DiskBasicTypeMSDOS extends DiskBasicTypeFAT12<DirectoryMsDos> {
 
     /** FAT BPB */
     @Serdes(bigEndian = false)
-    public static final class fat_bpb_t {
+    public static final class FatBpb {
 
         @Element(sequence = 1)
-        public byte[] bs_JmpBoot = new byte[3];
+        public byte[] jumpBoot = new byte[3]; // bs_JmpBoot
         @Element(sequence = 2)
-        public byte[] bs_OEMName = new byte[8];
+        public byte[] oemName = new byte[8]; // bs_OEMName
 
         @Element(sequence = 3, value = "unsigned short")
-        public int bpb_BytsPerSec;
+        public int bytesPerSec; // bpb_BytsPerSec
         @Element(sequence = 4, value = "unsigned byte")
-        public int bpb_SecPerClus;
+        public int sectorPerCluster; // bpb_SecPerClus
         @Element(sequence = 5, value = "unsigned short")
-        public int bpb_RsvdSecCnt;
+        public int reservedSectorCount; // bpb_RsvdSecCnt
         @Element(sequence = 6, value = "unsigned byte")
-        public int bpb_NumFATs;
+        public int numberOfFats; // bpb_NumFATs
         @Element(sequence = 7, value = "unsigned short")
-        public int bpb_RootEntCnt;
+        public int rootEntryCount; // bpb_RootEntCnt
         @Element(sequence = 8, value = "unsigned short")
-        public int bpb_TotSec16;
+        public int totalSectors16; // bpb_TotSec16
         @Element(sequence = 9, value = "unsigned byte")
-        public int bpb_Media;
+        public int media; // bpb_Media
         @Element(sequence = 10, value = "unsigned short")
-        public int bpb_FATSz16;
+        public int fatSize16; // bpb_FATSz16
         @Element(sequence = 11, value = "unsigned short")
-        public int bpb_SecPerTrk;
+        public int sectorsPerTrack; // bpb_SecPerTrk
         @Element(sequence = 12, value = "unsigned short")
-        public int bpb_NumHeads;
+        public int numberOfHeads; // bpb_NumHeads
         @Element(sequence = 13)
-        public int bpb_HiddSec;
+        public int hiddenSectors; // bpb_HiddSec
     }
 
-    public DiskBasicTypeMSDOS(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryMsDos> dir) {
-        super(basic, fat, dir);
+    public static final int FORMAT_TYPE_MSDOS = 3;
+    public static final int FORMAT_TYPE_CDOS2 = 32;
+    public static final int FORMAT_TYPE_LOSA = 31;
+
+    @Override
+    public boolean isSupported(int typeNumber) {
+        return typeNumber == FORMAT_TYPE_MSDOS ||
+                typeNumber == FORMAT_TYPE_LOSA ||
+                typeNumber == FORMAT_TYPE_CDOS2;
+    }
+
+    @Override
+    public void init(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryMsDos> dir) {
+        super.init(basic, fat, dir);
     }
 
     /**
@@ -84,50 +96,50 @@ public class DiskBasicTypeMSDOS extends DiskBasicTypeFAT12<DirectoryMsDos> {
     @Override
     public double checkFat(boolean isFormatting) throws IOException {
         // 重複チェック
-        double valid_ratio = super.checkFat(isFormatting);
+        double validRatio = super.checkFat(isFormatting);
 
-        if (valid_ratio < 0.0) return valid_ratio;
+        if (validRatio < 0.0) return validRatio;
 
         // FATエリアの先頭がメディアIDであること
         int match = 0;
         DiskBasicFatArea bufs = fat.getDiskBasicFatArea();
-        match = bufs.matchData8(0, basic.diskBasicParam.getMediaId());
-        if (match != (basic.diskBasicParam.getValidNumberOfFats() > 0 ? basic.diskBasicParam.getValidNumberOfFats() : basic.diskBasicParam.getNumberOfFats())) {
-            valid_ratio -= 0.5;
+        match = bufs.matchData8(0, basic.getMediaId());
+        if (match != (basic.getValidNumberOfFats() > 0 ? basic.getValidNumberOfFats() : basic.getNumberOfFats())) {
+            validRatio -= 0.5;
         }
 
         // 最終グループ番号を計算
-        int max_grp_on_fat = basic.diskBasicParam.getSectorsPerFat() * basic.getSectorSize() * 2 / 3;
-        int max_grp_on_prm = (basic.getSidesPerDiskOnBasic() * basic.getTracksPerSide() * basic.getSectorsPerTrackOnBasic() - basic.diskBasicParam.getDirEndSector()) / basic.getSectorsPerGroup() + 1;
+        int maxGroupOnFat = basic.getSectorsPerFat() * basic.getSectorSize() * 2 / 3;
+        int maxGroupOnParam = (basic.getSidesPerDiskOnBasic() * basic.getTracksPerSide() * basic.getSectorsPerTrackOnBasic() - basic.getDirEndSector()) / basic.getSectorsPerGroup() + 1;
 
-        basic.diskBasicParam.setFatEndGroup(max_grp_on_fat > max_grp_on_prm ? max_grp_on_prm : max_grp_on_fat);
+        basic.setFatEndGroup(maxGroupOnFat > maxGroupOnParam ? maxGroupOnParam : maxGroupOnFat);
 
-        return valid_ratio;
+        return validRatio;
     }
 
     @Override
     public double parseParamOnDisk(boolean isFormatting) throws IOException {
-        double valid_ratio = 1.0;
+        double validRatio = 1.0;
 
-        if (!basic.diskBasicParam.getVariousBoolParam("IgnoreParameter")) {
-            valid_ratio = parseMSDOSParamOnDisk(basic.getDisk(), isFormatting);
+        if (!basic.getVariousBoolParam("IgnoreParameter")) {
+            validRatio = parseMSDOSParamOnDisk(basic.getDisk(), isFormatting);
         } else {
             if (basic.getFatEndGroup() == 0) {
-                int max_grp_on_prm = (basic.getSidesPerDiskOnBasic() * basic.getTracksPerSide() * basic.getSectorsPerTrackOnBasic() - basic.diskBasicParam.getDirEndSector()) / basic.getSectorsPerGroup() + 1;
-                basic.diskBasicParam.setFatEndGroup(max_grp_on_prm);
+                int maxGroupOnParam = (basic.getSidesPerDiskOnBasic() * basic.getTracksPerSide() * basic.getSectorsPerTrackOnBasic() - basic.getDirEndSector()) / basic.getSectorsPerGroup() + 1;
+                basic.setFatEndGroup(maxGroupOnParam);
             }
         }
 
-        byte[] ipl = basic.diskBasicParam.getVariousStringParam("IPLCompareString").getBytes();
+        byte[] ipl = basic.getVariousStringParam("IPLCompareString").getBytes();
         if (ipl.length > 0) {
             DiskImageSector sector = basic.getSector(0, 0, 1);
             if (sector == null) return -1.0;
             if (sector.find(ipl, ipl.length) < 0) {
-                valid_ratio = 0.0;
+                validRatio = 0.0;
             }
         }
 
-        return valid_ratio;
+        return validRatio;
     }
 
     public double parseMSDOSParamOnDisk(DiskImageDisk disk, boolean isFormatting) throws IOException {
@@ -139,33 +151,33 @@ public class DiskBasicTypeMSDOS extends DiskBasicTypeFAT12<DirectoryMsDos> {
         // MS-DOS ディスク上のパラメータを読む
         DiskImageSector sector = basic.getSector(0, 0, 1);
         if (sector == null) return -1.0;
-        byte[] datas = sector.getSectorBuffer();
-        if (datas == null) return -1.0;
-        fat_bpb_t bpb = new fat_bpb_t();
-        Serdes.Util.deserialize(new ByteArrayInputStream(datas), bpb);
+        byte[] data = sector.getSectorBuffer();
+        if (data == null) return -1.0;
+        FatBpb bpb = new FatBpb();
+        Serdes.Util.deserialize(new ByteArrayInputStream(data), bpb);
 
         nums++;
-        if (bpb.bpb_SecPerClus != 0) {
+        if (bpb.sectorPerCluster != 0) {
             // cluster size
             valids++;
         }
         nums++;
-        if (disk.getSectorSize() == bpb.bpb_BytsPerSec) {
+        if (disk.getSectorSize() == bpb.bytesPerSec) {
             // sector size
             valids++;
         }
         nums++;
-        if (disk.getSidesPerDisk() >= bpb.bpb_NumHeads) {
+        if (disk.getSidesPerDisk() >= bpb.numberOfHeads) {
             // side count (disk)
             valids++;
         }
         nums++;
-        if (basic.diskBasicParam.getSidesPerDiskOnBasic() == bpb.bpb_NumHeads) {
+        if (basic.getSidesPerDiskOnBasic() == bpb.numberOfHeads) {
             // side count (BASIC)
             valids++;
         }
         nums++;
-        if (basic.diskBasicParam.getSectorsPerTrackOnBasic() == bpb.bpb_SecPerTrk) {
+        if (basic.getSectorsPerTrackOnBasic() == bpb.sectorsPerTrack) {
             // sector per track (BASIC)
             valids++;
         }
@@ -173,60 +185,60 @@ public class DiskBasicTypeMSDOS extends DiskBasicTypeFAT12<DirectoryMsDos> {
         // FATエリアの先頭メディアIDが一致するか
         DiskBasicFatArea bufs = fat.getDiskBasicFatArea();
         nums++;
-        if (bufs.matchData8(0, 0, basic.diskBasicParam.getMediaId())) {
+        if (bufs.matchData8(0, 0, basic.getMediaId())) {
             valids++;
         }
 
         // ディスク内のパラメータで更新する
         if (nums == valids) {
-            basic.diskBasicParam.setSidesPerDiskOnBasic(bpb.bpb_NumHeads);
-            basic.diskBasicParam.setSectorsPerGroup(bpb.bpb_SecPerClus);
-            basic.diskBasicParam.setReservedSectors(bpb.bpb_RsvdSecCnt);
-            basic.diskBasicParam.setNumberOfFats(bpb.bpb_NumFATs);
-            basic.diskBasicParam.setSectorsPerFat(bpb.bpb_FATSz16);
-            basic.diskBasicParam.setDirEntryCount(bpb.bpb_RootEntCnt);
+            basic.setSidesPerDiskOnBasic(bpb.numberOfHeads);
+            basic.setSectorsPerGroup(bpb.sectorPerCluster);
+            basic.setReservedSectors(bpb.reservedSectorCount);
+            basic.setNumberOfFats(bpb.numberOfFats);
+            basic.setSectorsPerFat(bpb.fatSize16);
+            basic.setDirEntryCount(bpb.rootEntryCount);
 
-            basic.diskBasicParam.setDirStartSector(-1);
-            basic.diskBasicParam.setDirEndSector(-1);
-            basic.diskBasicParam.calcDirStartEndSector(bpb.bpb_BytsPerSec);
+            basic.setDirStartSector(-1);
+            basic.setDirEndSector(-1);
+            basic.calcDirStartEndSector(bpb.bytesPerSec);
 
-            basic.diskBasicParam.setSectorsPerTrackOnBasic(bpb.bpb_SecPerTrk);
+            basic.setSectorsPerTrackOnBasic(bpb.sectorsPerTrack);
 
-            basic.diskBasicParam.setMediaId((byte) bpb.bpb_Media);
+            basic.setMediaId((byte) bpb.media);
 
             // トラック数
-            int tracks = bpb.bpb_TotSec16;
+            int tracks = bpb.totalSectors16;
             if (tracks > 0) {
-                tracks = tracks / basic.diskBasicParam.getSidesPerDiskOnBasic() / basic.diskBasicParam.getSectorsPerTrackOnBasic();
-                basic.diskBasicParam.setTracksPerSideOnBasic(tracks);
+                tracks = tracks / basic.getSidesPerDiskOnBasic() / basic.getSectorsPerTrackOnBasic();
+                basic.setTracksPerSideOnBasic(tracks);
             }
         }
 
         // さらにJmpBootとOEMNameをチェック
-        byte[] jmp = basic.diskBasicParam.getVariousStringParam("JumpBoot").getBytes();
-        int len = jmp.length < bpb.bs_JmpBoot.length ? jmp.length : bpb.bs_JmpBoot.length;
+        byte[] jump = basic.getVariousStringParam("JumpBoot").getBytes();
+        int len = jump.length < bpb.jumpBoot.length ? jump.length : bpb.jumpBoot.length;
         nums++;
-        if (len > 0 && Arrays.equals(Arrays.copyOfRange(bpb.bs_JmpBoot, 0, len), Arrays.copyOf(jmp, len))) {
+        if (len > 0 && Arrays.equals(Arrays.copyOfRange(bpb.jumpBoot, 0, len), Arrays.copyOf(jump, len))) {
             valids++;
         }
 
-        byte[] oem = basic.diskBasicParam.getVariousStringParam("OEMName").getBytes();
-        len = oem.length < bpb.bs_OEMName.length ? oem.length : bpb.bs_OEMName.length;
+        byte[] oem = basic.getVariousStringParam("OEMName").getBytes();
+        len = oem.length < bpb.oemName.length ? oem.length : bpb.oemName.length;
         nums += 5;
-        if (len > 0 && Arrays.equals(Arrays.copyOfRange(bpb.bs_OEMName, 0, len), Arrays.copyOf(oem, len))) {
+        if (len > 0 && Arrays.equals(Arrays.copyOfRange(bpb.oemName, 0, len), Arrays.copyOf(oem, len))) {
             valids += 5;
         }
 
         // 最終グループ番号を計算
-        int maxGrpOnFat = basic.diskBasicParam.getSectorsPerFat() * basic.getSectorSize() * 2 / 3;
-        int maxGrpOnPrm = (basic.diskBasicParam.getSidesPerDiskOnBasic() * basic.getTracksPerSide() * basic.diskBasicParam.getSectorsPerTrackOnBasic() - basic.diskBasicParam.getDirEndSector()) / basic.diskBasicParam.getSectorsPerGroup() + 1;
+        int maxGroupOnFat = basic.getSectorsPerFat() * basic.getSectorSize() * 2 / 3;
+        int maxGroupOnParam = (basic.getSidesPerDiskOnBasic() * basic.getTracksPerSide() * basic.getSectorsPerTrackOnBasic() - basic.getDirEndSector()) / basic.getSectorsPerGroup() + 1;
 
-        basic.diskBasicParam.setFatEndGroup(Math.min(maxGrpOnFat, maxGrpOnPrm));
+        basic.setFatEndGroup(Math.min(maxGroupOnFat, maxGroupOnParam));
 
         // テンプレートに一致するものがあるか
-        DiskBasicParam param = gDiskBasicTemplates.findType(basic.diskBasicParam.getBasicCategoryName(), basic.diskBasicParam.getBasicTypeName(), basic.diskBasicParam.getSidesPerDiskOnBasic(), basic.diskBasicParam.getSectorsPerTrackOnBasic());
+        DiskBasicParam param = diskBasicTemplates.findType(basic.getBasicCategoryName(), basic.getBasicTypeName(), basic.getSidesPerDiskOnBasic(), basic.getSectorsPerTrackOnBasic());
         if (param != null) {
-            basic.diskBasicParam.setBasicDescription(param.getBasicDescription());
+            basic.setBasicDescription(param.getBasicDescription());
         }
 
         double validRatio = 0.0;
@@ -259,9 +271,9 @@ public class DiskBasicTypeMSDOS extends DiskBasicTypeFAT12<DirectoryMsDos> {
         if (groupItems.size() <= 0) return;
 
         // カレントと親ディレクトリのエントリを作成する
-        DiskBasicGroupItem gitem = groupItems.get(0);
+        DiskBasicGroupItem gItem = groupItems.get(0);
 
-        DiskImageSector sector = basic.getDisk().getSector(gitem.track, gitem.side, gitem.sectorStart);
+        DiskImageSector sector = basic.getDisk().getSector(gItem.track, gItem.side, gItem.sectorStart);
 
         byte[] buf = sector.getSectorBuffer();
         int bufOffset = 0;
@@ -274,7 +286,7 @@ public class DiskBasicTypeMSDOS extends DiskBasicTypeFAT12<DirectoryMsDos> {
 
         // parent entry
         bufOffset += newItem.getDataSize();
-        newItem.setDataPtr(0, null, sector, 0, buf, bufOffset, null);
+        newItem.setData(0, null, sector, 0, buf, bufOffset, null);
         if (parentItem != null) {
             // 親がサブディレクトリ
             newItem.copyData(parentItem.getRawData());
@@ -290,8 +302,10 @@ public class DiskBasicTypeMSDOS extends DiskBasicTypeFAT12<DirectoryMsDos> {
         newItem.setFileAttr(FORMAT_TYPE_UNKNOWN, FILE_TYPE_DIRECTORY_MASK.getValue(), 0);
     }
 
-    /// セクタデータを埋めた後の個別処理
-    /// フォーマット IPLの書き込み
+    /**
+     * セクタデータを埋めた後の個別処理
+     * フォーマット IPLの書き込み
+     */
     @Override
     public boolean additionalProcessOnFormatted(DiskBasicIdentifiedData data) throws IOException {
         if (!createBiosParameterBlock("\u00eb\u003c\u0090", "FAT12", null)) {
@@ -299,64 +313,64 @@ public class DiskBasicTypeMSDOS extends DiskBasicTypeFAT12<DirectoryMsDos> {
         }
 
         // volume label
-        DiskBasicFormat fmt = basic.getFormatType();
-        if (fmt.hasVolumeName()) {
-            int dirStart = basic.diskBasicParam.getReservedSectors() + basic.diskBasicParam.getNumberOfFats() * basic.diskBasicParam.getSectorsPerFat();
-            DiskImageSector sec = basic.getSectorFromSectorPos(dirStart);
-            DiskBasicDirItem<DirectoryMsDos> ditem = dir.newItem(sec, 0, sec.getSectorBuffer(), 0);
+        DiskBasicFormat format = basic.getFormatType();
+        if (format.hasVolumeName()) {
+            int dirStart = basic.getReservedSectors() + basic.getNumberOfFats() * basic.getSectorsPerFat();
+            DiskImageSector sector = basic.getSectorFromSectorPos(dirStart);
+            DiskBasicDirItem<DirectoryMsDos> dItem = dir.newItem(sector, 0, sector.getSectorBuffer(), 0);
 
-            ditem.setFileNamePlain(data.getVolumeName());
-            ditem.setFileAttr(FORMAT_TYPE_UNKNOWN, FILE_TYPE_VOLUME_MASK.getValue(), 0);
+            dItem.setFileNamePlain(data.getVolumeName());
+            dItem.setFileAttr(FORMAT_TYPE_UNKNOWN, FILE_TYPE_VOLUME_MASK.getValue(), 0);
             LocalDateTime tm = LocalDateTime.now();
-            ditem.setFileModifyDateTime(tm);
+            dItem.setFileModifyDateTime(tm);
         }
 
         return true;
     }
 
     /// BIOS Parameter Block を作成
-    public boolean createBiosParameterBlock(String jmp, String name, byte[][] secBuf) throws IOException {
+    public boolean createBiosParameterBlock(String jump, String name, byte[][] sectorBuffer) throws IOException {
         DiskImageSector sec = basic.getSector(0, 0, 1);
         if (sec == null) return false;
         byte[] buf = sec.getSectorBuffer();
         if (buf == null) return false;
 
-        if (secBuf != null) secBuf[0] = buf;
+        if (sectorBuffer != null) sectorBuffer[0] = buf;
 
         sec.fill((byte) 0);
 
-        DiskBasicTypeMSDOS.fat_bpb_t hed = new fat_bpb_t();
+        FatBpb hed = new FatBpb();
         Serdes.Util.deserialize(new ByteArrayInputStream(buf), hed);
 
-        byte[] s_jmp = basic.diskBasicParam.getVariousStringParam("JumpBoot").getBytes();
-        if (s_jmp.length > 0) {
-            jmp = new String(s_jmp);
+        byte[] jumpBytes = basic.getVariousStringParam("JumpBoot").getBytes();
+        if (jumpBytes.length > 0) {
+            jump = new String(jumpBytes);
         }
-        int len = Math.min(jmp.length(), hed.bs_JmpBoot.length);
-        System.arraycopy(jmp.getBytes(), 0, hed.bs_JmpBoot, 0, len);
+        int len = Math.min(jump.length(), hed.jumpBoot.length);
+        System.arraycopy(jump.getBytes(), 0, hed.jumpBoot, 0, len);
 
-        hed.bpb_BytsPerSec = basic.getSectorSize();
-        hed.bpb_SecPerClus = basic.diskBasicParam.getSectorsPerGroup();
-        hed.bpb_RsvdSecCnt = basic.diskBasicParam.getReservedSectors();
-        hed.bpb_NumFATs = basic.diskBasicParam.getNumberOfFats();
-        hed.bpb_RootEntCnt = basic.diskBasicParam.getDirEntryCount();
+        hed.bytesPerSec = basic.getSectorSize();
+        hed.sectorPerCluster = basic.getSectorsPerGroup();
+        hed.reservedSectorCount = basic.getReservedSectors();
+        hed.numberOfFats = basic.getNumberOfFats();
+        hed.rootEntryCount = basic.getDirEntryCount();
 
-        byte[] s_name = basic.diskBasicParam.getVariousStringParam("OEMName").getBytes();
-        if (s_name.length > 0) name = new String(s_name);
+        byte[] nameBytes = basic.getVariousStringParam("OEMName").getBytes();
+        if (nameBytes.length > 0) name = new String(nameBytes);
         // 上記パラメータ領域をまたがって設定可能にする
         len = Math.min(name.length(), 16);
-        Arrays.fill(hed.bs_OEMName, (byte) 0x20);
-        System.arraycopy(name.getBytes(), 0, hed.bs_OEMName, 0, len);
+        Arrays.fill(hed.oemName, (byte) 0x20);
+        System.arraycopy(name.getBytes(), 0, hed.oemName, 0, len);
 
-        len = basic.getTracksPerSide() * basic.diskBasicParam.getSectorsPerTrackOnBasic() * basic.diskBasicParam.getSidesPerDiskOnBasic();
-        hed.bpb_TotSec16 = len;
-        hed.bpb_Media = basic.diskBasicParam.getMediaId();
-        hed.bpb_FATSz16 = basic.diskBasicParam.getSectorsPerFat();
-        hed.bpb_SecPerTrk = basic.diskBasicParam.getSectorsPerTrackOnBasic();
-        hed.bpb_NumHeads = basic.diskBasicParam.getSidesPerDiskOnBasic();
+        len = basic.getTracksPerSide() * basic.getSectorsPerTrackOnBasic() * basic.getSidesPerDiskOnBasic();
+        hed.totalSectors16 = len;
+        hed.media = basic.getMediaId();
+        hed.fatSize16 = basic.getSectorsPerFat();
+        hed.sectorsPerTrack = basic.getSectorsPerTrackOnBasic();
+        hed.numberOfHeads = basic.getSidesPerDiskOnBasic();
 
         // set the media ID in the first FAT entry
-        setGroupNumber(0, 0xffff_ff00 | basic.diskBasicParam.getMediaId());
+        setGroupNumber(0, 0xffff_ff00 | basic.getMediaId());
         setGroupNumber(1, 0xffff_ffff);
 
         return true;
@@ -365,19 +379,19 @@ public class DiskBasicTypeMSDOS extends DiskBasicTypeFAT12<DirectoryMsDos> {
     @Override
     public void getIdentifiedData(DiskBasicIdentifiedData data) {
         // volume label
-        DiskBasicDirItem<DirectoryMsDos> ditem = dir.findFileByAttrOnRoot(FILE_TYPE_VOLUME_MASK.getValue(), FILE_TYPE_VOLUME_MASK.getValue() | FILE_TYPE_DIRECTORY_MASK.getValue(), null);
-        if (ditem != null) {
-            data.setVolumeName(((DiskBasicDirItem<DirectoryMsDos>) ditem).getFileNamePlainStr());
-            data.setVolumeNameMaxLength(ditem.getFileNameStrSize());
+        DiskBasicDirItem<DirectoryMsDos> dItem = dir.findFileByAttrOnRoot(FILE_TYPE_VOLUME_MASK.getValue(), FILE_TYPE_VOLUME_MASK.getValue() | FILE_TYPE_DIRECTORY_MASK.getValue(), null);
+        if (dItem != null) {
+            data.setVolumeName(dItem.getFileNamePlainStr());
+            data.setVolumeNameMaxLength(dItem.getFileNameStrSize());
         }
     }
 
     @Override
     public void setIdentifiedData(DiskBasicIdentifiedData data) throws IOException {
-        DiskBasicFormat fmt = basic.getFormatType();
+        DiskBasicFormat format = basic.getFormatType();
 
         // volume label
-        if (fmt.hasVolumeName()) {
+        if (format.hasVolumeName()) {
             modifyOrMakeVolumeLabel(data.getVolumeName());
         }
     }
