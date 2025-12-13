@@ -71,6 +71,11 @@ public final class L3FileSystemRepository extends FileSystemRepositoryBase {
             volumeNumber = (int) env.get("volumeNumber");
         }
 
+        String encoding = "Ascii8";
+        if (env.containsKey("encoding")) {
+            encoding = (String) env.get("encoding");
+        }
+
         DiskImage diskImage = new DiskD88Image();
 
         String type = "";
@@ -90,7 +95,7 @@ logger.log(Level.TRACE, "check: %d, %s, %d, %s".formatted(r1, type, params.size(
             throw new IllegalArgumentException("No disks found in image");
 
         // Get first disk
-        DiskImageDisk disk = diskImage.getDisk(0);
+        DiskImageDisk disk = diskImage.getDisk(volumeNumber);
         if (disk == null)
             throw new IllegalArgumentException("Could not get first disk: " + diskImage.getErrorMessage(-1));
 
@@ -117,6 +122,7 @@ logger.log(Level.DEBUG, "FORMAT: " + diskBasic.getType().getClass().getSimpleNam
         if (!r)
             throw new IllegalStateException("diskBasic.assignRootDirectory");
 logger.log(Level.TRACE, "ASSIGN: root: %s, children: %d, isDir: %s, attr: %08x".formatted(diskBasic.getRootDirectory().getClass().getSimpleName(), diskBasic.getRootDirectory().getChildren().size(), diskBasic.getRootDirectory().isDirectory(), diskBasic.getRootDirectory().getFileAttr().getType()));
+        diskBasic.setCharCode(encoding);
 
         L3FileStore fileStore = new L3FileStore(diskBasic, factoryProvider.getAttributesFactory());
         return new L3FileSystemDriver(fileStore, factoryProvider, diskBasic, env);
