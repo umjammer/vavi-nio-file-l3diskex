@@ -17,6 +17,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.StringJoiner;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -87,20 +88,19 @@ public class CharCodes {
         protected String name;
         protected List<CharCode> list = new ArrayList<>();
         protected int type;
-        // wx
-        protected String font_encoding;
+        protected String fontEncoding;
         protected String description;
 
         protected CharCodeMap(CharCodeMap src) {
             this.name = src.name;
             this.type = src.type;
-            this.font_encoding = src.font_encoding;
+            this.fontEncoding = src.fontEncoding;
             this.description = src.description;
         }
 
         public CharCodeMap() {
             type = 0;
-            font_encoding = StandardCharsets.UTF_8.name();
+            fontEncoding = StandardCharsets.UTF_8.name();
         }
 
         /**
@@ -112,7 +112,7 @@ public class CharCodes {
         public CharCodeMap(String name, int type) {
             this.name = name;
             this.type = type;
-            font_encoding = StandardCharsets.UTF_8.name();
+            fontEncoding = StandardCharsets.UTF_8.name();
         }
 
         public void initialize() {
@@ -130,12 +130,12 @@ public class CharCodes {
 
         /** Returns the encoding number */
         public final String getFontEncoding() {
-            return font_encoding;
+            return fontEncoding;
         }
 
         /** Sets the encoding number */
         public void setFontEncoding(String val) {
-            font_encoding = val;
+            fontEncoding = val;
         }
 
         /** Returns the map description */
@@ -257,6 +257,16 @@ public class CharCodes {
             }
             return match;
         }
+
+        @Override public String toString() {
+            return new StringJoiner(", ", CharCodeMap.class.getSimpleName() + "[", "]")
+                    .add("name='" + name + "'")
+                    .add("list.size=" + list.size())
+                    .add("type=" + type)
+                    .add("fontEncoding='" + fontEncoding + "'")
+                    .add("description='" + description + "'")
+                    .toString();
+        }
     }
 
     /**
@@ -283,7 +293,7 @@ public class CharCodes {
 
         @Override
         public void initialize() {
-            cs = Charset.forName(font_encoding);
+            cs = Charset.forName(fontEncoding);
         }
 
         /**
@@ -605,18 +615,18 @@ logger.log(Level.ERROR, e.getMessage(), e);
 
         List<CharCodeMap> charCodeMaps = new ArrayList<>();
 
-        private String name;
-        private List<String> item_names;
+        private final String name;
+        private final List<String> itemNames;
 
         public CharCodeChoice(String n_name, List<String> n_item_names) {
             name = n_name;
-            item_names = n_item_names;
+            itemNames = n_item_names;
         }
 
         /** Sets the maps to be used */
         public void assignMaps() {
-            for (String itemName : item_names) {
-                CharCodeMap map = CharCodeMap.findMap(gCharCodeMaps, itemName);
+            for (String itemName : itemNames) {
+                CharCodeMap map = CharCodeMap.findMap(CharCodes.charCodeMaps, itemName);
                 if (map != null) {
                     charCodeMaps.add(map);
                 }
@@ -631,13 +641,13 @@ logger.log(Level.ERROR, e.getMessage(), e);
         /**
          * Returns the map name
          *
-         * @param idx Index
+         * @param index Index
          */
-        public final String getItemName(int idx) {
-            if (idx < 0 || idx >= charCodeMaps.size()) {
-                idx = 0;
+        public final String getItemName(int index) {
+            if (index < 0 || index >= charCodeMaps.size()) {
+                index = 0;
             }
-            return charCodeMaps.get(idx).getName();
+            return charCodeMaps.get(index).getName();
         }
 
         /**
@@ -672,9 +682,9 @@ logger.log(Level.ERROR, e.getMessage(), e);
             return match;
         }
 
-        /*
-         * CharCodeChoices
-         */
+        //
+        // CharCodeChoices
+        //
 
         /**
          * Sets the maps to be used
@@ -688,12 +698,12 @@ logger.log(Level.ERROR, e.getMessage(), e);
         /**
          * Finds the selection list that matches the selection list name
          *
-         * @param n_name List name
+         * @param name List name
          */
-        public static CharCodeChoice find(List<CharCodeChoice> list, String n_name) {
+        public static CharCodeChoice find(List<CharCodeChoice> list, String name) {
             CharCodeChoice match = null;
             for (CharCodeChoice item : list) {
-                if (n_name.equals(item.getName())) {
+                if (name.equals(item.getName())) {
                     match = item;
                     break;
                 }
@@ -704,67 +714,75 @@ logger.log(Level.ERROR, e.getMessage(), e);
         /**
          * Finds the map that matches the selection list name
          *
-         * @param name     List name
-         * @param item_idx Position within the list
+         * @param name      List name
+         * @param itemIndex Position within the list
          */
-        public static String getItemName(List<CharCodeChoice> list, String name, int item_idx) {
+        public static String getItemName(List<CharCodeChoice> list, String name, int itemIndex) {
             CharCodeChoice choice = find(list, name);
             if (choice != null) {
-                return choice.getItemName(item_idx);
+                return choice.getItemName(itemIndex);
             } else {
-                return CharCodeMap.getMap(gCharCodeMaps, 0).getName();
+                return CharCodeMap.getMap(CharCodes.charCodeMaps, 0).getName();
             }
         }
 
         /**
          * Finds the map that matches the selection list name
          *
-         * @param name      List name
-         * @param item_name Map name
+         * @param name     List name
+         * @param itemName Map name
          */
-        public static int indexOf(List<CharCodeChoice> list, String name, String item_name) {
+        public static int indexOf(List<CharCodeChoice> list, String name, String itemName) {
             int idx = 0;
             CharCodeChoice choice = find(list, name);
             if (choice != null) {
-                idx = choice.IndexOf(item_name);
+                idx = choice.IndexOf(itemName);
             }
             return idx;
+        }
+
+        @Override public String toString() {
+            return new StringJoiner(", ", CharCodeChoice.class.getSimpleName() + "[", "]")
+                    .add("charCodeMaps=" + charCodeMaps)
+                    .add("name='" + name + "'")
+                    .add("itemNames=" + itemNames)
+                    .toString();
         }
     }
 
     private CharCodeMap cache;
 
-    public static List<CharCodeMap> gCharCodeMaps = new ArrayList<>();
-    public static List<CharCodeChoice> gCharCodeChoices = new ArrayList<>();
+    public static List<CharCodeMap> charCodeMaps = new ArrayList<>();
+    public static List<CharCodeChoice> charCodeChoices = new ArrayList<>();
 
     /**
      * Loads Maps element
      *
-     * @param item        XML node
-     * @param locale_name Locale name
-     * @param errmsgs     [out] Error messages
+     * @param item          XML node
+     * @param localeName    Locale name
+     * @param errorMessages [out] Error messages
      * @return true / false
      */
-    private static boolean loadMaps(Node item, String locale_name, StringBuilder errmsgs) {
+    private static boolean loadMaps(Node item, String localeName, StringBuilder errorMessages) {
         item = item.getFirstChild();
         while (item != null) {
             if (item.getNodeName().equals("Map")) {
-                String sname = ((Element) item).getAttribute("name");
-                String stype = ((Element) item).getAttribute("type");
+                String sName = ((Element) item).getAttribute("name");
+                String sType = ((Element) item).getAttribute("type");
                 long type = 0;
                 CharCodeMap map;
-                String desc = "", desc_locale = "";
+                String desc = "", descLocale = "";
                 try {
-                    type = Long.parseLong(stype);
+                    type = Long.parseLong(sType);
                 } catch (NumberFormatException e) {
                     type = 0;
                 }
 
                 map = switch ((int) type) {
-                    case 1 -> new CharCodeMap7(sname, (int) type);
-                    case 2 -> new CharCodeMapMB(sname, (int) type);
-                    case 3 -> new CharCodeMapSB(sname, (int) type);
-                    default -> new CharCodeMap(sname, (int) type);
+                    case 1 -> new CharCodeMap7(sName, (int) type);
+                    case 2 -> new CharCodeMapMB(sName, (int) type);
+                    case 3 -> new CharCodeMapSB(sName, (int) type);
+                    default -> new CharCodeMap(sName, (int) type);
                 };
 
                 Node mitem = item.getFirstChild();
@@ -783,8 +801,8 @@ logger.log(Level.ERROR, e.getMessage(), e);
                         case "Description" -> {
                             if (!((Element) mitem).getAttribute("lang").isEmpty()) {
                                 String lang = ((Element) mitem).getAttribute("lang");
-                                if (locale_name.contains(lang)) {
-                                    desc_locale = mitem.getTextContent();
+                                if (localeName.contains(lang)) {
+                                    descLocale = mitem.getTextContent();
                                 }
                             } else {
                                 desc = mitem.getTextContent();
@@ -793,70 +811,86 @@ logger.log(Level.ERROR, e.getMessage(), e);
                     }
                     mitem = mitem.getNextSibling();
                 }
-                if (!desc_locale.isEmpty()) {
-                    desc = desc_locale;
+                if (!descLocale.isEmpty()) {
+                    desc = descLocale;
                 }
                 map.initialize();
                 map.setDescription(desc);
-                if (CharCodeMap.findMap(gCharCodeMaps, sname) == null) {
-                    gCharCodeMaps.add(map);
+                if (CharCodeMap.findMap(charCodeMaps, sName) == null) {
+                    charCodeMaps.add(map);
                 } else {
-                    errmsgs.append("\n");
-                    errmsgs.append("Duplicate name in CharCodes::Maps : ");
-                    errmsgs.append(sname);
+                    errorMessages.append("\n");
+                    errorMessages.append("Duplicate name in CharCodes::Maps : ");
+                    errorMessages.append(sName);
                     return false;
                 }
             }
             item = item.getNextSibling();
         }
-logger.log(Level.TRACE, "charCodeMaps: " + gCharCodeMaps.size());
-        assert !gCharCodeMaps.isEmpty();
+logger.log(Level.TRACE, "charCodeMaps: " + charCodeMaps.size() + ", " + charCodeMaps);
+        assert !charCodeMaps.isEmpty();
         return true;
     }
 
     /**
      * Loads Choices element
      *
-     * @param item        XML node
-     * @param locale_name Locale name
-     * @param errmsgs     [out] Error messages
+     * @param item          XML node
+     * @param localeName    Locale name
+     * @param errorMessages [out] Error messages
      * @return true / false
      */
-    private static boolean loadChoices(Node item, String locale_name, StringBuilder errmsgs) {
+    private static boolean loadChoices(Node item, String localeName, StringBuilder errorMessages) {
         item = item.getFirstChild();
         while (item != null) {
             if (item.getNodeName().equals("Choice")) {
-                String sname = ((Element) item).getAttribute("name");
-                List<String> item_names = new ArrayList<>();
-                Node mitem = item.getFirstChild();
-                while (mitem != null) {
-                    if (mitem.getNodeName().equals("Item")) {
-                        String str = mitem.getTextContent();
-                        item_names.add(str);
+                String sName = ((Element) item).getAttribute("name");
+                List<String> itemNames = new ArrayList<>();
+                Node mItem = item.getFirstChild();
+                while (mItem != null) {
+                    if (mItem.getNodeName().equals("Item")) {
+                        String str = mItem.getTextContent();
+                        itemNames.add(str);
                     }
-                    // #if 0 block for Description is omitted as per original C++
-                    mitem = mitem.getNextSibling();
+//#if 0
+//				    else if (mItem.getNodeName().equals("Description")) {
+//                        if (((Element) mItem).hasAttribute("lang")) {
+//                            String lang = ((Element) mItem).getAttribute("lang");
+//                            if (localeName.contains(lang)) {
+//                                desc_locale = item.getNodeContent();
+//                            }
+//                        } else {
+//                            desc = mItem.getNodeContent();
+//                        }
+//                    }
+//#endif
+                    mItem = mItem.getNextSibling();
                 }
-                // #if 0 block for desc_locale/desc is omitted as per original C++
+//#if 0
+//                if (!desc_locale.IsEmpty()) {
+//                    desc = desc_locale;
+//                }
+//#endif
 
-                if (CharCodeChoice.find(gCharCodeChoices, sname) == null) {
-                    gCharCodeChoices.add(new CharCodeChoice(sname, item_names));
+                if (CharCodeChoice.find(charCodeChoices, sName) == null) {
+                    charCodeChoices.add(new CharCodeChoice(sName, itemNames));
                 } else {
-                    errmsgs.append("\n");
-                    errmsgs.append("Duplicate name in CharCodes::Choices : ");
-                    errmsgs.append(sname);
+                    errorMessages.append("\n");
+                    errorMessages.append("Duplicate name in CharCodes::Choices : ");
+                    errorMessages.append(sName);
                     return false;
                 }
             }
             item = item.getNextSibling();
         }
-logger.log(Level.TRACE, "charCodeChoices: " + gCharCodeChoices.size());
-        assert !gCharCodeChoices.isEmpty();
+logger.log(Level.TRACE, "charCodeChoices: " + charCodeChoices.size() + ", " + charCodeChoices);
+        assert !charCodeChoices.isEmpty();
         return true;
     }
 
     public CharCodes() {
-        cache = CharCodeMap.getMap(gCharCodeMaps, 0);
+        cache = CharCodeMap.getMap(charCodeMaps, 0);
+logger.log(Level.INFO, cache.name);
     }
 
     /**
@@ -895,7 +929,7 @@ logger.log(Level.TRACE, "charCodeChoices: " + gCharCodeChoices.size());
             item = item.getNextSibling();
         }
         if (sts) {
-            CharCodeChoice.assignMaps(gCharCodeChoices);
+            CharCodeChoice.assignMaps(charCodeChoices);
         }
         return sts;
     }
@@ -981,25 +1015,25 @@ logger.log(Level.TRACE, "charCodeChoices: " + gCharCodeChoices.size());
      * @param name Map name
      */
     public void setMap(String name) {
-        CharCodes.CharCodeMap newCache = CharCodeMap.findMap(gCharCodeMaps, name);
+        CharCodes.CharCodeMap newCache = CharCodeMap.findMap(charCodeMaps, name);
         if (newCache != null) {
             cache = newCache;
         } else {
-            cache = CharCodeMap.getMap(gCharCodeMaps, 0);
+            cache = CharCodeMap.getMap(charCodeMaps, 0);
         }
     }
 
     /**
      * Sets the map
      *
-     * @param idx Map number
+     * @param index Map number
      */
-    public void setMap(int idx) {
-        CharCodes.CharCodeMap newCache = CharCodeMap.getMap(gCharCodeMaps, idx);
+    public void setMap(int index) {
+        CharCodes.CharCodeMap newCache = CharCodeMap.getMap(charCodeMaps, index);
         if (newCache != null) {
             cache = newCache;
         } else {
-            cache = CharCodeMap.getMap(gCharCodeMaps, 0);
+            cache = CharCodeMap.getMap(charCodeMaps, 0);
         }
     }
 }
