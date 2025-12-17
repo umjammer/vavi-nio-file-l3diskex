@@ -71,14 +71,10 @@ class SpiTest {
     // ⚠️⚠️⚠️ if list is only root dir, check the DiskBasicDirItem subclass type and method #getFileAttr ⚠️⚠️⚠️
     // ⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️
     @Test
-    @DisplayName("list")
+    @DisplayName("walk")
     void test1() throws Exception {
 Debug.print("disk: " + disk);
-        URI subUri = Path.of(disk).toUri();
-Debug.print("subUri: " + subUri);
-Debug.print("subUri.path: " + subUri.getPath());
-        URI uri = URI.create("l3:" + subUri);
-Debug.print("uri: " + uri);
+        URI uri = L3FileSystemProvider.createURI(disk);
 
         FileSystem fs = FileSystems.newFileSystem(uri, Map.of("encoding", encoding));
 
@@ -95,11 +91,7 @@ Debug.print("uri: " + uri);
     @EnabledIfSystemProperty(named = "vavi.test", matches = "ide")
     void test2() throws Exception {
 Debug.print("disk: " + disk);
-        URI subUri = Path.of(disk).toUri();
-Debug.print("subUri: " + subUri);
-Debug.print("subUri.path: " + subUri.getPath());
-        URI uri = URI.create("l3:" + subUri);
-Debug.print("uri: " + uri);
+        URI uri = L3FileSystemProvider.createURI(disk);
 
         FileSystem fs = FileSystems.newFileSystem(uri, Collections.emptyMap());
 
