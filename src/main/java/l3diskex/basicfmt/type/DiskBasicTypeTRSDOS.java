@@ -120,7 +120,7 @@ public abstract class DiskBasicTypeTRSDOS<T extends Directory> extends DiskBasic
         }
     }
 
-    // GATエリア構造
+    // GAT area structure
     @Serdes
     static class TrsDosGatSector {
 
@@ -158,7 +158,7 @@ public abstract class DiskBasicTypeTRSDOS<T extends Directory> extends DiskBasic
         }
     }
 
-    /** ハッシュの格納位置からセクタ番号を得る */
+    /** Get sector number from hash storage position */
     public abstract void getFromHIPosition(int pos, int[] sectorNum, int[] posInSector);
 
     @Override
@@ -206,7 +206,7 @@ public abstract class DiskBasicTypeTRSDOS<T extends Directory> extends DiskBasic
     public double checkFat(boolean isFormatting) throws IOException {
         double validRatio = 1.0;
 
-        // GATエリア
+        // GAT area
         int s = basic.getManagedTrackNumber() * basic.getSectorsPerTrackOnBasic() * basic.getSidesPerDiskOnBasic();
         DiskImageSector sector = basic.getSectorFromSectorPos(s);
         if (sector == null) {
@@ -236,7 +236,7 @@ public abstract class DiskBasicTypeTRSDOS<T extends Directory> extends DiskBasic
 
         double validRatio = 1.0;
 
-        // GATエリアにあるボリューム名
+        // Volume name in GAT area
         int s = basic.getManagedTrackNumber() * basic.getSectorsPerTrackOnBasic() * basic.getSidesPerDiskOnBasic();
         DiskImageSector sector = basic.getSectorFromSectorPos(s);
         if (sector == null) {
@@ -347,22 +347,22 @@ public abstract class DiskBasicTypeTRSDOS<T extends Directory> extends DiskBasic
             }
         }
 
-        // 日付
+        // Date
         DiskBasicIdentifiedData nData = data;
         LocalDate tm = LocalDate.now();
         if (Utils.convDateStrToTm(data.getVolumeDate()) == null) {
-            // 現在日付をセット
+            // Set current date
             nData.setVolumeDate(Utils.formatYMDStr(tm));
         }
 
-        // ボリューム名を設定
+        // Set volume name
         setIdentifiedData(nData);
 
         // APT
         Arrays.fill(gatSector.apt, (byte) 0x20);
         gatSector.apt[0] = (byte) 0x0d;
 
-        // HIT, FDE ディレクトリ
+        // HIT, FDE directory
         startPos++;
         int endPos = basic.getManagedTrackNumber() * basic.getSectorsPerTrackOnBasic() * basic.getSidesPerDiskOnBasic() + basic.getDirEndSector();
         for (int sectorPos = startPos; sectorPos <= endPos; sectorPos++) {
@@ -384,12 +384,12 @@ public abstract class DiskBasicTypeTRSDOS<T extends Directory> extends DiskBasic
             if (remain < 0) remain = 0;
             if (remain > 0) iStream.readNBytes(buffer, 0, remain);
             if (size > remain) {
-                // バッファの余りは0サプレス
+                // Remaining buffer is zero-suppressed
                 Arrays.fill(buffer, remain, size, (byte) 0);
             }
             len = remain;
         } else {
-            // 継続
+            // Continuous
             iStream.readNBytes(buffer, 0, size);
             len = size;
         }
@@ -404,7 +404,7 @@ public abstract class DiskBasicTypeTRSDOS<T extends Directory> extends DiskBasic
 
     @Override
     public void getIdentifiedData(DiskBasicIdentifiedData data) throws IOException {
-        // GATエリア
+        // GAT area
         int sectorPos = basic.getManagedTrackNumber() * basic.getSectorsPerTrackOnBasic() * basic.getSidesPerDiskOnBasic();
         DiskImageSector sector = basic.getSectorFromSectorPos(sectorPos);
         if (sector == null) {
@@ -432,7 +432,7 @@ public abstract class DiskBasicTypeTRSDOS<T extends Directory> extends DiskBasic
 
     @Override
     public void setIdentifiedData(DiskBasicIdentifiedData data) throws IOException {
-        // GATエリア
+        // GAT area
         int sectorPos = basic.getManagedTrackNumber() * basic.getSectorsPerTrackOnBasic() * basic.getSidesPerDiskOnBasic();
         DiskImageSector sector = basic.getSectorFromSectorPos(sectorPos);
         if (sector == null) {
@@ -460,7 +460,7 @@ public abstract class DiskBasicTypeTRSDOS<T extends Directory> extends DiskBasic
     }
 
     //
-    // TRSDOS 2.x の処理
+    // TRSDOS 2.x processing
     //
     public static class DiskBasicTypeTRSD23 extends DiskBasicTypeTRSDOS<DirectoryTrsD23> {
 
@@ -482,20 +482,20 @@ public abstract class DiskBasicTypeTRSDOS<T extends Directory> extends DiskBasic
             posInSector[0] = ((pos & 0xf0) >> 4) / 2;
         }
 
-        /** ハッシュの格納位置を得る */
+        /** Get hash storage position */
         public static int getHIPosition(int sectorNum, int posInSector) {
-            // 下位4バイトがセクタ
+            // Lower 4 bits are sector
             int pos = (sectorNum - 2);
-            // 上位4バイトが位置
+            // Upper 4 bits are position
             pos |= ((posInSector * 2) << 4);
 
             return pos & 0xff;
         }
 
         /**
-         * ハッシュを計算
-         * @param name ファイル名＋拡張子 11バイト
-         * @return ハッシュ値
+         * Calculate hash
+         * @param name File name + extension 11 bytes
+         * @return Hash value
          */
         public static byte computeHI(byte[] name) {
             int a;
@@ -552,11 +552,11 @@ public abstract class DiskBasicTypeTRSDOS<T extends Directory> extends DiskBasic
             while (rc >= 0 && limit >= 0 && sizeremain > 0) {
                 int groupNum = getEmptyGroupNumber();
                 if (groupNum == INVALID_GROUP_NUMBER) {
-                    // 空きなし
+                    // No free space
                     rc = -1;
                     break;
                 }
-                // 位置を予約
+                // Reserve position
                 setGroupNumber(groupNum, 1);
 
                 basic.getNumsFromGroup(groupNum, 0, basic.getSectorSize(), sizeremain, groupItems);
@@ -573,10 +573,10 @@ public abstract class DiskBasicTypeTRSDOS<T extends Directory> extends DiskBasic
             if (rc >= 0) {
                 DiskBasicDirItemTRSDOS[] tItem = {(DiskBasicDirItemTRSDOS<DirectoryTrsD23>) item};
 
-                // 使用中にする
+                // Mark as used
                 tItem[0].setAsNewFile();
 
-                // ディレクトリエントリに追加
+                // Add to directory entry
                 int[] pos = {0};
                 int preGroup = 0;
                 int startGroup = 0;
@@ -611,7 +611,7 @@ public abstract class DiskBasicTypeTRSDOS<T extends Directory> extends DiskBasic
             }
 
             if (rc < 0) {
-                // グループを削除
+                // Delete groups
                 deleteGroups(groupItems);
             }
 
@@ -694,24 +694,24 @@ public abstract class DiskBasicTypeTRSDOS<T extends Directory> extends DiskBasic
             TrsDosGatSector gatSector = new TrsDosGatSector();
             Serdes.Util.deserialize(new ByteArrayInputStream(b), gatSector);
 
-            // ボリュームパスワード
+            // Volume password
             gatSector.password = (short) 0x4296;
 
             DiskBasicDirItemTRSDOS<?> tItem;
 
-            // "BOOT/SYS"エントリを作る
+            // Create "BOOT/SYS" entry
             startPos += 2;
             sector = basic.getSectorFromSectorPos(startPos);
             tItem = (DiskBasicDirItemTRSDOS<?>) dir.newItem(sector, 0, sector.getSectorBuffer(0), 0);
             tItem.setAsBootSysEntry();
 
-            // "DIR/SYS"エントリを作る
+            // Create "DIR/SYS" entry
             startPos++;
             sector = basic.getSectorFromSectorPos(startPos);
             tItem = (DiskBasicDirItemTRSDOS<?>) dir.newItem(sector, 0, sector.getSectorBuffer(0), 0);
             tItem.setAsDirSysEntry();
 
-            // セクタ 0
+            // Sector 0
             sector = basic.getSectorFromSectorPos(0);
             if (sector == null) {
                 // Why?
@@ -725,7 +725,7 @@ public abstract class DiskBasicTypeTRSDOS<T extends Directory> extends DiskBasic
     }
 
     /**
-     * TRSDOS 1.3 の処理
+     * TRSDOS 1.3 processing
      */
     public static class DiskBasicTypeTRSD13 extends DiskBasicTypeTRSDOS<DirectoryTrsD13> {
 
@@ -741,7 +741,7 @@ public abstract class DiskBasicTypeTRSDOS<T extends Directory> extends DiskBasic
             super.init(basic, fat, dir);
         }
 
-        /** ハッシュの格納位置を得る */
+        /** Get hash storage position */
         static int getHIPosition(int pos) {
             return (pos & 0xff);
         }
@@ -757,7 +757,7 @@ public abstract class DiskBasicTypeTRSDOS<T extends Directory> extends DiskBasic
         public boolean assignRootDirectory(int startSector, int endSector, DiskBasicGroups groupItems, DiskBasicDirItem<DirectoryTrsD13> dirItem) throws IOException {
             boolean sts = super.assignRootDirectory(startSector, endSector, groupItems, dirItem);
 
-            // ファイルサイズを再計算
+            // Recalculate file size
             List<DiskBasicDirItem<DirectoryTrsD13>> cItems = dirItem.getChildren();
             for (DiskBasicDirItem<DirectoryTrsD13> cItem : cItems) {
                 cItem.calcFileSize();
@@ -788,11 +788,11 @@ public abstract class DiskBasicTypeTRSDOS<T extends Directory> extends DiskBasic
             while (rc >= 0 && limit >= 0 && sizeRemain > 0) {
                 int groupNum = getEmptyGroupNumber();
                 if (groupNum == INVALID_GROUP_NUMBER) {
-                    // 空きなし
+                    // No free space
                     rc = -1;
                     break;
                 }
-                // 位置を予約
+                // Reserve position
                 setGroupNumber(groupNum, 1);
 
                 basic.getNumsFromGroup(groupNum, 0, basic.getSectorSize(), sizeRemain, groupItems);
@@ -808,10 +808,10 @@ public abstract class DiskBasicTypeTRSDOS<T extends Directory> extends DiskBasic
             if (rc >= 0) {
                 DiskBasicDirItemTRSDOS<DirectoryTrsD13> tItem = (DiskBasicDirItemTRSDOS<DirectoryTrsD13>) item;
 
-                // 使用中にする
+                // Mark as used
                 tItem.setAsNewFile();
 
-                // ディレクトリエントリに追加
+                // Add to directory entry
                 int pos = 0;
                 int preGroup = 0;
                 int startGroup = 0;
@@ -846,7 +846,7 @@ public abstract class DiskBasicTypeTRSDOS<T extends Directory> extends DiskBasic
             }
 
             if (rc < 0) {
-                // グループを削除
+                // Delete groups
                 deleteGroups(groupItems);
             }
 
@@ -872,10 +872,10 @@ public abstract class DiskBasicTypeTRSDOS<T extends Directory> extends DiskBasic
             TrsDosGatSector gatSector = new TrsDosGatSector();
             Serdes.Util.deserialize(new ByteArrayInputStream(b), gatSector);
 
-            // ボリュームパスワード
+            // Volume password
             gatSector.password = (short) 0x5cef;
 
-            // セクタ 0
+            // Sector 0
             sector = basic.getSectorFromSectorPos(0);
             if (sector == null) {
                 // Why?

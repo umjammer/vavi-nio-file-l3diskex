@@ -25,10 +25,10 @@ import vavi.util.serdes.Element;
 import vavi.util.serdes.Serdes;
 
 
-/** Virtual98 FD ディスクイメージパーサ */
+/** Virtual98 FD disk image parser */
 public class DiskVFDParser extends DiskImageParser {
 
-    /** Virtual98 FD形式セクタヘッダ */
+    /** Virtual98 FD format sector header */
     @Serdes(bigEndian = false)
     public static class VfdSectorHeader {
 
@@ -56,7 +56,7 @@ public class DiskVFDParser extends DiskImageParser {
         public int start;
     }
 
-    /** Virtual98 FD形式トラックヘッダ */
+    /** Virtual98 FD format track header */
     @Serdes(bigEndian = false)
     public static class VfdTrackHeader {
 
@@ -72,7 +72,7 @@ public class DiskVFDParser extends DiskImageParser {
         }
     }
 
-    /** Virtual98 FD形式ヘッダ */
+    /** Virtual98 FD format header */
     @Serdes(bigEndian = false)
     public static class VfdHeader {
 
@@ -107,12 +107,12 @@ public class DiskVFDParser extends DiskImageParser {
         super.init(file, modFlags, result);
     }
 
-    /** セクタデータの作成 */
+    /** Create sector data */
     private int parseSector(InputStream iStream, int numOfSectors, Object userData, DiskImageTrack track) throws IOException {
         VfdSectorHeader sectorHeader = (VfdSectorHeader) userData;
 
         if ((sectorHeader.c & 0xff) == 0xff || (sectorHeader.h & 0xff) == 0xff || (sectorHeader.r & 0xff) == 0xff) {
-            // セクタなし
+            // No sector
             return 0;
         }
 
@@ -122,14 +122,14 @@ public class DiskVFDParser extends DiskImageParser {
         int sectorSizeCode = sectorHeader.n & 0xff;
 
         if (sectorSizeCode > 7) {
-            // セクタサイズが大きすぎる
+            // Sector size is too large
             result.setError(DiskResult.ERRV_SECTOR_SIZE_SECTOR, 0, trackNumber, sideNumber, sectorNumber, sectorSizeCode, 128 << sectorSizeCode);
             return 0;
         }
 
         int sector_size = 128 << sectorSizeCode;
 
-        // セクタ作成
+        // Sector creation
         DiskImageSector sector = track.newImageSector(trackNumber, sideNumber, sectorNumber, sector_size, numOfSectors, (sectorHeader.dden & 0xFF) == 0, 0);
         track.add(sector);
 
@@ -137,30 +137,30 @@ public class DiskVFDParser extends DiskImageParser {
         int size = sector.getSectorBufferSize();
 
         if (sectorHeader.start != -1) {
-            // 実際のデータを取得
+            // Get actual data
             ((SeekableDataInputStream) iStream).position(sectorHeader.start);
 
             int result = iStream.readNBytes(buf, 0, size);
             if (result < size) {
-                // ファイルデータが足りない
+                // Not enough file data
                 this.result.setError(DiskResult.ERRV_INVALID_DISK, 0);
             }
         } else {
-            // データはないので特定データでサプレスする
+            // Suppress with specific data since there is no data
             byte data = sectorHeader.data;
             Arrays.fill(buf, data);
         }
         sector.clearModify();
 
-        // このセクタデータのサイズを返す
+        // Return size of this sector data
         return sector.getSize();
     }
 
-    /** トラックデータの作成 */
+    /** Create track data */
     private int parseTrack(InputStream iStream, Object userData, int offsetPos, int offset, DiskImageDisk disk) throws IOException {
         VfdTrackHeader trackHeader = (VfdTrackHeader) userData;
 
-        // メジャーな番号を調べる
+        // Check major numbers
         int numOfSectors = 0;
         Map<Integer, Integer> trackNumberMap = new HashMap<>();
         Map<Integer, Integer> sideNumberMap = new HashMap<>();
@@ -173,14 +173,14 @@ public class DiskVFDParser extends DiskImageParser {
             IntHashMapUtil.increaseValue(sideNumberMap, trackHeader.sectors[sec].h & 0xff);
         }
         if (numOfSectors == 0) {
-            // セクタなし
+            // No sectors
             return 0;
         }
 
         int trackNumber = IntHashMapUtil.getMaxKeyOnMaxValue(trackNumberMap);
         int sideNumber = IntHashMapUtil.getMaxKeyOnMaxValue(sideNumberMap);
 
-        // トラック作成
+        // Track creation
         DiskImageTrack track = disk.newImageTrack(trackNumber, sideNumber, offsetPos, 1);
         disk.setMaxTrackNumber(trackNumber);
 
@@ -190,26 +190,26 @@ public class DiskVFDParser extends DiskImageParser {
         }
 
         if (result.getValid() >= 0) {
-            // インターリーブの計算
+            // Calculate interleave
             track.calcInterleave();
         }
 
         if (result.getValid() >= 0) {
-            // トラックサイズ設定
+            // Set track size
             track.setSize(d88TrackSize);
-            // サイド番号は各セクタのID Hに合わせる
+            // Side number matches ID H of each sector
             track.setSideNumber(track.getMajorIDH());
 
-            // ディスクに追加
+            // Add to disk
             disk.add(track);
-            // オフセット設定
+            // Set offset
             disk.setOffset(offsetPos, offset);
         }
 
         return d88TrackSize;
     }
 
-    /** ディスクの解析 */
+    /** Analyze disk */
     private int parseDisk(InputStream iStream) throws IOException {
         DiskImageDisk disk = file.newImageDisk(0);
 
@@ -223,7 +223,7 @@ public class DiskVFDParser extends DiskImageParser {
 
         disk.setName(header.label, header.label.length);
 
-        // d88トラックの作成
+        // Create d88 tracks
         int d88Offset = disk.getOffsetStart(); // header size
         int d88OffsetPos = 0;
         for (int pos = 0; pos < 160; pos++) {
@@ -236,7 +236,7 @@ public class DiskVFDParser extends DiskImageParser {
         disk.setSize(d88Offset);
 
         if (this.result.getValid() >= 0) {
-            // ディスクを追加
+            // Add disk
             DiskParam disk_param = disk.calcMajorNumber();
             if (disk_param != null) {
                 disk.setDensity(disk_param.getParamDensity());
@@ -253,10 +253,10 @@ public class DiskVFDParser extends DiskImageParser {
     }
 
     /**
-     * チェック
+     * Check
      *
-     * @param iStream 解析対象データ
-     * @return 0: 正常, -1: エラー
+     * @param iStream Data to be analyzed
+     * @return 0: Normal, -1: Error
      */
     @Override
     public int check(InputStream iStream) throws IOException {
@@ -281,11 +281,11 @@ public class DiskVFDParser extends DiskImageParser {
     }
 
     /**
-     * VFDファイルを解析
+     * Analyze VFD file
      *
-     * @param iStream    解析対象データ
-     * @param diskParam パラメータ通常不要
-     * @return 0: 正常, -1: エラーあり, 1: 警告あり
+     * @param iStream    Data to be analyzed
+     * @param diskParam Parameters usually unnecessary
+     * @return 0: normal, -1: error, 1: warning
      */
     @Override
     public int parse(InputStream iStream, DiskParam diskParam) throws IOException {

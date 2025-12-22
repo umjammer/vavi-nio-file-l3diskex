@@ -33,13 +33,13 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_READWRITE_MAS
 import static l3diskex.basicfmt.type.DiskBasicTypeFP.FORMAT_TYPE_FP;
 
 
-/** ディレクトリ１アイテム Casio FP-1100 C82-BASIC */
+/** Directory 1 item Casio FP-1100 C82-BASIC */
 public class DiskBasicDirItemFP extends DiskBasicDirItemFAT8<DirectoryFp> {
 
     private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
 
     /**
-     * ディレクトリエントリ C82-BASIC (32bytes)
+     * Directory entry C82-BASIC (32bytes)
      */
     @Serdes(bigEndian = false)
     public static class DirectoryFp implements Directory {
@@ -95,7 +95,7 @@ public class DiskBasicDirItemFP extends DiskBasicDirItemFAT8<DirectoryFp> {
     //
     //
 
-    /** ディレクトリデータ */
+    /** Directory data */
     private final DiskBasicDirData<DirectoryFp> data = new DiskBasicDirData<>();
 
     @Override
@@ -127,19 +127,19 @@ public class DiskBasicDirItemFP extends DiskBasicDirItemFAT8<DirectoryFp> {
         used(checkUsed(unuse[0]));
         unuse[0] = (unuse[0] || this.data.data().name[0] == (byte) 0xff);
 
-        // ファイルサイズとグループ数を計算
+        // Calculate file size and number of groups
         calcFileSize();
     }
 
     /**
-     * アイテムへのポインタを設定
+     * Set pointer to item
      *
-     * @param num       通し番号
-     * @param groupItem トラック番号などのデータ
-     * @param sector    セクタ
-     * @param sectorPos    セクタ内のディレクトリエントリの位置
-     * @param data      ディレクトリアイテム
-     * @param next      [out] 次のセクタ
+     * @param num       Serial number
+     * @param groupItem Data such as track number
+     * @param sector    Sector
+     * @param sectorPos Position of directory entry within sector
+     * @param data      Directory item
+     * @param next      [out] Next sector
      */
     @Override
     public void setData(int num, DiskBasicGroupItem groupItem, DiskImageSector sector, int sectorPos,
@@ -191,7 +191,7 @@ public class DiskBasicDirItemFP extends DiskBasicDirItemFAT8<DirectoryFp> {
         return !unuse && this.data.data().type != 0;
     }
 
-    /** エントリデータの未使用部分を設定 */
+    /** Set unused part of entry data */
     private void setTerminate(int val) {
         if (!data.isValid()) return;
 
@@ -353,7 +353,7 @@ public class DiskBasicDirItemFP extends DiskBasicDirItemFAT8<DirectoryFp> {
             int end_addr = data.data().loadAddress + val - 1;
             data.data().endAddress = (short) end_addr;
         }
-        // アスキーファイルはファイルサイズをセットしない
+        // Do not set file size for ASCII files
     }
 
     @Override
@@ -419,14 +419,14 @@ public class DiskBasicDirItemFP extends DiskBasicDirItemFAT8<DirectoryFp> {
 
     @Override
     public boolean needCheckEofCode() {
-        // アスキー形式のときはEOFコードでサイズを計算
+        // Calculate size using EOF code when in ASCII format
         return (getFileType1() & (FILETYPE_FP_RANDOM | FILETYPE_FP_ASCII)) == FILETYPE_FP_ASCII;
     }
 
     @Override
     public int recalcFileSizeOnSave(InputStream iStream, int fileSize) throws IOException {
-        // ファイルの最終が終端記号で終わっているかを調べる
-        // ただし、ファイルサイズがクラスタサイズと合うなら終端記号は不要
+        // Check if the end of the file ends with a termination symbol
+        // However, if the file size matches the cluster size, the termination symbol is not required
         if ((fileSize % (basic.getSectorSize() * basic.getSectorsPerGroup())) != 0) {
             fileSize = checkEofCode(iStream, fileSize) - 1;
         }
@@ -463,23 +463,23 @@ public class DiskBasicDirItemFP extends DiskBasicDirItemFAT8<DirectoryFp> {
     }
 
     //
-    // ダイアログ用
+    // For dialog
     //
 
     @Override
     public boolean processAttr(DiskBasicDirItemAttr attr, DiskBasicError errInfo) {
         int ftype = attr.getFileType();
         if ((ftype & FILE_TYPE_BINARY_MASK.getValue()) != 0) {
-            // バイナリ
+            // Binary
             if ((ftype & FILE_TYPE_BASIC_MASK.getValue()) != 0) {
-                // BASICならアドレスは固定
+                // Address is fixed if BASIC
                 attr.setStartAddress(0);
                 attr.setEndAddress(getFileSize());
                 attr.setExecuteAddress(0);
             }
         } else {
-            // アスキー、ランダムアクセス
-            // アドレスは固定
+            // ASCII, Random Access
+            // Address is fixed
             attr.setStartAddress(0);
             attr.setEndAddress(0);
             attr.setExecuteAddress(0);

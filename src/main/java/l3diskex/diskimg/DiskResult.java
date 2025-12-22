@@ -19,7 +19,7 @@ public class DiskResult extends ResultInfo {
     private static final Logger logger = System.getLogger(DiskResult.class.getName());
 
     public static final int ERR_NONE = 0;
-    // 引数なしのメッセージ
+    // Message without arguments
     public static final int ERR_CANNOT_OPEN = ERR_NONE + 1;
     public static final int ERR_CANNOT_SAVE = ERR_CANNOT_OPEN + 1;
     public static final int ERR_NO_DATA = ERR_CANNOT_SAVE + 1;
@@ -34,7 +34,7 @@ public class DiskResult extends ResultInfo {
     public static final int ERR_UNSUPPORTED = ERR_WRITE_PROTECTED + 1;
 
     public static final int ERRV_START = ERR_UNSUPPORTED + 1;
-    // 引数あり（フォーマットあり）のメッセージ
+    // Message with arguments (formatted)
     public static final int ERRV_INVALID_DISK = ERRV_START + 1;
     public static final int ERRV_DISK_SIZE_ZERO = ERRV_INVALID_DISK + 1;
     public static final int ERRV_DISK_TOO_SMALL = ERRV_DISK_SIZE_ZERO + 1;

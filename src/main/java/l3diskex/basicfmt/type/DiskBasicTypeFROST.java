@@ -28,11 +28,11 @@ import static l3diskex.basicfmt.diritem.DiskBasicDirItemFROST.FROST_GROUP_SIZE;
 
 
 /**
- * Frost-DOSの処理
+ * Frost-DOS processing
  * <p>
  * DiskBasicParam
  *
- * <li>{@code ReservedGroups}: Group 予約済みにするグループ（クラスタ）番号</li>
+ * <li>{@code ReservedGroups}: Group numbers (clusters) to be reserved</li>
  */
 public class DiskBasicTypeFROST extends DiskBasicTypeFAT8<DirectoryFrost> {
 
@@ -49,10 +49,10 @@ public class DiskBasicTypeFROST extends DiskBasicTypeFAT8<DirectoryFrost> {
     }
 
     /**
-     * FAT位置をセット
+     * Set FAT position
      *
-     * @param num グループ番号(0...)
-     * @param val 値
+     * @param num Group number (0...)
+     * @param val Value
      */
     @Override
     public void setGroupNumber(int num, int val) {
@@ -61,9 +61,9 @@ public class DiskBasicTypeFROST extends DiskBasicTypeFAT8<DirectoryFrost> {
     }
 
     /**
-     * FAT位置を返す
+     * Returns FAT position
      *
-     * @param num グループ番号(0...)
+     * @param num Group number (0...)
      */
     @Override
     public int getGroupNumber(int num) {
@@ -72,15 +72,15 @@ public class DiskBasicTypeFROST extends DiskBasicTypeFAT8<DirectoryFrost> {
     }
 
     /**
-     * 次の空きFAT位置を返す
+     * Returns the next free FAT position
      *
-     * @param currentGroup グループ番号(0...)
-     * @return INVALID_GROUP_NUMBER 空きなし
+     * @param currentGroup Group number (0...)
+     * @return INVALID_GROUP_NUMBER No free space
      */
     @Override
     public int getNextEmptyGroupNumber(int currentGroup) {
         int newNum = INVALID_GROUP_NUMBER;
-        // 現在の番号と連続するように検索
+        // Search to be continuous with the current number
         boolean found = false;
         for (int i = 0; i < 2 && !found; i++) {
             int startGroupNum = (i == 0 ? currentGroup + 1 : 0);
@@ -97,16 +97,16 @@ public class DiskBasicTypeFROST extends DiskBasicTypeFAT8<DirectoryFrost> {
     }
 
     /**
-     * ディスクから各パラメータを取得＆必要なパラメータを計算
+     * Get each parameter from disk and calculate necessary parameters
      *
-     * @param isFormatting フォーマット中か
-     * @return 1.0: 正常, 0.0 - 1.0: 警告あり, <0.0: エラーあり
+     * @param isFormatting Whether formatting is in progress
+     * @return 1.0: Normal, 0.0 - 1.0: Warning present, <0.0: Error present
      */
     @Override
     public double parseParamOnDisk(boolean isFormatting) {
-        // １トラック当たりのグループ数を計算する
+        // Calculate the number of groups per track
         if (basic.getGroupsPerTrack() == 0) {
-            // 512バイトを１グループとして計算する
+            // Calculate assuming 512 bytes per 1 group
             int count = 0;
             DiskImageTrack track = basic.getTrack(1, 0);
             if (track != null) {
@@ -123,11 +123,11 @@ public class DiskBasicTypeFROST extends DiskBasicTypeFAT8<DirectoryFrost> {
             }
             basic.setGroupsPerTrack(count);
         }
-        // １セクタ当たりのグループ数
+        // Number of groups per sector
         int groupsPerSector = (basic.getGroupsPerTrack() + basic.getSectorsPerTrackOnBasic() - 1) / basic.getSectorsPerTrackOnBasic();
         basic.setGroupsPerSector(groupsPerSector);
 
-        // グループ数
+        // Number of groups
         if (basic.getFatEndGroup() == 0) {
             int endGroup = basic.getTracksPerSideOnBasic() * basic.getSidesPerDiskOnBasic() * basic.getGroupsPerTrack();
             basic.setFatEndGroup(endGroup - 1);
@@ -137,16 +137,16 @@ public class DiskBasicTypeFROST extends DiskBasicTypeFAT8<DirectoryFrost> {
     }
 
     /**
-     * FATエリアをチェック
+     * Check FAT area
      *
-     * @param isFormatting フォーマット中か
-     * @return 1.0: 正常, 0.0 - 1.0: 警告あり, <0.0: エラーあり
+     * @param isFormatting Whether formatting is in progress
+     * @return 1.0: Normal, 0.0 - 1.0: Warning present, <0.0: Error present
      */
     @Override
     public double checkFat(boolean isFormatting) {
         double validRatio = super.checkFat(isFormatting);
         if (validRatio >= 0.0) {
-            // FAT,ディレクトリエリアはシステム予約となっているか
+            // Check whether FAT and directory area are system reserved
             List<Integer> groups = basic.getReservedGroups();
             for (int group : groups) {
                 int groupNum = getGroupNumber(group);
@@ -160,10 +160,10 @@ public class DiskBasicTypeFROST extends DiskBasicTypeFAT8<DirectoryFrost> {
     }
 
     /**
-     * 使用可能なディスクサイズを得る
+     * Get usable disk size
      *
-     * @param diskSize  ディスクサイズ
-     * @param groupSize グループ数
+     * @param diskSize  Disk size
+     * @param groupSize Number of groups
      */
     @Override
     public void getUsableDiskSize(int[] diskSize, int[] groupSize) {
@@ -176,13 +176,13 @@ public class DiskBasicTypeFROST extends DiskBasicTypeFAT8<DirectoryFrost> {
     }
 
     /**
-     * 残りディスクサイズを計算
+     * Calculate remaining disk size
      */
     @Override
     public void calcDiskFreeSize(boolean wrote) {
         fatAvailability.clear();
 
-        // 使用済みかチェック
+        // Check if used
         for (int pos = 0; pos <= basic.getFatEndGroup(); pos++) {
             int fSize = 0;
             int groups = 0;
@@ -205,10 +205,10 @@ public class DiskBasicTypeFROST extends DiskBasicTypeFAT8<DirectoryFrost> {
     }
 
     /**
-     * 未使用が連続している位置をさがす
+     * Find a position where unused are continuous
      */
     public int findContinuousArea(int groupSize) {
-        // 未使用が連続している位置をさがす
+        // Search for a position where unused are continuous
         int group = INVALID_GROUP_NUMBER;
         int groupStart = INVALID_GROUP_NUMBER;
         int count = 0;
@@ -229,14 +229,14 @@ public class DiskBasicTypeFROST extends DiskBasicTypeFAT8<DirectoryFrost> {
     }
 
     /**
-     * データサイズ分のグループを確保する
+     * Allocate groups for the data size
      *
-     * @param fileUnitNum ファイル番号
-     * @param item        ディレクトリアイテム
-     * @param dataSize    確保するデータサイズ（バイト）
-     * @param flags       新規か追加か
-     * @param groupItems  確保したセクタリスト
-     * @return >0: 正常, -1: 空きなし (開始グループ設定前), -2: 空きなし (開始グループ設定後)
+     * @param fileUnitNum File number
+     * @param item        Directory item
+     * @param dataSize    Data size to allocate (bytes)
+     * @param flags       New or append
+     * @param groupItems  List of allocated sectors
+     * @return >0: Normal, -1: No free space (before setting start group), -2: No free space (after setting start group)
      */
     @Override
     public int allocateUnitGroups(int fileUnitNum, DiskBasicDirItem<DirectoryFrost> item, int dataSize, AllocateGroupFlags flags, DiskBasicGroups[] groupItems) throws IOException {
@@ -249,7 +249,7 @@ public class DiskBasicTypeFROST extends DiskBasicTypeFAT8<DirectoryFrost> {
 
         int bytesPerGroup = basic.getSectorSize() / basic.getGroupsPerSector();
         int groupSize = (dataSize + bytesPerGroup - 1) / bytesPerGroup;
-        // 連続して確保できる領域
+        // Area that can be allocated continuously
         int groupNum = findContinuousArea(groupSize);
         if (groupNum == INVALID_GROUP_NUMBER) {
             groupNum = getEmptyGroupNumber();
@@ -257,31 +257,31 @@ public class DiskBasicTypeFROST extends DiskBasicTypeFAT8<DirectoryFrost> {
         int limit = basic.getFatEndGroup() + 1;
         while (rc >= 0 && limit >= 0 && sizeRemain[0] > 0) {
             if (groupNum == INVALID_GROUP_NUMBER) {
-                // 空きなし
+                // No free space
                 rc = firstGroup ? -1 : -2;
                 break;
             }
-            // 位置を予約
+            // Reserve position
             setGroupNumber(groupNum, basic.getGroupFinalCode());
 
-            // グループ番号の書き込み
+            // Write group number
             if (firstGroup) {
                 item.setStartGroup(fileUnitNum, groupNum);
                 firstGroup = false;
             }
 
-            // 次の空きグループをさがす
+            // Search for next free group
             int nextGroupNum = getNextEmptyGroupNumber(groupNum);
 
-            // 次の空きがない場合 or 残りサイズがこのグループで収まる場合
+            // If there is no next free space or the remaining size fits in this group
             if (nextGroupNum == INVALID_GROUP_NUMBER || sizeRemain[0] <= bytesPerGroup) {
-                // 最後のグループ番号
+                // Final group number
                 nextGroupNum = calcLastGroupNumber(nextGroupNum, sizeRemain);
             }
 
             basic.getNumsFromGroup(groupNum, nextGroupNum, basic.getSectorSize(), sizeRemain[0], groupItems[0]);
 
-            // グループ番号設定
+            // Set group number
             setGroupNumber(groupNum, nextGroupNum);
 
             groupNum = nextGroupNum;
@@ -298,13 +298,13 @@ public class DiskBasicTypeFROST extends DiskBasicTypeFAT8<DirectoryFrost> {
 
         if (rc >= 0) {
             if (flags == AllocateGroupFlags.ALLOCATE_GROUPS_APPEND) {
-                // 追加のときはチェインをつなぐ
+                // For append, connect chain
                 if (groupItems[0].size() > 0) {
                     rc = chainGroups(item.getStartGroup(0), groupItems[0].get(0).group);
                 }
             }
         } else {
-            // グループを削除
+            // Delete groups
             deleteGroups(groupItems[0]);
             rc = -1;
         }
@@ -313,10 +313,10 @@ public class DiskBasicTypeFROST extends DiskBasicTypeFAT8<DirectoryFrost> {
     }
 
     /**
-     * グループ番号から開始セクタ番号を得る
+     * Get starting sector number from group number
      *
-     * @param groupNum グループ番号
-     * @return 開始セクタ番号
+     * @param groupNum Group number
+     * @return Starting sector number
      */
     @Override
     public int getStartSectorFromGroup(int groupNum) {
@@ -324,7 +324,7 @@ public class DiskBasicTypeFROST extends DiskBasicTypeFAT8<DirectoryFrost> {
     }
 
     /**
-     * トラック＋セクタ番号から論理セクタ番号を得る
+     * Get logical sector number from track + sector number
      */
     public int convSectorPosFromTrackSector(int trkSec) {
         if (trkSec == basic.getGroupUnusedCode() || trkSec == basic.getGroupFinalCode() || trkSec == basic.getGroupSystemCode()) {
@@ -335,7 +335,7 @@ public class DiskBasicTypeFROST extends DiskBasicTypeFAT8<DirectoryFrost> {
     }
 
     /**
-     * 論理セクタ番号からトラック＋セクタ番号を得る
+     * Get track + sector number from logical sector number
      */
     public int convTrackSectorFromSectorPos(int pos) {
         if (pos == basic.getGroupUnusedCode() || pos == basic.getGroupFinalCode() || pos == basic.getGroupSystemCode()) {
@@ -346,15 +346,15 @@ public class DiskBasicTypeFROST extends DiskBasicTypeFAT8<DirectoryFrost> {
     }
 
     /**
-     * セクタ位置 (トラック0,サイド0,セクタ 1 を 0 とした通し番号) からトラック、サイド、セクタの各番号を得る
-     * セクタ位置は、機種によらずトラック 0, サイド 0, セクタ 1 を 0 とした通し番号
+     * Get track, side, sector numbers from sector position (serial number where track 0, side 0, sector 1 is 0)
+     * The sector position is a serial number where track 0, side 0, sector 1 is 0, regardless of the model
      *
-     * @param sectorPos セクタ位置 (トラック 0, サイド 0, セクタ 1 を 0 とした通し番号)
-     * @param trackNum  トラック番号
-     * @param sideNum   サイド番号
-     * @param sectorNum セクタ番号
-     * @param divNum    分割番号 (can be null)
-     * @param numOfDivs 分割数 (can be null)
+     * @param sectorPos Sector position (serial number where track 0, side 0, sector 1 is 0)
+     * @param trackNum  Track number
+     * @param sideNum   Side number
+     * @param sectorNum Sector number
+     * @param divNum    Division number (can be null)
+     * @param numOfDivs Number of divisions (can be null)
      */
     @Override
     public void getNumFromSectorPos(int sectorPos, int[] trackNum, int[] sideNum, int[] sectorNum, int[] divNum, int[] numOfDivs) {
@@ -382,15 +382,15 @@ public class DiskBasicTypeFROST extends DiskBasicTypeFAT8<DirectoryFrost> {
     }
 
     /**
-     * トラック、サイド、セクタの各番号からセクタ位置 (トラック 0, サイド 0, セクタ 1 を 0 とした通し番号)を得る
-     * セクタ位置は、機種によらずトラック 0, サイド 0, セクタ 1 を 0 とした通し番号
+     * Get sector position (serial number where track 0, side 0, sector 1 is 0) from track, side, sector numbers
+     * The sector position is a serial number where track 0, side 0, sector 1 is 0, regardless of the model
      *
-     * @param trackNum  トラック番号
-     * @param sideNum   サイド番号
-     * @param sectorNum セクタ番号
-     * @param divNum    分割番号
-     * @param numOfDivs 分割数
-     * @return セクタ位置 (トラック 0, サイド 0, セクタ 1 を 0 とした通し番号)
+     * @param trackNum  Track number
+     * @param sideNum   Side number
+     * @param sectorNum Sector number
+     * @param divNum    Division number
+     * @param numOfDivs Number of divisions
+     * @return Sector position (serial number where track 0, side 0, sector 1 is 0)
      */
     @Override
     public int getSectorPosFromNum(int trackNum, int sideNum, int sectorNum, int divNum, int numOfDivs) {
@@ -410,7 +410,7 @@ public class DiskBasicTypeFROST extends DiskBasicTypeFAT8<DirectoryFrost> {
     }
 
     /**
-     * セクタデータを指定コードで埋める
+     * Fill sector data with specified code
      */
     @Override
     public void fillSector(DiskImageTrack track, DiskImageSector sector) {
@@ -418,17 +418,17 @@ public class DiskBasicTypeFROST extends DiskBasicTypeFAT8<DirectoryFrost> {
     }
 
     /**
-     * セクタデータを埋めた後の個別処理
-     * フォーマット FAT予約済みをセット
+     * Individual processing after filling sector data
+     * Format Set FAT reserved
      */
     @Override
     public boolean additionalProcessOnFormatted(DiskBasicIdentifiedData data) {
-        // FAT トラック０はシステム
+        // FAT track 0 is system
         int endGroupNum = basic.getGroupsPerTrack() * basic.getSidesPerDiskOnBasic() - 1;
         for (int groupNum = 0; groupNum < endGroupNum; groupNum++) {
             setGroupNumber(groupNum, basic.getGroupSystemCode());
         }
-        // FAT FAT, DIRエリアはシステム
+        // FAT FAT, DIR area is system
         List<Integer> groups = basic.getReservedGroups();
         for (int groupNum : groups) {
             setGroupNumber(groupNum, basic.getGroupSystemCode());
@@ -437,11 +437,11 @@ public class DiskBasicTypeFROST extends DiskBasicTypeFAT8<DirectoryFrost> {
     }
 
     /**
-     * グループ確保時に最後のグループ番号を計算する
+     * Calculate the last group number when allocating groups
      *
-     * @param groupNum   現在のグループ番号
-     * @param sizeRemain 残りのデータサイズ (mutable via int array)
-     * @return 最後のグループ番号
+     * @param groupNum   Current group number
+     * @param sizeRemain Remaining data size (mutable via int array)
+     * @return Final group number
      */
     @Override
     public int calcLastGroupNumber(int groupNum, int[] sizeRemain) {
@@ -449,25 +449,25 @@ public class DiskBasicTypeFROST extends DiskBasicTypeFAT8<DirectoryFrost> {
     }
 
     /**
-     * データの書き込み処理
+     * Data writing processing
      *
-     * @param item      ディレクトリアイテム
-     * @param iStream   ストリームデータ
-     * @param buffer    セクタ内の書き込み先バッファ
-     * @param size      書き込み先バッファサイズ
-     * @param remain    残りのデータサイズ
-     * @param sectorNum セクタ番号
-     * @param groupNum  現在のグループ番号
-     * @param nextGroup 次のグループ番号
-     * @param sectorEnd 最終セクタ番号
-     * @param seqNum    通し番号(0...)
-     * @return 書き込んだバイト数
+     * @param item      Directory item
+     * @param iStream   Stream data
+     * @param buffer    Buffer to write within sector
+     * @param size      Buffer size to write
+     * @param remain    Remaining data size
+     * @param sectorNum Sector number
+     * @param groupNum  Current group number
+     * @param nextGroup Next group number
+     * @param sectorEnd Final sector number
+     * @param seqNum    Serial number (0...)
+     * @return Number of bytes written
      */
     @Override
     public int writeFile(DiskBasicDirItem<DirectoryFrost> item, InputStream iStream, byte[] buffer, int size, int remain, int sectorNum, int groupNum, int nextGroup, int sectorEnd, int seqNum) throws IOException {
         int len = 0;
         if (remain <= size) {
-            // 残り少ない
+            // Few left
             if (remain < 0) remain = 0;
             if (remain > 0) {
                 // Read up to 'remain' bytes
@@ -479,22 +479,22 @@ public class DiskBasicTypeFROST extends DiskBasicTypeFAT8<DirectoryFrost> {
                 Arrays.fill(buffer, len, size, (byte) 0);
             }
         } else {
-            // 継続
+            // Continuous
             len = iStream.readNBytes(buffer, 0, size);
             if (len < 0) len = 0;
         }
-        // 反転
+        // Invert
         basic.invertMemory(buffer, size);
 
         return len;
     }
 
     /**
-     * IPLや管理エリアの属性を得る
+     * Get attributes of IPL and managed area
      */
     @Override
     public void getIdentifiedData(DiskBasicIdentifiedData data) {
-        // タイトル名 FATエリア
+        // Title name FAT area
         int[] divNum = new int[1], numOfDivs = new int[1];
         DiskImageSector sector = basic.getManagedSector(basic.getFatStartSector() - 1 + 3, null, null, null, divNum, numOfDivs);
         if (sector != null) {
@@ -510,7 +510,7 @@ public class DiskBasicTypeFROST extends DiskBasicTypeFAT8<DirectoryFrost> {
     }
 
     /**
-     * IPLや管理エリアの属性をセット
+     * Set attributes of IPL and managed area
      */
     @Override
     public void setIdentifiedData(DiskBasicIdentifiedData data) {

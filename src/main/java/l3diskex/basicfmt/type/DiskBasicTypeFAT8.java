@@ -23,7 +23,7 @@ import l3diskex.diskimg.DiskImage.DiskImageTrack;
 
 
 /**
- * FAT8の処理
+ * FAT8 processing
  */
 public abstract class DiskBasicTypeFAT8<T extends Directory> extends DiskBasicType<T> {
 
@@ -34,34 +34,34 @@ public abstract class DiskBasicTypeFAT8<T extends Directory> extends DiskBasicTy
         super.init(basic, fat, dir);
     }
 
-    /** FAT位置をセット */
+    /** Set FAT position */
     @Override
     public void setGroupNumber(int num, int val) {
         // 8bit FAT
         fat.getDiskBasicFatArea().setData8(num, val);
     }
 
-    /** FAT位置を返す */
+    /** Returns FAT position */
     @Override
     public int getGroupNumber(int num) {
         // 8bit FAT
         return fat.getDiskBasicFatArea().getData8(0, num) & 0xff;
     }
 
-    /** FATエリアをチェック */
+    /** Check FAT area */
     @Override
     public double checkFat(boolean isFormatting) {
         int end = basic.getFatEndGroup() < 0xff ? basic.getFatEndGroup() : 0xff;
         int[] table = new int[end + 1];
 
-        // 同じグループ番号が重複しているか
+        // Check whether the same group number is duplicated
         for (int pos = 0; pos <= end; pos++) {
             int groupNum = getGroupNumber(pos);
             if (groupNum <= end) {
                 table[groupNum]++;
             }
         }
-        // 同じグループ番号が重複している場合エラー
+        // Error if the same group number is duplicated
         double validRatio = 1.0;
         for (int pos = 0; pos <= end; pos++) {
             if (table[pos] > 4) {
@@ -74,31 +74,31 @@ logger.log(Level.TRACE, "too many references to group: " + table[pos]);
         return validRatio;
     }
 
-    /** セクタデータを指定コードで埋める */
+    /** Fill sector data with specified code */
     @Override
     public void fillSector(DiskImageTrack track, DiskImageSector sector) {
         if (track.getTrackNumber() == basic.getManagedTrackNumber()) {
-            // ファイル管理エリアの場合
+            // In case of file management area
             sector.fill(basic.getFillCodeOnFAT());
         } else {
-            // ユーザーエリア
+            // User area
             sector.fill(basic.getFillCodeOnFormat());
         }
     }
 
-    /** セクタデータを埋めた後の個別処理 FAT予約済みをセット */
+    /** Individual processing after filling sector data set FAT reserved */
     @Override
     public boolean additionalProcessOnFormatted(DiskBasicIdentifiedData data) {
-        // FATエリア先頭に0を入れる
+        // Put 0 at the beginning of FAT area
         fat.set(0, (byte) 0);
 
         return true;
     }
 
-    /** グループ確保時に最後のグループ番号を計算する */
+    /** Calculate the last group number when allocating groups */
     @Override
     public int calcLastGroupNumber(int groupNum, int[] sizeRemain) {
-        // 残り使用セクタ数
+        // Number of remaining sectors used
         int remainSecs = ((sizeRemain[0] - 1) / basic.getSectorSize());
         if (remainSecs >= basic.getSectorsPerGroup()) {
             remainSecs = basic.getSectorsPerGroup() - 1;
@@ -118,11 +118,11 @@ logger.log(Level.TRACE, "too many references to group: " + table[pos]);
             super.init(basic, fat, dir);
         }
 
-        /** 次の空き位置を返す */
+        /** Returns next free position */
         @Override
         public int getNextEmptyGroupNumber(int currentGroup) {
             int newNum = INVALID_GROUP_NUMBER;
-            // 若い番号順に検索
+            // Search in ascending order of numbers
             for (int num = currentGroup; num <= basic.getFatEndGroup(); num++) {
                 int groupNum = getGroupNumber(num);
                 if (groupNum == basic.getGroupUnusedCode()) {
@@ -133,28 +133,28 @@ logger.log(Level.TRACE, "too many references to group: " + table[pos]);
             return newNum;
         }
 
-        /** スキップするトラック番号 */
+        /** Track number to skip */
         @Override
         public int calcSkippedTrack() {
             return basic.getManagedTrackNumber();
         }
 
-        /** ファイルの最終セクタのデータサイズを求める */
+        /** Determine the data size of the last sector of the file */
         @Override
         public int calcDataSizeOnLastSector(DiskBasicDirItem<DirectoryFat8F> item,
                                             InputStream iStream, OutputStream oStream,
                                             byte[] sectorBuffer, int sectorOffset, int sectorSize, int remainSize) {
-            // ファイルサイズはセクタサイズ境界なので要計算
+            // File size is at sector size boundary, so calculation is required
             if (item.needCheckEofCode()) {
-                // 終端コードの1つ前までを出力
+                // Output up to one byte before the termination code
                 byte eofCode = basic.invertUint8(basic.getTextTerminateCode());
-                // ランダムアクセス時は除く
+                // Except when random access
                 int len = sectorSize - 1;
                 for (; len >= 0; len--) {
                     if (sectorBuffer[len] == eofCode) break;
                 }
                 if (len < 0) {
-                    // 終端コードがない？
+                    // No termination code?
                     len = sectorSize;
                 }
                 sectorSize = len;

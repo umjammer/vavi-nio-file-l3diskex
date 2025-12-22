@@ -13,7 +13,7 @@ import l3diskex.diskimg.DiskImage.DiskImageSector;
 
 
 /**
- * LEVEL-3 BASIC 1S(片面・単密度)の処理
+ * LEVEL-3 BASIC 1S (single side, single density) processing
  */
 public class DiskBasicTypeL31S extends DiskBasicTypeFAT8F {
 

@@ -12,7 +12,7 @@ import l3diskex.basicfmt.DiskBasicFat;
 
 
 /**
- * FAT12の処理
+ * FAT12 processing
  */
 public abstract class DiskBasicTypeFAT12<T extends Directory> extends DiskBasicTypeFATBase<T> {
 
@@ -33,7 +33,7 @@ public abstract class DiskBasicTypeFAT12<T extends Directory> extends DiskBasicT
 
     @Override
     public double checkFat(boolean isFormatting) throws IOException {
-        // 重複チェック
+        // Duplication check
         double validRatio = checkFatDuplicated(isFormatting, 2, 0x1ff);
 
         return validRatio;
@@ -52,9 +52,9 @@ public abstract class DiskBasicTypeFAT12<T extends Directory> extends DiskBasicT
                                         int remainSize) {
 
         if (iStream != null) {
-            // ベリファイ時のみEOFが自動で付加されることがある
+            // EOF may be automatically added only during verify
             if (item.needCheckEofCode()) {
-                // 終端コードの1つ前までを出力
+                // Output up to one byte before the termination code
                 byte eofCode = basic.getTextTerminateCode();
                 int len = remainSize - 1;
                 if (sectorBuffer[len] == eofCode) {

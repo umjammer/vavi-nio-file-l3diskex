@@ -41,26 +41,26 @@ public class UiDirItemSDOS extends UiDirItem {
     DiskBasicDirItemSDOS dirItem;
 
     /**
-     * ダイアログ用に属性を設定する
+     * Set attributes for dialog
      *
-     * @param show_flags  ダイアログ表示フラグ
-     * @param name        ファイル名
-     * @param file_type_1 CreateControlsForAttrDialog()に渡す
-     * @param file_type_2 CreateControlsForAttrDialog()に渡す
+     * @param show_flags  Dialog display flag
+     * @param name        File name
+     * @param file_type_1 Passed to CreateControlsForAttrDialog()
+     * @param file_type_2 Passed to CreateControlsForAttrDialog()
      */
     private void SetFileTypeForAttrDialog(int show_flags, String name, int[] file_type_1, int[] file_type_2) {
         if ((show_flags & INTNAME_NEW_FILE) != 0) {
-            // 外部からインポート時
+            // When importing from external
             file_type_1[0] = dirItem.convOriginalTypeFromFileName(name);
         }
     }
 
     /**
-     * ダイアログ内の属性部分のレイアウトを作成
+     * Create layout for attribute part in dialog
      *
-     * @param parent     プロパティダイアログ
-     * @param show_flags ダイアログ表示フラグ
-     * @param file_path  外部からインポート時のファイルパス
+     * @param parent     Property dialog
+     * @param show_flags Dialog display flag
+     * @param file_path  File path when importing from external
      * @param sizer      sizer (Placeholder for a Java container/layout)
      * @param flags      flags (Placeholder for layout constraints)
      */
@@ -98,9 +98,9 @@ public class UiDirItemSDOS extends UiDirItem {
     }
 
     /**
-     * 属性を変更した際に呼ばれるコールバック
+     * Callback called when attribute is changed
      *
-     * @param parent プロパティダイアログ
+     * @param parent Property dialog
      */
     @Override
     public void changeTypeInAttrDialog(IntNameBox parent) {
@@ -115,11 +115,11 @@ public class UiDirItemSDOS extends UiDirItem {
     }
 
     /**
-     * 機種依存の属性を設定する
+     * Set machine dependent attributes
      *
-     * @param parent  プロパティダイアログ
-     * @param attr    プロパティの属性値
-     * @param errinfo エラー情報
+     * @param parent  Property dialog
+     * @param attr    Attribute value of property
+     * @param errinfo Error information
      * @return true
      */
     @Override
@@ -139,20 +139,20 @@ public class UiDirItemSDOS extends UiDirItem {
     }
 
     /**
-     * 属性値を加工する
+     * Process attribute values
      *
-     * @param attr    プロパティの属性値
-     * @param errinfo エラー情報
+     * @param attr    Attribute value of property
+     * @param errinfo Error information
      * @return true
      */
     public boolean processAttr(DiskBasicDirItemAttr attr, DiskBasicError errinfo) {
         int t1 = attr.getFileOriginAttr(0);
 
-        // BASICの固定アドレス設定
+        // BASIC fixed address setting
         switch (t1) {
             case FILETYPE_SDOS_BAS1:
             case FILETYPE_SDOS_BAS2:
-                // BASICの場合、ロードアドレス、実行アドレスを固定で設定
+                // For BASIC, set load address and execution address to fixed values
                 attr.setStartAddress(dirItem.getBasic().diskBasicParam.getVariousIntegerParam("DefaultStartAddress"));
                 attr.setExecuteAddress(dirItem.getBasic().diskBasicParam.getVariousIntegerParam("DefaultExecuteAddress"));
                 break;

@@ -31,7 +31,7 @@ import static l3diskex.basicfmt.type.DiskBasicTypeL32D.FORMAT_TYPE_L3S1_2D;
 public class DiskBasicDirItemL32D extends DiskBasicDirItemFAT8<DirectoryL32d> {
 
     /**
-     * ディレクトリエントリ L3,S1 ５インチ,８インチ(倍密度)
+     * Directory entry L3, S1 5-inch, 8-inch (double density)
      */
     @Serdes
     public static class DirectoryL32d implements Directory {
@@ -255,7 +255,7 @@ public class DiskBasicDirItemL32D extends DiskBasicDirItemFAT8<DirectoryL32d> {
     @Override
     protected String addExtension(int fileType1, String name) {
         // L3/S1 BASIC
-        // 拡張子を自動で付加する
+        // Automatically append extension
         String newName = "";
 
         int len = name.length();

@@ -36,16 +36,16 @@ import static l3diskex.basicfmt.type.DiskBasicTypeSMC.FORMAT_TYPE_SMC;
 
 
 /**
- * ディレクトリ１アイテム CP/M
+ * Directory 1 item CP/M
  *
- * {@link #externalAttr} バイナリ属性の時: FILE_TYPE_BINARY_MASK, アスキー属性の時: 0
+ * {@link #externalAttr} when binary attribute: FILE_TYPE_BINARY_MASK, when ASCII attribute: 0
  */
 public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> {
 
     static final ResourceBundle rb = ResourceBundle.getBundle("messages");
 
     /**
-     * ディレクトリエントリ CP/M (32bytes)
+     * Directory entry CP/M (32bytes)
      */
     @Serdes(bigEndian = false)
     public static class DirectoryCpm implements Directory, Cloneable {
@@ -76,14 +76,14 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> {
         public static final int SIZE = 32;
     }
 
-    /** CP/M属性名 */
+    /** CP/M attribute names */
     public static final String[] typeNameCPM = {
             /*rb.getString(*/"Read Only"/*)*/,
             /*rb.getString(*/"System"/*)*/,
             /*rb.getString(*/"Archive"/*)*/,
     };
 
-    // CP/M属性名
+    // CP/M attribute names
     static final int TYPE_NAME_CPM_READ_ONLY = 0;
     static final int TYPE_NAME_CPM_SYSTEM = 1;
     static final int TYPE_NAME_CPM_ARCHIVE = 2;
@@ -102,15 +102,15 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> {
     //
     //
 
-    /** ディレクトリデータ */
+    /** Directory data */
     protected DiskBasicDirData<DirectoryCpm> data = new DiskBasicDirData<>();
 
-    /** グループ番号の幅(1 = 8ビット, 2 = 16ビット) */
+    /** Width of group number (1 = 8-bit, 2 = 16-bit) */
     protected int groupWidth;
-    /** グループ番号のエントリ数(8 or 16) */
+    /** Number of group number entries (8 or 16) */
     protected int groupEntries;
 
-    /** 次のエクステントがある場合 */
+    /** When there is a next extent */
     protected DiskBasicDirItemCPM nextItem;
 
     @Override
@@ -124,7 +124,7 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> {
         super.init(basic);
 
         data.alloc(DirectoryCpm.class);
-        // グループ番号の幅
+        // Width of group number
         groupWidth = basic.getGroupWidth();
         groupEntries = basic.getGroupsPerDirEntry() >= 8 ? basic.getGroupsPerDirEntry() : (16 / groupWidth);
         externalAttr = getFileTypeByExt(0, getFileExtPlainStr());
@@ -139,7 +139,7 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> {
         super.init(basic, sector, sectorPos, data, dataP);
 
         this.data.attach(DirectoryCpm.class, data, dataP);
-        // グループ番号の幅
+        // Width of group number
         groupWidth = basic.getGroupWidth();
         groupEntries = basic.getGroupsPerDirEntry() >= 8 ? basic.getGroupsPerDirEntry() : (16 / groupWidth);
         externalAttr = getFileTypeByExt(0, getFileExtPlainStr());
@@ -155,7 +155,7 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> {
         super.init(basic, num, groupItem, sector, sectorPos, data, dataPos, next, unuse);
 
         this.data.attach(DirectoryCpm.class, data, dataPos);
-        // グループ番号の幅
+        // Width of group number
         groupWidth = basic.getGroupWidth();
         groupEntries = basic.getGroupsPerDirEntry() >= 8 ? basic.getGroupsPerDirEntry() : (16 / groupWidth);
         externalAttr = getFileTypeByExt(0, getFileExtPlainStr());
@@ -166,15 +166,15 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> {
     }
 
     /**
-     * アイテムへのポインタを設定
+     * Set pointer to item
      *
-     * @param num       通し番号
-     * @param groupItem トラック番号などのデータ
-     * @param sector    セクタ
-     * @param sectorPos    セクタ内のディレクトリエントリの位置
-     * @param data      ディレクトリアイテム
-     * @param dataPos     ディレクトリアイテムのポインタ
-     * @param next      次のセクタ
+     * @param num       Serial number
+     * @param groupItem Data such as track number
+     * @param sector    Sector
+     * @param sectorPos Position of directory entry within sector
+     * @param data      Directory item
+     * @param dataPos   Pointer to directory item
+     * @param next      Next sector
      */
     @Override
     public void setData(int num, DiskBasicGroupItem groupItem, DiskImageSector sector, int sectorPos, byte[] data, int dataPos, SectorParam next) throws IOException {
@@ -184,7 +184,7 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> {
     }
 
     /**
-     * ファイル名を格納する位置を返す
+     * Returns position where file name is stored
      */
     @Override
     protected byte[] getFileNamePos(int num, int[] size, int[] len) {
@@ -198,7 +198,7 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> {
     }
 
     /**
-     * 拡張子を格納する位置を返す
+     * Returns position where extension is stored
      */
     @Override
     protected byte[] getFileExtPos(int[] len) {
@@ -207,7 +207,7 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> {
     }
 
     /**
-     * 属性１を返す (User ID)
+     * Returns attribute 1 (User ID)
      */
     @Override
     public int getFileType1() {
@@ -215,7 +215,7 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> {
     }
 
     /**
-     * 属性２を返す (R/S/A + Binary/ASCII)
+     * Returns attribute 2 (R/S/A + Binary/ASCII)
      */
     @Override
     public int getFileType2() {
@@ -237,7 +237,7 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> {
     }
 
     /**
-     * 拡張子からアスキーorバイナリ属性を判断する
+     * Determine ASCII or binary attribute from extension
      */
     public int getFileTypeByExt(int val, String ext) {
         MyAttribute sa = findUpperCase(basic.getAttributesByExtension(), ext, FILE_TYPE_BINARY_MASK.getValue(), 0x3f);
@@ -248,7 +248,7 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> {
     }
 
     /**
-     * 属性１を設定 (User ID)
+     * Set attribute 1 (User ID)
      */
     @Override
     protected void setFileType1(int val) {
@@ -256,7 +256,7 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> {
     }
 
     /**
-     * 属性２を設定 (R/S/A + Binary/ASCII)
+     * Set attribute 2 (R/S/A + Binary/ASCII)
      */
     @Override
     protected void setFileType2(int val) {
@@ -271,22 +271,22 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> {
     }
 
     /**
-     * ファイル名を得る
+     * Get file name
      */
     @Override
     public void getNativeFileName(byte[] name, int[] nLen, byte[] ext, int[] eLen) {
         super.getNativeFileName(name, nLen, ext, eLen);
 
-        // 拡張子部分のMSBは属性ビットなので除く
+        // MSB of extension part is attribute bit, so exclude it
         for (int en = 0; en < eLen[0]; en++) {
             ext[en] &= 0x7f;
         }
     }
 
     /**
-     * 拡張子を返す
+     * Returns extension
      *
-     * @return 拡張子
+     * @return Extension
      */
     @Override
     public String getFileExtPlainStr() {
@@ -301,30 +301,30 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> {
     }
 
     /**
-     * ファイル名を設定
+     * Set file name
      *
-     * filename はデータビットが反転している場合あり
-     * @param filename ファイル名
-     * @param size     バッファサイズ
-     * @param length   長さ
+     * filename may have data bits inverted
+     * @param filename File name
+     * @param size     Buffer size
+     * @param length   Length
      */
     @Override
     protected void setNativeName(byte[] filename, int size, int length) {
         super.setNativeName(filename, size, length);
 
-        // 複数ある時
+        // When there are multiple
         if (nextItem != null) {
             nextItem.setNativeName(filename, size, length);
         }
     }
 
     /**
-     * 拡張子を設定
+     * Set extension
      *
-     * fileext はデータビットが反転している場合あり
-     * @param fileExt 拡張子
-     * @param size    バッファサイズ
-     * @param length  長さ
+     * fileext may have data bits inverted
+     * @param fileExt Extension
+     * @param size    Buffer size
+     * @param length  Length
      */
     @Override
     protected void setNativeExt(byte[] fileExt, int size, int length) {
@@ -335,18 +335,18 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> {
         if (el[0] > size) el[0] = size;
 
         for (int i = 0; i < el[0]; i++) {
-            // MSBは属性ビットなのでのこす
+            // MSB is attribute bit, so keep it
             e[i] = (byte) ((e[i] & 0x80) | (fileExt[i] & 0x7f));
         }
 
-        // 複数ある時
+        // When there are multiple
         if (nextItem != null) {
             nextItem.setNativeExt(fileExt, size, length);
         }
     }
 
     /**
-     * 使用しているアイテムか
+     * Whether it is a used item
      */
     @Override
     public boolean checkUsed(boolean unuse) {
@@ -354,15 +354,15 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> {
     }
 
     /**
-     * 削除
+     * Delete
      */
     @Override
     public boolean delete() {
-        // 削除はエントリの先頭にコードを入れるだけ
+        // Deletion is simply putting a code at the beginning of the entry
         setFileType1(basic.getDeleteCode());
         used(false);
 
-        // 複数ある時
+        // When there are multiple
         if (nextItem != null) {
             nextItem.delete();
         }
@@ -370,17 +370,17 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> {
     }
 
     /**
-     * ディレクトリアイテムのチェック
+     * Check directory item
      *
-     * @param last チェックを終了するか
-     * @return チェックOK
+     * @param last Whether to end the check
+     * @return Check OK
      */
     @Override
     public boolean check(boolean[] last) {
         if (!data.isValid()) return false;
 
         boolean valid = false;
-        // ユーザIDが0～15でファイル名がオール0ならダメ
+        // Not valid if user ID is 0-15 and file name is all zeros
         if (getFileType1() < 0x10) {
             byte[] name = new byte[data.data().name.length];
             basic.invertMemory(data.data().name, data.data().name.length, name);
@@ -393,7 +393,7 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> {
             if (valid && !last[0]) {
                 valid = checkData(data.getRawData(), getDataSize(), last);
             }
-            // グループ番号が超えていたらダメ
+            // Not valid if group number exceeds limit
             if (valid) {
                 for (int i = 0; i < groupEntries; i++) {
                     if (getGroupNumber(i) > basic.getFatEndGroup()) {
@@ -409,21 +409,21 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> {
     }
 
     /**
-     * 属性を設定
+     * Set attribute
      */
     @Override
     public void setFileAttr(DiskBasicFileType fileType) {
         setFileType1(fileType.getFormat() == basic.getFormatTypeNumber() ? fileType.getOrigin() : 0);
         setFileType2(fileType.getType());
 
-        // 複数ある場合
+        // When there are multiple
         if (nextItem != null) {
             nextItem.setFileAttr(fileType);
         }
     }
 
     /**
-     * 属性を返す
+     * Returns attribute
      */
     @Override
     public DiskBasicFileType getFileAttr() {
@@ -431,7 +431,7 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> {
     }
 
     /**
-     * 属性の文字列を返す(ファイル一覧画面表示用)
+     * Returns attribute string (for file list display)
      */
     @Override
     public String getFileAttrStr() {
@@ -459,7 +459,7 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> {
     }
 
     /**
-     * ファイルサイズをセット
+     * Set file size
      */
     @Override
     public void setFileSize(int val) {
@@ -467,7 +467,7 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> {
     }
 
     /**
-     * ファイルサイズとグループ数を計算する
+     * Calculate file size and number of groups
      */
     @Override
     public void calcFileUnitSize(int fileUnitNum) throws IOException {
@@ -477,7 +477,7 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> {
     }
 
     /**
-     * 指定ディレクトリのすべてのグループを取得
+     * Get all groups of specified directory
      */
     @Override
     public void getUnitGroups(int fileUnitNum, DiskBasicGroups groupItems) throws IOException {
@@ -486,11 +486,11 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> {
 
         int bytesPerGroup = basic.getSectorSize() * basic.getSectorsPerGroup();
 
-        // グループ数を計算
+        // Calculate number of groups
         int mapSize = getGroupEntries();
         int groupSize = (bytesPerGroup * mapSize);
         int remainSize = (getExtentNumber() * SECTOR_UNIT_CPM + getRecordNumber()) * SECTOR_UNIT_CPM;
-        // ファイルサイズは1エントリ分にする
+        // Make file size equivalent to 1 entry
         remainSize = ((remainSize + groupSize - 1) % groupSize) + 1;
 
         for (int mapPos = 0; mapPos < mapSize; mapPos++) {
@@ -507,24 +507,24 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> {
         groupItems.addNums(calcGroups);
 
         if (nextItem != null) {
-            // ファイルには続きがある
+            // File has continuation
             nextItem.getUnitGroups(fileUnitNum, groupItems);
         } else {
-            // ファイル終り
+            // End of file
 
-            // グループサイズ
+            // Group size
             groupItems.setSizePerGroup(bytesPerGroup);
-            // 最終セクタのサイズを計算
+            // Calculate size of last sector
             groupItems.setSize(recalcFileSize(groupItems, (int) groupItems.getSize()));
         }
     }
 
     /**
-     * 最終セクタのサイズを計算してファイルサイズを返す
+     * Calculate size of the last sector and return file size
      *
-     * @param groupItems   グループリスト
-     * @param occupiedSize 占有サイズ
-     * @return 計算後のファイルサイズ
+     * @param groupItems   Group list
+     * @param occupiedSize Occupied size
+     * @return Calculated file size
      */
     @Override
     public int recalcFileSize(DiskBasicGroups groupItems, int occupiedSize) throws IOException {
@@ -547,7 +547,7 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> {
     }
 
     /**
-     * ディレクトリアイテムのサイズ
+     * Size of directory item
      */
     @Override
     public int getDataSize() {
@@ -555,7 +555,7 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> {
     }
 
     /**
-     * アイテムを返す
+     * Returns item
      */
     @Override
     public DirectoryCpm getData() {
@@ -563,7 +563,7 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> {
     }
 
     /**
-     * アイテムをコピー
+     * Copy item
      */
     @Override
     public boolean copyData(byte[] val) {
@@ -571,7 +571,7 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> {
     }
 
     /**
-     * ディレクトリをクリア ファイル新規作成時
+     * Clear directory: during creation of a new file
      */
     @Override
     public void clearData() {
@@ -579,7 +579,7 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> {
     }
 
     /**
-     * ファイルの終端コードをチェックする必要があるか
+     * Whether EOF code needs to be checked
      */
     @Override
     public boolean needCheckEofCode() {
@@ -587,13 +587,13 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> {
     }
 
     /**
-     * セーブ時にファイルサイズを再計算する ファイルの終端コードが必要な場合
+     * Recalculate file size on save: when EOF code is needed
      */
     @Override
     public int recalcFileSizeOnSave(InputStream iStream, int fileSize) throws IOException {
         if (needCheckEofCode()) {
-            // ファイルの最終が終端記号で終わっているかを調べる
-            // ただし、ファイルサイズが128バイトと合うなら終端記号は不要
+            // Check if the end of the file ends with a termination symbol
+            // However, if the file size matches 128 bytes, the termination symbol is not required
             if ((fileSize % SECTOR_UNIT_CPM) != 0) {
                 fileSize = checkEofCode(iStream, fileSize);
                 fileSize--;
@@ -603,14 +603,14 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> {
     }
 
     /**
-     * 最初のグループ番号を設定
+     * Set the first group number
      */
     @Override
     public void setStartGroup(int fileUnitNum, int val, int size) {
     }
 
     /**
-     * 最初のグループ番号を返す
+     * Returns the first group number
      */
     @Override
     public int getStartGroup(int fileUnitNum) {
@@ -621,7 +621,7 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> {
     }
 
     /**
-     * アイテムを削除できるか
+     * Whether item can be deleted
      */
     @Override
     public boolean isDeletable() {
@@ -629,7 +629,7 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> {
     }
 
     /**
-     * グループ番号をセット (aka setGroup)
+     * Set group number (aka setGroup)
      */
     public void setGroupNumber(int pos, int val) {
         if (pos < 0 || pos >= groupEntries) return;
@@ -644,7 +644,7 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> {
     }
 
     /**
-     * グループ番号を返す (aka getGroup)
+     * Returns group number (aka getGroup)
      */
     public int getGroupNumber(int pos) {
         int val = 0;
@@ -656,7 +656,7 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> {
     }
 
     /**
-     * エクステント番号を返す
+     * Returns extent number
      */
     public int getExtentNumber() {
         int num = data.data().extentNum & 0xff;
@@ -665,7 +665,7 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> {
     }
 
     /**
-     * レコード番号を返す
+     * Returns record number
      */
     public int getRecordNumber() {
         int num = data.data().recordNum & 0xff;
@@ -674,7 +674,7 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> {
     }
 
     /**
-     * ファイルサイズからエクステント番号とレコード番号をセット
+     * Set extent number and record number from file size
      */
     public void calcExtentAndRecordNumber(int val) {
         //int limitSize = basic.getSectorSize() * basic.getSectorsPerGroup() * groupEntries;
@@ -699,21 +699,21 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> {
     }
 
     /**
-     * 次のアイテムをセット
+     * Set next item
      */
     public void setNextItem(DiskBasicDirItem<DirectoryCpm> val) {
         nextItem = (DiskBasicDirItemCPM) val;
     }
 
     /**
-     * 次のアイテムを返す
+     * Returns next item
      */
     public DiskBasicDirItemCPM getNextItem() {
         return nextItem;
     }
 
     /**
-     * アイテムソート用
+     * For item sorting
      */
     public static int compare(DiskBasicDirItem<DirectoryCpm> item1, DiskBasicDirItem<DirectoryCpm> item2) {
         byte[] d1 = Arrays.copyOf(item1.getRawData(), DirectoryCpm.SIZE);
@@ -724,17 +724,17 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> {
         }
 
         int cmp = 0;
-        // ユーザID＋ファイル名＋拡張子＋エクステント番号
+        // user ID + file name + extension + extent number
         cmp = Arrays.compare(d1, 0, 13, d2, 0, 13);
-        // ＋レコード番号(逆)
+        // + record number (reverse)
         if (cmp == 0) cmp = Arrays.compare(d1, 15, 16, d2, 15, 16);
-        // ＋マップ
+        // + map
         if (cmp == 0) cmp = Arrays.compare(d1, 16, 17, d2, 16, 17);
         return cmp;
     }
 
     /**
-     * 名前比較
+     * Name comparison
      */
     public static int compareName(DiskBasicDirItem<DirectoryCpm> item1, DiskBasicDirItem<DirectoryCpm> item2) {
         byte[] d1 = Arrays.copyOf(item1.getRawData(), DirectoryCpm.SIZE);
@@ -745,29 +745,29 @@ public class DiskBasicDirItemCPM extends DiskBasicDirItem<DirectoryCpm> {
         }
 
         int cmp = 0;
-        // ファイル名＋拡張子
+        // File name + extension
         cmp = Arrays.compare(d1, 1, 12, d2, 1, 12);
         return cmp;
     }
 
     /**
-     * ファイル名から属性を決定する
+     * Determine attribute from file name
      */
     @Override
     public int convFileTypeFromFileName(String filename) {
         int ftype = 0;
-        // 拡張子で属性を設定する
+        // Set attribute by extension
         ftype = getFileTypeByExt(externalAttr, Utils.getExt(filename));
         return ftype;
     }
 
-    /** グループ番号のエントリ数を返す */
+    /** Returns number of group number entries */
     public int getGroupEntries() {
         return groupEntries;
     }
 
     /**
-     * プロパティで表示する内部データを設定
+     * Set internal data displayed in properties
      */
     @Override
     public void setInternalDataInAttrDialog(KeyValArray vals) {

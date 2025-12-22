@@ -26,7 +26,7 @@ public class DiskParam {
 
     public static DiskTemplates diskTemplates = new DiskTemplates();
 
-    /** トラック＆サイド＆セクタ番号を保持 */
+    /** Holds track, side, and sector numbers */
     public static class SectorParam {
 
         protected int trackNum;
@@ -34,7 +34,7 @@ public class DiskParam {
         protected int sectorNum;
         protected int sectorSize;
 
-        /** トラック＆サイド＆セクタ番号を保持 */
+        /** Holds track, side, and sector numbers */
         public SectorParam() {
             this.trackNum = -1;
             this.sideNum = -1;
@@ -43,12 +43,12 @@ public class DiskParam {
         }
 
         /**
-         * 番号を保持
+         * Holds numbers
          *
-         * @param trackNum   トラック番号
-         * @param sideNum    サイド番号
-         * @param sectorNum  セクタ番号
-         * @param sectorSize セクタサイズ
+         * @param trackNum   Track number
+         * @param sideNum    Side number
+         * @param sectorNum  Sector number
+         * @param sectorSize Sector size
          */
         public SectorParam(int trackNum, int sideNum, int sectorNum, int sectorSize) {
             this.trackNum = trackNum;
@@ -57,7 +57,7 @@ public class DiskParam {
             this.sectorSize = sectorSize;
         }
 
-        /** 比較 */
+        /** Comparison */
         public boolean equals(SectorParam dst) {
             return (trackNum == dst.trackNum
                     && sideNum == dst.sideNum
@@ -66,12 +66,12 @@ public class DiskParam {
         }
 
         /**
-         * 指定したトラック、サイドが特殊なセクタ（単密度など）か
+         * Whether the specified track and side are special sectors (single density, etc.)
          *
-         * @param trackNum   トラック番号
-         * @param sideNum    サイド番号
-         * @param sectorNum  セクタ番号
-         * @param sectorSize セクタサイズ、セクタサイズが <0 の時、条件から除外する
+         * @param trackNum   Track number
+         * @param sideNum    Side number
+         * @param sectorNum  Sector number
+         * @param sectorSize Sector size; if < 0, it is excluded from the condition
          */
         public boolean match(int trackNum, int sideNum, int sectorNum, int sectorSize) {
             return ((this.trackNum < 0 || (this.trackNum == trackNum))
@@ -105,7 +105,7 @@ public class DiskParam {
         }
     }
 
-    /** トラック＆サイド＆セクタ番号を保持 */
+    /** Holds track, side, and sector numbers */
     public static class TrackParam extends SectorParam {
 
         public static final int ID_IS_VALID = 0x8000;
@@ -115,7 +115,7 @@ public class DiskParam {
         protected int[] id;
 
         /**
-         * 単密度など特殊なトラックやセクタ情報を保持する
+         * Holds special track and sector information such as single density
          */
         public TrackParam() {
             this.numOfTracks = 1;
@@ -124,14 +124,14 @@ public class DiskParam {
         }
 
         /**
-         * 特殊なトラックやセクタを登録
+         * Register special tracks and sectors
          *
-         * @param trackNum        トラック番号 (-1: ALL)
-         * @param sideNum         サイド番号 (-1: ALL)
-         * @param sectorNum       セクタ番号 (特殊セクタ指定時のみ)
-         * @param numOfTracks     トラック数 (特殊トラック指定時のみ)
-         * @param sectorsPerTrack セクタ数 (特殊トラック指定時のみ)
-         * @param sectorSize      セクタサイズ
+         * @param trackNum        Track number (-1: ALL)
+         * @param sideNum         Side number (-1: ALL)
+         * @param sectorNum       Sector number (only when specifying a special sector)
+         * @param numOfTracks     Number of tracks (only when specifying special tracks)
+         * @param sectorsPerTrack Number of sectors (only when specifying special tracks)
+         * @param sectorSize      Sector size
          */
         public TrackParam(int trackNum, int sideNum, int sectorNum, int numOfTracks, int sectorsPerTrack, int sectorSize) {
             super(trackNum, sideNum, sectorNum, sectorSize);
@@ -140,7 +140,7 @@ public class DiskParam {
             this.id = new int[4];
         }
 
-        /** 比較 */
+        /** Comparison */
         public boolean equals(TrackParam dst) {
             return (trackNum == dst.trackNum
                     && sideNum == dst.sideNum
@@ -150,14 +150,14 @@ public class DiskParam {
                     && sectorSize == dst.sectorSize);
         }
 
-        /** IDをセット */
+        /** Set ID */
         public void setID(int idx, int val) {
             if (idx >= 0 && idx < 4) {
                 id[idx] = val;
             }
         }
 
-        /** IDを返す */
+        /** Return ID */
         public int getID(int idx) {
             if (idx >= 0 && idx < 4) {
                 return id[idx];
@@ -166,37 +166,37 @@ public class DiskParam {
             }
         }
 
-        /** トラックの数を設定 */
+        /** Set number of tracks */
         public void setNumberOfTracks(int val) {
             numOfTracks = val;
         }
 
-        /** セクタの数を設定 */
+        /** Set number of sectors */
         public void setSectorsPerTrack(int val) {
             sectorsPerTrack = val;
         }
 
-        /** セクタサイズを設定 */
+        /** Set sector size */
         public void setSectorSize(int val) {
             sectorSize = val;
         }
 
-        /** トラックの数を返す */
+        /** Return number of tracks */
         public int getNumberOfTracks() {
             return numOfTracks;
         }
 
-        /** セクタの数を返す */
+        /** Return number of sectors */
         public int getSectorsPerTrack() {
             return sectorsPerTrack;
         }
 
-        /** セクタサイズを返す */
+        /** Return sector size */
         public int getSectorSize() {
             return sectorSize;
         }
 
-        /** IDを返す */
+        /** Return ID */
         public int[] getID() {
             return id;
         }
@@ -211,25 +211,25 @@ public class DiskParam {
         }
     }
 
-    /** 単密度など特殊なトラックやセクタ情報を保持する */
+    /** Holds special track and sector information such as single density */
     public static class DiskParticular extends TrackParam {
 
         private final List<TrackParam> excludes;
 
-        /** 単密度など特殊なトラックやセクタ情報を保持する */
+        /** Holds special track and sector information such as single density */
         public DiskParticular() {
             this.excludes = new ArrayList<>();
         }
 
         /**
-         * 特殊なトラックやセクタを登録
+         * Register special tracks and sectors
          *
-         * @param trackNum        トラック番号 (-1: ALL)
-         * @param sideNum         サイド番号 (-1: ALL)
-         * @param sectorNum       セクタ番号 (特殊セクタ指定時のみ)
-         * @param numOfTracks     トラック数 (特殊トラック指定時のみ)
-         * @param sectorsPerTrack セクタ数 (特殊トラック指定時のみ)
-         * @param sectorSize      セクタサイズ
+         * @param trackNum        Track number (-1: ALL)
+         * @param sideNum         Side number (-1: ALL)
+         * @param sectorNum       Sector number (only when specifying a special sector)
+         * @param numOfTracks     Number of tracks (only when specifying special tracks)
+         * @param sectorsPerTrack Number of sectors (only when specifying special tracks)
+         * @param sectorSize      Sector size
          */
         public DiskParticular(int trackNum, int sideNum, int sectorNum, int numOfTracks, int sectorsPerTrack, int sectorSize) {
             super(trackNum, sideNum, sectorNum, numOfTracks, sectorsPerTrack, sectorSize);
@@ -237,19 +237,19 @@ public class DiskParam {
         }
 
         /**
-         * 除外するトラックをリストに追加
+         * Add tracks to be excluded to the list
          *
-         * @param param パラメータ
+         * @param param Parameters
          */
         public void addExclude(TrackParam param) {
             excludes.add(param);
         }
 
         /**
-         * トラックが除外リストに含まれるか
+         * Whether the track is included in the exclusion list
          *
-         * @param trackNum トラック番号
-         * @param sideNum  サイド番号
+         * @param trackNum Track number
+         * @param sideNum  Side number
          */
         public boolean findExclude(int trackNum, int sideNum) {
             TrackParam match = null;
@@ -263,10 +263,10 @@ public class DiskParam {
         }
 
         /**
-         * 同じセクタのものをまとめる
+         * Group items with the same sector
          *
-         * @param sectors セクタ数
-         * @param result  [in,out] リスト
+         * @param sectors Number of sectors
+         * @param result  [in,out] List
          */
         public static void uniqueSectors(int sectors, List<DiskParticular> result) {
             int count = result.size();
@@ -282,12 +282,12 @@ public class DiskParam {
         }
 
         /**
-         * 同じトラックやサイドのものをまとめる
+         * Group items with the same track or side
          *
-         * @param tracks    トラック数
-         * @param sides     サイド数
-         * @param bothSides 両面タイプか
-         * @param result    [in,out] リスト
+         * @param tracks    Number of tracks
+         * @param sides     Number of sides
+         * @param bothSides Whether both sides are used
+         * @param result    [in,out] List
          */
         public static void uniqueTracks(int tracks, int sides, boolean bothSides, List<DiskParticular> result) {
             int count = result.size();
@@ -297,7 +297,7 @@ public class DiskParam {
             DiskParticular prevSd;
 
             prevSd = result.getFirst();
-            // 同じトラック番号で全サイドが同じパラメータ(単密度)であればまとめる
+            // If parameters (single density) are the same for all sides on the same track number, group them together
             int sideCount = 1;
             boolean allSides = true;
             for (int idx = 1; idx <= count; idx++) {
@@ -323,7 +323,7 @@ public class DiskParam {
 
             count = result.size();
             newSd.clear();
-            // 全トラックが同じパラメータ(単密度)であればまとめる
+            // If parameters (single density) are the same for all tracks, group them together
             if (allSides && count >= tracks) {
                 DiskParticular sd = result.getFirst();
                 newSd.add(new DiskParticular(-1, -1, -1, sd.getNumberOfTracks(), sd.getSectorsPerTrack(), sd.getSectorSize()));
@@ -336,7 +336,7 @@ public class DiskParam {
         // DiskParticulars
         //
 
-        /** セクタ/トラックのリスト内で最小値を返す */
+        /** Returns the minimum value in the sector/track list */
         public static int getMinSectorsPerTrack(List<DiskParticular> list, int defaultNumber) {
             int val = 0xffff;
             for (DiskParticular diskParticular : list) {
@@ -350,7 +350,7 @@ public class DiskParam {
             return val;
         }
 
-        /** セクタ/トラックのリスト内で最大値を返す */
+        /** Returns the maximum value in the sector/track list */
         public static int getMaxSectorsPerTrack(List<DiskParticular> list, int defaultNumber) {
             int val = 0;
             for (DiskParticular diskParticular : list) {
@@ -364,7 +364,7 @@ public class DiskParam {
             return val;
         }
 
-        /** 全ての値が一致するか */
+        /** Whether all values match */
         public static boolean equals(List<DiskParticular> list, List<DiskParticular> dst) {
             boolean match = true;
             if (list.size() != dst.size()) {
@@ -395,7 +395,7 @@ public class DiskParam {
         }
     }
 
-    /** 各トラックのセクタ数を保持 */
+    /** Holds the number of sectors for each track */
     public static class NumSectorsParam {
 
         protected int startTrackNum;
@@ -403,7 +403,7 @@ public class DiskParam {
         protected int sectorsPerTrack;
 
         /**
-         * // 各トラックのセクタ数を保持
+         * // Holds the number of sectors for each track
          */
         public NumSectorsParam() {
             this.startTrackNum = 0;
@@ -412,9 +412,9 @@ public class DiskParam {
         }
 
         /**
-         * @param startTrackNum   開始トラック番号
-         * @param numOfTracks     トラック数
-         * @param sectorsPerTrack セクタ数/トラック
+         * @param startTrackNum   Start track number
+         * @param numOfTracks     Number of tracks
+         * @param sectorsPerTrack Number of sectors per track
          */
         public NumSectorsParam(int startTrackNum, int numOfTracks, int sectorsPerTrack) {
             this.startTrackNum = startTrackNum;
@@ -422,32 +422,32 @@ public class DiskParam {
             this.sectorsPerTrack = sectorsPerTrack;
         }
 
-        /** 開始トラック番号を設定 */
+        /** Set start track number */
         public void setStartTrackNumber(int val) {
             startTrackNum = val;
         }
 
-        /** トラック数を設定 */
+        /** Set number of tracks */
         public void setNumberOfTracks(int val) {
             numOfTracks = val;
         }
 
-        /** セクタ数/トラックを設定 */
+        /** Set sectors per track */
         public void setSectorsPerTrack(int val) {
             sectorsPerTrack = val;
         }
 
-        /** 開始トラック番号を返す */
+        /** Return start track number */
         public int getStartTrackNumber() {
             return startTrackNum;
         }
 
-        /** トラック数を返す */
+        /** Return number of tracks */
         public int getNumberOfTracks() {
             return numOfTracks;
         }
 
-        /** セクタ数/トラックを返す */
+        /** Return sectors per track */
         public int getSectorsPerTrack() {
             return sectorsPerTrack;
         }
@@ -456,7 +456,7 @@ public class DiskParam {
         // NumSectorsParams
         //
 
-        /** セクタ/トラックのリスト内の最小値を返す */
+        /** Returns the minimum value in the sector/track list */
         public static int getMinSectorOfTracks(List<NumSectorsParam> list) {
             int val = 0xffff;
             for (NumSectorsParam numSectorsParam : list) {
@@ -467,7 +467,7 @@ public class DiskParam {
             return val;
         }
 
-        /** リスト内でセクタ数の最大値を返す */
+        /** Returns the maximum number of sectors in the list */
         public static int getMaxSectorOfTracks(List<NumSectorsParam> list) {
             int val = 0;
             for (NumSectorsParam numSectorsParam : list) {
@@ -479,7 +479,7 @@ public class DiskParam {
         }
     }
 
-    /** DISK BASIC 名前リストを保存 */
+    /** Save DISK BASIC name list */
     public static class DiskParamName {
 
         private String name;
@@ -489,22 +489,22 @@ public class DiskParam {
             this.flags = 0;
         }
 
-        /** 名前を設定 */
+        /** Set name */
         public void setName(String val) {
             name = val;
         }
 
-        /** 名前を返す */
+        /** Return name */
         public String getName() {
             return name;
         }
 
-        /** フラグを設定 */
+        /** Set flags */
         public void setFlags(int val) {
             flags = val;
         }
 
-        /** フラグを返す */
+        /** Return flags */
         public int getFlags() {
             return flags;
         }
@@ -519,15 +519,15 @@ public class DiskParam {
     }
 
     /**
-     * インターリーブ/セクタスキュー
+     * Interleave/Sector Skew
      *
-     * マップがないときは、間隔から計算する。
+     * If there is no map, calculate from interval.
      */
     public static class SectorInterleave {
 
-        /** 固有のマップを使用する場合 true */
+        /** True when using a specific map */
         private boolean hasMap;
-        /** 変換後のセクタ番号 */
+        /** Sector number after conversion */
         private List<Integer> secs;
 
         public SectorInterleave() {
@@ -536,12 +536,12 @@ public class DiskParam {
             this.secs.add(0);
         }
 
-        /** インターリーブ間隔を返す */
+        /** Return interleave interval */
         public int get() {
             return secs.getFirst();
         }
 
-        /** インターリーブマップを返す */
+        /** Return interleave map */
         public int get(int idx) {
             if (idx < secs.size()) {
                 return secs.get(idx);
@@ -550,61 +550,61 @@ public class DiskParam {
             }
         }
 
-        /** インターリーブ間隔を設定 */
+        /** Set interleave interval */
         public void set(int val) {
             hasMap = false;
             secs.set(0, val);
         }
 
-        /** インターリーブマップを設定 */
+        /** Set interleave map */
         public void set(List<Integer> val) {
             hasMap = true;
             secs = new ArrayList<>(val);
         }
 
-        /** 固有のマップを持っているか */
+        /** Whether it has a specific map */
         public boolean hasMap() {
             return hasMap;
         }
     }
 
-    /** ディスク種類名 "2D", "2HD" など */
+    /** Disk type name "2D", "2HD", etc. */
     protected String diskTypeName;
-    /** BASIC種類（DiskBasicParamとのマッチングにも使用） */
+    /** BASIC type (also used for matching with DiskBasicParam) */
     protected List<DiskParamName> basicTypes;
-    /** 裏返し可能 AB面あり（L3用3インチFDなど） */
+    /** Reversible with AB sides (e.g. 3-inch FD for L3) */
     protected boolean reversible;
-    /** サイド数 */
+    /** Number of sides */
     protected int sidesPerDisk;
-    /** トラック数 */
+    /** Number of tracks */
     protected int tracksPerSide;
-    /** セクタ数 */
+    /** Number of sectors */
     protected int sectorsPerTrack;
-    /** セクタサイズ */
+    /** Sector size */
     protected int sectorSize;
-    /** セクタ番号の付番方法 (0: サイド毎, 1: トラック毎) */
+    /** Sector numbering method (0: per side, 1: per track) */
     protected int numberingSector;
     /** 0x00: 2D, 0x10: 2DD, 0x20: 2HD */
     protected int diskDensity;
-    /** セクタの間隔 */
+    /** Sector interval */
     protected int interleave;
-    /** 開始トラック番号 */
+    /** Start track number */
     protected int trackNumberBase;
-    /** 開始サイド番号 */
+    /** Start side number */
     protected int sideNumberBase;
-    /** 開始セクタ番号 */
+    /** Start sector number */
     protected int sectorNumberBase;
-    /** セクタ数がトラックごとに異なる */
+    /** Number of sectors differs per track */
     protected boolean variableSecsPerTrack;
-    /** 単密度にするトラック */
+    /** Tracks to be single density */
     protected List<DiskParticular> singles;
-    /** 特殊なトラックを定義 */
+    /** Define special tracks */
     protected List<DiskParticular> pTracks;
-    /** 特殊なセクタを定義 */
+    /** Define special sectors */
     protected List<DiskParticular> pSectors;
-    /** 密度情報（説明用） */
+    /** Density information (for description) */
     protected String densityName;
-    /** 説明 */
+    /** Description */
     protected String description;
 
     public DiskParam() {
@@ -644,27 +644,27 @@ if (sectorSize == 0) {
     }
 
     /**
-     * 全パラメータを設定
+     * Set all parameters
      *
-     * @param typeName             ディスク種類名 "2D" "2HD" など
-     * @param basicTypes           BASIC種類（DiskBasicParamとのマッチングにも使用）
-     * @param reversible           裏返し可能 AB面あり（L3用3インチFDなど）
-     * @param sidesPerDisk         サイド数
-     * @param tracksPerSide        トラック数
-     * @param sectorsPerTrack      セクタ数
-     * @param sector_size          セクタサイズ
-     * @param numberingSector      セクタ番号の付番方法(0:サイド毎、1:トラック毎)
+     * @param typeName             Disk type name "2D", "2HD", etc.
+     * @param basicTypes           BASIC types (also used for matching with DiskBasicParam)
+     * @param reversible           Reversible with AB sides (e.g. 3-inch FD for L3)
+     * @param sidesPerDisk         Number of sides
+     * @param tracksPerSide        Number of tracks
+     * @param sectorsPerTrack      Number of sectors
+     * @param sector_size          Sector size
+     * @param numberingSector      Sector numbering method (0: per side, 1: per track)
      * @param disk_density         0x00:2D 0x10:2DD 0x20:2HD
-     * @param interleave           セクタの間隔
-     * @param trackNumberBase      開始トラック番号
-     * @param sideNumberBase       開始サイド番号
-     * @param sectorNumberBase     開始セクタ番号
-     * @param variableSecsPerTrack セクタ数がトラックごとに異なるか
-     * @param singles              単密度にするトラック
-     * @param pTracks              特殊なトラックを定義 セクタ数がトラックごとに異なる場合
-     * @param pSectors             特殊なセクタを定義
-     * @param densityName          密度情報（説明用）
-     * @param desc                 説明
+     * @param interleave           Sector interval
+     * @param trackNumberBase      Start track number
+     * @param sideNumberBase       Start side number
+     * @param sectorNumberBase     Start sector number
+     * @param variableSecsPerTrack Whether number of sectors differs per track
+     * @param singles              Tracks to be single density
+     * @param pTracks              Define special tracks if number of sectors differs per track
+     * @param pSectors             Define special sectors
+     * @param densityName          Density information (for description)
+     * @param desc                 Description
      */
     public void setDiskParam(String typeName, List<DiskParamName> basicTypes, boolean reversible,
                              int sidesPerDisk, int tracksPerSide, int sectorsPerTrack, int sector_size,
@@ -697,16 +697,16 @@ if (sectorSize == 0) {
     }
 
     /**
-     * 主要パラメータだけ設定
+     * Set only major parameters
      *
-     * @param sidesPerDisk    サイド数
-     * @param tracksPerSide   トラック数
-     * @param sectorsPerTrack セクタ数
-     * @param sectorSize      セクタサイズ
+     * @param sidesPerDisk    Number of sides
+     * @param tracksPerSide   Number of tracks
+     * @param sectorsPerTrack Number of sectors
+     * @param sectorSize      Sector size
      * @param diskDensity     0x00: 2D, 0x10: 2DD, 0x20: 2HD
-     * @param interleave      セクタの間隔
-     * @param singles         単密度にするトラック
-     * @param pTracks         特殊なトラックを定義 セクタ数がトラックごとに異なる場合
+     * @param interleave      Sector interval
+     * @param singles         Tracks to be single density
+     * @param pTracks         Define special tracks if number of sectors differs per track
      */
     public void setDiskParam(int sidesPerDisk, int tracksPerSide, int sectorsPerTrack,
                              int sectorSize, int diskDensity, int interleave,
@@ -723,7 +723,7 @@ if (sectorSize == 0) {
         this.pTracks.addAll(pTracks);
     }
 
-    /** 初期化 */
+    /** Initialization */
     public void clearDiskParam() {
         this.diskTypeName = "";
         this.basicTypes = new ArrayList<>();
@@ -747,20 +747,20 @@ if (sectorSize == 0) {
     }
 
     /**
-     * 指定したパラメータで一致するものがあるか
+     * Whether there is a match with the specified parameters
      *
-     * @param sidesPerDisk     サイド/ディスク
-     * @param tracksPerSide    トラック/サイド
-     * @param sectorsPerTrack  セクタ/トラック
-     * @param sectorSize       セクタサイズ
-     * @param interleave       インターリーブ
-     * @param trackNumberBase  開始トラック番号
-     * @param sideNumberBase   開始サイド番号
-     * @param sectorNumberBase 開始セクタ番号
-     * @param numberingSector  連番セクタか
-     * @param singles          単密度
-     * @param pTracks          特殊なトラック
-     * @return true: 一致する
+     * @param sidesPerDisk     Side/Disk
+     * @param tracksPerSide    Track/Side
+     * @param sectorsPerTrack  Sector/Track
+     * @param sectorSize       Sector size
+     * @param interleave       Interleave
+     * @param trackNumberBase  Start track number
+     * @param sideNumberBase   Start side number
+     * @param sectorNumberBase Start sector number
+     * @param numberingSector  Whether sequential sectors
+     * @param singles          Single density
+     * @param pTracks          Special tracks
+     * @return true: match
      */
     public boolean match(int sidesPerDisk, int tracksPerSide, int sectorsPerTrack, int sectorSize,
                          int interleave, int trackNumberBase, int sideNumberBase, int sectorNumberBase,
@@ -780,13 +780,13 @@ if (sectorSize == 0) {
     }
 
     /**
-     * 指定したパラメータで一致するものがあるか
+     * Whether there is a match with the specified parameters
      *
-     * @param sidesPerDisk    サイド/ディスク
-     * @param tracksPerSide   トラック/サイド
-     * @param sectorsPerTrack セクタ/トラック
-     * @param sectorSize      セクタサイズ
-     * @return true: 一致する
+     * @param sidesPerDisk    Side/Disk
+     * @param tracksPerSide   Track/Side
+     * @param sectorsPerTrack Sector/Track
+     * @param sectorSize      Sector size
+     * @return true: match
      */
     public boolean match(int sidesPerDisk, int tracksPerSide, int sectorsPerTrack, int sectorSize) {
         boolean match = (this.sidesPerDisk == sidesPerDisk)
@@ -797,10 +797,10 @@ if (sectorSize == 0) {
     }
 
     /**
-     * 指定したパラメータで一致するものがあるか
+     * Whether there is a match with the specified parameters
      *
-     * @param param パラメータ
-     * @return true: 一致する
+     * @param param Parameters
+     * @return true: match
      */
     public boolean match(DiskParam param) {
         boolean match = (diskTypeName.equals(param.diskTypeName))
@@ -819,10 +819,10 @@ if (sectorSize == 0) {
     }
 
     /**
-     * 指定したパラメータで一致するものがあるか
+     * Whether there is a match with the specified parameters
      *
-     * @param param パラメータ
-     * @return true: 一致する
+     * @param param Parameters
+     * @return true: match
      */
     public boolean matchExceptName(DiskParam param) {
         boolean match = (reversible == param.reversible)
@@ -841,18 +841,18 @@ if (sectorSize == 0) {
     }
 
     /**
-     * 指定したパラメータに近い値で一致するものがあるか
+     * Whether there is a match with values close to the specified parameters
      *
-     * @param num             フェーズ番号
-     * @param sidesPerDisk    サイド/ディスク
-     * @param tracksPerSide   トラック/サイド
-     * @param sectorsPerTrack セクタ/トラック
-     * @param sectorSize      セクタサイズ
-     * @param interleave      インターリーブ
-     * @param numberingSector 連番セクタか
-     * @param singles         単密度
-     * @param last            [out] 検索終わり
-     * @return true: 一致する
+     * @param num             Phase number
+     * @param sidesPerDisk    Side/Disk
+     * @param tracksPerSide   Track/Side
+     * @param sectorsPerTrack Sector/Track
+     * @param sectorSize      Sector size
+     * @param interleave      Interleave
+     * @param numberingSector Whether sequential sectors
+     * @param singles         Single density
+     * @param last            [out] End of search
+     * @return true: match
      */
     public boolean matchNear(int num, int sidesPerDisk, int tracksPerSide, int sectorsPerTrack,
                              int sectorSize, int interleave, int numberingSector,
@@ -860,8 +860,8 @@ if (sectorSize == 0) {
         boolean match = false;
         switch (num) {
             case 0:
-                // 特殊なトラックを除いて比較
-                match = (this.sidesPerDisk == sidesPerDisk) // サイド数は一致
+                // Compare except for special tracks
+                match = (this.sidesPerDisk == sidesPerDisk) // Number of sides matches
                         && (this.tracksPerSide == tracksPerSide)
                         && (this.sectorsPerTrack == sectorsPerTrack)
                         && (this.sectorSize == sectorSize)
@@ -871,47 +871,47 @@ if (sectorSize == 0) {
                 break;
             case 1:
                 // compare without interleave
-                match = (this.sidesPerDisk == sidesPerDisk) // サイド数は一致
-                        && (this.tracksPerSide == tracksPerSide) // トラック数は一致
-                        && (this.sectorsPerTrack == sectorsPerTrack) // セクタ数は一致
-                        && (this.sectorSize == sectorSize) // セクタサイズは一致
-                        && (this.numberingSector == numberingSector)    // セクタ番号の付番方法は一致
-                        && (this.singles.equals(singles));    // 単密度のトラックは一致
+                match = (this.sidesPerDisk == sidesPerDisk) // Number of sides matches
+                        && (this.tracksPerSide == tracksPerSide) // Number of tracks matches
+                        && (this.sectorsPerTrack == sectorsPerTrack) // Number of sectors matches
+                        && (this.sectorSize == sectorSize) // Sector size matches
+                        && (this.numberingSector == numberingSector)    // Sector numbering method matches
+                        && (this.singles.equals(singles));    // Single density tracks match
                 break;
             case 2:
-                // インターリーブを入れて
-                // トラック数が指定範囲内で比較
-                match = (this.sidesPerDisk == sidesPerDisk) // サイド数は一致
-                        && (this.sectorsPerTrack == sectorsPerTrack) // セクタ数は一致
-                        && (this.sectorSize == sectorSize) // セクタサイズは一致
-                        && (this.numberingSector == numberingSector)    // セクタ番号の付番方法は一致
-                        && (this.singles.equals(singles))    // 単密度のトラックは一致
-                        && (this.interleave == interleave) // インターリーブは一致
-                        && ((tracksPerSide - 5) <= this.tracksPerSide && this.tracksPerSide <= tracksPerSide); // トラック数は-5 - 0の範囲
+                // Including interleave,
+                // compare with number of tracks within specified range
+                match = (this.sidesPerDisk == sidesPerDisk) // Number of sides matches
+                        && (this.sectorsPerTrack == sectorsPerTrack) // Number of sectors matches
+                        && (this.sectorSize == sectorSize) // Sector size matches
+                        && (this.numberingSector == numberingSector)    // Sector numbering method matches
+                        && (this.singles.equals(singles))    // Single density tracks match
+                        && (this.interleave == interleave) // Interleave matches
+                        && ((tracksPerSide - 5) <= this.tracksPerSide && this.tracksPerSide <= tracksPerSide); // Number of tracks is in range -5 to 0
                 break;
             case 3:
-                // インターリーブを除いて、
-                // トラック数が指定範囲内で比較
-                match = (this.sidesPerDisk == sidesPerDisk) // サイド数は一致
-                        && (this.sectorsPerTrack == sectorsPerTrack) // セクタ数は一致
-                        && (this.sectorSize == sectorSize) // セクタサイズは一致
-                        && (this.numberingSector == numberingSector) // セクタ番号の付番方法は一致
-                        && (this.singles.equals(singles)) // 単密度のトラックは一致
-                        && ((tracksPerSide - 5) <= this.tracksPerSide && this.tracksPerSide <= tracksPerSide); // トラック数は-5 - 0の範囲
+                // Excluding interleave,
+                // compare with number of tracks within specified range
+                match = (this.sidesPerDisk == sidesPerDisk) // Number of sides matches
+                        && (this.sectorsPerTrack == sectorsPerTrack) // Number of sectors matches
+                        && (this.sectorSize == sectorSize) // Sector size matches
+                        && (this.numberingSector == numberingSector) // Sector numbering method matches
+                        && (this.singles.equals(singles)) // Single density tracks match
+                        && ((tracksPerSide - 5) <= this.tracksPerSide && this.tracksPerSide <= tracksPerSide); // Number of tracks is in range -5 to 0
                 break;
             case 4:
-                match = (this.sidesPerDisk == sidesPerDisk) // サイド数は一致
-                        && (this.sectorsPerTrack == sectorsPerTrack) // セクタ数は一致
-                        && (this.sectorSize == sectorSize) // セクタサイズは一致
-                        && (this.numberingSector == numberingSector) // セクタ番号の付番方法は一致
-                        && ((tracksPerSide - 5) <= this.tracksPerSide && this.tracksPerSide <= tracksPerSide); // トラック数は-5 - 0の範囲
+                match = (this.sidesPerDisk == sidesPerDisk) // Number of sides matches
+                        && (this.sectorsPerTrack == sectorsPerTrack) // Number of sectors matches
+                        && (this.sectorSize == sectorSize) // Sector size matches
+                        && (this.numberingSector == numberingSector) // Sector numbering method matches
+                        && ((tracksPerSide - 5) <= this.tracksPerSide && this.tracksPerSide <= tracksPerSide); // Number of tracks is in range -5 to 0
                 break;
             case 5:
-                match = (this.sidesPerDisk == sidesPerDisk) // サイド数は一致
-                        && (this.sectorSize == sectorSize) // セクタサイズは一致
-                        && (this.numberingSector == numberingSector) // セクタ番号の付番方法は一致
-                        && ((tracksPerSide - 5) <= this.tracksPerSide && this.tracksPerSide <= tracksPerSide) // トラック数は-5 - 0の範囲
-                        && (this.sectorsPerTrack <= sectorsPerTrack); // セクタ数は小さければよし
+                match = (this.sidesPerDisk == sidesPerDisk) // Number of sides matches
+                        && (this.sectorSize == sectorSize) // Sector size matches
+                        && (this.numberingSector == numberingSector) // Sector numbering method matches
+                        && ((tracksPerSide - 5) <= this.tracksPerSide && this.tracksPerSide <= tracksPerSide) // Number of tracks is in range -5 to 0
+                        && (this.sectorsPerTrack <= sectorsPerTrack); // OK if number of sectors is smaller
                 break;
             default:
                 last[0] = true;
@@ -921,12 +921,12 @@ if (sectorSize == 0) {
     }
 
     /**
-     * 指定したトラック、サイドが単密度か
+     * Whether the specified track and side are single density
      *
-     * @param trackNum        トラック番号
-     * @param sideNum         サイド番号
-     * @param sectorsPerTrack [out] セクタ数
-     * @param sectorSize      [out] セクタサイズ
+     * @param trackNum        Track number
+     * @param sideNum         Side number
+     * @param sectorsPerTrack [out] Number of sectors
+     * @param sectorSize      [out] Sector size
      * @return true, false
      */
     public boolean findSingleDensity(int trackNum, int sideNum, int[] sectorsPerTrack, int[] sectorSize) {
@@ -947,12 +947,12 @@ if (sectorSize == 0) {
     }
 
     /**
-     * 指定したトラック、サイド、セクタが単密度か
+     * Whether the specified track, side, and sector are single density
      *
-     * @param trackNum   トラック番号
-     * @param sideNum    サイド番号
-     * @param sectorNum  セクタ番号
-     * @param sectorSize セクタサイズ
+     * @param trackNum   Track number
+     * @param sideNum    Side number
+     * @param sectorNum  Sector number
+     * @param sectorSize Sector size
      * @return true, false
      */
     public boolean findSingleDensity(int trackNum, int sideNum, int sectorNum, int sectorSize) {
@@ -967,11 +967,11 @@ if (sectorSize == 0) {
     }
 
     /**
-     * 単密度を持っているか
+     * Whether it has single density
      *
-     * @param sectorsPerTrack [out] セクタ数
-     * @param sectorSize      [out] セクタサイズ
-     * @return 0: なし, 1: 全トラック, 2: トラック0,サイド0, 3: トラック0,両面
+     * @param sectorsPerTrack [out] Number of sectors
+     * @param sectorSize      [out] Sector size
+     * @return 0: None, 1: All tracks, 2: Track 0, side 0, 3: Track 0, both sides
      */
     public int hasSingleDensity(int[] sectorsPerTrack /* = null */, int[] sectorSize /* = null */) {
         int val = 0;
@@ -1010,7 +1010,7 @@ if (sectorSize == 0) {
         return val;
     }
 
-    /** ディスクサイズを計算する（ベタディスク用） */
+    /** Calculate disk size (for plain disk) */
     public int calcDiskSize() {
         int diskSize = 0;
         int track = getTrackNumberBaseOnDisk();
@@ -1032,12 +1032,12 @@ if (sectorSize == 0) {
     }
 
     /**
-     * 特殊なトラックか
+     * Whether it is a special track
      *
-     * @param trackNum        トラック番号
-     * @param sideNum         サイド番号
-     * @param sectorsPerTrack セクタ/トラック
-     * @param sectorSize      セクタサイズ
+     * @param trackNum        Track number
+     * @param sideNum         Side number
+     * @param sectorsPerTrack Sector/Track
+     * @param sectorSize      Sector size
      * @return true, false
      */
     public boolean findParticularTrack(int trackNum, int sideNum, int[] sectorsPerTrack, int[] sectorSize) {
@@ -1061,13 +1061,13 @@ if (sectorSize == 0) {
     }
 
     /**
-     * 特殊なセクタか
+     * Whether it is a special sector
      *
-     * @param trackNum   トラック番号
-     * @param sideNum    サイド番号
-     * @param sectorNum  セクタ番号
-     * @param sectorSize セクタサイズ
-     * @param sectorId   [out] C,H,R,Nの入った配列を返す
+     * @param trackNum   Track number
+     * @param sideNum    Side number
+     * @param sectorNum  Sector number
+     * @param sectorSize Sector size
+     * @param sectorId   [out] Returns array containing C, H, R, N
      * @return true, false
      */
     public boolean findParticularSector(int trackNum, int sideNum, int sectorNum, int[] sectorSize, int[][] sectorId) {
@@ -1091,11 +1091,11 @@ if (sectorSize == 0) {
     }
 
     /**
-     * DISK BASICをさがす
+     * Search for DISK BASIC
      *
-     * @param typeName タイプ名
-     * @param flags    フラグ
-     * @return 名前
+     * @param typeName Type name
+     * @param flags    Flags
+     * @return Name
      */
     public DiskParamName findBasicType(String typeName, int flags) {
         DiskParamName match = null;
@@ -1109,9 +1109,9 @@ if (sectorSize == 0) {
     }
 
     /**
-     * ディスクパラメータを文字列にフォーマットして返す
+     * Formats disk parameters as a string and returns it
      *
-     * @return 文字列
+     * @return String
      */
     public String getDiskDescription() {
         StringBuilder str = new StringBuilder();
@@ -1155,37 +1155,37 @@ if (sectorSize == 0) {
         return str.toString();
     }
 
-    /** ディスク種類名を設定 "2D" "2HD" など */
+    /** Set disk type name "2D", "2HD", etc. */
     public void setDiskTypeName(String str) {
         diskTypeName = str;
     }
 
-    /** BASIC種類を設定 */
+    /** Set BASIC types */
     public void setBasicTypes(List<DiskParamName> arr) {
         basicTypes = new ArrayList<>(arr);
     }
 
-    /** 裏返し可能 AB面ありかどうかを設定 */
+    /** Set whether it is reversible with AB sides */
     public void setReversible(boolean val) {
         reversible = val;
     }
 
-    /** サイド数を設定 */
+    /** Set number of sides */
     public void setSidesPerDisk(int val) {
         sidesPerDisk = val;
     }
 
-    /** トラック数を設定 */
+    /** Set number of tracks */
     public void setTracksPerSide(int val) {
         tracksPerSide = val;
     }
 
-    /** セクタ数を設定 */
+    /** Set number of sectors */
     public void setSectorsPerTrack(int val) {
         sectorsPerTrack = val;
     }
 
-    /** セクタサイズを設定 */
+    /** Set sector size */
     public void setSectorSize(int val) {
         if (val == 0) {
             logger.log(Level.WARNING, "sectorSize = 0", new Exception("sectorSize = 0"));
@@ -1193,200 +1193,200 @@ if (sectorSize == 0) {
         sectorSize = val;
     }
 
-    /** セクタ番号の付番方法 (0: サイド毎, 1: トラック毎) を設定 */
+    /** Set sector numbering method (0: per side, 1: per track) */
     public void setNumberingSector(int val) {
         numberingSector = val;
     }
 
-    /** 密度 (0x00: 2D, 0x10: 2DD, 0x20: 2HD) を設定 */
+    /** Set density (0x00: 2D, 0x10: 2DD, 0x20: 2HD) */
     public void setParamDensity(int val) {
         diskDensity = val;
     }
 
-    /** セクタの間隔を設定 */
+    /** Set sector interval */
     public void setInterleave(int val) {
         interleave = val;
     }
 
-    /** 開始トラック番号を設定 */
+    /** Set start track number */
     public void setTrackNumberBaseOnDisk(int val) {
         trackNumberBase = val;
     }
 
-    /** 開始サイド番号を設定 */
+    /** Set start side number */
     public void setSideNumberBaseOnDisk(int val) {
         sideNumberBase = val;
     }
 
-    /** 開始セクタ番号を設定 */
+    /** Set start sector number */
     public void setSectorNumberBaseOnDisk(int val) {
         sectorNumberBase = val;
     }
 
-    /** セクタ数がトラックごとに異なる */
+    /** Number of sectors differs per track */
     public void setVariableSectorsPerTrack(boolean val) {
         variableSecsPerTrack = val;
     }
 
-    /** 単密度にするトラックを設定 */
+    /** Set tracks to be single density */
     public void setSingles(List<DiskParticular> arr) {
         singles = new ArrayList<>();
         singles.addAll(arr);
     }
 
-    /** 特殊なトラックを設定 */
+    /** Set special tracks */
     public void setParticularTracks(List<DiskParticular> arr) {
         pTracks = new ArrayList<>();
         pTracks.addAll(arr);
     }
 
-    /** 特殊なセクタを設定 */
+    /** Set special sectors */
     public void setParticularSectors(List<DiskParticular> arr) {
         pSectors = new ArrayList<>();
         pSectors.addAll(arr);
     }
 
-    /** 密度情報（説明用）を設定 */
+    /** Set density information (for description) */
     public void setDensityName(String str) {
         densityName = str;
     }
 
-    /** 説明を設定 */
+    /** Set description */
     public void setDescription(String str) {
         description = str;
     }
 
-    /** 単密度にするトラックを追加 */
+    /** Add tracks to be single density */
     public void addSingleDensity(DiskParticular val) {
         singles.add(val);
     }
 
-    /** 特殊なトラックを追加 */
+    /** Add special track */
     public void addParticularTrack(DiskParticular val) {
         pTracks.add(val);
     }
 
-    /** 特殊なセクタを追加 */
+    /** Add special sector */
     public void addParticularSector(DiskParticular val) {
         pSectors.add(val);
     }
 
-    /** ディスク種類名を返す "2D" "2HD" など */
+    /** Return disk type name "2D", "2HD", etc. */
     public String getDiskTypeName() {
         return diskTypeName;
     }
 
-    /** BASIC種類を返す */
+    /** Return BASIC types */
     public List<DiskParamName> getBasicTypes() {
         return basicTypes;
     }
 
-    /** 裏返し可能 AB面ありかどうかを返す */
+    /** Return whether it is reversible with AB sides */
     public boolean isReversible() {
         return reversible;
     }
 
-    /** サイド数を返す */
+    /** Return number of sides */
     public int getSidesPerDisk() {
         return sidesPerDisk;
     }
 
-    /** トラック数を返す */
+    /** Return number of tracks */
     public int getTracksPerSide() {
         return tracksPerSide;
     }
 
-    /** セクタ数を返す */
+    /** Return number of sectors */
     public int getSectorsPerTrack() {
         return sectorsPerTrack;
     }
 
-    /** セクタサイズを返す */
+    /** Return sector size */
     public int getSectorSize() {
 //logger.log(Level.INFO, "sectorSize: " + sectorSize);
         return sectorSize;
     }
 
-    /** セクタ番号の付番方法(0:サイド毎、1:トラック毎)を返す */
+    /** Return sector numbering method (0: per side, 1: per track) */
     public int getNumberingSector() {
         return numberingSector;
     }
 
-    /** 密度(0x00:2D 0x10:2DD 0x20:2HD)を返す */
+    /** Return density (0x00: 2D, 0x10: 2DD, 0x20: 2HD) */
     public int getParamDensity() {
         return diskDensity;
     }
 
-    /** セクタの間隔を返す */
+    /** Return sector interval */
     public int getInterleave() {
         return interleave;
     }
 
-    /** 開始トラック番号を返す */
+    /** Return start track number */
     public int getTrackNumberBaseOnDisk() {
         return trackNumberBase;
     }
 
-    /** 開始サイド番号を返す */
+    /** Return start side number */
     public int getSideNumberBaseOnDisk() {
         return sideNumberBase;
     }
 
-    /** 開始セクタ番号を返す */
+    /** Return start sector number */
     public int getSectorNumberBaseOnDisk() {
         return sectorNumberBase;
     }
 
-    /** セクタ数がトラックごとに異なる */
+    /** Number of sectors differs per track */
     public boolean isVariableSectorsPerTrack() {
         return variableSecsPerTrack;
     }
 
-    /** 単密度にするトラックを返す */
+    /** Return tracks to be single density */
     public List<DiskParticular> getSingles() {
         return singles;
     }
 
-    /** 特殊なトラックを返す */
+    /** Return special tracks */
     public List<DiskParticular> getParticularTracks() {
         return pTracks;
     }
 
-    /** 特殊なセクタを返す */
+    /** Return special sectors */
     public List<DiskParticular> getParticularSectors() {
         return pSectors;
     }
 
-    /** 密度情報（説明用）を返す */
+    /** Return density information (for description) */
     public String getDensityName() {
         return densityName;
     }
 
-    /** 説明を返す */
+    /** Return description */
     public String getDescription() {
         return description;
     }
 
-    /** ディスクパラメータのテンプレートを提供する */
+    /** Provides templates for disk parameters */
     public static class DiskTemplates extends TemplatesBase {
 
         private final List<DiskParam> params;
 
         /**
-         * ディスクパラメータのテンプレートを提供する
+         * Provides templates for disk parameters
          */
         public DiskTemplates() {
             this.params = new ArrayList<>();
         }
 
         /**
-         * XMLファイルから読み込み
+         * Load from XML file
          *
-         * @param dataPath    入力ファイルのあるパス
-         * @param localeName  ローケル名
-         * @param errMessages [out] エラーメッセージ
          * @return true / false
          * @see ""disk_types.xml"
+         * @param dataPath    Path where the input file is located
+         * @param localeName  Locale name
+         * @param errMessages [out] Error messages
          */
         public boolean load(String dataPath, String localeName, StringBuilder errMessages) {
             params.clear();
@@ -1497,11 +1497,11 @@ logger.log(Level.INFO, "params: " + params.size());
         }
 
         /**
-         * DiskBasicTypesエレメントをロード
+         * Load DiskBasicTypes element
          *
-         * @param node        子ノード
-         * @param basicTypes  [out] ロードしたデータ
-         * @param errMessages [out] エラーメッセージ
+         * @param node        Child node
+         * @param basicTypes  [out] Loaded data
+         * @param errMessages [out] Error messages
          * @return true
          */
         public boolean loadDiskBasicTypes(Node node, List<DiskParamName> basicTypes, StringBuilder errMessages) {
@@ -1531,11 +1531,11 @@ logger.log(Level.INFO, "params: " + params.size());
         }
 
         /**
-         * SingleDensityエレメントをロード
+         * Load SingleDensity element
          *
-         * @param node        子ノード
-         * @param s           [out] ロードしたデータ
-         * @param errMessages [out] エラーメッセージ
+         * @param node        Child node
+         * @param s           [out] Loaded data
+         * @param errMessages [out] Error messages
          * @return true
          */
         public boolean loadSingleDensity(Node node, DiskParticular s, StringBuilder errMessages) {
@@ -1567,11 +1567,11 @@ logger.log(Level.INFO, "params: " + params.size());
         }
 
         /**
-         * ParticularTrack エレメントをロード
+         * Load ParticularTrack element
          *
-         * @param node        子ノード
-         * @param d           [out] ロードしたデータ
-         * @param errMessages [out] エラーメッセージ
+         * @param node        Child node
+         * @param d           [out] Loaded data
+         * @param errMessages [out] Error messages
          * @return true
          */
         public boolean loadParticularTrack(Node node, DiskParticular d, StringBuilder errMessages) {
@@ -1621,11 +1621,11 @@ logger.log(Level.INFO, "params: " + params.size());
         }
 
         /**
-         * ParticularSectorエレメントをロード
+         * Load ParticularSector element
          *
-         * @param node        子ノード
-         * @param d           [out] ロードしたデータ
-         * @param errMessages [out] エラーメッセージ
+         * @param node        Child node
+         * @param d           [out] Loaded data
+         * @param errMessages [out] Error messages
          * @return true
          */
         public boolean loadParticularSector(Node node, DiskParticular d, StringBuilder errMessages) {
@@ -1674,10 +1674,10 @@ logger.log(Level.INFO, "params: " + params.size());
         }
 
         /**
-         * タイプ名に一致するテンプレートの番号を返す
+         * Returns the number of the template matching the type name
          *
-         * @param typeName タイプ名
-         * @return ディスクテンプレートの位置 / ないとき-1
+         * @param typeName Type name
+         * @return Disk template position / -1 if none
          */
         public int indexOf(String typeName) {
             int match = -1;
@@ -1691,7 +1691,7 @@ logger.log(Level.INFO, "params: " + params.size());
             return match;
         }
 
-        /** 一致するテンプレートを返す */
+        /** Returns the matching template */
         public DiskParam find(DiskParam n_param) {
             DiskParam match = null;
             for (DiskParam item : params) {
@@ -1703,7 +1703,7 @@ logger.log(Level.INFO, "params: " + params.size());
             return match;
         }
 
-        /** タイプ名に一致するテンプレートを返す */
+        /** Returns the template matching the type name */
         public DiskParam find(String n_type_name) {
             DiskParam match = null;
             for (DiskParam item : params) {
@@ -1716,20 +1716,20 @@ logger.log(Level.INFO, "params: " + params.size());
         }
 
         /**
-         * パラメータに一致するテンプレートを返す
+         * Returns the template matching the parameters
          *
-         * @param sidesPerDisk     サイド数
-         * @param tracksPerSide    トラック数
-         * @param sectorsPerTrack  セクタ数
-         * @param sectorSize       セクタサイズ
-         * @param interleave       インターリーブ
-         * @param trackNumberBase  開始トラック番号
-         * @param sideNumberBase   開始サイド番号
-         * @param sectorNumberBase 開始セクタ番号
-         * @param numberingSector  セクタ採番方法
-         * @param singles          単密度情報
-         * @param pTracks          特殊トラック
-         * @return ディスクパラメータ or null
+         * @param sidesPerDisk     Number of sides
+         * @param tracksPerSide    Number of tracks
+         * @param sectorsPerTrack  Number of sectors
+         * @param sectorSize       Sector size
+         * @param interleave       Interleave
+         * @param trackNumberBase  Start track number
+         * @param sideNumberBase   Start side number
+         * @param sectorNumberBase Start sector number
+         * @param numberingSector  Sector numbering method
+         * @param singles          Single density information
+         * @param pTracks          Special tracks
+         * @return Disk parameter or null
          */
         public DiskParam findStrict(int sidesPerDisk, int tracksPerSide, int sectorsPerTrack, int sectorSize,
                                     int interleave, int trackNumberBase, int sideNumberBase, int sectorNumberBase,
@@ -1748,20 +1748,20 @@ logger.log(Level.INFO, "params: " + params.size());
         }
 
         /**
-         * パラメータに一致するあるいは近い物のテンプレートを返す
+         * Returns the template matching or close to the parameters
          *
-         * @param sidesPerDisk     サイド数
-         * @param tracksPerSide    トラック数
-         * @param sectorsPerTrack  セクタ数
-         * @param sectorSize       セクタサイズ
-         * @param interleave       インターリーブ
-         * @param trackNumberBase  開始トラック番号
-         * @param sideNumberBase   開始サイド番号
-         * @param sectorNumberBase 開始セクタ番号
-         * @param numberingSector  セクタ採番方法
-         * @param singles          単密度情報
-         * @param pTracks          特殊トラック
-         * @return ディスクパラメータ or null
+         * @param sidesPerDisk     Number of sides
+         * @param tracksPerSide    Number of tracks
+         * @param sectorsPerTrack  Number of sectors
+         * @param sectorSize       Sector size
+         * @param interleave       Interleave
+         * @param trackNumberBase  Start track number
+         * @param sideNumberBase   Start side number
+         * @param sectorNumberBase Start sector number
+         * @param numberingSector  Sector numbering method
+         * @param singles          Single density information
+         * @param pTracks          Special tracks
+         * @return Disk parameter or null
          */
         public DiskParam find(int sidesPerDisk, int tracksPerSide, int sectorsPerTrack, int sectorSize,
                               int interleave, int trackNumberBase, int sideNumberBase, int sectorNumberBase,
@@ -1794,7 +1794,7 @@ logger.log(Level.TRACE, "no strict match");
                 boolean[] last = {false};
                 boolean m = false;
                 for (int num = 0; !last[0] && !m; num++) {
-                    // パラメータが一致しないときは、引数に近いパラメータ
+                    // If parameters do not match, use parameters close to the arguments
                     for (DiskParam item : params) {
                         m = item.matchNear(num, sidesPerDisk, tracksPerSide, sectorsPerTrack, sectorSize,
                                 interleave, numberingSector, singles, last);
@@ -1812,24 +1812,24 @@ logger.log(Level.TRACE, "no strict match");
         }
 
         /**
-         * パラメータに一致するテンプレートのリストを返す
+         * Returns a list of templates matching the parameters
          *
-         * @param sidesPerDisk    サイド数
-         * @param tracksPerSide   トラック数
-         * @param sectorsPerTrack セクタ数
-         * @param sector_size     セクタサイズ
-         * @param list            [out] 候補リスト
-         * @param separator       リストの最初にセパレータ(null)を追加するか
-         * @return リスト内のアイテム数
+         * @param sidesPerDisk    Number of sides
+         * @param tracksPerSide   Number of tracks
+         * @param sectorsPerTrack Number of sectors
+         * @param sector_size     Sector size
+         * @param list            [out] Candidate list
+         * @param separator       Whether to add a separator (null) at the beginning of the list
+         * @return Number of items in the list
          */
         public int find(int sidesPerDisk, int tracksPerSide, int sectorsPerTrack, int sector_size,
                         List<DiskParam> list, boolean separator) {
             for (DiskParam item : params) {
                 if (item.match(sidesPerDisk, tracksPerSide, sectorsPerTrack, sector_size)) {
-                    // 重複してなければ追加
+                    // Add if not duplicated
                     if (!list.contains(item)) {
                         if (separator) {
-                            // 最初の候補の前にセパレータを追加
+                            // Add a separator before the first candidate
                             list.add(null);
                             separator = false;
                         }

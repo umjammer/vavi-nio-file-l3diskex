@@ -53,12 +53,12 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_VOLUME_MASK;
 import static l3diskex.basicfmt.DiskBasicType.INVALID_GROUP_NUMBER;
 
 
-/** ディレクトリ１アイテム */
+/** One directory item */
 public abstract class DiskBasicDirItem<T extends Directory> {
 
     private static final Logger logger = System.getLogger(DiskBasicDirItem.class.getName());
 
-    /** ディレクトリデータ */
+    /** Directory data */
     protected static class DiskBasicDirData<TYPE extends Directory> {
 
         private Class<TYPE> clazz;
@@ -71,8 +71,8 @@ public abstract class DiskBasicDirItem<T extends Directory> {
         }
 
         /**
-         * メモリ確保
-         * メモリの初期化は行わない
+         * Memory allocation
+         * Does not initialize memory
          */
         public void alloc(Class<TYPE> clazz) {
             try {
@@ -85,9 +85,9 @@ public abstract class DiskBasicDirItem<T extends Directory> {
         }
 
         /**
-         * ポインタ割り当て
+         * Pointer assignment
          *
-         * @param data ポインタ
+         * @param data Pointer
          */
         public void attach(Class<TYPE> clazz, byte[] data, int offset) {
             if (this.raw == null) alloc(clazz);
@@ -105,12 +105,12 @@ public abstract class DiskBasicDirItem<T extends Directory> {
         }
 
         /**
-         * コピー
+         * Copy
          *
-         * @param srcData 元データ
-         * @param len     データサイズ
-         * @param invert  反転するか
-         * @param start   コピー開始位置
+         * @param srcData Original data
+         * @param len     Data size
+         * @param invert  Whether to invert
+         * @param start   Copy starting position
          */
         public boolean copy(byte[] srcData, int len, boolean invert, int start) {
             if (data == null) return false;
@@ -128,12 +128,12 @@ public abstract class DiskBasicDirItem<T extends Directory> {
         }
 
         /**
-         * 埋める
+         * Fill
          *
-         * @param ch     埋める文字
-         * @param len    データサイズ
-         * @param invert 反転するか
-         * @param start  コピー開始位置
+         * @param ch     Character to fill with
+         * @param len    Data size
+         * @param invert Whether to invert
+         * @param start  Copy starting position
          */
         public boolean fill(int ch, int len, boolean invert, int start /* = 0 */) {
             if (raw == null) return false;
@@ -145,10 +145,10 @@ public abstract class DiskBasicDirItem<T extends Directory> {
         }
 
         /**
-         * 反転
+         * Inversion
          *
-         * @param len   データサイズ
-         * @param start コピー開始位置
+         * @param len   Data size
+         * @param start Copy starting position
          */
         public void invert(int len, int start) {
             byte[] arr = raw;
@@ -158,7 +158,7 @@ public abstract class DiskBasicDirItem<T extends Directory> {
             }
         }
 
-        /** データを返す */
+        /** Returns data */
         public TYPE data() {
             if (data == null) {
                 try {
@@ -172,7 +172,7 @@ public abstract class DiskBasicDirItem<T extends Directory> {
             return data;
         }
 
-        /** データが有効か */
+        /** Whether data is valid */
         public boolean isValid() {
             return raw != null;
         }
@@ -186,34 +186,34 @@ public abstract class DiskBasicDirItem<T extends Directory> {
         }
     }
 
-    /** bit0: 使用しているか */
+    /** bit0: Whether it is used */
     public static final int USED_ITEM = 0x0001;
-    /** bit1: リストに表示するか */
+    /** bit1: Whether to display in list */
     public static final int VISIBLE_LIST = 0x0002;
-    /** bit2: ツリーに表示するか */
+    /** bit2: Whether to display in tree */
     public static final int VISIBLE_TREE = 0x0004;
 
     protected DiskBasic basic;
     protected DiskBasicType<T> type;
 
-    /** 親ディレクトリ */
+    /** Parent directory */
     protected DiskBasicDirItem<T> parent;
-    /** 子ディレクトリ */
+    /** Child directory */
     protected List<DiskBasicDirItem<T>> children;
-    /** 上記ディレクトリツリーが確定しているか */
+    /** Whether the above directory tree is confirmed */
     protected boolean validDir;
 
-    /** 通し番号 */
+    /** Sequential number */
     protected int num;
-    /** セクタ内の位置 (バイト) */
+    /** Position within sector (bytes) */
     protected int position;
-    /** フラグ bit0: 使用しているか, bit1: リストに表示するか, bit2: ツリーに表示するか */
+    /** Flags bit0: whether used, bit1: whether display in list, bit2: whether display in tree */
     protected int flags;
-    /** 占有グループ */
+    /** Occupied groups */
     protected DiskBasicGroups groups;
-    /** ディレクトリのあるセクタ */
+    /** Sector where the directory is located */
     protected DiskImageSector sector;
-    /** ディレクトリエントリ内に持たない属性を保持する(機種依存) */
+    /** Holds attributes not present within the directory entry (model dependent) */
     public int externalAttr;
 
     public DiskBasicDirItem() {
@@ -233,7 +233,7 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     public abstract boolean isSupported(int formatType);
 
     /**
-     * ディレクトリアイテムを作成 DATAは内部で確保
+     * Create directory item DATA is allocated internally
      *
      * @param basic DISK BASIC
      */
@@ -252,12 +252,12 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     }
 
     /**
-     * ディレクトリアイテムを作成 DATAはディスクイメージをアサイン
+     * Create directory item DATA is assigned from disk image
      *
      * @param basic     DISK BASIC
-     * @param sector    セクタ
-     * @param sectorPos セクタ内の位置
-     * @param data      セクタ内のディレクトリエントリ
+     * @param sector    Sector
+     * @param sectorPos Position within sector
+     * @param data      Directory entry within sector
      */
     public void init(DiskBasic basic,
                      DiskImageSector sector, int sectorPos,
@@ -276,16 +276,16 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     }
 
     /**
-     * ディレクトリアイテムを作成 DATAはディスクイメージをアサイン
+     * Create directory item DATA is assigned from disk image
      *
      * @param basic     DISK BASIC
-     * @param num       通し番号
-     * @param groupItem トラック番号などのデータ
-     * @param sector    セクタ
-     * @param sectorPos セクタ内のディレクトリエントリの位置
-     * @param data      セクタ内のディレクトリエントリ
-     * @param next      次のセクタ
-     * @param unuse     [out] 未使用か
+     * @param num       Sequential number
+     * @param groupItem Data such as track number
+     * @param sector    Sector
+     * @param sectorPos Position of directory entry within sector
+     * @param data      Directory entry within sector
+     * @param next      Next sector
+     * @param unuse     [out] Whether it is unused
      */
     public void init(DiskBasic basic, int num, DiskBasicGroupItem groupItem,
                      DiskImageSector sector, int sectorPos,
@@ -313,7 +313,7 @@ public abstract class DiskBasicDirItem<T extends Directory> {
         this.sector = sector; // no duplicate
     }
 
-    /** 子ディレクトリを作成 */
+    /** Create child directory */
     public void createChildren() {
         if (children == null) {
             children = new ArrayList<>();
@@ -321,9 +321,9 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     }
 
     /**
-     * 子ディレクトリを追加
+     * Add child directory
      *
-     * @param newItem 新しいアイテム
+     * @param newItem New item
      */
     public void addChild(DiskBasicDirItem<T> newItem) {
         createChildren();
@@ -342,7 +342,7 @@ public abstract class DiskBasicDirItem<T extends Directory> {
         return children;
     }
 
-    /** 子ディレクトリ一覧をクリア */
+    /** Clear child directory list */
     public void emptyChildren() {
         if (children != null) {
             children.clear();
@@ -361,7 +361,7 @@ public abstract class DiskBasicDirItem<T extends Directory> {
 
     public abstract boolean check(boolean[] last);
 
-    /** ディレクトリアイテムのチェック */
+    /** Check directory item */
     public static boolean checkData(byte[] buf, int len, boolean[] last) {
         byte prev = 0;
         boolean valid = false;
@@ -380,9 +380,9 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     }
 
     /**
-     * アイテムを削除できるか
+     * Whether the item can be deleted
      *
-     * @return true 削除できる
+     * @return true if it can be deleted
      */
     public boolean isDeletable() {
         return getFileAttr().unmatchType(FILE_TYPE_DIRECTORY_MASK.getValue() | FILE_TYPE_VOLUME_MASK.getValue(), FILE_TYPE_VOLUME_MASK.getValue());
@@ -397,51 +397,51 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     public void setEndMark(DiskBasicDirItem<?> nextItem) throws IOException {
     }
 
-    /** 内部変数などを再設定 */
+    /** Reset internal variables, etc. */
     public void refresh() throws IOException {
-        // フラグを更新
+        // Update flags
         used(checkUsed(false));
 
-        // ファイルサイズを再計算
+        // Recalculate file size
         calcFileSize();
     }
 
     /**
-     * アイテムをロード・エクスポートできるか
+     * Whether the item can be loaded/exported
      *
-     * @return true ロードできる
+     * @return true if it can be loaded
      */
     public boolean isLoadable() {
         return isDeletable();
     }
 
     /**
-     * アイテムをコピーできるか
+     * Whether the item can be copied
      *
-     * @return true コピーできる
+     * @return true if it can be copied
      */
     public boolean isCopyable() {
-        // ボリュームラベルは不可
+        // Volume label not allowed
         return getFileAttr().matchType(FILE_TYPE_DIRECTORY_MASK.getValue() | FILE_TYPE_VOLUME_MASK.getValue(), 0);
     }
 
     /**
-     * アイテムを上書きできるか
+     * Whether the item can be overwritten
      *
-     * @return true 上書きできる
+     * @return true if it can be overwritten
      */
     public boolean isOverWritable() {
-        // ディレクトリ、ボリュームラベルは不可
+        // Directory, volume label not allowed
         return isCopyable();
     }
 
     /**
-     * ファイル名を格納する位置を返す
+     * Returns the position where the file name is stored
      *
-     * @param num  名前バッファ番号
-     * @param size [out] バッファサイズ
-     * @param len  [out] ファイル名として使えるサイズ
-     * @return 格納先バッファポインタ
+     * @param num  Name buffer number
+     * @param size [out] Buffer size
+     * @param len  [out] Size usable as file name
+     * @return Destination buffer pointer
      */
     protected byte[] getFileNamePos(int num, int[] size, int[] len) {
         size[0] = 0;
@@ -450,11 +450,11 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     }
 
     /**
-     * ファイル名を格納する位置を返す
+     * Returns the position where the file name is stored
      *
-     * @param num 名前バッファ番号
-     * @param len [out] ファイル名として使えるサイズ
-     * @return 格納先バッファポインタ
+     * @param num Name buffer number
+     * @param len [out] Size usable as file name
+     * @return Destination buffer pointer
      */
     protected byte[] getFileNamePos(int num, int[] len) {
         int[] size = new int[1];
@@ -462,10 +462,10 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     }
 
     /**
-     * 拡張子を格納する位置を返す
+     * Returns the position where the extension is stored
      *
-     * @param len [out] バッファサイズ
-     * @return 格納先バッファポインタ
+     * @param len [out] Buffer size
+     * @return Destination buffer pointer
      */
     protected byte[] getFileExtPos(int[] len) {
         len[0] = 0;
@@ -493,13 +493,13 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     }
 
     /**
-     * ファイル名を設定
+     * Set file name
      * <p>
-     * filename はデータビットが反転している場合あり
+     * filename data bits may be inverted
      *
-     * @param filename [in,out] ファイル名
-     * @param size     バッファサイズ
-     * @param length   長さ
+     * @param filename [in,out] File name
+     * @param size     Buffer size
+     * @param length   Length
      */
     protected void setNativeName(byte[] filename, int size, int length) {
         int[] nl = new int[1];
@@ -512,13 +512,13 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     }
 
     /**
-     * 拡張子を設定
+     * Set extension
      * <p>
-     * fileext はデータビットが反転している場合あり
+     * fileext data bits may be inverted
      *
-     * @param fileExt [in,out] 拡張子
-     * @param size    バッファサイズ
-     * @param length  長さ
+     * @param fileExt [in,out] Extension
+     * @param size    Buffer size
+     * @param length  Length
      */
     protected void setNativeExt(byte[] fileExt, int size, int length) {
         int[] el = new int[1];
@@ -530,9 +530,9 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     }
 
     /**
-     * ファイル名(拡張子除く)を返す
+     * Returns file name (excluding extension)
      *
-     * @return ファイル名
+     * @return File name
      */
     public String getFileNamePlainStr() {
         byte[] name = new byte[256];
@@ -547,9 +547,9 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     }
 
     /**
-     * 拡張子を返す
+     * Returns extension
      *
-     * @return 拡張子
+     * @return Extension
      */
     protected String getFileExtPlainStr() {
         byte[] ext = new byte[256];
@@ -564,14 +564,14 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     }
 
     /**
-     * ファイル名を変換して内部ファイル名にする 検索用
+     * Convert file name to internal file name For search
      *
-     * @param filename ファイル名 (Unicode)
-     * @param name     [out] 内部ファイル名バッファ
-     * @param nLen     [in,out] 上記バッファサイズ / 文字列長さを返す
-     * @param ext      [out] 内部拡張子名バッファ
-     * @param elen     [in,out] 上記バッファサイズ / 文字列長さを返す
-     * @return true: OK, false: 変換できない文字がある
+     * @param filename File name (Unicode)
+     * @param name     [out] Internal file name buffer
+     * @param nLen     [in,out] Above buffer size / returns string length
+     * @param ext      [out] Internal extension name buffer
+     * @param elen     [in,out] Above buffer size / returns string length
+     * @return true: OK, false: Contains characters that cannot be converted
      */
     protected boolean toNativeFileName(String filename, byte[] name, int[] nLen, byte[] ext, int[] elen) {
         byte[] tmp = new byte[256];
@@ -595,13 +595,13 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     }
 
     /**
-     * ファイルパスから内部ファイル名を生成する
+     * Generate internal file name from file path
      *
-     * インポート時のダイアログを出す前
-     * 拡張子がない機種では拡張子部分をファイル名としてそのまま設定
+     * Before showing the dialog during import
+     * On models without extension, set extension part as file name as is
      *
-     * @param filepath ファイルパス
-     * @return ファイル名
+     * @param filepath File path
+     * @return File name
      */
     protected String remakeFileNameAndExtStr(String filepath) {
         String newName = "";
@@ -639,13 +639,13 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     }
 
     /**
-     * ファイルパスから内部ファイル名を生成する
+     * Generate internal file name from file path
      *
-     * インポート時のダイアログを出す前
-     * 拡張子がない機種では拡張子はとり除かれる
+     * Before showing the dialog during import
+     * On models without extension, the extension is removed
      *
-     * @param filepath ファイルパス
-     * @return ファイル名
+     * @param filepath File path
+     * @return File name
      */
     protected String remakeFileNameOnlyStr(String filepath) {
         String newName = "";
@@ -677,14 +677,14 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     }
 
     /**
-     * 属性から拡張子を付加する
+     * Add extension based on attributes
      * <p>
-     * エクスポートするファイルのファイル名に適用
+     * Applied to the file name of the file to be exported
      *
-     * @param fileType ファイル属性
-     * @param mask     ファイル属性ビットマスク
-     * @param filename [in,out] ファイル名
-     * @param dupli    同じ拡張子名の重複を許すか
+     * @param fileType File attribute
+     * @param mask     File attribute bitmask
+     * @param filename [in,out] File name
+     * @param dupli    Whether to allow duplication of the same extension name
      */
     protected void addExtensionByFileAttr(int fileType, int mask, String[] filename, boolean dupli /* = false */) {
         Path path = Paths.get(filename[0]);
@@ -706,15 +706,15 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     }
 
     /**
-     * 属性から拡張子を付加する
+     * Add extension based on attributes
      * <p>
-     * エクスポートするファイルのファイル名に適用
+     * Applied to the file name of the file to be exported
      *
-     * @param fileType ファイル属性
-     * @param mask     ファイル属性ビットマスク
-     * @param filename [in,out] ファイル名
-     * @param external 拡張属性 valueと比較
-     * @param dupli    同じ拡張子名の重複を許すか
+     * @param fileType File attribute
+     * @param mask     File attribute bitmask
+     * @param filename [in,out] File name
+     * @param external Extended attribute Compare with value
+     * @param dupli    Whether to allow duplication of the same extension name
      */
     protected void addExtensionByFileAttr(int fileType, int mask, String filename, int external, boolean dupli) {
         Path path = Paths.get(filename);
@@ -743,13 +743,13 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     }
 
     /**
-     * 属性の文字列を返す
+     * Returns attribute string
      *
-     * @param pos        位置(負のときは、外部定義からさがす)
-     * @param list       名＆値リスト
-     * @param defaultPos 一致しないとき設定するデフォルト名のある位置(-1のときは設定しない)
-     * @param attr       [out] 一致した名前
-     * @return リストに一致したらtrue
+     * @param pos        Position (if negative, search from external definition)
+     * @param list       Name & value list
+     * @param defaultPos Position of default name to set when not matching (-1 for not setting)
+     * @param attr       [out] Matched name
+     * @return true if matching the list
      */
     protected boolean getFileAttrName(int pos, Map<String, Object> list, String[] attr, int defaultPos) {
         boolean match = true;
@@ -770,9 +770,9 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     }
 
     /**
-     * 拡張子から属性を決定できるか 決定できる場合、末尾の拡張子をとり除く
+     * Whether attributes can be determined from extension. If so, remove the trailing extension.
      *
-     * インポートするファイルのファイル名に適用
+     * Applied to the file name of the file to be imported
      *
      * <pre> For Example:
      *  foobar.aaa.bas (is basic file) -> foobar.aaa (trimming last extension)
@@ -790,11 +790,11 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     }
 
     /**
-     * 拡張子から属性を決定できるか
+     * Whether attributes can be determined from extension.
      *
-     * 決定できる場合、拡張子が２つつながっている場合は末尾の拡張子をとり除く
+     * If so, and if two extensions are connected, remove the trailing extension.
      *
-     * インポートするファイルのファイル名に適用
+     * Applied to the file name of the file to be imported
      *
      * <pre>
      *  For Example:
@@ -817,11 +817,11 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     }
 
     /**
-     * 拡張子から属性を決定できるか
+     * Whether attributes can be determined from extension.
      * <p>
-     * 決定できる場合、拡張子が２つつながっている場合は末尾の拡張子をとり除く
+     * If so, and if two extensions are connected, remove the trailing extension.
      * <p>
-     * インポートするファイルのファイル名に適用
+     * Applied to the file name of the file to be imported
      * <pre>
      *  For Example:
      *  foobar.aaa.bas (is basic file) -> foobar.aaa (trimming last extension)
@@ -829,13 +829,13 @@ public abstract class DiskBasicDirItem<T extends Directory> {
      *  foobar.bbb.ccc (is unknown attr) -> foobar.bbb.ccc (no change filename)
      * </pre>
      *
-     * @param filename  ファイル名
-     * @param list      拡張子名＆値リスト
-     * @param listFirst リストの最初の位置
-     * @param listLast  リストの最後の位置
-     * @param outfile   [out] 編集後のファイル名
-     * @param attr      [out] 属性
-     * @param pos       [out] リストの位置 (ユーザ指定属性の場合はマイナスになる)
+     * @param filename  File name
+     * @param list      Extension name & value list
+     * @param listFirst First position of the list
+     * @param listLast  Last position of the list
+     * @param outfile   [out] File name after editing
+     * @param attr      [out] Attribute
+     * @param pos       [out] List position (becomes negative for user-specified attributes)
      */
     protected boolean trimLastExtensionByExtensionAttr(String filename, Map<String, Object> list, int listFirst, int listLast, String[] outfile, int[] attr, int[] pos) {
         boolean match = false;
@@ -863,9 +863,9 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     }
 
     /**
-     * 拡張子から属性を決定できるか 決定できる場合、末尾の拡張子をとり除く
+     * Whether attributes can be determined from extension. If so, remove the trailing extension.
      * <p>
-     * インポートするファイルのファイル名に適用
+     * Applied to the file name of the file to be imported
      *
      * <pre> For Example:
      *  foobar.aaa.bas (is basic file) -> foobar.aaa (trimming last extension)
@@ -873,13 +873,13 @@ public abstract class DiskBasicDirItem<T extends Directory> {
      *  foobar.bbb.ccc (is unknown attr) -> foobar.bbb.ccc (no change filename)
      * </pre>
      *
-     * @param filename  ファイル名
-     * @param list      拡張子名＆値リスト
-     * @param listFirst リストの最初の位置
-     * @param listLast  リストの最後の位置
-     * @param outfile   [out] 編集後のファイル名
-     * @param attr      [out] 属性
-     * @param pos       [out] リストの位置 (ユーザ指定属性の場合はマイナスになる)
+     * @param filename  File name
+     * @param list      Extension name & value list
+     * @param listFirst First position of the list
+     * @param listLast  Last position of the list
+     * @param outfile   [out] File name after editing
+     * @param attr      [out] Attribute
+     * @param pos       [out] List position (becomes negative for user-specified attributes)
      */
     protected boolean isContainAttrByExtension(String filename, Map<String, Object> list, int listFirst, int listLast, String[] outfile, int[] attr, int[] pos) {
         boolean match = false;
@@ -913,14 +913,14 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     }
 
     /**
-     * 属性の選択肢を作成する（プロパティダイアログ用）
+     * Create attribute choices (for property dialog)
      *
      * @param basic    DiskBasic
-     * @param list     拡張子名＆値リスト
-     * @param endPos   リストの最終位置
-     * @param fileType 属性値(optional)
-     *                 属性値を設定した場合、属性値がリストに一致しなければそれを選択肢に追加する。
-     * @param types    [out] 選択肢リスト
+     * @param list     Extension name & value list
+     * @param endPos   Final position of the list
+     * @param fileType Attribute value (optional)
+     *                 If an attribute value is set and it does not match the list, it is added to the choices.
+     * @param types    [out] Choice list
      */
     public static void createChoiceForAttrDialog(DiskBasic basic, Map<String, Object> list, int endPos, List<String> types, int fileType) {
         boolean matchValue = false;
@@ -947,13 +947,13 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     }
 
     /**
-     * 属性の選択肢を選ぶ（プロパティダイアログ用）
+     * Select attribute choice (for property dialog)
      *
      * @param basic      DiskBasic
-     * @param selPos     選択位置(負の場合は、外部設定の属性位置)
-     * @param endPos     リストの最終位置
-     * @param unknownPos "不明"の位置
-     * @return 選択肢の位置
+     * @param selPos     Selection position (if negative, attribute position of external settings)
+     * @param endPos     Final position of the list
+     * @param unknownPos Position of "Unknown"
+     * @return Position of choice
      */
     public static int selectChoiceForAttrDialog(DiskBasic basic, int selPos, int endPos, int unknownPos) {
         if (selPos < 0) {
@@ -969,7 +969,7 @@ public abstract class DiskBasicDirItem<T extends Directory> {
         return selPos;
     }
 
-    /** リストの位置から属性を返す(プロパティダイアログ用) */
+    /** Returns attributes from the position in the list (for property dialog) */
     public static int calcSpecialOriginalTypeFromPos(DiskBasic basic, int pos, int endPos) {
         int val = -1;
         if (pos >= endPos) {
@@ -983,7 +983,7 @@ public abstract class DiskBasicDirItem<T extends Directory> {
         return val;
     }
 
-    /** リストの位置から属性を返す(プロパティダイアログ用) */
+    /** Returns attributes from the position in the list (for property dialog) */
     public static int calcSpecialFileTypeFromPos(DiskBasic basic, int pos, int endPos) {
         int t = 0;
         if (pos >= endPos) {
@@ -997,7 +997,7 @@ public abstract class DiskBasicDirItem<T extends Directory> {
         return t;
     }
 
-    /** ファイル名の通常コードの割合(0.0-1.0) */
+    /** Ratio of normal codes in the file name (0.0-1.0) */
     public double normalCodesInFileName() {
         int count = 0;
         boolean invert = basic.isDataInverted();
@@ -1021,9 +1021,9 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     }
 
     /**
-     * ファイル名を設定 "."で拡張子と分離
+     * Set file name Separate from extension with "."
      *
-     * @param filename ファイル名(Unicode)
+     * @param filename File name (Unicode)
      */
     public void setFileNameStr(String filename) {
         byte[] name = new byte[256];
@@ -1035,10 +1035,10 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     }
 
     /**
-     * ファイル名をそのまま設定
-     * 拡張子部分はクリアする
+     * Set file name as is
+     * The extension part is cleared
      *
-     * @param filename ファイル名(Unicode)
+     * @param filename File name (Unicode)
      */
     public void setFileNamePlain(String filename) {
         byte[] name = new byte[256];
@@ -1050,9 +1050,9 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     }
 
     /**
-     * 拡張子を設定
+     * Set extension
      *
-     * @param fileExt 拡張子(Unicode)
+     * @param fileExt Extension (Unicode)
      */
     public void setFileExtPlain(String fileExt) {
         byte[] ext = new byte[256];
@@ -1063,20 +1063,20 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     }
 
     /**
-     * ファイル名と拡張子を設定
+     * Set file name and extension
      *
-     * @param name  [in,out] ファイル名
-     * @param nSize ファイル名バッファサイズ
-     * @param nLen  ファイル名長さ
-     * @param ext   [in,out] 拡張子
-     * @param eSize 拡張子バッファサイズ
-     * @param eLen  拡張子長さ
-     *              データビットはこの関数で反転させる
+     * @param name  [in,out] File name
+     * @param nSize File name buffer size
+     * @param nLen  File name length
+     * @param ext   [in,out] Extension
+     * @param eSize Extension buffer size
+     * @param eLen  Extension length
+     *              Data bits are inverted in this function
      */
     public void setNativeFileName(byte[] name, int nSize, int nLen, byte[] ext, int eSize, int eLen) {
         boolean invert = basic.isDataInverted();
-        char space = (char) basic.getDirSpaceCode(); // 空白コード
-        char term = (char) basic.getDirTerminateCode(); // 終端コード
+        char space = (char) basic.getDirSpaceCode(); // Space code
+        char term = (char) basic.getDirTerminateCode(); // Termination code
         if (name != null) {
             if (nSize > nLen) {
                 name[nLen] = (byte) term;
@@ -1106,9 +1106,9 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     }
 
     /**
-     * ファイル名をコピー
+     * Copy file name
      *
-     * @param src ディレクトリアイテム
+     * @param src Directory item
      */
     public void copyFileName(DiskBasicDirItem<T> src) {
         byte[] name = new byte[256];
@@ -1123,9 +1123,9 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     }
 
     /**
-     * ファイル名を返す 名前 + "." + 拡張子
+     * Returns file name Name + "." + Extension
      *
-     * @return ファイル名
+     * @return File name
      */
     public String getFileNameStr() {
         byte[] name = new byte[256], ext = new byte[256];
@@ -1145,9 +1145,9 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     }
 
     /**
-     * ファイル名を返す 名前 + "." + 拡張子 エクスポート時
+     * Returns file name Name + "." + Extension During export
      *
-     * @return ファイル名
+     * @return File name
      */
     public String getFileNameStrForExport() {
         byte[] name = new byte[256], ext = new byte[256];
@@ -1167,11 +1167,11 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     }
 
     /**
-     * ファイル名を得る 名前 + "." + 拡張子
-     * バッファを超える場合は拡張子を追加しない
+     * Get file name Name + "." + Extension
+     * Extension is not added if it exceeds buffer
      *
-     * @param filename 出力先バッファ
-     * @param length   出力先バッファのサイズ
+     * @param filename Destination buffer
+     * @param length   Destination buffer size
      */
     public void getFileName(byte[] filename, int length) {
         byte[] name = new byte[256];
@@ -1188,13 +1188,13 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     }
 
     /**
-     * ファイル名を得る
+     * Get file name
      * <p>
-     * データビットは反転させたまま
+     * Keep data bits inverted
      *
-     * @param filename [in,out] ファイル名
-     * @param size     バッファサイズ
-     * @param length   [out] 長さ
+     * @param filename [in,out] File name
+     * @param size     Buffer size
+     * @param length   [out] Length
      */
     protected void getNativeName(byte[] filename, int size, int[] length) {
         int[] s = new int[1];
@@ -1208,13 +1208,13 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     }
 
     /**
-     * 拡張子を得る
+     * Get extension
      * <p>
-     * データビットは反転させたまま
+     * Keep data bits inverted
      *
-     * @param fileExt [in,out] 拡張子
-     * @param size    バッファサイズ
-     * @param length  [out] 長さ
+     * @param fileExt [in,out] Extension
+     * @param size    Buffer size
+     * @param length  [out] Length
      */
     protected void getNativeExt(byte[] fileExt, int size, int[] length) {
         int[] l = new int[1];
@@ -1226,22 +1226,22 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     }
 
     /**
-     * ファイル名と拡張子を得る
-     * それぞれ空白は右トリミング
+     * Get file name and extension
+     * Each space is right trimmed
      *
-     * @param name [out] ファイル名バッファ
-     * @param nLen [in,out] 上記バッファサイズ / 文字列長さを返す
-     * @param ext  [out] 拡張子名バッファ
-     * @param eLen [in,out] 上記バッファサイズ / 文字列長さを返す
-     *             データビットはこの関数で反転させる
+     * @param name [out] File name buffer
+     * @param nLen [in,out] Above buffer size / returns string length
+     * @param ext  [out] Extension name buffer
+     * @param eLen [in,out] Above buffer size / returns string length
+     *             Data bits are inverted in this function
      */
     public void getNativeFileName(byte[] name, int[] nLen, byte[] ext, int[] eLen) {
         int[] nl = new int[1];
         int[] el = new int[1];
         boolean invert = basic.isDataInverted();
-        char trim = (char) basic.getDirTrimmingCode(); // とり除くコード
-        char space = (char) basic.getDirSpaceCode(); // 空白コード
-        char term = (char) basic.getDirTerminateCode(); // 終端コード
+        char trim = (char) basic.getDirTrimmingCode(); // Trimming code
+        char space = (char) basic.getDirSpaceCode(); // Space code
+        char term = (char) basic.getDirTerminateCode(); // Termination code
         if (name != null && nLen[0] > 0) {
             Arrays.fill(name, 0, nLen[0], (byte) 0);
             getNativeName(name, nLen[0], nl);
@@ -1269,10 +1269,10 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     }
 
     /**
-     * ファイル名(拡張子除く)が一致するか
+     * Whether file names (excluding extension) match
      *
-     * @param name  ファイル名
-     * @param caseInsensitive 大文字小文字を区別しないか(case insensitive)
+     * @param name  File name
+     * @param caseInsensitive Whether to ignore case
      */
     public boolean isSameName(String name, boolean caseInsensitive) {
         if (!isUsedAndVisible()) return false;
@@ -1292,11 +1292,11 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     }
 
     /**
-     * 同じファイル名か
-     * ファイル名＋拡張子＋拡張属性で一致するかどうか
+     * Whether same file names
+     * Whether match by File name + Extension + Extended attribute
      *
-     * @param filename ファイル名
-     * @param caseInsensitive    大文字小文字を区別しないか(case insensitive)
+     * @param filename File name
+     * @param caseInsensitive    Whether to ignore case
      * @see #getOptionalName()
      */
     public boolean isSameFileName(DiskBasicFileName filename, boolean caseInsensitive) {
@@ -1323,11 +1323,11 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     }
 
     /**
-     * 同じファイル名か
-     * ファイル名＋拡張子＋拡張属性で一致するかどうか
+     * Whether same file names
+     * Whether match by File name + Extension + Extended attribute
      *
-     * @param src   比較対象
-     * @param iCase 大文字小文字を区別しないか(case insensitive)
+     * @param src   Comparison target
+     * @param iCase Whether to ignore case
      * @see #getOptionalName()
      */
     public boolean isSameFileName(DiskBasicDirItem<T> src, boolean iCase) {
@@ -1354,19 +1354,19 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     }
 
     /**
-     * 小文字を大文字にする
+     * Make lowercase to uppercase
      *
-     * @param str  [in,out] 文字列
-     * @param size 長さ
+     * @param str  [in,out] String
+     * @param size Length
      */
     public static void toUpper(byte[] str, int size) {
         Common.toUpper(str, size);
     }
 
     /**
-     * ファイル名＋拡張子のサイズ
+     * Size of File name + Extension
      *
-     * @return サイズ
+     * @return Size
      */
     public int getFileNameStrSize() {
         int nl = 0;
@@ -1398,14 +1398,14 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     }
 
     /**
-     * 文字列をバッファにコピー
+     * Copy string to buffer
      *
-     * @param src   ファイル名
-     * @param sSize ファイル名サイズ
-     * @param sLen  ファイル名長さ
-     * @param dst   [out] 出力先バッファ
-     * @param dSize 上記バッファサイズ
-     * @param dLen  [out] 上記長さ
+     * @param src   File name
+     * @param sSize File name size
+     * @param sLen  File name length
+     * @param dst   [out] Destination buffer
+     * @param dSize Above buffer size
+     * @param dLen  [out] Above length
      */
     public static void memoryCopy(byte[] src, int sSize, int sLen, byte[] dst, int dSize, int[] dLen) {
         if (dst == null || dSize == 0) {
@@ -1418,18 +1418,18 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     }
 
     /**
-     * 文字列をバッファにコピー spChr(通常".")で拡張子とを分ける
+     * Copy string to buffer Separate extension with spChr (usually ".")
      *
-     * @param src    ファイル名
-     * @param sSize  ファイル名サイズ
-     * @param sLen   ファイル名長さ
-     * @param dName  [out] 出力先ファイル名バッファ
-     * @param dNSize 上記ファイル名バッファサイズ
-     * @param dNLen  [out] 上記ファイル名長さ
-     * @param dExt   [out] 出力先拡張子バッファ
-     * @param dESize 上記拡張子バッファサイズ
-     * @param dELen  [out] 上記拡張子長さ
-     * @param spChr  分割に使用する文字
+     * @param src    File name
+     * @param sSize  File name size
+     * @param sLen   File name length
+     * @param dName  [out] Destination file name buffer
+     * @param dNSize Above file name buffer size
+     * @param dNLen  [out] Above file name length
+     * @param dExt   [out] Destination extension buffer
+     * @param dESize Above extension buffer size
+     * @param dELen  [out] Above extension length
+     * @param spChr  Character used for split
      */
     public static void splitFileName(byte[] src, int sSize, int sLen, byte[] dName, int dNSize, int[] dNLen, byte[] dExt, int dESize, int[] dELen, byte spChr) {
         int pos = -1;
@@ -1450,9 +1450,9 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     }
 
     /**
-     * 属性を設定
+     * Set attribute
      *
-     * @param fileType 属性
+     * @param fileType Attribute
      */
     public void setFileAttr(DiskBasicFileType fileType) {
     }
@@ -1466,31 +1466,31 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     }
 
     /**
-     * 属性を設定
+     * Set attribute
      *
-     * @param formatType    フォーマット種類 DiskBasicFormatType
-     * @param fileType      共通属性 file_type_mask の組み合わせ
-     * @param originalType0 本来の属性
-     * @param originalType1 本来の属性 つづき1
-     * @param originalType2 本来の属性 つづき2
+     * @param formatType    Format type DiskBasicFormatType
+     * @param fileType      Combination of common attributes file_type_mask
+     * @param originalType0 Original attribute
+     * @param originalType1 Original attribute continued 1
+     * @param originalType2 Original attribute continued 2
      */
     public void setFileAttr(int formatType, int fileType, int originalType0, int originalType1, int originalType2) {
         setFileAttr(new DiskBasicFileType(formatType, fileType, originalType0, originalType1, originalType2));
     }
 
     /**
-     * 属性を返す
+     * Returns attribute
      *
-     * @return 属性
+     * @return Attribute
      */
     public DiskBasicFileType getFileAttr() {
         return new DiskBasicFileType();
     }
 
     /**
-     * 属性の文字列を返す(ファイル一覧画面表示用)
+     * Returns attribute string (for file list screen display)
      *
-     * @return 文字列
+     * @return String
      */
     public String getFileAttrStr() {
         return "";
@@ -1506,9 +1506,9 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     }
 
     /**
-     * 通常のファイルか ディレクトリ削除でのチェックで使用
+     * Whether normal file Used in check for directory deletion
      *
-     * @return true 通常のファイル
+     * @return true if normal file
      */
     public boolean isNormalFile() {
         DiskBasicFileType attr = getFileAttr();
@@ -1526,36 +1526,36 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     }
 
     /**
-     * ディレクトリか
+     * Whether directory
      *
-     * @return true ディレクトリ
+     * @return true if directory
      */
     public boolean isDirectory() {
         return getFileAttr().isDirectory();
     }
 
     /**
-     * ファイルサイズをセット
+     * Set file size
      *
-     * @param val サイズ
+     * @param val Size
      */
     public void setFileSize(int val) {
         groups.setSize(val);
     }
 
     /**
-     * ファイルサイズを返す
+     * Returns file size
      *
-     * @return サイズ
+     * @return Size
      */
     public int getFileSize() {
         return groups.getSize();
     }
 
     /**
-     * ディレクトリサイズをセット
+     * Set directory size
      *
-     * @param val サイズ
+     * @param val Size
      */
     public void setDirectorySize(int val) {
         setFileSize(val);
@@ -1565,9 +1565,9 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     }
 
     /**
-     * 指定ディレクトリのすべてのグループを取得
+     * Get all groups of the specified directory
      *
-     * @param groupItems [out] グループリスト
+     * @param groupItems [out] Group list
      */
     public void getAllGroups(DiskBasicGroups groupItems) throws IOException {
         groupItems.clear();
@@ -1575,18 +1575,18 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     }
 
     /**
-     * グループ数をセット
+     * Set group count
      *
-     * @param val 数
+     * @param val Count
      */
     public void setGroupSize(int val) {
         groups.setNums(val);
     }
 
     /**
-     * グループ数を返す
+     * Returns group count
      *
-     * @return 数
+     * @return Count
      */
     public int getGroupSize() {
         return groups.getNums();
@@ -1598,116 +1598,116 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     }
 
     /**
-     * 最初のグループ番号をセット
+     * Set first group number
      *
-     * @param fileUnitNum ファイル番号
-     * @param val         番号
-     * @param size        サイズ(機種依存)
+     * @param fileUnitNum File number
+     * @param val         Number
+     * @param size        Size (model dependent)
      */
     public void setStartGroup(int fileUnitNum, int val, int size) {
     }
 
     /**
-     * 最初のグループ番号をセット
+     * Set first group number
      *
-     * @param fileUnitNum ファイル番号
+     * @param fileUnitNum File number
      */
     public int getStartGroup(int fileUnitNum) {
         return 0;
     }
 
     /**
-     * 追加のグループ番号をセット(機種依存)
+     * Set extra group number (model dependent)
      *
-     * @param val 番号
+     * @param val Number
      */
     public void setExtraGroup(int val) {
     }
 
     /**
-     * 追加のグループ番号を返す(機種依存)
+     * Returns extra group number (model dependent)
      *
-     * @return 番号
+     * @return Number
      */
     public int getExtraGroup() {
         return INVALID_GROUP_NUMBER;
     }
 
-    /** 追加のグループリストをセット(機種依存) */
+    /** Set extra group list (model dependent) */
     public void setExtraGroups(DiskBasicGroups grps) {
     }
 
-    /** 追加のグループ番号を得る(機種依存) */
+    /** Get extra group number (model dependent) */
     public void getExtraGroups(List<Integer> arr) {
     }
 
-    /** 追加のグループリストを返す(機種依存) */
+    /** Returns extra group list (model dependent) */
     public void getExtraGroups(DiskBasicGroups[] grps) {
     }
 
     /**
-     * 次のグループ番号をセット(機種依存)
+     * Set next group number (model dependent)
      *
-     * @param val 番号
+     * @param val Number
      */
     public void setNextGroup(int val) {
     }
 
-    /** 次のグループ番号を返す(機種依存) */
+    /** Returns next group number (model dependent) */
     public int getNextGroup() {
         return INVALID_GROUP_NUMBER;
     }
 
     /**
-     * 最後のグループ番号をセット(機種依存)
+     * Set last group number (model dependent)
      *
-     * @param val 番号
+     * @param val Number
      */
     public void setLastGroup(int val) {
     }
 
     /**
-     * 最後のグループ番号を返す(機種依存)
+     * Returns last group number (model dependent)
      *
-     * @return 番号
+     * @return Number
      */
     public int getLastGroup() {
         return INVALID_GROUP_NUMBER;
     }
 
     /**
-     * 親のグループ番号をセット(機種依存)
+     * Set parent group number (model dependent)
      *
-     * @param val 番号
+     * @param val Number
      */
     public void setParentGroup(int val) {
     }
 
     /**
-     * 親のグループ番号を返す(機種依存)
+     * Returns parent group number (model dependent)
      *
-     * @return 番号
+     * @return Number
      */
     public int getParentGroup() {
         return INVALID_GROUP_NUMBER;
     }
 
-    /** グループリストの数を返す */
+    /** Returns group list count */
     public int getGroupCount() {
         return groups.size();
     }
 
-    /** グループリストを返す */
+    /** Returns group list */
     public DiskBasicGroups getGroups() {
         return groups;
     }
 
-    /** グループリストを設定 */
+    /** Set group list */
     public void setGroups(DiskBasicGroups vals) {
         groups = vals;
     }
 
-    /** グループリストのアイテムを返す */
+    /** Returns group list item */
     public DiskBasicGroupItem getGroup(int index) {
         return groups.get(index);
     }
@@ -1777,34 +1777,34 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     }
 
     /**
-     * 作成日付を得る
+     * Get creation date
      *
-     * @param tm [out] 日付
+     * @param tm [out] Date
      */
     public LocalDate getFileCreateDate(LocalDateTime tm) {
         return tm.toLocalDate();
     }
 
     /**
-     * 作成時間を得る
+     * Get creation time
      *
-     * @param tm [out] 時間
+     * @param tm [out] Time
      */
     public LocalTime getFileCreateTime(LocalDateTime tm) {
         return tm.toLocalTime();
     }
 
     /**
-     * 作成日時を得る
+     * Get creation date and time
      *
-     * @param tm [out] 日時
+     * @param tm [out] Date and time
      */
     public void getFileCreateDateTime(LocalDateTime tm) {
         getFileCreateDate(tm);
         getFileCreateTime(tm);
     }
 
-    /** 作成日時を返す */
+    /** Returns creation date and time */
     public LocalDateTime getFileCreateDateTime() {
         LocalDateTime tm = LocalDateTime.now();
         getFileCreateDateTime(tm);
@@ -1812,9 +1812,9 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     }
 
     /**
-     * ファイルの作成日付を文字列にして返す
+     * Returns creation date of file as string
      *
-     * @return 日付文字列
+     * @return Date string
      */
     @Deprecated
     public String getFileCreateDateStr() {
@@ -1822,9 +1822,9 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     }
 
     /**
-     * ファイルの作成時間を文字列にして返す
+     * Returns creation time of file as string
      *
-     * @return 時間文字列
+     * @return Time string
      */
     @Deprecated
     public String getFileCreateTimeStr() {
@@ -1832,9 +1832,9 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     }
 
     /**
-     * ファイルの作成日時を文字列にして返す
+     * Returns creation date and time of file as string
      *
-     * @return 日時文字列 ない場合"---"
+     * @return Date and time string, "---" if none
      */
     @Deprecated
     public String getFileCreateDateTimeStr() {
@@ -1846,34 +1846,34 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     }
 
     /**
-     * 変更日付を得る
+     * Get modification date
      *
-     * @param tm [out] 日付
+     * @param tm [out] Date
      */
     public LocalDate getFileModifyDate(LocalDateTime tm) {
         return tm.toLocalDate();
     }
 
     /**
-     * 変更時間を得る
+     * Get modification time
      *
-     * @param tm [out] 時間
+     * @param tm [out] Time
      */
     public LocalTime getFileModifyTime(LocalDateTime tm) {
         return tm.toLocalTime();
     }
 
     /**
-     * 変更日時を得る
+     * Get modification date and time
      *
-     * @param tm [out] 日時
+     * @param tm [out] Date and time
      */
     public void getFileModifyDateTime(LocalDateTime tm) {
         getFileModifyDate(tm);
         getFileModifyTime(tm);
     }
 
-    /** 変更日時を返す */
+    /** Returns modification date and time */
     public LocalDateTime getFileModifyDateTime() {
         LocalDateTime tm = LocalDateTime.now();
         getFileModifyDateTime(tm);
@@ -1881,9 +1881,9 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     }
 
     /**
-     * 変更日付のタイトル名（ダイアログ用）
+     * Modification date title name (for dialog)
      *
-     * @return タイトル文字列
+     * @return Title string
      */
     @Deprecated
     public String getFileModifyDateStr() {
@@ -1891,9 +1891,9 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     }
 
     /**
-     * ファイルの変更日付を文字列にして返す
+     * Returns modification date of file as string
      *
-     * @return 日付文字列
+     * @return Date string
      */
     @Deprecated
     public String getFileModifyTimeStr() {
@@ -1901,9 +1901,9 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     }
 
     /**
-     * ファイルの変更日時を文字列にして返す
+     * Returns modification date and time of file as string
      *
-     * @return 日時文字列 ない場合"---"
+     * @return Date and time string, "---" if none
      */
     @Deprecated
     public String getFileModifyDateTimeStr() {
@@ -1915,34 +1915,34 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     }
 
     /**
-     * アクセス日付を得る
+     * Get access date
      *
-     * @return 日付
+     * @return Date
      */
     public LocalDate getFileAccessDate() {
         return LocalDate.now();
     }
 
     /**
-     * アクセス時間を得る
+     * Get access time
      *
-     * @return 時間
+     * @return Time
      */
     public LocalTime getFileAccessTime() {
         return LocalTime.now();
     }
 
     /**
-     * アクセス日時を得る
+     * Get access date and time
      *
-     * @param tm [out] 日時
+     * @param tm [out] Date and time
      */
     public void getFileAccessDateTime(LocalDateTime tm) {
         getFileAccessDate();
         getFileAccessTime();
     }
 
-    /** アクセス日時を返す */
+    /** Returns access date and time */
     public LocalDateTime getFileAccessDateTime() {
         LocalDateTime tm = LocalDateTime.now();
         getFileAccessDateTime(tm);
@@ -1950,9 +1950,9 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     }
 
     /**
-     * ファイルのアクセス日付を文字列にして返す
+     * Returns access date of file as string
      *
-     * @return 日付文字列
+     * @return Date string
      */
     @Deprecated
     public String getFileAccessDateStr() {
@@ -1960,9 +1960,9 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     }
 
     /**
-     * ファイルのアクセス時間を文字列にして返す
+     * Returns access time of file as string
      *
-     * @return 時間文字列
+     * @return Time string
      */
     @Deprecated
     public String getFileAccessTimeStr() {
@@ -1970,9 +1970,9 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     }
 
     /**
-     * ファイルのアクセス日時を文字列にして返す
+     * Returns access date and time of file as string
      *
-     * @return 日時文字列 ない場合"---"
+     * @return Date and time string, "---" if none
      */
     @Deprecated
     public String getFileAccessDateTimeStr() {
@@ -1984,9 +1984,9 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     }
 
     /**
-     * 作成日時をセット
+     * Set creation date and time
      *
-     * @param tm 日時
+     * @param tm Date and time
      */
     public void setFileCreateDate(LocalDateTime tm) {
     }
@@ -2000,18 +2000,18 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     }
 
     /**
-     * 作成日付のタイトル名（ダイアログ用）
+     * Title name of creation date (for dialog)
      *
-     * @return タイトル文字列
+     * @return Title string
      */
     public String getFileCreateDateTimeTitle() {
         return "Created Date";
     }
 
     /**
-     * 変更日時をセット
+     * Set modification date and time
      *
-     * @param tm 日時
+     * @param tm Date and time
      */
     public void setFileModifyDate(LocalDateTime tm) {
     }
@@ -2035,9 +2035,9 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     }
 
     /**
-     * アクセス日時をセット
+     * Set access date and time
      *
-     * @param tm 日時
+     * @param tm Date and time
      */
     public void setFileAccessDateTime(LocalDateTime tm) {
         setFileAccessDate(tm);
@@ -2045,27 +2045,27 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     }
 
     /**
-     * アクセス日付のタイトル名（ダイアログ用）
+     * Title name of access date (for dialog)
      *
-     * @return タイトル文字列
+     * @return Title string
      */
     @Deprecated
     public String getFileAccessDateTimeTitle() {
         return "Accessed Date";
     }
 
-    /** 日時の表示順序を返す（ダイアログ用） */
+    /** Returns display order of date and time (for dialog) */
     public int getFileDateTimeOrder(int idx) {
         return idx;
     }
 
-    /** 日時を返す（ファイルリスト用） */
+    /** Returns date and time (for file list) */
     @Deprecated
     public String getFileDateTimeStr() {
         return getFileCreateDateTimeStr();
     }
 
-    /** 日時を指定ファイルに書き込む */
+    /** Write date and time to the specified file */
     public void writeFileDateTime(String path) {
         if (!(hasCreateDateTime() || hasModifyDateTime() || hasAccessDateTime())) {
             return;
@@ -2076,7 +2076,7 @@ public abstract class DiskBasicDirItem<T extends Directory> {
         // Implementation depends on file system capabilities
     }
 
-    /** 指定ファイルから日時を読み込む */
+    /** Read date and time from the specified file */
     public void readFileDateTime(String path, DiskBasicDirItemAttr dateTime) {
         LocalDateTime tm = LocalDateTime.now();
         if (!(hasCreateDateTime() || hasModifyDateTime() || hasAccessDateTime())) {
@@ -2124,56 +2124,56 @@ public abstract class DiskBasicDirItem<T extends Directory> {
         return false;
     }
 
-    /** 使用中のアイテムか */
+    /** Whether it is a used item */
     public boolean isUsed() {
         return (flags & USED_ITEM) != 0;
     }
 
-    /** 使用中かをセット */
+    /** Set whether it is used */
     public void used(boolean val) {
         flags = val ? (flags | USED_ITEM) : (flags & ~USED_ITEM);
     }
 
-    /** リストに表示するアイテムか */
+    /** Whether it is an item to be displayed in list */
     public boolean isVisible() {
         return (flags & VISIBLE_LIST) != 0;
     }
 
-    /** リストに表示するかをセット */
+    /** Set whether to display in list */
     public void visible(boolean val) {
         flags = val ? (flags | VISIBLE_LIST) : (flags & ~VISIBLE_LIST);
     }
 
-    /** 使用中かつリストに表示するアイテムか */
+    /** Whether it is an item that is used and to be displayed in list */
     public boolean isUsedAndVisible() {
         return (flags & (USED_ITEM | VISIBLE_LIST)) == (USED_ITEM | VISIBLE_LIST);
     }
 
-    /** ツリーに表示するアイテムか */
+    /** Whether it is an item to be displayed in tree */
     public boolean isVisibleOnTree() {
         return (flags & VISIBLE_TREE) != 0;
     }
 
-    /** ツリーに表示するかをセット */
+    /** Set whether to display in tree */
     public void visibleOnTree(boolean val) {
         flags = val ? (flags | VISIBLE_TREE) : (flags & ~VISIBLE_TREE);
     }
 
     /**
-     * ファイル名、属性をコピー
+     * Copy file name and attributes
      *
-     * @param src ディレクトリアイテム
+     * @param src Directory item
      */
     public void copyItem(DiskBasicDirItem<T> src) {
-        // データはコピーする
+        // Copy data
         copyData(src.getRawData());
-        // グループ
+        // Group
         groups = src.groups;
-        // サイズ
+        // Size
 //	    fileSize = src.fileSize;
-        // フラグ
+        // Flag
         flags = src.flags;
-        // その他の属性
+        // Other attributes
         externalAttr = src.externalAttr;
     }
 
@@ -2190,7 +2190,7 @@ public abstract class DiskBasicDirItem<T extends Directory> {
 
     public abstract void clearData();
 
-    /** ディレクトリを初期化 未使用にする */
+    /** Initialize directory and make it unused */
     public void initialData() {
         clearData();
     }
@@ -2199,7 +2199,7 @@ public abstract class DiskBasicDirItem<T extends Directory> {
         return false;
     }
 
-    /** ファイルの終端コードを返す */
+    /** Returns termination code of file */
     public byte getEofCode() {
         return basic.getTextTerminateCode();
     }
@@ -2209,10 +2209,10 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     }
 
     /**
-     * データをエクスポートする前に必要な処理
+     * Necessary processing before exporting data
      *
-     * @param filename [in,out] ファイル名
-     * @return false このファイルは対象外とする
+     * @param filename [in,out] File name
+     * @return false This file is excluded
      */
     public boolean preExportDataFile(String[] filename) {
         addExtensionByFileAttr(getFileAttr().getType(), FILE_TYPE_EXTENSION_MASK, filename, false);
@@ -2220,10 +2220,10 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     }
 
     /**
-     * データをインポートする前に必要な処理
+     * Necessary processing before importing data
      *
-     * @param filename [in,out] ファイル名
-     * @return false このファイルは対象外とする
+     * @param filename [in,out] File name
+     * @return false This file is excluded
      */
     public boolean preImportDataFile(String[] filename) {
         trimLastExtensionByExtensionAttr(filename[0]);
@@ -2232,13 +2232,13 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     }
 
     /**
-     * ファイル番号のファイルサイズを得る
-     * １つのエントリで複数のファイルを管理している場合は要オーバーライド
+     * Get file size of file number
+     * Override is required when multiple files are managed in one entry
      *
-     * @param fileUnitNum ファイル番号
-     * @param iStream     [in,out] 入力ストリーム
-     * @param fileOffset  ストリーム内のオフセット
-     * @return ファイルサイズ / ない場合 -1
+     * @param fileUnitNum File number
+     * @param iStream     [in,out] Input stream
+     * @param fileOffset  Offset in stream
+     * @return File size / -1 if none
      */
     public int getFileUnitSize(int fileUnitNum, InputStream iStream, int fileOffset) throws IOException {
         if (fileUnitNum == 0) {
@@ -2249,54 +2249,54 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     }
 
     /**
-     * ファイル番号のファイルへアクセスできるか
-     * １つのエントリで複数のファイルを管理している場合は要オーバーライド
+     * Whether file of file number can be accessed
+     * Override is required when multiple files are managed in one entry
      *
-     * @param fileUnitNum ファイル番号
+     * @param fileUnitNum File number
      */
     public boolean isValidFileUnit(int fileUnitNum) {
         return fileUnitNum == 0;
     }
 
-    /** ファイル名から属性を決定する */
+    /** Determine attributes from file name */
     public int convFileTypeFromFileName(String filename) {
         return 0;
     }
 
-    /** ファイル名から属性を決定する */
+    /** Determine attributes from file name */
     public int convOriginalTypeFromFileName(String filename) {
         return 0;
     }
 
-    /** ファイル名から拡張属性を決定する */
+    /** Determine extended attributes from file name */
     public int convOptionalNameFromFileName(String filename) {
         return 0;
     }
 
     /**
-     * 属性値を加工する
+     * Process attribute values
      * <p>
-     * インポートダイアログ入力後に必要なら入力した属性値の加工を行う
+     * Process the input attribute values if necessary after import dialog input
      */
     public boolean processAttr(DiskBasicDirItemAttr attr, DiskBasicError errinfo) {
         return true;
     }
 
-    /** その他の属性値を設定する */
+    /** Set other attribute values */
     public void setOptionalAttr(DiskBasicDirItemAttr attr) {
     }
 
     /**
-     * 文字列をバイト列に変換 文字コードは機種依存
+     * Convert string to byte array. Character encoding is model dependent
      *
-     * @return >=0 バイト数
+     * @return >=0 Number of bytes
      */
     public int convStringToChars(String src, byte[] dst, int len) {
         System.arraycopy(src.getBytes(), 0, dst, 0, len);
         return len;
     }
 
-    /** バイト列を文字列に変換 文字コードは機種依存 */
+    /** Convert byte array to string. Character encoding is model dependent */
     public String convCharsToString(byte[] src, int len) {
         StringBuilder sb = new StringBuilder();
         basic.getCharCodes().convToString(src, 0, len, sb, -1);
@@ -2304,9 +2304,9 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     }
 
     /**
-     * ファイル属性をXMLで出力
+     * Output file attributes in XML
      *
-     * @param path 出力先XMLファイルパス
+     * @param path Output XML file path
      */
     public boolean writeFileAttrToXml(String path) {
         try {
@@ -2417,11 +2417,11 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     }
 
     /**
-     * ファイル属性をXMLから読み込む
+     * Read file attributes from XML
      *
-     * @param path XMLファイルパス
-     * @param attr [out] アイテム内の属性(日時保持用)
-     * @return true: 正常, false: ファイル読み込めない
+     * @param path XML file path
+     * @param attr [out] Attributes within item (for holding date and time)
+     * @return true: Normal, false: Cannot read file
      */
     public boolean readFileAttrFromXml(String path, DiskBasicDirItemAttr attr) {
         try {
@@ -2511,7 +2511,7 @@ public abstract class DiskBasicDirItem<T extends Directory> {
         sector = val;
     }
 
-    /** アイテムの属するセクタを変更済みにする（未実装） */
+    /** Mark the sector the item belongs to as modified (not implemented) */
     public void setModify() {
     }
 
@@ -2537,18 +2537,18 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     public void calcFileUnitSize(int fileUnitNum) throws IOException {
     }
 
-    /** ファイルサイズとグループ数を計算する */
+    /** Calculate file size and group count */
     public void calcFileSize() throws IOException {
         groups.clear();
         calcFileUnitSize(0);
     }
 
     /**
-     * ファイルの終端コードをチェックして必要なサイズを返す
+     * Check termination code of file and return required size
      *
-     * @param iStream  入力ストリーム
-     * @param fileSize 入力ストリームの元のデータサイズ
-     * @return 終端コードを付加したサイズ（元のサイズ+1）
+     * @param iStream  Input stream
+     * @param fileSize Original data size of input stream
+     * @return Size with termination code added (original size + 1)
      */
     public int checkEofCode(InputStream iStream, int fileSize) throws IOException {
         iStream.skipNBytes(fileSize - 1);
@@ -2579,7 +2579,7 @@ public abstract class DiskBasicDirItem<T extends Directory> {
         return lastDot >= 0 ? filename.substring(0, lastDot) : filename;
     }
 
-    /** 属性値を一時的に集めておくクラス */
+    /** Class to temporarily collect attribute values */
     public static class DiskBasicDirItemAttr {
 
         private boolean rename;
@@ -2624,10 +2624,10 @@ public abstract class DiskBasicDirItem<T extends Directory> {
         }
 
         /**
-         * ファイル名をセット
+         * Set file name
          *
-         * @param nName     ファイル名
-         * @param nOptional ファイル名の属性
+         * @param nName     File name
+         * @param nOptional Attribute of file name
          */
         public void setFileName(String nName, int nOptional) {
             name.setName(nName);
@@ -2647,13 +2647,13 @@ public abstract class DiskBasicDirItem<T extends Directory> {
         }
 
         /**
-         * 属性をセット
+         * Set attributes
          *
-         * @param dormat  フォーマットタイプ
-         * @param type    共通属性
-         * @param origin0 独自属性
-         * @param origin1 独自属性 つづき1
-         * @param origin2 独自属性 つづき2
+         * @param format  Format type
+         * @param type    Common attributes
+         * @param origin0 Specific attribute
+         * @param origin1 Specific attribute continued 1
+         * @param origin2 Specific attribute continued 2
          */
         public void setFileAttr(int dormat, int type, int origin0, int origin1, int origin2 /* = 0 */) {
             this.type.setFormat(dormat);
@@ -2664,28 +2664,28 @@ public abstract class DiskBasicDirItem<T extends Directory> {
         }
 
         /**
-         * 共通属性をセット
+         * Set common attributes
          *
-         * @param type 共通属性
+         * @param type Common attribute
          */
         public void setFileType(int type) {
             this.type.setType(type);
         }
 
         /**
-         * 独自属性をセット
+         * Set specific attribute
          *
-         * @param idx     0..2
-         * @param origin 独自属性
+         * @param idx    0..2
+         * @param origin Specific attribute
          */
         public void setFileOriginAttr(int idx, int origin) {
             type.setOrigin(idx, origin);
         }
 
         /**
-         * 独自属性をセット
+         * Set specific attribute
          *
-         * @param origin 独自属性
+         * @param origin Specific attribute
          */
         public void setFileOriginAttr(int origin) {
             type.setOrigin(origin);
@@ -2739,13 +2739,13 @@ public abstract class DiskBasicDirItem<T extends Directory> {
             return type;
         }
 
-        /** 共通属性を得る */
+        /** Get common attributes */
         public int getFileType() {
             return type.getType();
         }
 
         /**
-         * 独自属性を得る
+         * Get specific attribute
          *
          * @param idx 0..2
          */
@@ -2786,7 +2786,7 @@ public abstract class DiskBasicDirItem<T extends Directory> {
         }
     }
 
-    /** セクタをまたぐディレクトリアイテムを処理 */
+    /** Process directory items that span sectors */
     public static class DirItemSectorBoundary {
 
         private static class SectorInfo {
@@ -2812,7 +2812,7 @@ public abstract class DiskBasicDirItem<T extends Directory> {
             clear();
         }
 
-        /** 初期化 */
+        /** Initialization */
         public void clear() {
             for (int i = 0; i < 2; i++) {
                 s[i].data = null;
@@ -2822,15 +2822,15 @@ public abstract class DiskBasicDirItem<T extends Directory> {
         }
 
         /**
-         * アイテムの位置情報をセット
+         * Set position information of the item
          *
          * @param basic    Disk Basic
-         * @param sector   セクタ
-         * @param position アイテムの位置
-         * @param itemData アイテムデータ
-         * @param itemSize アイテムサイズ
-         * @param next     次のセクタ
-         * @return セクタまたぎがある場合true
+         * @param sector   Sector
+         * @param position Item position
+         * @param itemData Item data
+         * @param itemSize Item size
+         * @param next     Next sector
+         * @return true if there is a sector span
          */
         public <T extends Directory> boolean set(DiskBasic basic, DiskImageSector sector, int position, byte[] itemData, int itemSize, SectorParam next) throws IOException {
             if (sector == null) return false;
@@ -2854,12 +2854,12 @@ public abstract class DiskBasicDirItem<T extends Directory> {
             //               +- s[0].data
             //
             if (sPos + itemSize >= sSize) {
-                // セクタまたぎ
+                // Sector span
                 s[1].pos = sSize - sPos;
                 s[1].size = s[0].size - s[1].pos;
                 s[0].size = s[1].pos;
 
-                // 次のセクタ
+                // Next sector
                 if (next != null) {
                     DiskBasicType<Directory> type = basic.getType();
                     int nSectorPos = type.getSectorPosFromNum(next.getTrackNumber(), next.getSideNumber(), next.getSectorNumber());
@@ -2880,9 +2880,9 @@ public abstract class DiskBasicDirItem<T extends Directory> {
         }
 
         /**
-         * コピー
+         * Copy
          *
-         * @param dstItem [out] アイテムデータ
+         * @param dstItem [out] Item data
          */
         public void copyTo(byte[] dstItem) {
             for (int i = 0; i < 2; i++) {
@@ -2894,9 +2894,9 @@ public abstract class DiskBasicDirItem<T extends Directory> {
         }
 
         /**
-         * コピー
+         * Copy
          *
-         * @param srcItem アイテムデータ
+         * @param srcItem Item data
          */
         public void copyFrom(byte[] srcItem) {
             for (int i = 0; i < 2; i++) {

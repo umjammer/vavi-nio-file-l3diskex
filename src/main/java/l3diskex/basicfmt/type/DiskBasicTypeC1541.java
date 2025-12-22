@@ -31,22 +31,22 @@ import static l3diskex.basicfmt.DiskBasicType.AllocateGroupFlags.ALLOCATE_GROUPS
 
 
 /**
- * Commodore 1541 の処理
+ * Processing for Commodore 1541
  * <p>
  * DiskBasicParam
  *
- * <li>SectorSkewForSave ファイルインポート時の空きセクタの埋め方</li>
+ * <li>SectorSkewForSave How to fill free sectors when importing files</li>
  */
 public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
 
-    // C1541属性値
+    // C1541 attribute values
     public static final int FILETYPE_MASK_C1541_DEL = 0x80;
     public static final int FILETYPE_MASK_C1541_SEQ = 0x81;
     public static final int FILETYPE_MASK_C1541_PRG = 0x82;
     public static final int FILETYPE_MASK_C1541_USR = 0x83;
     public static final int FILETYPE_MASK_C1541_REL = 0x84;
 
-    // C1541属性位置
+    // C1541 attribute positions
     public static final int TYPE_NAME_C1541_DEL = 0;
     public static final int TYPE_NAME_C1541_SEQ = 1;
     public static final int TYPE_NAME_C1541_PRG = 2;
@@ -119,7 +119,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
     }
 
     /**
-     * C1541 BAM ビットマップ
+     * C1541 BAM bitmap
      */
     static class C1541Bitmap {
 
@@ -145,11 +145,11 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
         }
 
         /**
-         * 指定位置のビットを変更する
+         * Change bit at specified position
          *
-         * @param trackNum  トラック番号(0 ..)
-         * @param sectorNum セクタ番号(0 ..)
-         * @param use       セットする場合 true
+         * @param trackNum  Track number (0 ..)
+         * @param sectorNum Sector number (0 ..)
+         * @param use       Set if true
          */
         public void modify(int trackNum, int sectorNum, boolean use) {
             int pos = sectorNum >> 3;
@@ -168,11 +168,11 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
         }
 
         /**
-         * 指定位置が空いているか
+         * Whether specified position is free
          *
-         * @param trackNum  トラック番号(0 ..)
-         * @param sectorNum セクタ番号(0 ..)
-         * @return 空いている場合 true
+         * @param trackNum  Track number (0 ..)
+         * @param sectorNum Sector number (0 ..)
+         * @return true if free
          */
         public boolean isFree(int trackNum, int sectorNum) {
             int pos = sectorNum >> 3;
@@ -181,9 +181,9 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
         }
 
         /**
-         * 指定トラックをすべて未使用にする
-          @param trackNum  トラック番号(0 ..)
-          @param numOfSector セクタ数
+         * Mark all sectors in specified track as unused
+         * @param trackNum  Track number (0 ..)
+         * @param numOfSector Number of sectors
          */
         public void freeTrack(int trackNum, int numOfSector) {
             int val = (1 << numOfSector) - 1;
@@ -195,7 +195,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
         }
 
         /**
-         * ディスク名を返す
+         * Returns disk name
          */
         public int getDiskName(byte[] buf, int len) {
             int copyLen = Math.min(len, bam.diskName.length);
@@ -204,7 +204,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
         }
 
         /**
-         * ディスク名を設定
+         * Set disk name
          */
         public void setDiskName(byte[] buf, int len) {
             int copyLen = Math.min(len, bam.diskName.length);
@@ -212,21 +212,21 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
         }
 
         /**
-         * ディスク名サイズを返す
+         * Returns disk name size
          */
         public int getDiskNameSize() {
             return bam.diskName.length;
         }
 
         /**
-         * ディスクIDを返す
+         * Returns disk ID
          */
         public int getDiskId() {
             return bam.diskId & 0xffff;
         }
 
         /**
-         * ディスクIDを設定
+         * Set disk ID
          */
         public void setDiskId(int val) {
             bam.diskId = (short) val;
@@ -234,13 +234,13 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
     }
 
     /**
-     * C1541 セクタ位置変換マップリスト
+     * C1541 sector position conversion map list
      */
     static class C1541SectorPosTrans extends DiskBasicSectorPosTrans {
 
         @Override
         public void createSectorSkewMap(DiskBasic basic) {
-            // インポート時の空きセクタの探し方をセット
+            // Set method for searching free sectors during import
             for (int i = 0; i < size(); i++) {
                 SectorsPerTrack item = get(i);
                 DiskBasicSectorSkewForSave map = new DiskBasicSectorSkewForSave();
@@ -252,7 +252,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
 
     /** Block Availability Map */
     private final C1541Bitmap c1541Bam = new C1541Bitmap();
-    /** 可変数セクタマップ */
+    /** Variable sector map */
     private final C1541SectorPosTrans sectorMap = new C1541SectorPosTrans();
 
     public static final int FORMAT_TYPE_C1541 = 20;
@@ -268,7 +268,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
     }
 
     /**
-     * エリアをチェック
+     * Check area
      */
     @Override
     public double checkFat(boolean isFormatting) {
@@ -278,7 +278,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
     }
 
     /**
-     * ディスクから各パラメータを取得＆必要なパラメータを計算
+     * Get each parameter from disk and calculate necessary parameters
      */
     @Override
     public double parseParamOnDisk(boolean isFormatting) throws IOException {
@@ -286,13 +286,13 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
 
         double validRatio = 1.0;
 
-        // 可変数セクタなのでトラックごとのセクタ数を集計
+        // Since it is variable sectors, aggregate the number of sectors per track
         sectorMap.create(basic);
 
-        // セクタ数の合計
+        // Total number of sectors
         basic.setFatEndGroup(sectorMap.getTotalSectors() - 1);
 
-        // インポート時の空きセクタの探し方を設定
+        // Set how to find free sectors during import
         sectorMap.createSectorSkewMap(basic);
 
         // BAM
@@ -307,7 +307,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
         C1541Bam bam = new C1541Bam();
         Serdes.Util.deserialize(new ByteArrayInputStream(b), bam);
 
-        // チェック
+        // Check
         if (bam.space0 != (byte) 0xa0 || bam.space1 != (byte) 0xa0) {
             validRatio = 0.0;
         } else if (bam.dosVersion != '2' || bam.dosFormat != 'A') {
@@ -331,7 +331,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
 
         int dirSectorNum = getSectorPosFromNumS(trackNum, sectorNum);
 
-        // ディレクトリ開始はBAMセクタからの相対位置とする
+        // Directory start is relative to BAM sector
         dirSectorNum = dirSectorNum - bamSectorPos + basic.getSectorNumberBase();
         basic.setDirStartSector(dirSectorNum);
 
@@ -341,7 +341,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
     }
 
     /**
-     * ルートディレクトリのセクタリストを計算
+     * Calculate the sector list for the root directory
      */
     @Override
     public boolean calcGroupsOnRootDirectory(int startSector, int endSector, DiskBasicGroups groupItems) throws IOException {
@@ -349,7 +349,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
 
         groupItems.clear();
 
-        // ディレクトリのチェインをたどる
+        // Follow the directory chain
         int dirSize = 0;
         int limit = basic.getSectorsPerTrackOnBasic();
         int managedTrackNum = basic.getManagedTrackNumber();
@@ -357,7 +357,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
         int[] sidNum = {0};
         int secNum = 0;
 
-        // 開始セクタ
+        // Start sector
         int sectorPos = getSectorPosFromNumS(managedTrackNum, basic.getDirStartSector());
 
         while (valid && limit >= 0) {
@@ -377,7 +377,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
 
             dirSize += sector.getSectorSize();
 
-            // 次のセクタ
+            // Next sector
             C1541Pointer next = new C1541Pointer();
             Serdes.Util.deserialize(new ByteArrayInputStream(buffer), next);
             if ((next.track & 0xff) == 0 || (next.sector & 0xff) > basic.getTracksPerSideOnBasic()) {
@@ -402,7 +402,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
     }
 
     /**
-     * セクタをディレクトリとして初期化
+     * Initialize sector as directory
      */
     @Override
     public int initializeSectorsAsDirectory(DiskBasicGroups groupItems, int[] fileSize, int[] sizeRemain, DiskBasicError errInfo) {
@@ -418,7 +418,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
     }
 
     /**
-     * 使用可能なディスクサイズを得る
+     * Get usable disk size
      */
     @Override
     public void getUsableDiskSize(int[] diskSize, int[] groupSize) {
@@ -427,7 +427,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
     }
 
     /**
-     * 残りディスクサイズを計算
+     * Calculate remaining disk size
      */
     @Override
     public void calcDiskFreeSize(boolean wrote) {
@@ -457,7 +457,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
     }
 
     /**
-     * グループ番号を使用済みにする
+     * Mark group number as used
      */
     @Override
     public void setGroupNumber(int num, int val) {
@@ -469,25 +469,25 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
         c1541Bam.modify(trackANum, sectorANum, val != 0);
     }
 
-    /** グループ番号を得る */
+    /** Get group number */
     @Override
     public int getGroupNumber(int num) {
         return num;
     }
 
-    /** FAT位置が使用されているか */
+    /** Whether FAT position is used */
     @Override
     public boolean isUsedGroupNumber(int num) {
         return true;
     }
 
-    /** 次のグループ番号を得る */
+    /** Get next group number */
     @Override
     public int getNextGroupNumber(int num, int sector_pos) {
         return INVALID_GROUP_NUMBER;
     }
 
-    /** 空き位置を返す */
+    /** Returns free position */
     @Override
     public int getEmptyGroupNumber() {
         return getEmptyGroupNumberM(0);
@@ -498,7 +498,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
             {2, 0, 1}
     };
 
-    /** 空き位置を返す */
+    /** Returns free position */
     private int getEmptyGroupNumberM(int method) {
         int newNum = INVALID_GROUP_NUMBER;
 
@@ -510,19 +510,19 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
             int i = findTrackMap[method][n];
             switch (i) {
                 case 0:
-                    // 内側から検索
+                    // Search from inside
                     startTrack = basic.getManagedTrackNumber() - 1;
                     endTrack = basic.getTrackNumberBaseOnDisk() - 1;
                     direction = -1;
                     break;
                 case 1:
-                    // 外側へ検索
+                    // Search outwards
                     startTrack = basic.getManagedTrackNumber() + 1;
                     endTrack = basic.getTracksPerSideOnBasic() + basic.getTrackNumberBaseOnDisk();
                     direction = 1;
                     break;
                 case 2:
-                    // 管理トラック
+                    // Management track
                     startTrack = basic.getManagedTrackNumber();
                     endTrack = startTrack + 1;
                     direction = 1;
@@ -549,16 +549,16 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
     }
 
     /**
-     * 次の空き位置を返す
+     * Returns next free position
      */
     @Override
     public int getNextEmptyGroupNumber(int currentGroup) {
-        // 次の空き位置候補
+        // Candidate for next free position
         int nextGroupNum = getEmptyGroupNumberM(0);
         if (nextGroupNum == INVALID_GROUP_NUMBER) {
             return INVALID_GROUP_NUMBER;
         }
-        // 現在のセクタに次のセクタへのポインタをセット
+        // Set pointer to next sector in current sector
         if (chainGroups(currentGroup, nextGroupNum) < 0) {
             return INVALID_GROUP_NUMBER;
         }
@@ -567,15 +567,15 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
     }
 
     /**
-     * 次の空きFAT位置を返す
+     * Returns next empty FAT position
      */
     private int getDirNextEmptyGroupNumber(int currentGroup) {
-        // 次の空き位置候補
+        // Candidate for next free position
         int nextGroupNum = getEmptyGroupNumberM(1);
         if (nextGroupNum == INVALID_GROUP_NUMBER) {
             return INVALID_GROUP_NUMBER;
         }
-        // 現在のセクタに次のセクタへのポインタをセット
+        // Set pointer to next sector in current sector
         if (chainGroups(currentGroup, nextGroupNum) < 0) {
             return INVALID_GROUP_NUMBER;
         }
@@ -584,7 +584,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
     }
 
     /**
-     * データサイズ分のグループを確保する
+     * Allocate groups for the data size
      */
     @Override
     public int allocateUnitGroups(int fileUnitNum, DiskBasicDirItem<DirectoryC1541> item, int dataSize, AllocateGroupFlags flags, DiskBasicGroups[] groupItems) {
@@ -592,19 +592,19 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
         int groups = 0;
 
         int rc = 0;
-        // 1セクタ当たり2バイトはチェイン用のリンクポインタになるので減算
+        // Subtract 2 bytes per sector for link pointers used for chaining
         int bytesPerGroup = basic.getSectorSize() - 2;
         int remain = dataSize;
         int limit = basic.getFatEndGroup() + 1;
         int chainIndex = 0;
         int groupNum = INVALID_GROUP_NUMBER;
         if (flags == ALLOCATE_GROUPS_APPEND) {
-            // ディレクトリ拡張時
+            // During directory expansion
             remain = bytesPerGroup;
             groupNum = item.getGroups().last().group;
         }
         while (remain > 0 && limit >= 0) {
-            // 空きをさがす
+            // Search for free space
             if (flags != ALLOCATE_GROUPS_APPEND) {
                 groupNum = (chainIndex == 0) ? getEmptyGroupNumber() : getNextEmptyGroupNumber(groupNum);
             } else {
@@ -612,12 +612,12 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
             }
 
             if (groupNum == INVALID_GROUP_NUMBER) {
-                // 空きなし
+                // No free space
                 rc = groups > 0 ? -2 : -1;
                 return rc;
             }
 
-            // 使用済みにする
+            // Mark as used
             basic.getNumsFromGroup(groupNum, 0, basic.getSectorSize(), remain, groupItems[0]);
             setGroupNumber(groupNum, 1);
 
@@ -633,13 +633,13 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
         }
 
         if (groups > 0) {
-            // 最終セクタは残りサイズを設定
+            // Set remaining size for last sector
             remain += bytesPerGroup;
             chainLastGroup(groupNum, remain);
         }
 
         if (limit < 0) {
-            // 無限ループ？
+            // Infinite loop?
             rc = groups > 0 ? -2 : -1;
         }
 
@@ -647,11 +647,11 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
     }
 
     /**
-     * グループをつなげる
+     * Chaining groups
      */
     @Override
     public int chainGroups(int groupNum, int appendGroupNum) {
-        // 現在のセクタに次のセクタへのポインタをセット
+        // Set pointer to next sector in current sector
         DiskImageSector sector = basic.getSectorFromSectorPos(groupNum);
         if (sector == null) {
             // why?
@@ -674,10 +674,10 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
     }
 
     /**
-     * 最終グループをつなげる
+     * Chaining last group
      */
     private int chainLastGroup(int groupNum, int remain) {
-        // 現在のセクタに残りサイズをセット
+        // Set remaining size in current sector
         DiskImageSector sector = basic.getSectorFromSectorPos(groupNum);
         if (sector == null) {
             // why?
@@ -696,7 +696,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
     }
 
     /**
-     * データの読み込み/比較処理
+     * Data read/comparison processing
      */
     @Override
     public int accessFile(int fileUnitNum, DiskBasicDirItem<DirectoryC1541> item, InputStream iStream, OutputStream oStream,
@@ -706,20 +706,20 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
 
         byte[] temp;
         if (oStream != null) {
-            // 書き出し
+            // Writing out
             temp = Arrays.copyOfRange(buf, 0, size);
             if (basic.isDataInverted()) Common.invertMemory(temp, temp.length);
             oStream.write(temp, 0, temp.length);
         }
 
         if (iStream != null) {
-            // 読み込んで比較
+            // Read and compare
             temp = new byte[size];
             iStream.readNBytes(temp, 0, temp.length);
             if (basic.isDataInverted()) Common.invertMemory(temp, temp.length);
 
             if (!Arrays.equals(temp, 0, temp.length, buf, 0, size)) {
-                // データが異なる
+                // Data is different
                 return -1;
             }
         }
@@ -727,7 +727,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
     }
 
     /**
-     * ファイルの最終セクタのデータサイズを求める
+     * Determine data size of the last sector of file
      */
     @Override
     public int calcDataSizeOnLastSector(DiskBasicDirItem<DirectoryC1541> item, InputStream iStream, OutputStream oStream, byte[] sectorBuffer, int sectorOffset, int sectorSize, int remainSize) {
@@ -735,7 +735,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
     }
 
     /**
-     * グループ番号からセクタ番号を得る
+     * Get sector number from group number
      */
     @Override
     public int getStartSectorFromGroup(int groupNum) {
@@ -743,7 +743,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
     }
 
     /**
-     * グループ番号から最終セクタ番号を得る
+     * Get the final sector number from the group number
      */
     @Override
     public int getEndSectorFromGroup(int groupNum, int nextGroup, int sectorStart, int sectorSize, int remainSize) {
@@ -751,7 +751,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
     }
 
     /**
-     * セクタ位置(トラック0,サイド0,セクタ1を0とした通し番号)からトラック、サイド、セクタの各番号を得る
+     * Get track, side, sector numbers from sector position (serial number where track 0, side 0, sector 1 is 0)
      */
     @Override
     public void getNumFromSectorPos(int sectorPos, int[] trackNum, int[] sideNum, int[] sectorNum, int[] divNum, int[] numOfDivs) {
@@ -759,18 +759,18 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
         int numberingSector = basic.getNumberingSector();
         int[] sectorsPerTrack = {basic.getSectorsPerTrackOnBasic()};
 
-        // セクタ位置がどのトラックにあるか
+        // In which track is the sector position located?
         sectorMap.getNumFromSectorPos(sectorPos, trackNum, sectorNum, sectorsPerTrack);
 
-        // サイド番号
+        // Side number
         sideNum[0] = sectorNum[0] * sidesPerDisk / sectorsPerTrack[0];
 
-        // 連番でない場合
+        // Case where it is not sequential numbering
         if (numberingSector != 1) {
             sectorNum[0] = sectorNum[0] % (sectorsPerTrack[0] / sidesPerDisk);
         }
 
-        // サイド番号を逆転するか
+        // Whether to reverse side number?
         sideNum[0] = basic.getReversedSideNumber(sideNum[0]);
 
         trackNum[0] += basic.getTrackNumberBaseOnDisk();
@@ -782,7 +782,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
     }
 
     /**
-     * 論理セクタ位置(トラック0,サイド0,セクタ1を0とした通し番号)からトラック、セクタの各番号を得る
+     * Get track and sector numbers from logical sector position (serial number where track 0, side 0, sector 1 is 0)
      */
     @Override
     public void getNumFromSectorPosS(int sectorPos, int[] trackNum, int[] sectorNum) {
@@ -795,7 +795,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
     }
 
     /**
-     * トラック、サイド、セクタの各番号からセクタ位置(トラック0,サイド0,セクタ1を0とした通し番号)を得る
+     * Get sector position (serial number where track 0, side 0, sector 1 is 0) from track, side, sector numbers
      */
     @Override
     public int getSectorPosFromNum(int trackNum, int sideNum, int sectorNum, int divNum, int numOfDivs) {
@@ -809,10 +809,10 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
 
         int sector_pos = sectorMap.getSectorPosFromNum(trackNum, sectorNum, sectorsPerTrack);
 
-        // サイド番号を逆転するか
+        // Whether to reverse side number?
         sideNum = basic.getReversedSideNumber(sideNum);
 
-        // 連番でない場合
+        // Case where it is not sequential numbering
         if (numberingSector != 1) {
             sector_pos += sideNum * sectorsPerTrack[0] / sidesPerDisk;
         }
@@ -821,7 +821,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
     }
 
     /**
-     * トラック、セクタの各番号からセクタ位置(トラック0,サイド0,セクタ1を0とした通し番号)を得る
+     * Get sector position (serial number where track 0, side 0, sector 1 is 0) from track and sector numbers
      */
     @Override
     public int getSectorPosFromNumS(int trackNum, int sectorNum) {
@@ -834,7 +834,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
     }
 
     /**
-     * ルートディレクトリか (The C++ method returns 'false')
+     * Is it root directory? (The C++ method returns 'false')
      */
     @Override
     public boolean isRootDirectory(int groupNum) {
@@ -842,7 +842,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
     }
 
     /**
-     * ルートディレクトリのサイズを拡張できるか
+     * Whether root directory size can be expanded
      */
     @Override
     public boolean canExpandRootDirectory() {
@@ -850,22 +850,22 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
     }
 
     /**
-     * フォーマット時セクタデータを埋めた後の個別処理
+     * Specific processing after filling sector data during formatting
      */
     @Override
     public boolean additionalProcessOnFormatted(DiskBasicIdentifiedData data) throws IOException {
         DiskImageSector sector;
 
-        // 可変数セクタなのでトラックごとのセクタ数を集計
+        // Since sectors are variable, aggregate number of sectors per track
         sectorMap.create(basic);
 
-        // セクタ数の合計
+        // Total number of sectors
         basic.setFatEndGroup(sectorMap.getTotalSectors() - 1);
 
-        // インポート時の空きセクタの探し方を設定
+        // Set how to find free sectors during import
         sectorMap.createSectorSkewMap(basic);
 
-        // BAMの作成
+        // BAM creation
         int trackNum = basic.getManagedTrackNumber();
         int sectorNum = basic.getSectorNumberBase() - C1541_START_SECTOR_OFFSET;
         sector = basic.getSector(trackNum, sectorNum, null);
@@ -897,7 +897,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
         bam.dosFormat = 'A';
         bam.space1 = (byte) 0xa0;
 
-        // bitmap クリア
+        // Bitmap clear
         for (int track = 0; track < basic.getTracksPerSide(); track++) {
             SectorsPerTrack item = sectorMap.findByTrackNum(track);
             if (item != null) {
@@ -909,7 +909,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
         c1541Bam.modify(trackNPos, sectorNPos, true);
         c1541Bam.modify(trackNPos, sectorNPos + 1, true);
 
-        // ディレクトリ
+        // Directory
         sectorNum++;
         sector = basic.getSector(trackNum, sectorNum, null);
         if (sector == null) {
@@ -934,28 +934,28 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
     }
 
     /**
-     * データの書き込み処理
+     * Data write process
      */
     @Override
     public int writeFile(DiskBasicDirItem<DirectoryC1541> item, InputStream iStream, byte[] buffer, int size, int remain,
                          int sectorNum, int groupNum, int nextGroup, int sectorEnd, int seqNum) throws IOException {
         int len = 0;
 
-        // セクタの2バイト目から
+        // From the second byte of the sector
         int buf_offset = 2;
         size -= 2;
 
         if (remain <= size) {
-            // 残り少ない
+            // Few left
             if (remain < 0) remain = 0;
             if (remain > 0) iStream.readNBytes(buffer, buf_offset, remain);
             if (size > remain) {
-                // バッファの余りは0サプレス
+                // Remaining buffer is zero-suppressed
                 Arrays.fill(buffer, buf_offset + remain, buf_offset + size, (byte) 0);
             }
             len = remain;
         } else {
-            // 継続
+            // Continuous
             iStream.readNBytes(buffer, buf_offset, size);
             len = size;
         }
@@ -964,11 +964,11 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
     }
 
     /**
-     * データの書き込み終了後の処理
+     * Post-processing after data writing
      */
     @Override
     public void additionalProcessOnSavedFile(DiskBasicDirItem<DirectoryC1541> item) throws IOException {
-        // RELファイルか
+        // Whether it is a REL file
         int type1 = item.getFileAttr().getOrigin();
         int rec_len = (type1 >> 8);
         type1 &= 0xff;
@@ -976,7 +976,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
             return;
         }
 
-        // RELファイルの時は、サイドセクタを作成する
+        // Create side sector if it is a REL file
         int bytesPerGroup = basic.getSectorSize() - 2;
         DiskBasicGroups dataGroups = item.getGroups();
 
@@ -992,10 +992,10 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
         int dataPos = 0;
         C1541SideSector[] sideSectors = new C1541SideSector[6];
         for (int ssIndex = 0; ssIndex <= ssMax; ssIndex++) {
-            // 空きをさがす
+            // Find free space
             groupNum = (ssIndex == 0) ? getEmptyGroupNumber() : getNextEmptyGroupNumber(groupNum);
             if (groupNum == INVALID_GROUP_NUMBER) {
-                // 空きなし
+                // No free space
                 return;
             }
             int[] trackNum = {0};
@@ -1018,10 +1018,10 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
             sideGroups.add(groupNum, 0, trackNum[0], sideNum[0], sector.getSectorNumber(), sector.getSectorNumber());
             ssSize += bytesPerGroup;
             if (ssIndex == 0) {
-                // サイドセクタ開始ポインタを設定
+                // Set side sector start pointer
                 item.setExtraGroup(groupNum);
             } else {
-                // サイドセクタへのポインタをコピー
+                // Copy pointer to side sector
                 System.arraycopy(sideSectors[ssIndex - 1].sidePos, 0, sideSectors[ssIndex].sidePos, 0, sideSectors[ssIndex].sidePos.length);
             }
 
@@ -1033,14 +1033,14 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
             trackNum[0] += C1541_START_TRACK_OFFSET;
             sectorNum[0] += C1541_START_SECTOR_OFFSET;
 
-            // サイドセクタへのポインタを設定
+            // Set pointer to side sector
             for (int i = 0; i <= ssIndex; i++) {
                 C1541SideSector ss = sideSectors[i];
                 ss.sidePos[ssIndex].track = (byte) (trackNum[0] & 0xff);
                 ss.sidePos[ssIndex].sector = (byte) (sectorNum[0] & 0xff);
             }
 
-            // データへのポインタを設定
+            // Set pointer to data
             for (int i = 0; i < 120 && dataPos < blocks; i++) {
                 getNumFromSectorPosS(dataGroups.get(dataPos).group, trackNum, sectorNum);
                 trackNum[0] += C1541_START_TRACK_OFFSET;
@@ -1057,10 +1057,10 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
             sector.copy(baos.toByteArray(), C1541SideSector.SIZE);
         }
 
-        // 最終セクタは残りサイズを設定
+        // Set remaining size for last sector
         chainLastGroup(groupNum, (blocks % 120) * 2 + 14);
 
-        // ブロックサイズを設定
+        // Set block size
         ssSize = ssSize - bytesPerGroup + (blocks % 120) * 2 + 14;
         sideGroups.setSize(ssSize);
         sideGroups.setNums(ssMax + 1);
@@ -1069,20 +1069,20 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
     }
 
     /**
-     * FAT領域を削除する
+     * Delete FAT area
      */
     @Override
     public void deleteGroupNumber(int group_num) {
-        // 未使用にする
+        // Mark as unused
         setGroupNumber(group_num, 0);
     }
 
     /**
-     * ファイル削除後の処理
+     * Post-processing after file deletion
      */
     @Override
     public boolean additionalProcessOnDeletedFile(DiskBasicDirItem<DirectoryC1541> item) throws IOException {
-        // サイドセクタを未使用にする
+        // Mark side sector as unused
         DiskBasicGroups[] groups = new DiskBasicGroups[1];
         item.getExtraGroups(groups);
 
@@ -1092,7 +1092,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
     }
 
     /**
-     * IPLや管理エリアの属性を得る
+     * Get attributes of IPL and managed area
      */
     @Override
     public void getIdentifiedData(DiskBasicIdentifiedData data) {
@@ -1115,7 +1115,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
     }
 
     /**
-     * IPLや管理エリアの属性をセット
+     * Set attributes of IPL and managed area
      */
     @Override
     public void setIdentifiedData(DiskBasicIdentifiedData data) {

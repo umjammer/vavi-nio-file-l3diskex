@@ -34,16 +34,16 @@ import static l3diskex.basicfmt.type.DiskBasicTypeTFDOS.FORMAT_TYPE_TFDOS;
 
 
 /**
- ディレクトリ１アイテム TF-DOS
+ Directory 1 item TF-DOS
 
- {@link #externalAttr} 1: BASE互換, 2: BASE互換かを自動判定
+ {@link #externalAttr} 1: BASE compatible, 2: automatically determine if BASE compatible
  */
 public class DiskBasicDirItemTFDOS extends DiskBasicDirItemMZBase<DirectoryTfDos> {
 
     private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
 
     /**
-     * ディレクトリエントリ TF-DOS (16bytes)
+     * Directory entry TF-DOS (16bytes)
      */
     @Serdes(bigEndian = false)
     public static class DirectoryTfDos implements Directory {
@@ -64,7 +64,7 @@ public class DiskBasicDirItemTFDOS extends DiskBasicDirItemMZBase<DirectoryTfDos
         public static final int SIZE = 16;
     }
 
-    /// TF-DOS属性名
+    /** TF-DOS attribute names */
     public static final Map<String, Object> typeNameTfDos = new HashMap<>() {{
         put("???", 0);
         put("OBJ", FILETYPE_TFDOS_OBJ);
@@ -78,7 +78,7 @@ public class DiskBasicDirItemTFDOS extends DiskBasicDirItemMZBase<DirectoryTfDos
         put("Hidden", 0);
     }};
 
-    /// TF-DOS 属性位置
+    /// TF-DOS attribute positions
     public static final int TYPE_NAME_TFDOS_UNKNOWN = 0;
     private static final int TYPE_NAME_TFDOS_OBJ = 1;
     public static final int TYPE_NAME_TFDOS_TEX = 2;
@@ -90,7 +90,7 @@ public class DiskBasicDirItemTFDOS extends DiskBasicDirItemMZBase<DirectoryTfDos
     public static final int TYPE_NAME_TFDOS_READ_ONLY = 8;
     private static final int TYPE_NAME_TFDOS_HIDDEN = 9;
 
-    /// TF-DOS 属性値
+    /// TF-DOS attribute values
     private static final int FILETYPE_TFDOS_OBJ = 0x01;
     private static final int FILETYPE_TFDOS_TEX = 0x02;
     private static final int FILETYPE_TFDOS_CMD = 0x03;
@@ -102,7 +102,7 @@ public class DiskBasicDirItemTFDOS extends DiskBasicDirItemMZBase<DirectoryTfDos
     public static final int DATATYPE_TFDOS_HIDDEN = 0x40;
     public static final int DATATYPE_TFDOS_READ_ONLY = 0x80;
 
-    /** ディレクトリデータ */
+    /** Directory data */
     private final DiskBasicDirData<DirectoryTfDos> data = new DiskBasicDirData<>();
 
     @Override
@@ -115,7 +115,7 @@ public class DiskBasicDirItemTFDOS extends DiskBasicDirItemMZBase<DirectoryTfDos
         super.init(basic);
 
         data.alloc(DirectoryTfDos.class);
-        externalAttr = 2;	// TXTの時、BASE互換かを自動判定
+        externalAttr = 2;	// If TXT, automatically determine if BASE compatible
     }
 
     @Override
@@ -123,7 +123,7 @@ public class DiskBasicDirItemTFDOS extends DiskBasicDirItemMZBase<DirectoryTfDos
         super.init(basic, sector, sectorPos, data, dataP);
 
         this.data.attach(DirectoryTfDos.class, data, dataP);
-        externalAttr = 2;	// TXTの時、BASE互換かを自動判定
+        externalAttr = 2;	// If TXT, automatically determine if BASE compatible
     }
 
     @Override
@@ -133,7 +133,7 @@ public class DiskBasicDirItemTFDOS extends DiskBasicDirItemMZBase<DirectoryTfDos
         super.init(basic, num, groupItem, sector, sectorPos, data, dataP, next, unuse);
 
         this.data.attach(DirectoryTfDos.class, data, dataP);
-        externalAttr = 2;	// TXTの時、BASE互換かを自動判定
+        externalAttr = 2;	// If TXT, automatically determine if BASE compatible
 
         used(checkUsed(unuse[0]));
 
@@ -201,10 +201,10 @@ public class DiskBasicDirItemTFDOS extends DiskBasicDirItemMZBase<DirectoryTfDos
         int t1 = fileType.getOrigin();
         int val = 0;
         if (fileType.getFormat() == basic.getFormatTypeNumber()) {
-            // 同じOSの場合は元の属性をそのままセット
+            // If same OS, set original attribute as is
             val = t1;
         } else {
-            // 別OSからの場合、近い属性をセット
+            // If from different OS, set similar attribute
             if ((fType & FILE_TYPE_BINARY_MASK.getValue()) != 0) {
                 if ((fType & FILE_TYPE_BASIC_MASK.getValue()) != 0) val = FILETYPE_TFDOS_CMD;
                 else if ((fType & FILE_TYPE_MACHINE_MASK.getValue()) != 0) val = FILETYPE_TFDOS_SYS;
@@ -370,7 +370,7 @@ public class DiskBasicDirItemTFDOS extends DiskBasicDirItemMZBase<DirectoryTfDos
         return t1[0];
     }
 
-    /** 属性からリストの位置を返す(プロパティダイアログ用) */
+    /** Returns position in list from attribute (for property dialog) */
     public int convFileType1Pos(int t1) {
         int val = 0;
         t1 = (t1 & 0x3f);
@@ -380,7 +380,7 @@ public class DiskBasicDirItemTFDOS extends DiskBasicDirItemMZBase<DirectoryTfDos
         return val;
     }
 
-    /** 属性からリストの位置を返す(プロパティダイアログ用) */
+    /** Returns position in list from attribute (for property dialog) */
     public int convFileType2Pos(int t1) {
         int val = 0;
         if ((t1 & DATATYPE_TFDOS_READ_ONLY) != 0) {

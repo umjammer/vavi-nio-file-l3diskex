@@ -17,7 +17,7 @@ import vavi.util.ByteUtil;
 public class BasicCommon {
 
     /**
-     * 共通属性フラグ
+     * Common attribute flags
      */
     public enum FileTypeMask {
         FILE_TYPE_BASIC_MASK(0x000001),
@@ -63,25 +63,25 @@ public class BasicCommon {
     }
 
     /**
-     * ディレクトリエントリ
+     * Directory entry
      */
     public interface Directory {
 
     }
 
     /**
-     * DISK BASIC種類 番号
+     * DISK BASIC type number
      */
     public static final int FORMAT_TYPE_UNKNOWN = -1;
 
     /**
-     * ファイルプロパティでファイル名変更した時に渡す値
+     * Value passed when renaming a file in file properties
      */
     public static class DiskBasicFileName {
 
-        /** ファイル名 */
+        /** File name */
         private String name;
-        /** 拡張属性 ファイル名が同じでも、この属性が異なれば違うファイルとして扱う */
+        /** Extended attribute. Even if the file name is the same, if this attribute is different, it is treated as a different file */
         private int optional;
 
         public DiskBasicFileName() {
@@ -94,37 +94,37 @@ public class BasicCommon {
             this.optional = nOptional;
         }
 
-        /** ファイル名 */
+        /** File name */
         public final String getName() {
             return name;
         }
 
-        /** ファイル名 */
+        /** File name */
         public void setName(String val) {
             this.name = val;
         }
 
-        /** 拡張属性 ファイル名が同じでも、この属性が異なれば違うファイルとして扱う */
+        /** Extended attribute. Even if the file name is the same, if this attribute is different, it is treated as a different file */
         public int getOptional() {
             return optional;
         }
 
-        /** 拡張属性 ファイル名が同じでも、この属性が異なれば違うファイルとして扱う */
+        /** Extended attribute. Even if the file name is the same, if this attribute is different, it is treated as a different file */
         public void setOptional(int val) {
             this.optional = val;
         }
     }
 
     /**
-     * 属性保存クラス
+     * Attribute storage class
      */
     public static class DiskBasicFileType {
 
-        /** DISK BASIC種類 */
+        /** DISK BASIC type */
         private int format;
-        /** 共通属性 enum #en_file_type_mask の値の組み合わせ */
+        /** Common attribute. Combination of enum #en_file_type_mask values */
         private int type;
-        /** 本来の属性 */
+        /** Original attribute */
         private final int[] origin = new int[3];
 
         public DiskBasicFileType() {
@@ -134,11 +134,11 @@ public class BasicCommon {
         }
 
         /**
-         * @param format  フォーマット
-         * @param type    enum #en_file_type_mask の値の組み合わせ
-         * @param origin0 本来の属性
-         * @param origin1 本来の属性 つづき1
-         * @param origin2 本来の属性 つづき2
+         * @param format  Format
+         * @param type    Combination of enum #en_file_type_mask values
+         * @param origin0 Original attribute
+         * @param origin1 Original attribute continued 1
+         * @param origin2 Original attribute continued 2
          */
         public DiskBasicFileType(int format, int type, int origin0, int origin1, int origin2) {
             this.format = format;
@@ -152,27 +152,27 @@ public class BasicCommon {
             this(format, type, origin0, 0, 0);
         }
 
-        /** DISK BASIC種類 */
+        /** DISK BASIC type */
         public int getFormat() {
             return format;
         }
 
-        /** DISK BASIC種類 */
+        /** DISK BASIC type */
         public void setFormat(int val) {
             format = val;
         }
 
-        /** 共通属性 enum #en_file_type_mask の値の組み合わせ */
+        /** Common attribute. Combination of enum #en_file_type_mask values */
         public int getType() {
             return type;
         }
 
-        /** 共通属性 enum #en_file_type_mask の値の組み合わせ */
+        /** Common attribute. Combination of enum #en_file_type_mask values */
         public void setType(int val) {
             type = val;
         }
 
-        /** 本来の属性 */
+        /** Original attribute */
         public int getOrigin(int idx) {
             return origin[idx];
         }
@@ -181,44 +181,44 @@ public class BasicCommon {
             return getOrigin(0);
         }
 
-        /** 本来の属性 */
+        /** Original attribute */
         public void setOrigin(int val) {
             origin[0] = val;
         }
 
-        /** 本来の属性 */
+        /** Original attribute */
         public void setOrigin(int idx, int val) {
             origin[idx] = val;
         }
 
-        /** 共通属性が一致するか */
+        /** Whether common attributes match */
         public boolean matchType(int mask, int value) {
             return ((type & mask) == value);
         }
 
-        /** 共通属性が一致しないか */
+        /** Whether common attributes do not match */
         public boolean unmatchType(int mask, int value) {
             return ((type & mask) != value);
         }
 
-        /** 共通属性がアスキー属性か */
+        /** Whether common attribute is ASCII attribute */
         public boolean isAscii() {
             return ((type & FileTypeMask.FILE_TYPE_ASCII_MASK.getValue()) != 0);
         }
 
-        /** 共通属性がボリューム属性か */
+        /** Whether common attribute is volume attribute */
         public boolean isVolume() {
             return ((type & (FileTypeMask.FILE_TYPE_DIRECTORY_MASK.getValue() | FileTypeMask.FILE_TYPE_VOLUME_MASK.getValue())) == FileTypeMask.FILE_TYPE_VOLUME_MASK.getValue());
         }
 
-        /** 共通属性がディレクトリ属性か */
+        /** Whether common attribute is directory attribute */
         public boolean isDirectory() {
             return ((type & (FileTypeMask.FILE_TYPE_DIRECTORY_MASK.getValue() | FileTypeMask.FILE_TYPE_VOLUME_MASK.getValue())) == FileTypeMask.FILE_TYPE_DIRECTORY_MASK.getValue());
         }
     }
 
     /**
-     * グループ番号に対応する機種依存データを保持
+     * Holds model-dependent data corresponding to the group number
      *
      * @see DiskBasicGroupItem
      */
@@ -239,29 +239,29 @@ public class BasicCommon {
     }
 
     /**
-     * グループ番号に対応するパラメータを保持
+     * Holds parameters corresponding to the group number
      *
      * @see DiskBasicGroups
      */
     public static class DiskBasicGroupItem {
 
-        /** グループ番号 int */
+        /** Group number int */
         public int group;
-        /** 次のグループ番号 int */
+        /** Next group number int */
         public int next;
-        /** トラック番号 */
+        /** Track number */
         public int track;
-        /** サイド番号 */
+        /** Side number */
         public int side;
-        /** グループ内の開始セクタ番号 */
+        /** Start sector number in group */
         public int sectorStart;
-        /** グループ内の終了セクタ番号 */
+        /** End sector number in group */
         public int sectorEnd;
-        /** １グループがセクタ内に複数ある時の分割位置 */
+        /** Division position when there are multiple groups in a sector */
         public int divNum;
-        /** １グループがセクタ内に複数ある時の分割数 */
+        /** Number of divisions when there are multiple groups in a sector */
         public int numOfDivs;
-        /** 機種依存データ */
+        /** Model dependent data */
         public DiskBasicGroupUserData userData;
 
         public DiskBasicGroupItem() {
@@ -292,7 +292,7 @@ public class BasicCommon {
         }
 
         /**
-         * 代入
+         * Assignment
          */
         public DiskBasicGroupItem set(DiskBasicGroupItem src) {
             group = src.group;
@@ -314,15 +314,15 @@ public class BasicCommon {
         }
 
         /**
-         * @param group グループ番号
-         * @param next  次のグループ番号（任意）
-         * @param track トラック番号
-         * @param side  サイド番号
-         * @param start グループ内の開始セクタ番号
-         * @param end   グループ内の終了セクタ番号
-         * @param div   １グループがセクタ内に複数ある時の分割位置
-         * @param divs  １グループがセクタ内に複数ある時の分割数
-         * @param user  機種依存データ
+         * @param group Group number
+         * @param next  Next group number (optional)
+         * @param track Track number
+         * @param side  Side number
+         * @param start Start sector number in group
+         * @param end   End sector number in group
+         * @param div   Division position when there are multiple groups in a sector
+         * @param divs  Number of divisions when there are multiple groups in a sector
+         * @param user  Model dependent data
          */
         public DiskBasicGroupItem(int group, int next, int track, int side, int start, int end, int div, int divs, DiskBasicGroupUserData user) {
             this.set(group, next, track, side, start, end, div, divs, user);
@@ -333,29 +333,29 @@ public class BasicCommon {
         }
 
         /**
-         * @param group グループ番号
-         * @param next  次のグループ番号（任意）
-         * @param track トラック番号
-         * @param side  サイド番号
-         * @param start グループ内の開始セクタ番号
-         * @param user  機種依存データ
+         * @param group Group number
+         * @param next  Next group number (optional)
+         * @param track Track number
+         * @param side  Side number
+         * @param start Start sector number in group
+         * @param user  Model dependent data
          */
         public DiskBasicGroupItem(int group, int next, int track, int side, int start, DiskBasicGroupUserData user) {
             this.set(group, next, track, side, start, user);
         }
 
         /**
-         * データセット
+         * Dataset
          *
-         * @param group グループ番号
-         * @param next  次のグループ番号（任意）
-         * @param track トラック番号
-         * @param side  サイド番号
-         * @param start グループ内の開始セクタ番号
-         * @param end   グループ内の終了セクタ番号
-         * @param div   １グループがセクタ内に複数ある時の分割位置
-         * @param divs  １グループがセクタ内に複数ある時の分割数
-         * @param user  機種依存データ
+         * @param group Group number
+         * @param next  Next group number (optional)
+         * @param track Track number
+         * @param side  Side number
+         * @param start Start sector number in group
+         * @param end   End sector number in group
+         * @param div   Division position when there are multiple groups in a sector
+         * @param divs  Number of divisions when there are multiple groups in a sector
+         * @param user  Model dependent data
          */
         public void set(int group, int next, int track, int side, int start, int end, int div, int divs, DiskBasicGroupUserData user) {
             this.group = group;
@@ -370,14 +370,14 @@ public class BasicCommon {
         }
 
         /**
-         * データセット
+         * Dataset
          *
-         * @param group グループ番号
-         * @param next  次のグループ番号（任意）
-         * @param track トラック番号
-         * @param side  サイド番号
-         * @param start グループ内の開始セクタ番号
-         * @param user  機種依存データ
+         * @param group Group number
+         * @param next  Next group number (optional)
+         * @param track Track number
+         * @param side  Side number
+         * @param start Start sector number in group
+         * @param user  Model dependent data
          */
         public void set(int group, int next, int track, int side, int start, DiskBasicGroupUserData user) {
             this.group = group;
@@ -392,7 +392,7 @@ public class BasicCommon {
         }
 
         /**
-         * グループ番号でソートする際の比較
+         * Comparison for sorting by group number
          */
         public static int compare(DiskBasicGroupItem item1, DiskBasicGroupItem item2) {
             return Integer.compare(item1.group, item2.group);
@@ -400,22 +400,22 @@ public class BasicCommon {
     }
 
     /**
-     * グループ番号のリストを保持
+     * Holds a list of group numbers
      * <p>
-     * ディスク内ファイルのチェインをこのリストに保持する
+     * Holds the chain of files in the disk in this list
      *
      * @see DiskBasicGroupItem
      * @see DiskBasicDirItem
      */
     public static class DiskBasicGroups {
 
-        /** グループ番号のリスト */
+        /** List of group numbers */
         private final List<DiskBasicGroupItem> items;
-        /** グループ数 */
+        /** Number of groups */
         private int nums;
-        /** グループ内の占有サイズ (int) */
+        /** Occupied size in group (int) */
         private int size;
-        /** １グループのサイズ (int) */
+        /** Size of 1 group (int) */
         private int sizePerGroup;
 
         public DiskBasicGroups() {
@@ -433,16 +433,16 @@ public class BasicCommon {
         }
 
         /**
-         * @param group グループ番号
-         * @param next  次のグループ番号（任意）
-         * @param track トラック番号
-         * @param side  サイド番号
-         * @param start グループ内の開始セクタ番号
-         * @param end   グループ内の終了セクタ番号
-         * @param div   １グループがセクタ内に複数ある時の分割位置
-         * @param divs  １グループがセクタ内に複数ある時の分割数
-         * @param user  機種依存データ
-         *               追加
+         * @param group Group number
+         * @param next  Next group number (optional)
+         * @param track Track number
+         * @param side  Side number
+         * @param start Start sector number in group
+         * @param end   End sector number in group
+         * @param div   Division position when there are multiple groups in a sector
+         * @param divs  Number of divisions when there are multiple groups in a sector
+         * @param user  Model dependent data
+         *               Add
          */
         public void add(int group, int next, int track, int side, int start, int end, int div, int divs, DiskBasicGroupUserData user) {
             items.add(new DiskBasicGroupItem(group, next, track, side, start, end, div, divs, user));
@@ -457,29 +457,29 @@ public class BasicCommon {
         }
 
         /**
-         * 追加
-         * @param group グループ番号
-         * @param next  次のグループ番号（任意）
-         * @param track トラック番号
-         * @param side  サイド番号
-         * @param start グループ内の開始セクタ番号
-         * @param user  機種依存データ
+         * Add
+         * @param group Group number
+         * @param next  Next group number (optional)
+         * @param track Track number
+         * @param side  Side number
+         * @param start Start sector number in group
+         * @param user  Model dependent data
          */
         public void add(int group, int next, int track, int side, int start, DiskBasicGroupUserData user) {
             items.add(new DiskBasicGroupItem(group, next, track, side, start, user));
         }
 
         /**
-         * 追加
-         * @param item アイテム
+         * Add
+         * @param item Item
          */
         public void add(DiskBasicGroupItem item) {
             items.add(new DiskBasicGroupItem(item)); // Add a copy to maintain ownership semantics
         }
 
         /**
-         * 追加
-         * @param items アイテムリスト
+         * Add
+         * @param items Item list
          */
         public void add(DiskBasicGroups items) {
             for (int i = 0; i < items.size(); i++) {
@@ -489,7 +489,7 @@ public class BasicCommon {
             size += items.size;
         }
 
-        /** リストをクリア */
+        /** Clear list */
         public void clear() {
             items.clear();
             nums = 0;
@@ -497,76 +497,76 @@ public class BasicCommon {
             sizePerGroup = 0;
         }
 
-        /** リストの数を返す */
+        /** Returns the number of lists */
         public int size() {
             return items.size();
         }
 
-        /** リストの最後を返す */
+        /** Returns the last of the list */
         public DiskBasicGroupItem last() {
             return items.getLast();
         }
 
-        /** リストアイテムを返す */
+        /** Returns list item */
         public DiskBasicGroupItem get(int idx) {
             return items.get(idx);
         }
 
-        /** リストを返す */
+        /** Returns list */
         public final List<DiskBasicGroupItem> getItems() {
             return items;
         }
 
-        /** グループ数を返す */
+        /** Returns number of groups */
         public int getNums() {
             return nums;
         }
 
-        /** 占有サイズを返す */
+        /** Returns occupied size */
         public int getSize() {
             return size;
         }
 
-        /** 1グループのサイズを返す */
+        /** Returns the size of 1 group */
         public int getSizePerGroup() {
             return sizePerGroup;
         }
 
-        /** グループ数を設定 */
+        /** Set number of groups */
         public void setNums(int val) {
             nums = val;
         }
 
-        /** 占有サイズを設定 */
+        /** Set occupied size */
         public void setSize(int val) {
             size = val;
         }
 
-        /** 1グループのサイズを設定 */
+        /** Set size of 1 group */
         public void setSizePerGroup(int val) {
             sizePerGroup = val;
         }
 
-        /** グループ数を足す */
+        /** Add number of groups */
         public int addNums(int val) {
             nums += val;
             return nums;
         }
 
-        /** 占有サイズを足す */
+        /** Add occupied size */
         public int addSize(int val) {
             size += val;
             return size;
         }
 
-        /** グループ番号でソート */
+        /** Sort by group number */
         public void sortItems() {
             items.sort(DiskBasicGroupItem::compare);
         }
     }
 
     /**
-     * 汎用リスト用アイテム
+     * Item for general purpose list
      *
      * @see KeyValArray
      */
@@ -638,10 +638,10 @@ public class BasicCommon {
         }
 
         /**
-         * 設定 integer
+         * Set integer
          *
-         * @param key キー名
-         * @param val 値
+         * @param key Key name
+         * @param val Value
          */
         public void set(String key, int val) {
             clear();
@@ -653,11 +653,11 @@ public class BasicCommon {
         }
 
         /**
-         * 設定 8bit
+         * Set 8bit
          *
-         * @param key    キー名
-         * @param val    値 (byte)
-         * @param invert 値を反転するか
+         * @param key    Key name
+         * @param val    Value (byte)
+         * @param invert Whether to invert value
          */
         public void set(String key, byte val, boolean invert) {
             clear();
@@ -670,12 +670,12 @@ public class BasicCommon {
         }
 
         /**
-         * 設定 16bit
+         * Set 16bit
          *
-         * @param key       キー名
-         * @param val       値 (wxUint16)
-         * @param bigEndian 値がビッグエンディアンか
-         * @param invert    値を反転するか
+         * @param key       Key name
+         * @param val       Value (wxUint16)
+         * @param bigEndian Whether value is big endian
+         * @param invert    Whether to invert value
          */
         public void set(String key, short val, boolean bigEndian, boolean invert) {
             clear();
@@ -691,12 +691,12 @@ public class BasicCommon {
         }
 
         /**
-         * 設定 32bit
+         * Set 32bit
          *
-         * @param key       キー名
-         * @param val       値 (int)
-         * @param bigEndian 値がビッグエンディアンか
-         * @param invert    値を反転するか
+         * @param key       Key name
+         * @param val       Value (int)
+         * @param bigEndian Whether value is big endian
+         * @param invert    Whether to invert value
          */
         public void set(String key, int val, boolean bigEndian, boolean invert) {
             clear();
@@ -712,12 +712,12 @@ public class BasicCommon {
         }
 
         /**
-         * 設定 byte array
+         * Set byte array
          *
-         * @param key    キー名
-         * @param val    バイト配列 (final void*)
-         * @param size   配列サイズ
-         * @param invert 値を反転するか
+         * @param key    Key name
+         * @param val    Byte array (final void*)
+         * @param size   Array size
+         * @param invert Whether to invert value
          */
         public void set(String key, byte[] val, int size, boolean invert) {
             clear();
@@ -731,10 +731,10 @@ public class BasicCommon {
         }
 
         /**
-         * 設定 bool
+         * Set bool
          *
-         * @param key キー名
-         * @param val 値
+         * @param key Key name
+         * @param val Value
          */
         public void set(String key, boolean val) {
             clear();
@@ -746,7 +746,7 @@ public class BasicCommon {
         }
 
         /**
-         * 値を文字列にして返す
+         * Returns the value as a string
          */
         public String getValueString() {
             if (value == null) return "";
@@ -782,7 +782,7 @@ public class BasicCommon {
         }
 
         /**
-         * キー名の比較
+         * Key name comparison
          */
         public static int compare(KeyValItem item1, KeyValItem item2) {
             return item1.key.compareTo(item2.key);
@@ -801,7 +801,7 @@ public class BasicCommon {
     }
 
     /**
-     * 汎用リスト KeyValItem の配列
+     * General purpose list KeyValItem array
      */
     public static class KeyValArray {
 
@@ -811,68 +811,68 @@ public class BasicCommon {
             super();
         }
 
-        /** リストをクリア */
+        /** Clear list */
         public void clear() {
             contents.clear();
         }
 
-        /** リストをクリア */
+        /** Clear list */
         public void empty() {
             contents.clear();
         }
 
         /**
-         * 追加 integer
+         * Add integer
          *
-         * @param key キー名
-         * @param val 値
+         * @param key Key name
+         * @param val Value
          */
         public void add(String key, int val) {
             contents.add(new KeyValItem(key, val));
         }
 
         /**
-         * 追加 8bit
+         * Add 8bit
          *
-         * @param key    キー名
-         * @param val    値 (byte)
-         * @param invert 値を反転するか
+         * @param key    Key name
+         * @param val    Value (byte)
+         * @param invert Whether to invert value
          */
         public void add(String key, byte val, boolean invert) {
             contents.add(new KeyValItem(key, val, invert));
         }
 
         /**
-         * 追加 16bit
+         * Add 16bit
          *
-         * @param key       キー名
-         * @param val       値 (wxUint16)
-         * @param bigEndian 値がビッグエンディアンか
-         * @param invert    値を反転するか
+         * @param key       Key name
+         * @param val       Value (wxUint16)
+         * @param bigEndian Whether value is big endian
+         * @param invert    Whether to invert value
          */
         public void add(String key, short val, boolean bigEndian, boolean invert) {
             contents.add(new KeyValItem(key, val, bigEndian, invert));
         }
 
         /**
-         * 追加 32bit
+         * Add 32bit
          *
-         * @param key       キー名
-         * @param val       値 (int)
-         * @param bigEndian 値がビッグエンディアンか
-         * @param invert    値を反転するか
+         * @param key       Key name
+         * @param val       Value (int)
+         * @param bigEndian Whether value is big endian
+         * @param invert    Whether to invert value
          */
         public void add(String key, int val, boolean bigEndian, boolean invert) {
             contents.add(new KeyValItem(key, val, bigEndian, invert));
         }
 
         /**
-         * 追加 byte array
+         * Add byte array
          *
-         * @param key    キー名
-         * @param val    バイト配列 (final void*)
-         * @param size   配列サイズ
-         * @param invert 値を反転するか
+         * @param key    Key name
+         * @param val    Byte array (final void*)
+         * @param size   Array size
+         * @param invert Whether to invert value
          */
         public void add(String key, byte[] val, int size, boolean invert) {
             contents.add(new KeyValItem(key, val, size, invert));
@@ -883,10 +883,10 @@ public class BasicCommon {
         }
 
         /**
-         * 追加 bool
+         * Add bool
          *
-         * @param key キー名
-         * @param val 値
+         * @param key Key name
+         * @param val Value
          */
         public void add(String key, boolean val) {
             contents.add(new KeyValItem(key, val));

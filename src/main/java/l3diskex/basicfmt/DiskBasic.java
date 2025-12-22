@@ -60,15 +60,15 @@ public class DiskBasic extends DiskParam {
     /** Formatter, dialogs */
     public static class DiskBasicIdentifiedData {
 
-        /** ボリューム名 */
+        /** Volume name */
         private String volumeName;
-        /** ボリューム名最大長 */
+        /** Maximum volume name length */
         private int volumeNameMaxLen;
-        /** ボリューム番号 */
+        /** Volume number */
         private int volumeNumber;
-        /** ボリューム番号が16進か */
+        /** Whether the volume number is hexadecimal */
         private boolean volumeNumberHex;
-        /** ボリューム日付 */
+        /** Volume date */
         private String mVolumeDate;
 
         public DiskBasicIdentifiedData() {
@@ -158,20 +158,20 @@ public class DiskBasic extends DiskParam {
     private final DiskBasicDir dir;
     private DiskBasicType type;
 
-    /** サイド(1S用) */
+    /** Side (for 1S) */
     private int selectedSide;
 
-    /** グループ計算用 データ開始セクタ番号 */
+    /** Starting sector number of data for group calculation */
     private int dataStartSector;
-    /** グループ計算する際にスキップするトラック番号 */
+    /** Track number to skip when calculating groups */
     private int skippedTrack;
 
-    /** ファイルなどの文字コード体系 */
+    /** Character encoding scheme for files, etc. */
     private String charCode;
-    /** 文字コード変換 */
+    /** Character encoding conversion */
     private final CharCodes codes;
 
-    /** エラー情報保存用 */
+    /** For storing error information */
     private final DiskBasicError errInfo;
 
     public DiskBasic() {
@@ -215,407 +215,407 @@ public class DiskBasic extends DiskParam {
 
 //#region Delegate methods for DiskBasicParam
 
-    /** BASIC種類 */
+    /** BASIC type */
     public DiskBasicFormat getFormatType() {
         return diskBasicParam.getFormatType();
     }
 
-    /** BASIC種類 */
+    /** BASIC type */
     public int getSectorsPerTrackOnBasic() {
         return diskBasicParam.getSectorsPerTrackOnBasic();
     }
 
-    /** BASICで使用するセクタ数/トラック */
+    /** Number of sectors per track used by BASIC */
     public void setSectorsPerTrackOnBasic(int val) {
         diskBasicParam.setSectorsPerTrackOnBasic(val);
     }
 
-    /** BASICで使用するトラック数/サイド */
+    /** Number of tracks per side used by BASIC */
     public int getTracksPerSideOnBasic() {
         return diskBasicParam.getTracksPerSideOnBasic();
     }
 
-    /** BASICで使用するトラック数/サイド */
+    /** Number of tracks per side used by BASIC */
     public void setTracksPerSideOnBasic(int val) {
         diskBasicParam.setTracksPerSideOnBasic(val);
     }
 
-    /** BASICが使用するサイド数 */
+    /** Number of sides used by BASIC */
     public int getSidesPerDiskOnBasic() {
         return diskBasicParam.getSidesPerDiskOnBasic();
     }
 
-    /** BASICが使用するサイド数 */
+    /** Number of sides used by BASIC */
     public void setSidesPerDiskOnBasic(int val) {
         diskBasicParam.setSidesPerDiskOnBasic(val);
     }
 
-    /** BASIC種類名 */
+    /** BASIC type name */
     public String getBasicTypeName() {
         return diskBasicParam.getBasicTypeName();
     }
 
-    /** 説明 */
+    /** Description */
     public String getBasicDescription() {
         return diskBasicParam.getBasicDescription();
     }
 
-    /** 開始終了セクタを計算 */
+    /** Calculate starting and ending sectors */
     public void calcDirStartEndSector(int sectorSize) {
         diskBasicParam.calcDirStartEndSector(sectorSize);
     }
 
-    /** ファイル管理エリアのあるトラック番号 */
+    /** Track number where the file management area is located */
     public int getManagedTrackNumber() {
         return diskBasicParam.getManagedTrackNumber();
     }
 
-    /** ファイル名比較時に大文字小文字区別しないか */
+    /** Whether to distinguish between uppercase and lowercase when comparing file names */
     public boolean isCompareCaseInsensitive() {
         return diskBasicParam.isCompareCaseInsensitive();
     }
 
-    /** グループ(クラスタ)サイズ */
+    /** Group (cluster) size */
     public int getSectorsPerGroup() {
         return diskBasicParam.getSectorsPerGroup();
     }
 
-    /** サブディレクトリの初期グループ数 */
+    /** Initial number of groups for subdirectory */
     public int getSubDirGroupSize() {
         return diskBasicParam.getSubDirGroupSize();
     }
 
-    /** FAT最大グループ番号 */
+    /** Maximum FAT group number */
     public int getFatEndGroup() {
         return diskBasicParam.getFatEndGroup();
     }
 
-    /** BASICで使用するセクタ番号基準 */
+    /** Sector number base used by BASIC */
     public int getSectorNumberBaseOnBasic() {
         return diskBasicParam.getSectorNumberBaseOnBasic();
     }
 
-    /** 有効な密度 */
+    /** Valid density */
     public int getValidDensityType() {
         return diskBasicParam.getValidDensityType();
     }
 
-    /** 反転したサイド番号を返す */
+    /** Returns the reversed side number */
     public int getReversedSideNumber(int sideNum) {
         return diskBasicParam.getReversedSideNumber(sideNum);
     }
 
-    /** データビットが反転してるか */
+    /** Whether data bits are inverted */
     public boolean isDataInverted() {
         return diskBasicParam.isDataInverted();
     }
 
-    /** バイトオーダ ビッグエンディアンか */
+    /** Whether byte order is big endian */
     public boolean isBigEndian() {
         return diskBasicParam.isBigEndian();
     }
 
-    /** 片面のみ使用するOSで各面ごとに独立してアクセスできるか */
+    /** Whether each side can be accessed independently in an OS that uses only one side */
     public boolean canMountEachSides() {
         return diskBasicParam.canMountEachSides();
     }
 
-    /** 最終グループのコード */
+    /** Code for final group */
     public int getGroupFinalCode() {
         return diskBasicParam.getGroupFinalCode();
     }
 
-    /** 未使用のコード */
+    /** Code for unused */
     public int getGroupUnusedCode() {
         return diskBasicParam.getGroupUnusedCode();
     }
 
-    /** システムで使用するコード */
+    /** Code used by the system */
     public int getGroupSystemCode() {
         return diskBasicParam.getGroupSystemCode();
     }
 
-    /** 固有のパラメータ */
+    /** Specific parameters */
     public int getVariousIntegerParam(String key) {
         return diskBasicParam.getVariousIntegerParam(key);
     }
 
-    /** ルートディレクトリ開始セクタ */
+    /** Root directory starting sector */
     public int getDirStartSector() {
         return diskBasicParam.getDirStartSector();
     }
 
-    /** FAT最大グループ番号 */
+    /** Maximum FAT group number */
     public void setFatEndGroup(int end) {
         diskBasicParam.setFatEndGroup(end);
     }
 
-    /** ルートディレクトリ終了セクタ */
+    /** Root directory ending sector */
     public int getDirEndSector() {
         return diskBasicParam.getDirEndSector();
     }
 
-    /** ファイル名と拡張子の間に付けるコード(' . ') */
+    /** Code put between file name and extension (' . ') */
     public byte getExtensionPreCode() {
         return diskBasicParam.getExtensionPreCode();
     }
 
-    /** トラック当たりのグループ数 */
+    /** Number of groups per track */
     public int getGroupsPerTrack() {
         return diskBasicParam.getGroupsPerTrack();
     }
 
-    /** ファイル名ダイアログ入力後に大文字に変換するか */
+    /** Whether to convert to uppercase after file name dialog input */
     public boolean toUpperAfterRenamed() {
         return diskBasicParam.toUpperAfterRenamed();
     }
 
-    /** ファイル名ダイアログ表示前に大文字に変換するか */
+    /** Whether to convert to uppercase before file name dialog display */
     public boolean toUpperBeforeDialog() {
         return diskBasicParam.toUpperBeforeDialog();
     }
 
-    /** 拡張子と属性の関係 */
+    /** Relationship between extension and attributes */
     public List<MyAttribute> getAttributesByExtension() {
         return diskBasicParam.getAttributesByExtension();
     }
 
-    /** 特別な属性 */
+    /** Special attributes */
     public List<MyAttribute> getSpecialAttributes() {
         return diskBasicParam.getSpecialAttributes();
     }
 
-    /** ディレクトリエントリの空き領域に埋めるコード */
+    /** Code to fill free area of directory entries */
     public byte getDirSpaceCode() {
         return diskBasicParam.getDirSpaceCode();
     }
 
-    /** ディレクトリエントリの終端コード */
+    /** Termination code of directory entries */
     public byte getDirTerminateCode() {
         return diskBasicParam.getDirTerminateCode();
     }
 
-    /** ディレクトリエントリの未使用領域に埋めるコード */
+    /** Code to fill unused area of directory entries */
     public byte getDirTrimmingCode() {
         return diskBasicParam.getDirTrimmingCode();
     }
 
-    /** テキストファイルの終端コード */
+    /** Termination code of text files */
     public byte getTextTerminateCode() {
         return diskBasicParam.getTextTerminateCode();
     }
 
-    /** ディレクトリエントリの開始位置(セクタ) */
+    /** Starting position of directory entries (sector) */
     public int getDirStartPosOnSector() {
         return diskBasicParam.getDirStartPosOnSector();
     }
 
-    /** ディレクトリエントリの開始位置(グループ) */
+    /** Starting position of directory entries (group) */
     public int getDirStartPosOnGroup() {
         return diskBasicParam.getDirStartPosOnGroup();
     }
 
-    /** ファイル削除時にセットするコード */
+    /** Code to set when deleting a file */
     public byte getDeleteCode() {
         return diskBasicParam.getDeleteCode();
     }
 
-    /** FAT開始セクタ */
+    /** FAT starting sector */
     public int getFatStartSector() {
         return diskBasicParam.getFatStartSector();
     }
 
-    /** FATのあるサイド番号 */
+    /** Side number where FAT is located */
     public int getFatSideNumber() {
         return diskBasicParam.getFatSideNumber();
     }
 
-    /** 予約セクタ数 */
+    /** Number of reserved sectors */
     public int getReservedSectors() {
         return diskBasicParam.getReservedSectors();
     }
 
-    /** FATの数 */
+    /** Number of FATs */
     public int getNumberOfFats() {
         return diskBasicParam.getNumberOfFats();
     }
 
-    /** FATが使用するセクタ数 */
+    /** Number of sectors used by FAT */
     public int getSectorsPerFat() {
         return diskBasicParam.getSectorsPerFat();
     }
 
-    /** FATの開始位置(セクタ内) */
+    /** FAT starting position (within sector) */
     public int getFatStartPos() {
         return diskBasicParam.getFatStartPos();
     }
 
-    /** FATの有効数 */
+    /** Valid number of FATs */
     public int getValidNumberOfFats() {
         return diskBasicParam.getValidNumberOfFats();
     }
 
-    /** セクタスキューマップ */
+    /** Sector skew map */
     public int getSectorSkewMap(int idx) {
         return diskBasicParam.getSectorSkewMap(idx);
     }
 
-    /** セクタスキューマップを持つか */
+    /** Whether it has a sector skew map */
     public boolean hasSectorSkewMap() {
         return diskBasicParam.hasSectorSkewMap();
     }
 
-    /** セクタスキュー */
+    /** Sector skew */
     public int getSectorSkew() {
         return diskBasicParam.getSectorSkew();
     }
 
-    /** BASICで使用するセクタ数/トラック(可変長) */
+    /** Number of sectors per track used by BASIC (variable length) */
     public List<NumSectorsParam> sectorsPerTrackOnBasicList() {
         return diskBasicParam.sectorsPerTrackOnBasicList();
     }
 
-    /** ルートディレクトリの開始位置 */
+    /** Root directory starting position */
     public int getDirStartPosOnRoot() {
         return diskBasicParam.getDirStartPosOnRoot();
     }
 
-    /** ディレクトリの開始位置 */
+    /** Directory starting position */
     public int getDirStartPos() {
         return diskBasicParam.getDirStartPos();
     }
 
-    /** フォーマット時に埋めるコード */
+    /** Code to fill during formatting */
     public byte getFillCodeOnFormat() {
         return diskBasicParam.getFillCodeOnFormat();
     }
 
-    /** トラック当たりのグループ数 */
+    /** Number of groups per track */
     public void setGroupsPerTrack(int val) {
         diskBasicParam.setGroupsPerTrack(val);
     }
 
-    /** FATが使用するセクタ数 */
+    /** Number of sectors used by FAT */
     public void setSectorsPerFat(int val) {
         diskBasicParam.setSectorsPerFat(val);
     }
 
-    /** FAT領域を埋めるコード */
+    /** Code to fill FAT area */
     public byte getFillCodeOnFAT() {
         return diskBasicParam.getFillCodeOnFAT();
     }
 
-    /** DIR領域を埋めるコード */
+    /** Code to fill DIR area */
     public byte getFillCodeOnDir() {
         return diskBasicParam.getFillCodeOnDir();
     }
 
-    /** FATのグループ番号を保持するビット幅(12 or 16) */
+    /** Bit width to hold FAT group number (12 or 16) */
     public int getGroupWidth() {
         return diskBasicParam.getGroupWidth();
     }
 
-    /** ディレクトリエントリが使用するグループ数 */
+    /** Number of groups used by a directory entry */
     public int getGroupsPerDirEntry() {
         return diskBasicParam.getGroupsPerDirEntry();
     }
 
-    /** 予約済みグループ番号 */
+    /** Reserved group numbers */
     public List<Integer> getReservedGroups() {
         return diskBasicParam.getReservedGroups();
     }
 
-    /** ルートディレクトリ開始セクタ */
+    /** Root directory starting sector */
     public void setDirStartSector(int val) {
         diskBasicParam.setDirStartSector(val);
     }
 
-    /** ルートディレクトリ終了セクタ */
+    /** Root directory ending sector */
     public void setDirEndSector(int val) {
         diskBasicParam.setDirEndSector(val);
     }
 
-    /** FATのグループ番号を保持するビット幅(12 or 16) */
+    /** Bit width to hold FAT group number (12 or 16) */
     public void setGroupWidth(int val) {
         diskBasicParam.setGroupWidth(val);
     }
 
-    /** セクタ当たりのグループ数 */
+    /** Number of groups per sector */
     public int getGroupsPerSector() {
         return diskBasicParam.getGroupsPerSector();
     }
 
-    /** 固有のパラメータ */
+    /** Specific parameters */
     public String getVariousStringParam(String key) {
         return diskBasicParam.getVariousStringParam(key);
     }
 
-    /** BASIC種類サブ番号 */
+    /** BASIC type sub-number */
     public int getFormatSubTypeNumber() {
         return diskBasicParam.getFormatSubTypeNumber();
     }
 
-    /** グループ(クラスタ)サイズ */
+    /** Group (cluster) size */
     public void setSectorsPerGroup(int val) {
         diskBasicParam.setSectorsPerGroup(val);
     }
 
-    /** ファイル管理エリアのあるトラック番号 */
+    /** Track number where the file management area is located */
     public void setManagedTrackNumber(int val) {
         diskBasicParam.setManagedTrackNumber(val);
     }
 
-    /** セクタ当たりのグループ数 */
+    /** Number of groups per sector */
     public void setGroupsPerSector(int val) {
         diskBasicParam.setGroupsPerSector(val);
     }
 
-    /** 固有のパラメータ */
+    /** Specific parameters */
     public boolean getVariousBoolParam(String key) {
         return diskBasicParam.getVariousBoolParam(key);
     }
 
-    /** 固有のパラメータ */
+    /** Specific parameters */
     public void setVariousParam(String key, boolean val) {
         diskBasicParam.setVariousParam(key, val);
     }
 
-    /** メディアID */
+    /** Media ID */
     public byte getMediaId() {
         return diskBasicParam.getMediaId();
     }
 
-    /** 予約セクタ数 */
+    /** Number of reserved sectors */
     public void setReservedSectors(int val) {
         diskBasicParam.setReservedSectors(val);
     }
 
-    /** FATの数 */
+    /** Number of FATs */
     public void setNumberOfFats(int val) {
         diskBasicParam.setNumberOfFats(val);
     }
 
-    /** ルートディレクトリのディレクトリエントリ数 */
+    /** Number of directory entries in root directory */
     public void setDirEntryCount(int val) {
         diskBasicParam.setDirEntryCount(val);
     }
 
-    /** メディアID */
+    /** Media ID */
     public void setMediaId(byte val) {
         diskBasicParam.setMediaId(val);
     }
 
-    /** BASICカテゴリ名 */
+    /** BASIC category name */
     public String getBasicCategoryName() {
         return diskBasicParam.getBasicCategoryName();
     }
 
-    /** 説明 */
+    /** Description */
     public void setBasicDescription(String str) {
         diskBasicParam.setBasicDescription(str);
     }
 
-    /** ルートディレクトリのディレクトリエントリ数 */
+    /** Number of directory entries in root directory */
     public int getDirEntryCount() {
         return diskBasicParam.getDirEntryCount();
     }
@@ -659,11 +659,11 @@ logger.log(Level.TRACE, "format: " + format.getTypeNumber());
     /**
      * Analyze if the specified disk is DISK BASIC
      *
-     * @param newDisk      新しいディスク
-     * @param newSide      サイド番号 片面の場合のみ 両面なら -1
-     * @param match        パラメータ 既に分かっている場合にセット
-     * @param isFormatting フォーマット実行時 true
-     * @return >0: ワーニング, 0: 正常, <0: エラーあり
+     * @param newDisk      New disk
+     * @param newSide      Side number. Only for single side. For double side, -1.
+     * @param match        Parameters. Set if already known.
+     * @param isFormatting Whether formatting is being executed.
+     * @return >0: Warning, 0: Normal, <0: Error present
      */
     public int parseBasic(DiskImageDisk newDisk, int newSide, DiskBasicParam match, boolean isFormatting) throws IOException {
         errInfo.clear();
@@ -680,23 +680,23 @@ logger.log(Level.TRACE, "format: " + format.getTypeNumber());
         String hint = newDisk.getFile().getBasicTypeHint();
         List<DiskParamName> types = newDisk.getBasicTypes();
 
-        // 新しいディスクにあるBASICヒント
+        // BASIC hint in the new disk
         DiskBasicParams validParams = new DiskBasicParams();
-        // 新しいディスクにあるBASIC種類一覧
+        // List of BASIC types in the new disk
         List<Double> validRatios = new ArrayList<>();
 
         double validRatio = 0.0;
         if (match == null) {
             boolean support = false;
-            // サポートしているDISK BASICがあるかどうか
-            // 手動設定の時はhintもtypesも何も入っていないので
-            // テンプレートの中にパラメータが一致するものがあるかをさがす
+            // Whether there is a supported DISK BASIC
+            // When setting manually, hint and types are empty, so
+            // search for matching parameters in the template
             match = diskBasicTemplates.findType(hint, types);
             if (match != null) {
                 support = true;
             }
             if (!support) {
-                // DISK BASICとして使用不可
+                // Cannot be used as DISK BASIC
                 clear();
                 errInfo.setError(DiskBasicError.ERR_SUPPORTED);
                 return errInfo.getValid();
@@ -705,7 +705,7 @@ logger.log(Level.TRACE, "format: " + format.getTypeNumber());
             for (DiskParamName diskParamName : types) {
                 match = diskBasicTemplates.findType(hint, diskParamName.getName());
                 if (match != null) {
-                    // フォーマットされているか？
+                    // Is it formatted?
                     logger.log(Level.INFO, "Parsing format: %s".formatted(match.getBasicTypeName()));
 try {
                     validRatio = parseFormattedDisk(newDisk, match, isFormatting);
@@ -716,7 +716,7 @@ try {
 }
                     logger.log(Level.INFO, "Result => %.2f".formatted(validRatio));
                     if (validRatio >= 0.0) {
-                        // 候補にする
+                        // Make it a candidate
                         validParams.list.add(match);
                         validRatios.add(validRatio);
                     }
@@ -725,17 +725,17 @@ try {
 
             errInfo.clear();
             if (!validParams.list.isEmpty()) {
-                // それらしいものを候補とする
+                // Make likely ones candidates
                 int idx = maxRatio(validRatios);
                 if (idx < 0) idx = 0;
                 match = validParams.list.get(idx);
-                // 再度チェックする
+                // Check again
                 logger.log(Level.INFO, "Decided format: %s\t\t\t\t\t🎉🎉🎉".formatted(match.getBasicTypeName()));
                 validRatio = parseFormattedDisk(newDisk, match, isFormatting);
                 logger.log(Level.INFO, "  Result => %.2f".formatted(validRatio));
             }
         } else {
-            // すでにフォーマット済み
+            // Already formatted
             logger.log(Level.INFO, "Known format: %s".formatted(match.getBasicTypeName()));
             validRatio = parseFormattedDisk(newDisk, match, isFormatting);
             logger.log(Level.INFO, "  Result => %.2f".formatted(validRatio));
@@ -757,10 +757,10 @@ try {
     /**
      * Parse and check if formatted with the specified DISK BASIC
      *
-     * @param newDisk      新しいディスク
-     * @param match        DISK BASICのパラメータ
-     * @param isFormatting フォーマット実行時true
-     * @return <0.0: エラーあり
+     * @param newDisk      New disk
+     * @param match        DISK BASIC parameters
+     * @param isFormatting Whether formatting is in progress.
+     * @return <0.0: Error present
      */
     private double parseFormattedDisk(DiskImageDisk newDisk, DiskBasicParam match, boolean isFormatting) throws IOException {
         double validRatio = 0.0;
@@ -770,12 +770,12 @@ try {
 
         dir.setFormatType(getFormatType());
 
-        // セクタ数はBASICで指定している側を優先
+        // Prioritize sector counts specified in BASIC
         if (getSectorsPerTrackOnBasic() < 0) setSectorsPerTrackOnBasic(getSectorsPerTrack());
         //sectorsOnBasic = getSectorsOnBasic() >= 0 ? getSectorsOnBasic() : getSectorsPerTrack();
-        // トラック数はBASICで指定している側を優先
+        // Prioritize track counts specified in BASIC
         if (getTracksPerSideOnBasic() < 0) setTracksPerSideOnBasic(getTracksPerSide());
-        // サイド数はBASICで指定している側を優先
+        // Prioritize side counts specified in BASIC
         if (getSidesPerDiskOnBasic() <= 0) setSidesPerDiskOnBasic(getSidesPerDisk());
 
 //        if (getSectorSize() <= 0) { // TODO what this (by me)???
@@ -791,7 +791,7 @@ logger.log(Level.TRACE, "type: " + type.getClass().getSimpleName());
 
         assignParameter();
 
-        // 必要ならディスク上のパラメータを解析
+        // Analyze parameters on disk if necessary
         double prmValidRatio = type.parseParamOnDisk(isFormatting);
         if (prmValidRatio < 0.0) {
             errInfo.setError(DiskBasicError.ERR_IN_PARAMETER_AREA);
@@ -801,7 +801,7 @@ logger.log(Level.TRACE, "type: " + type.getClass().getSimpleName());
 logger.log(Level.TRACE, "prmValidRatio: " + prmValidRatio);
         validRatio += prmValidRatio;
 
-        // FATのチェック
+        // Check FAT
         double fatValidRatio = 0.0;
         if (validRatio >= 0.0) {
             fatValidRatio = assignFat(isFormatting);
@@ -812,7 +812,7 @@ logger.log(Level.TRACE, "fatValidRatio: " + fatValidRatio);
             validRatio += fatValidRatio;
         }
 
-        // ディレクトリのチェック
+        // Check directory
         double dirValidRatio = 0.0;
         if (validRatio >= 0.0) {
             dirValidRatio = checkRootDirectory(isFormatting);
@@ -824,7 +824,7 @@ logger.log(Level.TRACE, "dirValidRatio: " + dirValidRatio);
         }
 
         if ((prmValidRatio >= 0.0 && fatValidRatio >= 0.0 && dirValidRatio >= 0.0) || isFormatting || forcefully) {
-            // フォーマット完了
+            // Formatting complete
             formatted = true;
         }
 
@@ -850,17 +850,17 @@ logger.log(Level.TRACE, "dirValidRatio: " + dirValidRatio);
         if (type != null) type.clearDiskFreeSize();
     }
 
-    /** DISKイメージの番号を返す */
+    /** Returns disk image number */
     public int getDiskNumber() {
         return disk != null ? disk.getNumber() : -1;
     }
 
-    /** 選択中のサイド文字列を返す */
+    /** Returns selected side string */
     public String getSelectedSideStr() {
         return Utils.getSideStr(selectedSide, canMountEachSides());
     }
 
-    /** DISK BASICの説明を取得 */
+    /** Get DISK BASIC description */
     public String getDescriptionDetails() {
         String desc = getBasicDescription();
         int freeSize = type != null ? type.getFreeDiskSize() : -1;
@@ -876,14 +876,14 @@ logger.log(Level.TRACE, "dirValidRatio: " + dirValidRatio);
         return desc;
     }
 
-    /** FATエリアの空き状況を取得 */
+    /** Get free space status of FAT area */
     public void getFatAvailability(int[] offset, List<Integer>[] arr) {
         if (type != null) {
             type.getFatAvailability(offset, arr);
         }
     }
 
-    /** ディレクトリのアイテムを取得 */
+    /** Get directory item */
     public DiskBasicDirItem<?> getDirItem(int pos) {
         return dir.item(pos);
     }
@@ -893,14 +893,14 @@ logger.log(Level.TRACE, "dirValidRatio: " + dirValidRatio);
     }
 
     /**
-     * 管理エリアのサイド番号、セクタ番号、トラックを得る
+     * Get side number, sector number, and track of management area
      *
-     * @param sectorPos セクタ位置(管理トラックの最初のサイド＆最初のセクタを 0 した通し番号)
-     * @param sideNum   [out] サイド番号 Nullable
-     * @param sectorNum [out] セクタ番号 Nullable
-     * @param divNum    [out] 分割番号 Nullable
-     * @param divNums   [out] 分割数 Nullable
-     * @return トラックデータ
+     * @param sectorPos Sector position (serial number starting from the first side & first sector of management track as 0)
+     * @param sideNum   [out] Side number. Nullable
+     * @param sectorNum [out] Sector number. Nullable
+     * @param divNum    [out] Division number. Nullable
+     * @param divNums   [out] Number of divisions. Nullable
+     * @return Track data
      */
     public DiskImageTrack getManagedTrack(int sectorPos, int[] sideNum, int[] sectorNum, int[] divNum, int[] divNums) {
         int[] track0Num = {0}, side0Num = {0}, secNum = {0};
@@ -924,15 +924,15 @@ logger.log(Level.TRACE, "dirValidRatio: " + dirValidRatio);
     }
 
     /**
-     * 管理エリアのトラック番号、サイド番号、セクタ番号、セクタポインタを得る
+     * Get track number, side number, sector number, and sector pointer of management area
      *
-     * @param sectorPos セクタ位置(管理トラックの最初のサイド＆最初のセクタを 0 した通し番号)
-     * @param trackNum  [out] トラック番号 Nullable
-     * @param sideNum   [out] サイド番号 Nullable
-     * @param sectorNum [out] セクタ番号 Nullable
-     * @param divNum    [out] 分割番号 Nullable
-     * @param numOfDivs   [out] 分割数 Nullable
-     * @return セクタデータ
+     * @param sectorPos Sector position (serial number starting from the first side & first sector of management track as 0)
+     * @param trackNum  [out] Track number. Nullable
+     * @param sideNum   [out] Side number. Nullable
+     * @param sectorNum [out] Sector number. Nullable
+     * @param divNum    [out] Division number. Nullable
+     * @param numOfDivs   [out] Number of divisions. Nullable
+     * @return Sector data
      */
     public DiskImageSector getManagedSector(int sectorPos, int[] trackNum, int[] sideNum, int[] sectorNum, int[] divNum, int[] numOfDivs) {
         int[] secNum = {0};
@@ -944,10 +944,10 @@ logger.log(Level.TRACE, "dirValidRatio: " + dirValidRatio);
     }
 
     /**
-     * DISK BASICで使用できる残りディスクサイズに足りるか
+     * Whether it is enough for the remaining disk size that can be used by DISK BASIC
      *
-     * @param size 指定サイズ
-     * @return true: 足りる, false: 足りない
+     * @param size Specified size
+     * @return true: Enough, false: Not enough
      */
     public boolean hasFreeDiskSize(int size) {
         boolean enough = true;
@@ -964,22 +964,22 @@ logger.log(Level.TRACE, "dirValidRatio: " + dirValidRatio);
         return enough;
     }
 
-    /** DISK BASICで使用できる残りディスクサイズを返す */
+    /** Returns remaining disk size that can be used by DISK BASIC */
     public int getFreeDiskSize() {
         return type.getFreeDiskSize();
     }
 
-    /** 固有のパラメータをセット */
+    /** Set specific parameters */
     public void assignParameter() {
         dataStartSector = type.calcDataStartSectorPos();
         skippedTrack = type.calcSkippedTrack();
     }
 
     /**
-     * 現在選択しているディスクのFAT領域をアサイン
+     * Assign FAT area of the currently selected disk
      *
-     * @param isFormatting フォーマット中か
-     * @return 1.0: 正常, <1.0: 警告あり, <0.0: エラーあり
+     * @param isFormatting Whether formatting is in progress
+     * @return 1.0: Normal, <1.0: Warning present, <0.0: Error present
      */
     public double assignFat(boolean isFormatting) throws IOException {
         if (disk == null) {
@@ -997,10 +997,10 @@ logger.log(Level.TRACE, "fat: assigned");
     }
 
     /**
-     * 現在選択しているディスクのルートディレクトリ構造をチェック
+     * Check root directory structure of the currently selected disk
      *
-     * @param isFormatting フォーマット中か
-     * @return <0.0: ディレクトリにエラーあり
+     * @param isFormatting Whether formatting is in progress
+     * @return <0.0: Error in directory
      */
     public double checkRootDirectory(boolean isFormatting) throws IOException {
         if (disk == null) return -1.0;
@@ -1009,9 +1009,9 @@ logger.log(Level.TRACE, "fat: assigned");
     }
 
     /**
-     * 現在選択しているディスクのルートディレクトリをアサイン
+     * Assign root directory of the currently selected disk
      *
-     * @return false: ディレクトリにエラーあり
+     * @return false: Error in directory
      */
     public boolean assignRootDirectory() throws IOException {
         if (disk == null) return false;
@@ -1032,9 +1032,9 @@ logger.log(Level.TRACE, "fat: assigned");
     }
 
     /**
-     * 現在選択しているディスクのFATとルートディレクトリをアサイン
+     * Assign FAT and root directory of the currently selected disk
      *
-     * @return true, false: エラーあり
+     * @return true, false: Error present
      */
     public boolean assignFatAndDirectory() throws IOException {
         boolean valid = (assignFat(false) >= 0.0);
@@ -1042,7 +1042,7 @@ logger.log(Level.TRACE, "fat: assigned");
         return valid;
     }
 
-    /** 解析済みをクリア */
+    /** Clear parsed status */
     public void clearParseAndAssign(boolean forcely) {
         parsed = false;
         assigned = false;
@@ -1051,25 +1051,25 @@ logger.log(Level.TRACE, "fat: assigned");
         dir.setCurrentAsRoot();
     }
 
-    /** 解析済みか */
+    /** Whether it is parsed */
     public boolean isParsed() {
         return parsed;
     }
 
-    /** アサイン済みか */
+    /** Whether it is assigned */
     public boolean isAssigned() {
         return assigned;
     }
 
-    /** 解析エラーを無視するか */
+    /** Whether to ignore parsing errors */
     public boolean isForcely() {
         return forcefully;
     }
 
     /**
-     * ロードできるか
+     * Whether it can be loaded
      *
-     * @param item ディレクトリのアイテム
+     * @param item Directory item
      */
     public boolean isLoadableFile(DiskBasicDirItem<?> item) {
         if (item == null || !item.isLoadable() || !item.isUsed()) {
@@ -1080,10 +1080,10 @@ logger.log(Level.TRACE, "fat: assigned");
     }
 
     /**
-     * 指定したディレクトリ位置のファイルをロード
+     * Load file at the specified directory position
      *
-     * @param itemNumber ディレクトリの位置
-     * @param dstPath    出力先パス
+     * @param itemNumber Directory position
+     * @param dstPath    Output path
      */
     public boolean loadFile(int itemNumber, String dstPath) {
         DiskBasicDirItem<?> item = dir.item(itemNumber);
@@ -1091,10 +1091,10 @@ logger.log(Level.TRACE, "fat: assigned");
     }
 
     /**
-     * 指定したディレクトリアイテムのファイルをロード
+     * Load file of the specified directory item
      *
-     * @param item    ディレクトリのアイテム
-     * @param dstPath 出力先パス
+     * @param item    Directory item
+     * @param dstPath Output path
      */
     public boolean loadFile(DiskBasicDirItem<?> item, String dstPath) {
         try (FileOutputStream file = new FileOutputStream(dstPath)) {
@@ -1106,10 +1106,10 @@ logger.log(Level.TRACE, "fat: assigned");
     }
 
     /**
-     * 指定したストリームにファイルをロード
+     * Load file to the specified stream
      *
-     * @param item    ディレクトリのアイテム
-     * @param oStream [in,out] 出力先ストリーム
+     * @param item    Directory item
+     * @param oStream [in,out] Output stream
      */
     public boolean loadFile(DiskBasicDirItem<?> item, OutputStream oStream) throws IOException {
         ByteArrayOutputStream otemp = new ByteArrayOutputStream();
@@ -1126,11 +1126,11 @@ logger.log(Level.TRACE, "fat: assigned");
     }
 
     /**
-     * 指定したアイテムのファイルをベリファイ
+     * Verify file of the specified item
      *
-     * @param item    ディレクトリのアイテム
-     * @param srcPath 比較するファイルのパス
-     * @return 0: 差異なし, 1:差異あり, -1: エラー
+     * @param item    Directory item
+     * @param srcPath Path of the file to compare
+     * @return 0: No difference, 1: Difference present, -1: Error
      */
     public int verifyFile(DiskBasicDirItem<?> item, String srcPath) {
         try (FileInputStream file = new FileInputStream(srcPath)) {
@@ -1147,11 +1147,11 @@ logger.log(Level.TRACE, "fat: assigned");
     }
 
     /**
-     * 指定したストリームにファイルをロード
+     * Load file to the specified stream
      *
-     * @param item    [in,out] ディレクトリアイテム
-     * @param ostream [in,out] エクスポート時指定
-     * @param outsize [out] 実際に出力したサイズ(ostreamを指定した時のみ有効)
+     * @param item    [in,out] Directory item
+     * @param ostream [in,out] Specified during export
+     * @param outsize [out] Size actually output (valid only when ostream is specified)
      */
     public boolean loadData(DiskBasicDirItem<?> item, OutputStream ostream, int[] outsize) throws IOException {
         int sts = 0;
@@ -1165,11 +1165,11 @@ logger.log(Level.TRACE, "fat: assigned");
     }
 
     /**
-     * 指定したアイテムのファイルをベリファイ
+     * Verify file of the specified item
      *
-     * @param item    [in,out] ディレクトリアイテム
-     * @param istream [in,out] ベリファイ時指定
-     * @return 0: 差異なし, 1: 差異あり, -1: エラー
+     * @param item    [in,out] Directory item
+     * @param istream [in,out] Specified during verify
+     * @return 0: No difference, 1: Difference present, -1: Error
      */
     public int verifyData(DiskBasicDirItem<?> item, InputStream istream) throws IOException {
         int sts = 0;
@@ -1192,14 +1192,14 @@ logger.log(Level.TRACE, "fat: assigned");
     }
 
     /**
-     * ディスクデータにアクセス（ロード/ベリファイで使用）
+     * Access disk data (used in load/verify)
      *
-     * @param fileunitNum ファイル番号
-     * @param item        [in,out] ディレクトリアイテム
-     * @param istream     [in,out] ベリファイ時指定
-     * @param ostream     [in,out] エクスポート時指定
-     * @param outsize     [out] 実際に出力したサイズ(ostreamを指定した時のみ有効)
-     * @return 0: 差異なし, 1:差異あり, -1: エラー
+     * @param fileunitNum File number
+     * @param item        [in,out] Directory item
+     * @param istream     [in,out] Specified during verify
+     * @param ostream     [in,out] Specified during export
+     * @param outsize     [out] Size actually output (valid only when ostream is specified)
+     * @return 0: No difference, 1: Difference present, -1: Error
      */
     public int accessUnitData(int fileunitNum, DiskBasicDirItem<?> item, InputStream istream, OutputStream ostream, int[] outsize) throws IOException {
         if (item == null) {
@@ -1277,13 +1277,13 @@ logger.log(Level.TRACE, "fat: assigned");
     }
 
     /**
-     * 同じファイル名が既に存在して上書き可能か
+     * Whether the same file name already exists and can be overwritten
      *
-     * @param dirItem     検索するディレクトリ
-     * @param filename    ファイル名
-     * @param excludeItem 検索対象から除くアイテム
-     * @param nextItem    [out] 一致したアイテムの次位置にあるアイテム
-     * @return 0: なし, 1: あり 通常ファイル, -1 あり 上書き不可（ディレクトリ or ボリュームラベル）
+     * @param dirItem     Directory to search
+     * @param filename    File name
+     * @param excludeItem Item to exclude from search targets
+     * @param nextItem    [out] Item at the next position of the matching item
+     * @return 0: None, 1: Present (normal file), -1: Present (cannot overwrite, directory or volume label)
      */
     public int isFileNameDuplicated(DiskBasicDirItem<?> dirItem, DiskBasicFileName filename, DiskBasicDirItem<?> excludeItem, DiskBasicDirItem[] nextItem) {
         DiskBasicDirItem<?> item = dir.findFile(dirItem, filename, isCompareCaseInsensitive(), excludeItem, nextItem);
@@ -1294,13 +1294,13 @@ logger.log(Level.TRACE, "fat: assigned");
     }
 
     /**
-     * 同じファイル名が既に存在して上書き可能か
+     * Whether the same file name already exists and can be overwritten
      *
-     * @param dirItem     検索するディレクトリ
-     * @param targetItem  アイテム
-     * @param excludeItem 検索対象から除くアイテム
-     * @param nextItem    [out] 一致したアイテムの次位置にあるアイテム
-     * @return 0: なし, 1: あり 通常ファイル, -1: あり 上書き不可（ディレクトリ or ボリュームラベル）
+     * @param dirItem     Directory to search
+     * @param targetItem  Item
+     * @param excludeItem Item to exclude from search targets
+     * @param nextItem    [out] Item at the next position of the matching item
+     * @return 0: None, 1: Present (normal file), -1: Present (cannot overwrite, directory or volume label)
      */
     public int isFileNameDuplicated(DiskBasicDirItem<?> dirItem, DiskBasicDirItem<?> targetItem, DiskBasicDirItem<?> excludeItem, DiskBasicDirItem[] nextItem) {
         DiskBasicDirItem<?> item = dir.findFile(dirItem, targetItem, isCompareCaseInsensitive(), excludeItem, nextItem);
@@ -1310,7 +1310,7 @@ logger.log(Level.TRACE, "fat: assigned");
         return (item.isOverWritable() ? 1 : -1);
     }
 
-    /** 書き込みできるか */
+    /** Whether writing is possible */
     public boolean isWritableIntoDisk() {
         errInfo.clear();
         if (disk == null) {
@@ -1329,10 +1329,10 @@ logger.log(Level.TRACE, "fat: assigned");
     }
 
     /**
-     * 指定ファイルのサイズでディスクに書き込めるかをチェック
+     * Check if the specified file size can be written to the disk
      *
-     * @param srcPath  ファイルパス
-     * @param fileSize [out] ファイルのサイズを返す
+     * @param srcPath  File path
+     * @param fileSize [out] Returns file size
      */
     public boolean checkFile(String srcPath, int[] fileSize) {
         if (!isWritableIntoDisk()) {
@@ -1361,13 +1361,13 @@ logger.log(Level.TRACE, "fat: assigned");
     }
 
     /**
-     * 指定ファイルをディスクイメージにセーブ
+     * Save specified file to disk image
      *
-     * @param srcPath 元ファイルのあるパス
-     * @param dirItem [in,out] セーブ先ディレクトリアイテム
-     * @param pitem   [in,out] セーブ用のファイル名、属性を持っているディレクトリアイテム
-     * @param nitem   [out] 確保したディレクトリアイテム
-     * @return false: エラーあり
+     * @param srcPath Path where original file exists
+     * @param dirItem [in,out] Destination directory item
+     * @param pitem   [in,out] Directory item with file name and attributes for saving
+     * @param nitem   [out] Allocated directory item
+     * @return false: Error present
      */
     public <T extends Directory> boolean saveFile(String srcPath, DiskBasicDirItem<T> dirItem, DiskBasicDirItem<T> pitem, DiskBasicDirItem<T>[] nitem) {
         if (!isWritableIntoDisk()) return false;
@@ -1381,13 +1381,13 @@ logger.log(Level.TRACE, "fat: assigned");
     }
 
     /**
-     * バッファデータをディスクイメージにセーブ
+     * Save buffer data to disk image
      *
-     * @param buffer  データ
-     * @param dirItem [in,out] セーブ先ディレクトリアイテム
-     * @param pItem   [in,out] セーブ用のファイル名、属性を持っているディレクトリアイテム
-     * @param nitem   [out] 確保したディレクトリアイテム
-     * @return false: エラーあり
+     * @param buffer  Data
+     * @param dirItem [in,out] Destination directory item
+     * @param pItem   [in,out] Directory item with file name and attributes for saving
+     * @param nitem   [out] Allocated directory item
+     * @return false: Error present
      */
     public <T extends Directory> boolean saveFile(byte[] buffer, DiskBasicDirItem<T> dirItem, DiskBasicDirItem<T> pItem, DiskBasicDirItem<T>[] nitem) throws IOException {
         if (!isWritableIntoDisk()) return false;
@@ -1397,13 +1397,13 @@ logger.log(Level.TRACE, "fat: assigned");
     }
 
     /**
-     * ストリームデータをディスクイメージにセーブ
+     * Save stream data to disk image
      *
-     * @param iStream ストリームバッファ
-     * @param dirItem [in,out] セーブ先ディレクトリアイテム
-     * @param pItem   [in,out] セーブ用のファイル名、属性を持っている仮ディレクトリアイテム
-     * @param nItem   [out] 確保したディレクトリアイテム
-     * @return false: エラーあり
+     * @param iStream Stream buffer
+     * @param dirItem [in,out] Destination directory item
+     * @param pItem   [in,out] Temporary directory item with file name and attributes for saving
+     * @param nItem   [out] Allocated directory item
+     * @return false: Error present
      */
     public <T extends Directory> boolean saveFile(InputStream iStream, DiskBasicDirItem<T> dirItem, DiskBasicDirItem<T> pItem, DiskBasicDirItem<T>[] nItem) throws IOException {
         DiskBasicDirItem[] nextItemArr = {null};
@@ -1480,13 +1480,13 @@ logger.log(Level.TRACE, "fat: assigned");
     }
 
     /**
-     * ストリームデータをディスクイメージにセーブ
+     * Save stream data to disk image
      *
-     * @param iStream    ストリームバッファ
-     * @param pItem      [in,out] ファイル名、属性を持っている仮ディレクトリアイテム
-     * @param item       [in,out] 確保したディレクトリアイテム
-     * @param groupItems [out] グループリスト
-     * @param fileSize   [out] セーブしたファイルのサイズ
+     * @param iStream    Stream buffer
+     * @param pItem      [in,out] Temporary directory item with file name and attributes for saving
+     * @param item       [in,out] Allocated directory item
+     * @param groupItems [out] Group list
+     * @param fileSize   [out] Size of saved file
      */
     public <T extends Directory> boolean saveData(InputStream iStream, DiskBasicDirItem<T> pItem, DiskBasicDirItem<T> item, DiskBasicGroups groupItems, int[] fileSize) throws IOException {
         boolean valid = true;
@@ -1504,15 +1504,15 @@ logger.log(Level.TRACE, "fat: assigned");
     }
 
     /**
-     * ストリームデータをディスクイメージにセーブ
+     * Save stream data to disk image
      *
-     * @param fileUnitNum ファイル番号
-     * @param iStream     ストリームバッファ
-     * @param iSize       バッファ内のセーブ対象データサイズ
-     * @param pItem       [in,out] ファイル名、属性を持っている仮ディレクトリアイテム
-     * @param item        [in,out] 確保したディレクトリアイテム
-     * @param groupItems  [out] グループリスト
-     * @param fileSize    [out] セーブしたファイルのサイズ
+     * @param fileUnitNum File number
+     * @param iStream     Stream buffer
+     * @param iSize       Data size to be saved in buffer
+     * @param pItem       [in,out] Temporary directory item with file name and attributes for saving
+     * @param item        [in,out] Allocated directory item
+     * @param groupItems  [out] Group list
+     * @param fileSize    [out] Size of saved file
      */
     public <T extends Directory> boolean saveUnitData(int fileUnitNum, InputStream iStream, int[] iSize, DiskBasicDirItem<T> pItem, DiskBasicDirItem<T> item, DiskBasicGroups groupItems, int[] fileSize) throws IOException {
         if (!type.prepareToSaveFile(iStream, iSize, pItem, item, errInfo)) {
@@ -1564,7 +1564,7 @@ logger.log(Level.TRACE, "fat: assigned");
         return rc >= 0;
     }
 
-    /** ファイルを削除できるか */
+    /** Whether files can be deleted */
     public boolean isDeletableFiles() {
         errInfo.clear();
         if (type == null || !type.supportDeleting()) {
@@ -1579,11 +1579,11 @@ logger.log(Level.TRACE, "fat: assigned");
     }
 
     /**
-     * 指定したファイルを削除できるか
+     * Whether the specified file can be deleted
      *
-     * @param item     ディレクトリアイテム
-     * @param clearMsg エラーメッセージのバッファをクリアするか
-     * @return -1: エラー継続不可, 1: エラー継続可能
+     * @param item     Directory item
+     * @param clearMsg Whether to clear the error message buffer
+     * @return -1: Error, cannot continue, 1: Error, can continue
      */
     public int isDeletableFile(DiskBasicDirItem<?> item, boolean clearMsg) {
         if (clearMsg) errInfo.clear();
@@ -1603,11 +1603,11 @@ logger.log(Level.TRACE, "fat: assigned");
     }
 
     /**
-     * 指定したディレクトリが空か
+     * Whether the specified directory is empty
      *
-     * @param item       ディレクトリアイテム
-     * @param groupItems [out] グループ番号一覧
-     * @param clearMsg   エラーメッセージのバッファをクリアするか
+     * @param item       Directory item
+     * @param groupItems [out] Group number list
+     * @param clearMsg   Whether to clear the error message buffer
      */
     public boolean isEmptyDirectory(DiskBasicDirItem<?> item, DiskBasicGroups groupItems, boolean clearMsg) throws IOException {
         if (clearMsg) errInfo.clear();
@@ -1624,11 +1624,11 @@ logger.log(Level.TRACE, "fat: assigned");
     }
 
     /**
-     * ファイルを削除
+     * Delete file
      *
-     * @param item     ディレクトリアイテム
-     * @param clearMsg エラーメッセージのバッファをクリアするか
-     * @return true: 成功, false: 失敗
+     * @param item     Directory item
+     * @param clearMsg Whether to clear the error message buffer
+     * @return true: Success, false: Failure
      */
     public boolean deleteFile(DiskBasicDirItem<?> item, boolean clearMsg) throws IOException {
         if (item == null) return false;
@@ -1639,11 +1639,11 @@ logger.log(Level.TRACE, "fat: assigned");
     }
 
     /**
-     * ファイルを削除
+     * Delete file
      *
-     * @param item       ディレクトリアイテム
-     * @param groupItems グループ番号一覧
-     * @return true: 成功, false: 失敗
+     * @param item       Directory item
+     * @param groupItems Group number list
+     * @return true: Success, false: Failure
      */
     public boolean deleteFile(DiskBasicDirItem<?> item, DiskBasicGroups groupItems) throws IOException {
         if (disk == null) return false;
@@ -1672,11 +1672,11 @@ logger.log(Level.TRACE, "fat: assigned");
     }
 
     /**
-     * ファイル名や属性を更新できるか
+     * Whether file name or attributes can be updated
      *
-     * @param item    ディレクトリアイテム
-     * @param showMsg エラーメッセージをセットするか
-     * @return true: できる, false: できない
+     * @param item    Directory item
+     * @param showMsg Whether to set error message
+     * @return true: Can, false: Cannot
      */
     public boolean canRenameFile(DiskBasicDirItem<?> item, boolean showMsg) {
         errInfo.clear();
@@ -1699,10 +1699,10 @@ logger.log(Level.TRACE, "fat: assigned");
     }
 
     /**
-     * ファイル名を更新
+     * Update file name
      *
-     * @param item    ディレクトリアイテム
-     * @param newName ファイル名
+     * @param item    Directory item
+     * @param newName File name
      * @return true
      */
     public boolean renameFile(DiskBasicDirItem<?> item, String newName) throws IOException {
@@ -1716,10 +1716,10 @@ logger.log(Level.TRACE, "fat: assigned");
     }
 
     /**
-     * 属性を更新
+     * Update attributes
      *
-     * @param item ディレクトリアイテム
-     * @param attr 属性値
+     * @param item Directory item
+     * @param attr Attribute value
      */
     public boolean changeAttr(DiskBasicDirItem<?> item, DiskBasicDirItemAttr attr) throws IOException {
         if (attr.isRenameable()) {
@@ -1759,12 +1759,12 @@ logger.log(Level.TRACE, "fat: assigned");
         return true;
     }
 
-    /** DISK BASIC用にフォーマットされているか */
+    /** Whether formatted for DISK BASIC */
     public boolean isFormatted() {
         return (disk != null && formatted);
     }
 
-    /** DISK BASIC用にフォーマットできるか */
+    /** Whether it can be formatted for DISK BASIC */
     public boolean isFormattable() {
         errInfo.clear();
         boolean enable = (type != null);
@@ -1780,10 +1780,10 @@ logger.log(Level.TRACE, "fat: assigned");
     }
 
     /**
-     * ディスクを論理フォーマット
+     * Logically format disk
      *
-     * @param data 機種依存データ（ボリューム名など）
-     * @return >0: ワーニング, 0: 正常, <0: エラーあり
+     * @param data Model dependent data (volume name, etc.)
+     * @return >0: Warning, 0: Normal, <0: Error present
      */
     public int formatDisk(DiskBasicIdentifiedData data) throws IOException {
         errInfo.clear();
@@ -1837,13 +1837,13 @@ logger.log(Level.TRACE, "fat: assigned");
         return errInfo.getValid();
     }
 
-    /** ルートディレクトリを返す */
+    /** Returns root directory */
     public <T extends Directory> DiskBasicDirItem<T> getRootDirectory() {
         return dir.getRootItem();
     }
 
     /**
-     * ルートディレクトリ内の一覧を返す
+     * Returns a list in the root directory
      *
      * @param dirItem nullable
      */
@@ -1851,20 +1851,20 @@ logger.log(Level.TRACE, "fat: assigned");
         return dir.getRootItems(dirItem);
     }
 
-    /** カレントディレクトリを返す */
+    /** Returns current directory */
     public <T extends Directory> DiskBasicDirItem<T> getCurrentDirectory() {
         return dir.getCurrentItem();
     }
 
-    /** カレントディレクトリ内の一覧を返す */
+    /** Returns a list in the current directory */
     public <T extends Directory> List<DiskBasicDirItem<T>> getCurrentDirectoryItems(DiskBasicDirItem<T>[] dirItem) {
         return dir.getCurrentItems(dirItem);
     }
 
     /**
-     * ディレクトリをアサイン
+     * Assign directory
      *
-     * @param dirItem ディレクトリのアイテム
+     * @param dirItem Directory item
      */
     public <T extends Directory> boolean assignDirectory(DiskBasicDirItem<T> dirItem) throws IOException {
         if (disk == null) return false;
@@ -1872,9 +1872,9 @@ logger.log(Level.TRACE, "fat: assigned");
     }
 
     /**
-     * ディレクトリを読み直す
+     * Re-read directory
      *
-     * @param dirItem ディレクトリのアイテム
+     * @param dirItem Directory item
      */
     public <T extends Directory> boolean reassignDirectory(DiskBasicDirItem<T> dirItem) throws IOException {
         if (disk == null) return false;
@@ -1882,33 +1882,33 @@ logger.log(Level.TRACE, "fat: assigned");
     }
 
     /**
-     * ディレクトリを変更
+     * Change directory
      *
-     * @param dstItem [in,out] 移動先ディレクトリのアイテム
+     * @param dstItem [in,out] Destination directory item
      */
     public <T extends Directory> boolean changeDirectory(DiskBasicDirItem<T>[] dstItem) throws IOException {
         if (disk == null) return false;
         boolean valid = dir.change(dstItem);
         if (valid) {
-            // 残りサイズ計算
+            // Calculate remaining size
             type.calcDiskFreeSize(false);
         }
         return valid;
     }
 
-    /** サブディレクトリの作成できるか */
+    /** Whether a subdirectory can be created */
     public boolean canMakeDirectory() {
         return (type.canMakeDirectory()) && (getSubDirGroupSize() > 0);
     }
 
     /**
-     * サブディレクトリの作成
+     * Create a subdirectory
      *
-     * @param dirItem        [in,out] 作成先のディレクトリ(親ディレクトリ)
-     * @param filename       ディレクトリ名
-     * @param ignoreDatetime 日時は設定しないか
-     * @param nitem          [out] 作成したディレクトリアイテム
-     * @return 1: 同じ名前がある, -1: その他エラー
+     * @param dirItem        [in,out] Destination directory (parent directory)
+     * @param filename       Directory name
+     * @param ignoreDatetime Whether not to set date and time
+     * @param nitem          [out] Created directory item
+     * @return 1: Same name exists, -1: Other error
      */
     public <T extends Directory> int makeDirectory(DiskBasicDirItem<T> dirItem, String filename, boolean ignoreDatetime, DiskBasicDirItem<T>[] nitem) throws IOException {
         if (!isWritableIntoDisk()) {
@@ -1922,14 +1922,14 @@ logger.log(Level.TRACE, "fat: assigned");
 
         DiskBasicFileName dirName = new DiskBasicFileName();
         String[] filenameRef = {filename};
-        // サブディレクトリを作成する前にディレクトリ名を編集する
+        // Edit directory name before creating subdirectory
         if (!type.renameOnMakingDirectory(filenameRef)) {
             errInfo.setError(DiskBasicError.ERR_CANNOT_MAKE_DIRECTORY);
             return -1;
         }
         dirName.setName(filenameRef[0]);
 
-        // 同じファイル名があるか
+        // Whether the same file name exists
         DiskBasicDirItem[] nextItem = {null};
         DiskBasicDirItem<T> item = dir.findFile(dirItem, dirName, isCompareCaseInsensitive(), null, nextItem);
         if (item != null) {
@@ -1937,15 +1937,15 @@ logger.log(Level.TRACE, "fat: assigned");
             return 1;
         }
 
-        // 仮アイテムを作成
+        // Create temporary item
         DiskBasicDirItem<T> pitem = dir.newItem();
-        // エントリをクリア
+        // Clear entry
         pitem.clearData();
-        // ファイル名＆属性を設定
+        // Set file name & attributes
         pitem.setFileNameStr(dirName.getName());
         pitem.setFileAttr(FORMAT_TYPE_UNKNOWN, FILE_TYPE_DIRECTORY_MASK.getValue(), 0);
 
-        // 日時設定
+        // Date and time setting
         LocalDateTime tm = LocalDateTime.now();
         int ignoreType = pitem.canIgnoreDateTime();
         if (!(ignoreDatetime && (ignoreType == DATETIME_CREATE))) {
@@ -1958,11 +1958,11 @@ logger.log(Level.TRACE, "fat: assigned");
             pitem.setFileAccessDateTime(tm);
         }
 
-        // 新しいディレクトリアイテムを確保
+        // Allocate a new directory item
         while ((item = dir.getEmptyItem(dirItem, pitem, nextItem)) == null) {
-            // 確保できない時
+            // When it cannot be allocated
             boolean valid = false;
-            // ディレクトリエリアを拡張する
+            // Expand directory area
             if (dir.canExpand(dirItem)) {
                 valid = dir.expand(dirItem);
             }
@@ -1975,27 +1975,27 @@ logger.log(Level.TRACE, "fat: assigned");
 
         if (nitem != null) nitem[0] = item;
 
-        // ファイル名属性をクリア
+        // Clear file name attributes
         item.clearData();
-        // ファイル名属性を設定
+        // Set file name attributes
         item.copyItem(pitem);
 
 //        item.setFileNameStr(dir_name.getName());
 //        item.setFileAttr(FORMAT_TYPE_UNKNOWN, FILE_TYPE_DIRECTORY_MASK, 0);
 //        item.setFileCreateDateTime(tm.now());
 
-        // ディレクトリを作成する前の準備を行う
+        // Prepare before creating directory
         if (!type.prepareToMakeDirectory(item)) {
             this.deleteFile(item, false);
             return -1;
         }
 
         int[] sizeRemain = {getSectorsPerGroup() * getSectorSize() * getSubDirGroupSize()};
-        // 空きがあるか
+        // Whether there is free space
         if (sizeRemain[0] > getFreeDiskSize()) {
-            // 空きが足りない
+            // Not enough free space
             errInfo.setError(DiskBasicError.ERR_DISK_FULL);
-            // アイテムに削除マークを入れる
+            // Put delete mark on item
             this.deleteFile(item, false);
             return -1;
         }
@@ -2004,48 +2004,48 @@ logger.log(Level.TRACE, "fat: assigned");
 
         int rc;
 
-        // 必要なディスク領域を確保する
+        // Allocate required disk area
         DiskBasicGroups[] groupItems = {new DiskBasicGroups()};
         rc = type.allocateGroups(item, sizeRemain[0], ALLOCATE_GROUPS_NEW, groupItems);
         if (rc < 0) {
-            // 空きが足りない
+            // Not enough free space
             errInfo.setError(DiskBasicError.ERR_DISK_FULL);
-            // 確保した領域を削除
+            // Delete allocated area
             this.deleteFile(item, false);
             return -1;
         }
 
-        // セクタに書き込む
+        // Write to sector
         rc = type.initializeSectorsAsDirectory(groupItems[0], fileSize, sizeRemain, errInfo);
 
-        // ディレクトリサイズ
+        // Directory size
         item.setDirectorySize(fileSize[0]);
 
         if (rc < 0) {
-            // エラーの場合は消す
+            // Delete in case of error
             this.deleteFile(item, false);
             return -1;
         }
 
-        // 変更された
+        // Modified
         item.refresh();
         item.setModify();
 
-        // ディレクトリ作成後の個別処理
+        // Individual processing after directory creation
         type.additionalProcessOnMadeDirectory(item, groupItems[0], dirItem);
 
-        // グループ数を計算
+        // Calculate group count
         item.calcFileSize();
-        // 空きサイズを計算
+        // Calculate free size
         type.calcDiskFreeSize(true);
 
         return 0;
     }
 
     /**
-     * ディレクトリのサイズを拡張
+     * Expand directory size
      *
-     * @param dirItem ディレクトリのエントリ
+     * @param dirItem Directory entry
      */
     public boolean expandDirectory(DiskBasicDirItem<?> dirItem) throws IOException {
         int[] sizeRemain = {getSubDirGroupSize() * getSectorsPerGroup() * getSectorSize()};
@@ -2076,25 +2076,25 @@ logger.log(Level.TRACE, "fat: assigned");
         return true;
     }
 
-    /** ディレクトリアイテムの作成 */
+    /** Create directory item */
     public DiskBasicDirItem<?> createDirItem() throws IOException {
         return dir.newItem();
     }
 
     /**
-     * ディレクトリアイテムの作成
+     * Create directory item
      *
-     * @param sector セクタデータ
-     * @param secPos セクタ内の位置
-     * @param data   ディレクトリデータ
-     * @param dataP  ディレクトリデータのポインタ
-     * @return ディレクトリアイテム
+     * @param sector  Sector data
+     * @param secPos  Position within sector
+     * @param data    Directory data
+     * @param dataP   Pointer to directory data
+     * @return Directory item
      */
     public <T extends Directory> DiskBasicDirItem<T> createDirItem(DiskImageSector sector, int secPos, byte[] data, int dataP) throws IOException {
         return dir.newItem(sector, secPos, data, dataP);
     }
 
-    /** ディレクトリアイテムの位置から開始セクタを返す */
+    /** Returns starting sector from directory item position */
     public DiskImageSector getSectorFromPosition(int position, int[] startGroup) {
         DiskBasicDirItem<?> item = dir.item(position);
         if (item == null) return null;
@@ -2109,11 +2109,11 @@ logger.log(Level.TRACE, "fat: assigned");
     }
 
     /**
-     * グループ番号から開始セクタを返す
+     * Returns starting sector from group number
      *
-     * @param groupNum グループ番号
-     * @param divNum   [out] 分割番号
-     * @param divNums  [out] 分割数
+     * @param groupNum Group number
+     * @param divNum   [out] Division number
+     * @param divNums  [out] Number of divisions
      */
     public DiskImageSector getSectorFromGroup(int groupNum, int[] divNum, int[] divNums) {
         int[] trackNum = {0};
@@ -2122,15 +2122,15 @@ logger.log(Level.TRACE, "fat: assigned");
     }
 
     /**
-     * グループ番号から開始セクタを返す
+     * Returns starting sector from group number
      *
-     * @param groupNum グループ番号
-     * @param trackNum [out] トラック番号
-     * @param sideNum  [out] サイド番号
-     * @param divNum   [out] 分割番号
-     * @param divNums  [out] 分割数
-     * @return セクタ
-     * 管理エリアがあれば飛ばす、開始グループ番号のオフセット分を引く などの機種依存を考慮
+     * @param groupNum Group number
+     * @param trackNum [out] Track number
+     * @param sideNum  [out] Side number
+     * @param divNum   [out] Division number
+     * @param divNums  [out] Number of divisions
+     * @return Sector
+     * Consideration of model dependencies such as skipping management area, subtracting start group number offset, etc.
      */
     public DiskImageSector getSectorFromGroup(int groupNum, int[] trackNum, int[] sideNum, int[] divNum, int[] divNums) {
         int[] sectorStart = {1};
@@ -2145,17 +2145,17 @@ logger.log(Level.TRACE, "fat: assigned");
     }
 
     /**
-     * グループ番号からトラック番号、サイド番号、セクタ番号を計算してリストに入れる
+     * Calculate track number, side number, and sector number from group number and add to list
      * <p>
-     * 管理エリアがあれば飛ばす、開始グループ番号のオフセット分を引く などの機種依存を考慮
+     * Consideration of model dependencies such as skipping management area, subtracting start group number offset, etc.
      *
-     * @param groupNum   グループ番号
-     * @param nextGroup  次のグループ番号
-     * @param sectorSize セクタサイズ
-     * @param remainSize 残りデータサイズ
-     * @param items      [out] トラック、サイド、セクタの各番号が入ったリスト
-     * @param endSector  [out] このグループの最終セクタ番号
-     * @return false: グループ番号が範囲外
+     * @param groupNum   Group number
+     * @param nextGroup  Next group number
+     * @param sectorSize Sector size
+     * @param remainSize Remaining data size
+     * @param items      [out] List containing track, side, and sector numbers
+     * @param endSector  [out] Final sector number of this group
+     * @return false: Group number is out of range
      */
     public boolean getNumsFromGroup(int groupNum, int nextGroup, int sectorSize, int remainSize, DiskBasicGroups items, int[] endSector) {
         int sectorStart = type.getStartSectorFromGroup(groupNum);
@@ -2191,17 +2191,17 @@ logger.log(Level.TRACE, "fat: assigned");
     }
 
     /**
-     * グループ番号からトラック、サイド、セクタの各番号を計算(グループ計算用)
+     * Calculate track, side, and sector numbers from group number (for group calculation)
      * <p>
-     * 管理エリアがあれば飛ばす、開始グループ番号のオフセット分を引く などの機種依存を考慮
+     * Consideration of model dependencies such as skipping management area, subtracting start group number offset, etc.
      *
-     * @param groupNum    グループ番号
-     * @param trackStart  [out] トラック番号
-     * @param sideStart   [out] サイド番号
-     * @param sectorStart [out] セクタ番号
-     * @param divNum      [out] 分割番号
-     * @param divNums     [out] 分割数
-     * @return false: グループ番号が範囲外
+     * @param groupNum    Group number
+     * @param trackStart  [out] Track number
+     * @param sideStart   [out] Side number
+     * @param sectorStart [out] Sector number
+     * @param divNum      [out] Division number
+     * @param divNums     [out] Number of divisions
+     * @return false: Group number is out of range
      */
     public boolean calcStartNumFromGroupNum(int groupNum, int[] trackStart, int[] sideStart, int[] sectorStart, int[] divNum, int[] divNums) {
         if (groupNum > getFatEndGroup()) {
@@ -2216,16 +2216,16 @@ logger.log(Level.TRACE, "fat: assigned");
     }
 
     /**
-     * セクタ位置(トラック0,サイド0,セクタ1を0とした通し番号)からトラック、サイド、セクタの各番号を計算(グループ計算用)
+     * Calculate track, side, and sector numbers from sector position (serial number where track 0, side 0, sector 1 is 0) (for group calculation)
      * <p>
-     * 管理エリアがあれば飛ばす、開始グループ番号のオフセット分を引く などの機種依存を考慮
+     * Consideration of model dependencies such as skipping management area, subtracting start group number offset, etc.
      *
-     * @param sectorPos セクタ位置(トラック0,サイド0のセクタを0とした位置)
-     * @param trackNum  [out] トラック番号
-     * @param sideNum   [out] サイド番号
-     * @param sectorNum [out] セクタ番号
-     * @param divNum    [out] 分割番号
-     * @param divNums   [out] 分割数
+     * @param sectorPos Sector position (position starting from track 0, side 0 sector as 0)
+     * @param trackNum  [out] Track number
+     * @param sideNum   [out] Side number
+     * @param sectorNum [out] Sector number
+     * @param divNum    [out] Division number
+     * @param divNums   [out] Number of divisions
      */
     public void calcNumFromSectorPosForGroup(int sectorPos, int[] trackNum, int[] sideNum, int[] sectorNum, int[] divNum /* = null */, int[] divNums /* = null */) {
         sectorPos += dataStartSector;
@@ -2234,14 +2234,14 @@ logger.log(Level.TRACE, "fat: assigned");
     }
 
     /**
-     * セクタ位置(トラック0,セクタ1を0とした通し番号)からトラック、セクタの各番号を計算(グループ計算用)
-     * サイド番号はトラック番号に変換、トラック番号はサイド数の倍数となる
+     * Calculate track and sector numbers from sector position (serial number where track 0, sector 1 is 0) (for group calculation)
+     * Side number is converted to track number, track number is a multiple of number of sides
      * <p>
-     * 管理エリアがあれば飛ばす、開始グループ番号のオフセット分を引く などの機種依存を考慮
+     * Consideration of model dependencies such as skipping management area, subtracting start group number offset, etc.
      *
-     * @param sectorPos セクタ位置(トラック0のセクタ1を0とした位置)
-     * @param trackNum  [out] トラック番号
-     * @param sectorNum [out] セクタ番号(サイド1のときは+トラック数となる)
+     * @param sectorPos Sector position (position starting from track 0, sector 1 as 0)
+     * @param trackNum  [out] Track number
+     * @param sectorNum [out] Sector number (becomes +number of tracks for side 1)
      */
     public void calcNumFromSectorPosTForGroup(int sectorPos, int[] trackNum, int[] sectorNum) {
         sectorPos += dataStartSector;
@@ -2250,16 +2250,16 @@ logger.log(Level.TRACE, "fat: assigned");
     }
 
     /**
-     * トラック、サイド、セクタの各番号からセクタ位置(トラック0,サイド0,セクタ1を0とした通し番号)を計算(グループ計算用)
+     * Calculate sector position (serial number where track 0, side 0, sector 1 is 0) from track, side, and sector numbers (for group calculation)
      * <p>
-     * 管理エリアがあれば飛ばす、開始グループ番号のオフセット分を引く などの機種依存を考慮
+     * Consideration of model dependencies such as skipping management area, subtracting start group number offset, etc.
      *
-     * @param trackNum  トラック番号
-     * @param sideNum   サイド番号
-     * @param sectorNum セクタ番号
-     * @param divNum    分割番号
-     * @param divNums   分割数
-     * @return セクタ位置(トラック0,サイド0のセクタを0とした位置)
+     * @param trackNum  Track number
+     * @param sideNum   Side number
+     * @param sectorNum Sector number
+     * @param divNum    Division number
+     * @param divNums   Number of divisions
+     * @return Sector position (position starting from track 0, side 0 sector as 0)
      */
     public int calcSectorPosFromNumForGroup(int trackNum, int sideNum, int sectorNum, int divNum /* = 0 */, int divNums /* = 1 */) {
         sideNum = getReversedSideNumber(sideNum);
@@ -2271,14 +2271,14 @@ logger.log(Level.TRACE, "fat: assigned");
     }
 
     /**
-     * トラック、セクタの各番号からセクタ位置(トラック0セクタ1を0とした通し番号)を計算(グループ計算用)
-     * サイド番号はトラック番号に変換、トラック番号はサイド数の倍数となる
+     * Calculate sector position (serial number where track 0, sector 1 is 0) from track and sector numbers (for group calculation)
+     * Side number is converted to track number, track number is a multiple of number of sides
      *
-     * 管理エリアがあれば飛ばす、開始グループ番号のオフセット分を引く などの機種依存を考慮
+     * Consideration of model dependencies such as skipping management area, subtracting start group number offset, etc.
      *
-     * @param trackNum  トラック番号
-     * @param sectorNum セクタ番号(サイド1のときは+トラック数)
-     * @return セクタ位置(トラック0のセクタ1を0とした位置)
+     * @param trackNum  Track number
+     * @param sectorNum Sector number (+number of tracks for side 1)
+     * @return Sector position (position starting from track 0 sector 1 as 0)
      */
     public int calcSectorPosFromNumTForGroup(int trackNum, int sectorNum) {
         if (trackNum >= skippedTrack) trackNum--;
@@ -2288,35 +2288,35 @@ logger.log(Level.TRACE, "fat: assigned");
     }
 
     /**
-     * トラックを返す
+     * Returns track
      *
-     * @param trackNum トラック番号
-     * @param sideNum  サイド番号
-     * @return トラックデータ
+     * @param trackNum Track number
+     * @param sideNum  Side number
+     * @return Track data
      */
     public DiskImageTrack getTrack(int trackNum, int sideNum) {
         return disk.getTrack(trackNum, sideNum);
     }
 
     /**
-     * セクタ返す
+     * Returns sector
      *
-     * @param trackNum  トラック番号
-     * @param sideNum   サイド番号
-     * @param sectorNum セクタ番号
-     * @return セクタデータ
+     * @param trackNum  Track number
+     * @param sideNum   Side number
+     * @param sectorNum Sector number
+     * @return Sector data
      */
     public DiskImageSector getSector(int trackNum, int sideNum, int sectorNum) {
         return disk.getSector(trackNum, sideNum, sectorNum);
     }
 
     /**
-     * セクタ返す
+     * Returns sector
      *
-     * @param trackNum  トラック番号
-     * @param sectorNum セクタ番号(サイド0～1の通し番号)
-     * @param sideNum   [out] サイド番号
-     * @return セクタデータ
+     * @param trackNum  Track number
+     * @param sectorNum Sector number (serial number for side 0 to 1)
+     * @param sideNum   [out] Side number
+     * @return Sector data
      */
     public DiskImageSector getSector(int trackNum, int sectorNum, int[] sideNum /* = null */) {
         int sidNum = (sectorNum - 1) / getSectorsPerTrackOnBasic();
@@ -2328,15 +2328,15 @@ logger.log(Level.TRACE, "fat: assigned");
     }
 
     /**
-     * セクタ位置(トラック0,サイド0,セクタ1を0とした通し番号)からトラックを返す
+     * Returns track from sector position (serial number where track 0, side 0, sector 1 is 0)
      * <p>
-     * セクタ位置は、機種によらずトラック0,サイド0,セクタ1を0とした通し番号
+     * The sector position is a serial number where track 0, side 0, sector 1 is 0, regardless of the model
      *
-     * @param sectorPos セクタ位置(トラック0,サイド0,セクタ1を0とした通し番号)
-     * @param sectorNum [out] セクタ番号
-     * @param divNum    [out] 分割番号
-     * @param divNums   [out] 分割数
-     * @return トラックデータ
+     * @param sectorPos Sector position (serial number where track 0, side 0, sector 1 is 0)
+     * @param sectorNum [out] Sector number
+     * @param divNum    [out] Division number
+     * @param divNums   [out] Number of divisions
+     * @return Track data
      */
     public DiskImageTrack getTrackFromSectorPos(int sectorPos, int[] sectorNum, int[] divNum, int[] divNums) {
         int[] trackNum = {0};
@@ -2346,16 +2346,16 @@ logger.log(Level.TRACE, "fat: assigned");
     }
 
     /**
-     * セクタ位置(トラック0,サイド0,セクタ1を0とした通し番号)からセクタを返す
+     * Returns sector from sector position (serial number where track 0, side 0, sector 1 is 0)
      * <p>
-     * セクタ位置は、機種によらずトラック0,サイド0,セクタ1を0とした通し番号
+     * The sector position is a serial number where track 0, side 0, sector 1 is 0, regardless of the model
      *
-     * @param sectorPos セクタ位置(トラック0,サイド0,セクタ1を0とした通し番号)
-     * @param trackNum  [out] トラック番号
-     * @param sideNum   [out] サイド番号
-     * @param divNum    [out] 分割番号
-     * @param divNums   [out] 分割数
-     * @return セクタデータ
+     * @param sectorPos Sector position (serial number where track 0, side 0, sector 1 is 0)
+     * @param trackNum  [out] Track number
+     * @param sideNum   [out] Side number
+     * @param divNum    [out] Division number
+     * @param divNums   [out] Number of divisions
+     * @return Sector data
      */
     public DiskImageSector getSectorFromSectorPos(int sectorPos, int[] trackNum, int[] sideNum, int[] divNum, int[] divNums) {
         int[] sectorNum = {1};
@@ -2373,14 +2373,14 @@ logger.log(Level.TRACE, "fat: assigned");
     }
 
     /**
-     * セクタ位置(トラック0,サイド0,セクタ1を0とした通し番号)からセクタを返す
+     * Returns sector from sector position (serial number where track 0, side 0, sector 1 is 0)
      * <p>
-     * セクタ位置は、機種によらずトラック0,サイド0,セクタ1を0とした通し番号
+     * The sector position is a serial number where track 0, side 0, sector 1 is 0, regardless of the model
      *
-     * @param sectorPos セクタ位置(トラック0,サイド0,セクタ1を0とした通し番号)
-     * @param divNum    [out] 分割番号
-     * @param numOfDivs [out] 分割数
-     * @return セクタデータ
+     * @param sectorPos Sector position (serial number where track 0, side 0, sector 1 is 0)
+     * @param divNum    [out] Division number
+     * @param numOfDivs [out] Number of divisions
+     * @return Sector data
      */
     public DiskImageSector getSectorFromSectorPos(int sectorPos, int[] divNum, int[] numOfDivs) {
         int[] trackNum = {0};
@@ -2389,9 +2389,9 @@ logger.log(Level.TRACE, "fat: assigned");
     }
 
     /**
-     * 開始セクタ番号を返す
+     * Returns starting sector number
      *
-     * DiskBasicParamを優先
+     * Prioritize DiskBasicParam
      */
     public int getSectorNumberBase() {
         int val = getSectorNumberBaseOnBasic();
@@ -2399,120 +2399,120 @@ logger.log(Level.TRACE, "fat: assigned");
         return val;
     }
 
-    /** キャラクターコードの文字体系を設定 */
+    /** Set character encoding scheme */
     public void setCharCode(String name) {
         if (name.equals(charCode)) return;
         charCode = name;
         codes.setMap(name);
     }
 
-    /** 現在のキャラクターコードの文字体系を返す */
+    /** Returns the current character encoding scheme */
     public String getCharCode() {
         return charCode;
     }
 
-    /** キャラクターコードの文字体系 */
+    /** Character encoding scheme */
     public CharCodes getCharCodes() {
         return codes;
     }
 
-    /** DISK使用可能か */
+    /** Whether disk is available */
     public boolean canUse() {
         return (disk != null);
     }
 
-    /** DISKイメージを返す */
+    /** Returns disk image */
     public DiskImageDisk getDisk() {
         return disk;
     }
 
-    /** 選択中のサイドを設定 */
+    /** Set selected side */
     public void setSelectedSide(int val) {
         selectedSide = val;
     }
 
-    /** 選択中のサイドを返す */
+    /** Returns selected side */
     public int getSelectedSide() {
         return selectedSide;
     }
 
-    /** FATクラス */
+    /** FAT class */
     public DiskBasicFat getFat() {
         return fat;
     }
 
-    /** DIRクラス */
+    /** DIR class */
     public <T extends Directory> DiskBasicDir<T> getDir() {
         return dir;
     }
 
-    /** TYPEクラス */
+    /** TYPE class */
     public <T extends Directory> DiskBasicType<T> getType() {
         return type;
     }
 
-    /** 必要ならデータを反転する */
+    /** Invert data if necessary */
     public byte invertUint8(byte val) {
         return isDataInverted() ? (byte) (val ^ 0xff) : val;
     }
 
-    /** 必要ならデータを反転する */
+    /** Invert data if necessary */
     public short invertUint16(short val) {
         return isDataInverted() ? (short) (val ^ 0xffff) : val;
     }
 
-    /** 必要ならデータを反転する＆エンディアンを考慮 */
+    /** Invert data if necessary and consider endianness */
     public short invertAndOrderUint16(short val) {
         val = isDataInverted() ? (short) (val ^ 0xffff) : val;
         return orderUint16(val);
     }
 
-    /** 必要ならデータを反転する */
+    /** Invert data if necessary */
     public int invertUint32(int val) {
         return isDataInverted() ? ~val : val;
     }
 
-    /** 必要ならデータを反転する＆エンディアンを考慮 */
+    /** Invert data if necessary and consider endianness */
     public int invertAndOrderUint32(int val) {
         val = isDataInverted() ? ~val : val;
         return orderUint32(val);
     }
 
-    /** 必要ならデータを反転する */
+    /** Invert data if necessary */
     public void invertMemory(byte[] data, int len) {
         if (isDataInverted()) Common.invertMemory(data, len);
     }
 
-    /** 必要ならデータを反転する */
+    /** Invert data if necessary */
     public void invertMemory(byte[] src, int len, byte[] dst) {
         System.arraycopy(src, 0, dst, 0, len);
         if (isDataInverted()) Common.invertMemory(dst, len);
     }
 
-    /** エンディアンを考慮した値を返す */
+    /** Returns value considering endianness */
     public short orderUint16(short val) {
         return isBigEndian() ? Short.reverseBytes(val) : val;
     }
 
-    /** エンディアンを考慮した値を返す */
+    /** Returns value considering endianness */
     public int orderUint32(int val) {
         return isBigEndian() ? Integer.reverseBytes(val) : val;
     }
 
-    /** DISK BASIC種類番号を返す */
+    /** Returns DISK BASIC type number */
     public int getFormatTypeNumber() {
         return getFormatType().getTypeNumber();
     }
 
-    /** エラーメッセージ */
+    /** Error message */
     public List<String> getErrorMessage(int maxRow) {
         return errInfo.getMessages(maxRow);
     }
 
     /**
-     * エラー有無
+     * Whether error exists
      *
-     * @return <0: エラー, 0: 正常, 0>: ワーニング
+     * @return <0: Error, 0: Normal, >0: Warning
      */
     public int getErrorLevel() {
         return errInfo.getValid();
@@ -2522,12 +2522,12 @@ logger.log(Level.TRACE, "fat: assigned");
         return errInfo;
     }
 
-    /** エラーメッセージを表示 */
+    /** Show error message */
     public void showErrorMessage() {
         ResultInfo.showMessage(getErrorLevel(), getErrorMessage(20));
     }
 
-    /** エラーメッセージをクリア */
+    /** Clear error message */
     public void clearErrorMessage() {
         errInfo.clear();
     }

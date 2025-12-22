@@ -25,16 +25,16 @@ import vavi.util.serdes.Serdes;
 
 
 /**
- * HxC HFE ディスクパーサー
+ * HxC HFE disk parser
  *
  * @see "https://hxc2001.com/floppy_drive_emulator/HFE-file-format.html"
  */
 public class DiskHfeParser extends DiskImageParser {
 
     /**
-     * Run-length limited(RLL)パーサ
+     * Run-length limited(RLL) parser
      * <p>
-     * 1トラック分を解析
+     * Analyze one track
      */
     public static abstract class RunLengthLimitedParser {
 
@@ -60,19 +60,19 @@ public class DiskHfeParser extends DiskImageParser {
 
         protected CurrentIDs currentIDs;
 
-        /** GAPをさがす */
+        /** Search for GAP */
         protected abstract boolean adjustGap();
 
-        /** データを得る */
+        /** Get data */
         protected abstract boolean getData();
 
         /**
-         * セクタデータをセット
+         * Set sector data
          *
-         * @param inData  [in,out] 解析対象データ
+         * @param inData  [in,out] Data to be analyzed
          * @param single  single sided?
          * @param deleted Deleted mark?
-         * @return セクタサイズ
+         * @return Sector size
          */
         protected int setSectorData(byte[] inData, boolean single, boolean deleted) {
             int trackNum = currentIDs.c & 0xff;
@@ -81,7 +81,7 @@ public class DiskHfeParser extends DiskImageParser {
             int sectorSizeCode = currentIDs.n & 0xff;
 
             if (sectorSizeCode > 7) {
-                // セクタサイズが大きすぎる
+                // Sector size is too large
                 result.setError(DiskResult.ERRV_SECTOR_SIZE_SECTOR, 0, trackNum, sideNum, sectorNum, sectorSizeCode, sectorSizeCode);
                 return 0;
             }
@@ -103,14 +103,14 @@ public class DiskHfeParser extends DiskImageParser {
             sector.setDeletedMark(deleted);
             sector.clearModify();
 
-            // このセクタデータのサイズを返す
+            // Return size of this sector data
             return sector.getSize();
         }
 
-        /** データをデコード */
+        /** Decode data */
         protected abstract byte decodeData(byte[] inData);
 
-        /** Run-length limited(RLL)パーサ */
+        /** Run-length limited(RLL) parser */
         public RunLengthLimitedParser() {
             disk = null;
             track = null;
@@ -126,13 +126,13 @@ public class DiskHfeParser extends DiskImageParser {
         }
 
         /**
-         * @param disk         [in,out] ディスク
-         * @param trackNumber  トラック番号
-         * @param sideNumber   サイド番号
-         * @param d88OffsetPos D88オフセット番号
-         * @param data         [in,out] 解析対象データ
-         * @param dataLen      データサイズ
-         * @param result       [in,out] 解析エラー情報
+         * @param disk         [in,out] Disk
+         * @param trackNumber  Track number
+         * @param sideNumber   Side number
+         * @param d88OffsetPos D88 offset number
+         * @param data         [in,out] Data to be analyzed
+         * @param dataLen      Data size
+         * @param result       [in,out] Analysis error information
          */
         public RunLengthLimitedParser(DiskImageDisk disk, int trackNumber, int sideNumber, int d88OffsetPos, byte[] data, int dataLen, DiskResult result) {
             this.disk = disk;
@@ -149,9 +149,9 @@ public class DiskHfeParser extends DiskImageParser {
         }
 
         /**
-         * データの解析
+         * Analyze data
          *
-         * @return D88形式でのトラックサイズ
+         * @return Track size in D88 format
          */
         public int parse() {
             track = disk.newImageTrack(trackNumber, sideNumber, d88OffsetPos, 1);
@@ -180,12 +180,12 @@ public class DiskHfeParser extends DiskImageParser {
         }
 
         /**
-         * バッファをシフト
+         * Shift buffer
          *
-         * @param data       [in,out] データ
-         * @param len        データ長さ
-         * @param shiftCount シフト数
-         * @return シフトした後のデータ数
+         * @param data       [in,out] Data
+         * @param len        Data length
+         * @param shiftCount Number of shifts
+         * @return Number of data after shifting
          */
         public static int shiftBytes(byte[] data, int len, int shiftCount) {
             if (shiftCount <= 0) return len;
@@ -203,12 +203,12 @@ public class DiskHfeParser extends DiskImageParser {
         }
 
         /**
-         * バッファをビットシフト
+         * Bit shift buffer
          *
-         * @param data       [in,out] データ
-         * @param len        データ長さ
-         * @param shiftCount シフト数
-         * @return シフトした後のデータ数
+         * @param data       [in,out] Data
+         * @param len        Data length
+         * @param shiftCount Number of shifts
+         * @return Number of data after shifting
          */
         public static int shiftBits(byte[] data, int len, int shiftCount) {
             if (shiftCount <= 0) return len;
@@ -237,14 +237,14 @@ public class DiskHfeParser extends DiskImageParser {
     }
 
     /**
-     * IBM MFMパーサ
+     * IBM MFM parser
      * <p>
-     * 1トラック分を解析
+     * Analyze one track
      */
     public static class FormatMFMParser extends RunLengthLimitedParser {
 
         /**
-         * GAPをさがす(MFM)
+         * Search for GAP (MFM)
          *
          * <pre>
          * GAP code
@@ -260,7 +260,7 @@ public class DiskHfeParser extends DiskImageParser {
          * rev   01010101 01010101 -> 5555 \n
          * </pre>
          *
-         * @return GAP and SYNCフィールドあり
+         * @return Whether GAP and SYNC field exists
          */
         @Override
         protected boolean adjustGap() {
@@ -332,7 +332,7 @@ public class DiskHfeParser extends DiskImageParser {
         private static final byte[] cmpDelData = {(byte) 0x55, (byte) 0x55, (byte) 0x22, (byte) 0x91, (byte) 0x22, (byte) 0x91, (byte) 0x22, (byte) 0x91, (byte) 0xaa, (byte) 0x52};
 
         /**
-         * データの解析(MFM)
+         * Analyze data (MFM)
          * <pre>
          * PRE AM
          * A1 ->  1 0 1 0  0 0 0 1 \n
@@ -372,7 +372,7 @@ public class DiskHfeParser extends DiskImageParser {
          * rev   10101010 01010010 -> aa52 \n
          * </pre>
          *
-         * @return AMフィールドあり
+         * @return Whether AM field exists
          */
         @Override
         protected boolean getData() {
@@ -428,10 +428,10 @@ public class DiskHfeParser extends DiskImageParser {
         }
 
         /**
-         * データをデコード(MFM)
+         * Decode data (MFM)
          *
-         * @param inData 解析対象データ(2bytes)
-         * @return デコード後のデータ
+         * @param inData Data to be analyzed (2 bytes)
+         * @return Decoded data
          */
         @Override
         protected byte decodeData(byte[] inData) {
@@ -453,14 +453,14 @@ public class DiskHfeParser extends DiskImageParser {
     }
 
     /**
-     * IBM FMパーサ
+     * IBM FM parser
      * <p>
-     * 1トラック分を解析
+     * Analyze one track
      */
     public static class FormatFMParser extends DiskHfeParser.RunLengthLimitedParser {
 
         /**
-         * GAPをさがす(FM)
+         * Search for GAP (FM)
          * <pre>
          * GAP code
          * FF ->   01  01   01  01   01  01   01  01 \n
@@ -475,7 +475,7 @@ public class DiskHfeParser extends DiskImageParser {
          * rev   00100010 00100010 00100010 00100010 -> 22222222 \n
          * </pre>
          *
-         * @return GAP and SYNCフィールドあり
+         * @return Whether GAP and SYNC field exists
          */
         @Override
         protected boolean adjustGap() {
@@ -545,7 +545,7 @@ public class DiskHfeParser extends DiskImageParser {
         private static final byte[] cmpDelData = {(byte) 0x22, (byte) 0x22, (byte) 0x22, (byte) 0x22, (byte) 0xaa, (byte) 0x88, (byte) 0x28, (byte) 0x22};
 
         /**
-         * データの解析(FM)
+         * Analyze data (FM)
          * <pre>
          * INDEX mark
          * FC ->   01  01   01  01   01  01   00  00 \n
@@ -572,7 +572,7 @@ public class DiskHfeParser extends DiskImageParser {
          * rev   10101010 10001000 00101000 00100010 -> aa882822 \n
          * </pre>
          *
-         * @return AMフィールドあり
+         * @return Whether AM field exists
          */
         @Override
         protected boolean getData() {
@@ -628,10 +628,10 @@ public class DiskHfeParser extends DiskImageParser {
         }
 
         /**
-         * データをデコード(FM)
+         * Decode data (FM)
          *
-         * @param inData 解析対象データ(4bytes)
-         * @return デコード後のデータ
+         * @param inData Data to be analyzed (4 bytes)
+         * @return Decoded data
          */
         @Override
         protected byte decodeData(byte[] inData) {
@@ -645,19 +645,19 @@ public class DiskHfeParser extends DiskImageParser {
         }
 
         /**
-         * IBM FMパーサ
+         * IBM FM parser
          * <pre>
          * Bit stream order is:
          * first <- b0 <- b1 <- b2 <- ... <- b7 <- next byte b0 <- b1 ...
          * </pre>
          *
-         * @param disk         [in,out] ディスク
-         * @param trackNumber  トラック番号
-         * @param sideNumber   サイド番号
-         * @param d88OffsetPos D88オフセット番号
-         * @param data         [in,out] 解析対象データ
-         * @param dataLen      データサイズ
-         * @param result       [in,out] 解析エラー情報
+         * @param disk         [in,out] Disk
+         * @param trackNumber  Track number
+         * @param sideNumber   Side number
+         * @param d88OffsetPos D88 offset number
+         * @param data         [in,out] Data to be analyzed
+         * @param dataLen      Data size
+         * @param result       [in,out] Analysis error information
          */
         public FormatFMParser(DiskImageDisk disk, int trackNumber, int sideNumber, int d88OffsetPos, byte[] data, int dataLen, DiskResult result) {
             super(disk, trackNumber, sideNumber, d88OffsetPos, data, dataLen, result);
@@ -762,18 +762,18 @@ public class DiskHfeParser extends DiskImageParser {
     }};
 
     /**
-     * トラックデータの作成
+     * Create track data
      *
-     * @param istream        [in,out] 解析対象データ
-     * @param track_number   トラック番号
-     * @param sides          サイド数
-     * @param file_offset    ファイルオフセット
-     * @param track_size     トラックサイズ
-     * @param encoding       エンコード形式
-     * @param d88_offset_pos [in,out] D88オフセット番号
-     * @param d88_offset     D88オフセット
-     * @param disk           [in,out] ディスク
-     * @return D88オフセット
+     * @param istream        [in,out] Data to be analyzed
+     * @param track_number   Track number
+     * @param sides          Number of sides
+     * @param file_offset    File offset
+     * @param track_size     Track size
+     * @param encoding       Encoding format
+     * @param d88_offset_pos [in,out] D88 offset number
+     * @param d88_offset     D88 offset
+     * @param disk           [in,out] Disk
+     * @return D88 offset
      */
     private int parseTracks(InputStream istream, int track_number, int sides, int file_offset, int track_size, byte[] encoding, int[] d88_offset_pos, int d88_offset, DiskImageDisk disk) throws IOException {
         int track_blocks = (track_size / 512);
@@ -824,16 +824,16 @@ public class DiskHfeParser extends DiskImageParser {
             }
 
             if (result.getValid() >= 0 && track != null) {
-                // インターリーブの計算
+                // Calculate interleave
                 track.calcInterleave();
-                // トラックサイズ
+                // Track size
                 track.setSize(d88_track_size);
-                // セクタ数設定
+                // Set number of sectors
                 track.setAllSectorsPerTrack(sector_nums);
 
-                // ディスクに追加
+                // Add to disk
                 disk.add(track);
-                // オフセット設定
+                // Set offset
                 disk.setOffset(d88_offset_pos[0], d88_offset);
 
                 d88_offset += d88_track_size;
@@ -846,10 +846,10 @@ public class DiskHfeParser extends DiskImageParser {
     }
 
     /**
-     * ディスクの解析
+     * Analyze disk
      *
-     * @param istream 解析対象データ
-     * @return サイズ
+     * @param istream Data to be analyzed
+     * @return Size
      */
     private int parseDisk(InputStream istream) throws IOException {
         DiskImageDisk disk = file.newImageDisk(0);
@@ -898,13 +898,13 @@ public class DiskHfeParser extends DiskImageParser {
                 result.setError(DiskResult.ERRV_OVERFLOW_SIZE, 0, d88_offset);
             }
         }
-        // 最大トラック番号設定
+        // Set maximum track number
         disk.setMaxTrackNumber(tracks);
 
         disk.setSize(d88_offset);
 
         if (result.getValid() >= 0) {
-            // ディスクを追加
+            // Add disk
             DiskParam disk_param = disk.calcMajorNumber();
             if (disk_param != null) {
                 disk.setDensity(disk_param.getParamDensity());
@@ -934,9 +934,9 @@ public class DiskHfeParser extends DiskImageParser {
     }
 
     /**
-     * HxC HFEファイルかどうかをチェック
+     * Check whether it is HxC HFE file
      *
-     * @param iStream 解析対象データ
+     * @param iStream Data to be analyzed
      * @return 0: Ok, -1: NG
      */
     @Override
@@ -996,7 +996,7 @@ public class DiskHfeParser extends DiskImageParser {
     }
 
     /**
-     * HxC HFEファイルを解析
+     * Analyze HxC HFE file
      */
     @Override
     public int parse(InputStream iStream, DiskParam diskParam) throws IOException {

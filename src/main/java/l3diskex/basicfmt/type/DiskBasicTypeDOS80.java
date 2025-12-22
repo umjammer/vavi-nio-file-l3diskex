@@ -22,14 +22,14 @@ import l3diskex.diskimg.DiskImage.DiskImageTrack;
 
 
 /**
- * PC-8001 DOSの処理
+ * PC-8001 DOS processing
  * <p>
  * DiskBasicParam
  *
- * <li>CanMountEachSides  表/裏面を別々に扱うか</li>
- * <li>ReservedGroups  Group 予約済みにするグループ（クラスタ）番号</li>
- * <li>DefaultStartAddress  BASIC指定時の開始アドレス</li>
- * <li>DefaultExecuteAddress  BASIC指定時の実行アドレス</li>
+ * <li>CanMountEachSides  Whether to treat front/back sides separately</li>
+ * <li>ReservedGroups  Group numbers (clusters) to be reserved</li>
+ * <li>DefaultStartAddress  Starting address when BASIC is specified</li>
+ * <li>DefaultExecuteAddress  Execution address when BASIC is specified</li>
  */
 public class DiskBasicTypeDOS80 extends DiskBasicTypeFAT8<DirectoryDos80> {
 
@@ -47,16 +47,16 @@ public class DiskBasicTypeDOS80 extends DiskBasicTypeFAT8<DirectoryDos80> {
     }
 
     /**
-     * 空きFAT位置を返す
+     * Returns a free FAT position
      */
     @Override
     public int getEmptyGroupNumber() {
         int newNum = DiskBasicType.INVALID_GROUP_NUMBER;
-        // 管理エリアに近い位置から検索
+        // Search from positions close to the management area
 
-        // トラック当たりのグループ数
+        // Number of groups per track
         int groupsPerTrack = basic.getSectorsPerTrackOnBasic() / basic.getSectorsPerGroup();
-        // 最大グループ数
+        // Maximum number of groups
         int maxGroup = basic.getFatEndGroup() - managedStartGroup;
         if (maxGroup < managedStartGroup) maxGroup = managedStartGroup;
         maxGroup = maxGroup * 2 - 1;
@@ -84,13 +84,13 @@ public class DiskBasicTypeDOS80 extends DiskBasicTypeFAT8<DirectoryDos80> {
     }
 
     /**
-     * FATエリアをチェック
+     * Check FAT area
      */
     @Override
     public double checkFat(boolean isFormatting) {
         double validRatio = super.checkFat(isFormatting);
         if (validRatio >= 0.0) {
-            // FAT,ディレクトリエリアはシステム予約となっているか
+            // Check whether FAT and directory area are system reserved
             List<Integer> groups = basic.getReservedGroups();
             for (int group : groups) {
                 int group_ = getGroupNumber(group);
@@ -104,7 +104,7 @@ public class DiskBasicTypeDOS80 extends DiskBasicTypeFAT8<DirectoryDos80> {
     }
 
     /**
-     * セクタデータを指定コードで埋める
+     * Fill sector data with specified code
      */
     @Override
     public void fillSector(DiskImageTrack track, DiskImageSector sector) {
@@ -112,7 +112,7 @@ public class DiskBasicTypeDOS80 extends DiskBasicTypeFAT8<DirectoryDos80> {
     }
 
     /**
-     * セクタデータを埋めた後の個別処理 – FAT予約済みをセット
+     * Individual processing after filling sector data – set FAT reserved
      */
     @Override
     public boolean additionalProcessOnFormatted(DiskBasicIdentifiedData data) {
@@ -150,12 +150,12 @@ public class DiskBasicTypeDOS80 extends DiskBasicTypeFAT8<DirectoryDos80> {
             }
         }
 
-        // トラック０は予約済みにする
+        // Mark track 0 as reserved
         for (int groupNum = 0; groupNum < basic.getSectorsPerGroup(); groupNum++) {
             setGroupNumber(groupNum, basic.getGroupSystemCode());
         }
 
-        // システムで使用している部分を予約済みにする
+        // Mark parts used by the system as reserved
         List<Integer> groups = basic.getReservedGroups();
         for (int group : groups) {
             setGroupNumber(group, basic.getGroupSystemCode());
@@ -165,7 +165,7 @@ public class DiskBasicTypeDOS80 extends DiskBasicTypeFAT8<DirectoryDos80> {
     }
 
     /**
-     * ファイルの最終セクタのデータサイズを求める
+     * Determine the data size of the last sector of the file
      */
     @Override
     public int calcDataSizeOnLastSector(DiskBasicDirItem<DirectoryDos80> item,
@@ -175,7 +175,7 @@ public class DiskBasicTypeDOS80 extends DiskBasicTypeFAT8<DirectoryDos80> {
                                         int sectorOffset,
                                         int sectorSize,
                                         int remainSize) throws IOException {
-        // 直接計算できないので残りサイズそのまま返す
+        // Cannot calculate directly, so return remaining size as is
         if (iStream != null) {
             sectorSize = iStream.available() % sectorSize;
         } else {
@@ -185,7 +185,7 @@ public class DiskBasicTypeDOS80 extends DiskBasicTypeFAT8<DirectoryDos80> {
     }
 
     /**
-     * データの書き込み処理
+     * Data write process
      */
     @Override
     public int writeFile(DiskBasicDirItem<DirectoryDos80> item,
@@ -200,23 +200,23 @@ public class DiskBasicTypeDOS80 extends DiskBasicTypeFAT8<DirectoryDos80> {
                          int seqNum) throws IOException {
         int len = 0;
         if (remain <= size) {
-            // 残りが少ない
+            // Few left
             if (remain < 0) remain = 0;
             if (remain > 0) {
                 int r = iStream.read(buffer, 0, remain);
                 len = (r >= 0) ? r : 0;
             }
             if (size > remain) {
-                // 余った領域は 0 で埋める
+                // Fill the remaining area with 0
                 Arrays.fill(buffer, remain, size, (byte) 0);
             }
             len = remain;
         } else {
-            // 継続
+            // Continuous
             int r = iStream.read(buffer, 0, size);
             len = (r >= 0) ? r : 0;
         }
-        // 必要なら反転
+        // Invert if necessary
         basic.invertMemory(buffer, size);
 
         return len;

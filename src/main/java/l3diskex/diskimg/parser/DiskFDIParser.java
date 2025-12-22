@@ -19,10 +19,10 @@ import vavi.util.serdes.Serdes;
 import static l3diskex.diskimg.DiskParam.diskTemplates;
 
 
-/** FDIディスクパーサー */
+/** FDI disk parser */
 public class DiskFDIParser extends DiskPlainParser {
 
-    /** FDI形式ヘッダ */
+    /** FDI format header */
     @Serdes
     public static class FdiDskHeader {
 
@@ -99,7 +99,7 @@ public class DiskFDIParser extends DiskPlainParser {
             return result.getValid();
         }
 
-        // ディスクテンプレートから探す
+        // Search from disk templates
         DiskParam dummy = new DiskParam();
         DiskParam param = diskTemplates.findStrict(sidesPerDisk, tracksPerSide, sectorsPerTrack, sectorSize,
                 1, dummy.getTrackNumberBaseOnDisk(), dummy.getSideNumberBaseOnDisk(), dummy.getSectorNumberBaseOnDisk(), 0,
@@ -108,7 +108,7 @@ public class DiskFDIParser extends DiskPlainParser {
             diskParams.add(param);
         }
 
-        // 候補がないとき、手動設定
+        // If no candidates, manual setting
         if (diskParams.isEmpty()) {
             manualParam.setDiskParam(
                     sidesPerDisk,

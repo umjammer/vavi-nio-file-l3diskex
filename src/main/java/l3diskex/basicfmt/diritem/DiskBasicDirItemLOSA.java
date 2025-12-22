@@ -21,7 +21,7 @@ import static l3diskex.basicfmt.type.DiskBasicTypeMSDOS.FORMAT_TYPE_LOSA;
 
 
 /**
- * ディレクトリ１アイテム L-os Angeles (MS-DOS compatible)
+ * Directory 1 item L-os Angeles (MS-DOS compatible)
  *
  * @see "https://github.com/tablacus/LosAngeles"
  * @see "https://github.com/tablacus/LSX-Dodgers"
@@ -32,7 +32,7 @@ public class DiskBasicDirItemLOSA extends DiskBasicDirItemMSDOS {
     private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
 
     /**
-     * ディレクトリエントリ L-os Angeles (MS-DOS compatible) (32bytes)
+     * Directory entry L-os Angeles (MS-DOS compatible) (32bytes)
      */
     @Serdes(bigEndian = false)
     public static class DirectoryLosa implements Directory {
@@ -211,7 +211,7 @@ public class DiskBasicDirItemLOSA extends DiskBasicDirItemMSDOS {
     }
 
     //
-    // ダイアログ用
+    // For dialog
     //
 
     @Override

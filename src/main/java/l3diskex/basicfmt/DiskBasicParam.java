@@ -21,7 +21,7 @@ import l3diskex.diskimg.DiskParam.SectorInterleave;
 import static l3diskex.basicfmt.BasicCommon.FORMAT_TYPE_UNKNOWN;
 
 
-/** DISK BASICのパラメータを保持するクラス */
+/** Class that holds DISK BASIC parameters */
 public class DiskBasicParam extends DiskBasicParamBase {
 
     private static final Logger logger = System.getLogger(DiskBasicParam.class.getName());
@@ -34,7 +34,7 @@ public class DiskBasicParam extends DiskBasicParamBase {
             setVolumeRule = false;
         }
 
-        /** 共通パラメータ関連のロード */
+        /** Load common parameters */
         public boolean load(Node node, String name, String value, String localeName, DiskBasicParamBase param, StringBuilder errMsgs) {
             boolean valid = true;
             if (name.equals("SectorsPerGroup")) {
@@ -113,19 +113,19 @@ public class DiskBasicParam extends DiskBasicParamBase {
         }
     }
 
-    /** DISK BASICのフォーマットタイプ */
+    /** DISK BASIC format type */
     public static class DiskBasicFormat extends DiskBasicParamBase {
 
-        /** フォーマットタイプ番号 */
+        /** Format type number */
         private int typeNumber;
-        /** ボリューム名 */
+        /** Volume name */
         private boolean hasVolumeName;
-        /** ボリューム番号 */
+        /** Volume number */
         private boolean hasVolumeNumber;
-        /** ボリューム日付 */
+        /** Volume date */
         private boolean hasVolumeDate;
 
-        /** 初期化 */
+        /** Initialization */
         private void clearBasicFormatPrivate() {
             typeNumber = FORMAT_TYPE_UNKNOWN;
             hasVolumeName = false;
@@ -137,66 +137,66 @@ public class DiskBasicParam extends DiskBasicParamBase {
             clearBasicFormatPrivate();
         }
 
-        /** 初期化 */
+        /** Initialization */
         public void clearBasicFormat() {
             clearBasicParamBase();
             clearBasicFormatPrivate();
         }
 
-        /** フォーマットタイプ番号 */
+        /** Format type number */
         public int getTypeNumber() {
             return typeNumber;
         }
 
-        /** ボリューム名 */
+        /** Volume name */
         public boolean hasVolumeName() {
             return hasVolumeName;
         }
 
-        /** ボリューム番号 */
+        /** Volume number */
         public boolean hasVolumeNumber() {
             return hasVolumeNumber;
         }
 
-        /** ボリューム日付 */
+        /** Volume date */
         public boolean hasVolumeDate() {
             return hasVolumeDate;
         }
 
-//        /** ファイル名が必須か */
+//        /** Whether file name is required */
 //        public bool isFileNameRequired() { return filenameRequire; }
 
-        /** フォーマットタイプ番号 */
+        /** Format type number */
         public void setTypeNumber(int val) {
             typeNumber = val;
         }
 
-        /** ボリューム名 */
+        /** Volume name */
         public void hasVolumeName(boolean val) {
             hasVolumeName = val;
         }
 
-        /** ボリューム番号 */
+        /** Volume number */
         public void hasVolumeNumber(boolean val) {
             hasVolumeNumber = val;
         }
 
-        /** ボリューム日付 */
+        /** Volume date */
         public void hasVolumeDate(boolean val) {
             hasVolumeDate = val;
         }
 
-//	      /** ファイル名が必須か */
+//	      /** Whether file name is required */
 //	      public void requireFileName(bool val) { filename_require = val; }
     }
 
-    /** DiskBasicFormat のリスト */
+    /** List of DiskBasicFormat */
     public static class DiskBasicFormats extends TemplatesBase {
 
         List<DiskBasicFormat> list = new ArrayList<>();
 
         /**
-         * DiskBasicFormatエレメントのロード
+         * Load DiskBasicFormat element
          *
          * @see "basicTypes.xml"
          */
@@ -258,7 +258,7 @@ public class DiskBasicParam extends DiskBasicParamBase {
             return valid;
         }
 
-        /** @param formatType フォーマット種類 */
+        /** @param formatType Format type */
         public DiskBasicFormat find(int formatType) {
             DiskBasicFormat match = null;
             for (DiskBasicFormat item : list) {
@@ -271,75 +271,75 @@ public class DiskBasicParam extends DiskBasicParamBase {
         }
     }
 
-    /** BASIC種類名 */
+    /** BASIC type name */
     private String basicTypeName;
-    /** BASICカテゴリ名 */
+    /** BASIC category name */
     private List<String> basicCategoryNames = new ArrayList<>();
-    /** フォーマット種類 */
+    /** Format type */
     private DiskBasicFormat formatType;
 
-    /** フォーマットサブタイプ番号 */
+    /** Format subtype number */
     private int formatSubtypeNumber;
-    /** BASICが使用するサイド数 */
+    /** Number of sides used by BASIC */
     private int sidesOnBasic;
-    /** BASICで使用するセクタ数/トラック */
+    /** Number of sectors/track used by BASIC */
     private int sectorsOnBasic;
-    /** BASICで使用するセクタ数/トラック */
+    /** Number of sectors/track used by BASIC */
     private List<NumSectorsParam> sectorsOnBasicList = new ArrayList<>();
-    /** BASICで使用するセクタ番号基準 */
+    /** Sector number base used by BASIC */
     private int sectorNumberBase;
-    /** BASICで使用するトラック数/サイド */
+    /** Number of tracks/side used by BASIC */
     private int tracksOnBasic;
-    /** ファイル管理エリア */
+    /** File management area */
     private int managedTrackNumber;
-    /** トラック当たりのグループ数 */
+    /** Number of groups per track */
     private int groupsPerTrack;
-    /** セクタ当たりのグループ数 */
+    /** Number of groups per sector */
     private int groupsPerSector;
-    /** 予約済みセクタ数 */
+    /** Number of reserved sectors */
     private int reservedSectors;
-    /** ファイル管理エリアの数 */
+    /** Number of file management areas */
     private int numberOfFats;
-    /** 有効・使用しているファイル管理エリアの数 */
+    /** Number of valid/used file management areas */
     private int validNumberOfFats;
-    /** FAT領域のセクタ数 */
+    /** Number of sectors in FAT area */
     private int sectorsPerFat;
-    /** FAT開始位置（バイト） */
+    /** FAT starting position (bytes) */
     private int fatStartPos;
-    /** FAT最大グループ番号 */
+    /** FAT maximum group number */
     private int fatEndGroup;
-    /** FAT領域のあるサイド番号 */
+    /** Side number where FAT area is located */
     private int fatSideNumber;
-    /** 予約済みグループ */
+    /** Reserved groups */
     private List<Integer> reservedGroups = new ArrayList<>();
-    /** ルートディレクトリ開始セクタ */
+    /** Root directory starting sector */
     private int dirStartSector;
-    /** ルートディレクトリ終了セクタ */
+    /** Root directory ending sector */
     private int dirEndSector;
-    /** ルートディレクトリエントリ数 */
+    /** Number of root directory entries */
     private int dirEntryCount;
-    /** サブディレクトリの初期グループ数 */
+    /** Initial number of groups for subdirectories */
     private int subdirGroupSize;
-    /** グループ幅（バイト） */
+    /** Group width (bytes) */
     private int groupWidth;
-    /** １ディレクトリエントリで指定できるグループ数 */
+    /** Number of groups that can be specified in one directory entry */
     private int groupsPerDirEntry;
-    /** 有効な密度 0:倍密度 1:単密度 */
+    /** Valid density 0:double 1:single */
     private int validDensityType;
-    /** ソフトウェアセクタスキュー(セクタ間隔) */
+    /** Software sector skew (sector interval) */
     private SectorInterleave sectorSkew = new SectorInterleave();
-    /** メディアID */
+    /** Media ID */
     private byte mediaId;
-    /** データビットが反転してるか */
+    /** Whether data bits are inverted */
     private boolean dataInverted;
-    /** サイドが反転してるか */
+    /** Whether sides are reversed */
     private boolean sideReversed;
-    /** 片面のみ使用するOSで各面ごとに独立してアクセスできるか */
+    /** Whether each side can be accessed independently in an OS that uses only one side */
     private boolean mountEachSides;
-    /** 説明 */
+    /** Description */
     private String basicDescription;
 
-    /** 初期化 */
+    /** Initialization */
     private void clearBasicParamPrivate() {
         basicTypeName = "";
         basicCategoryNames.clear();
@@ -380,13 +380,13 @@ public class DiskBasicParam extends DiskBasicParamBase {
         clearBasicParamPrivate();
     }
 
-    /** 初期化 */
+    /** Initialization */
     public void clearBasicParam() {
         clearBasicParamBase();
         clearBasicParamPrivate();
     }
 
-    /** 設定 */
+    /** Configuration */
     public void setBasicParam(DiskBasicParam src) {
         setBasicParamBase(src);
         this.basicTypeName = src.basicTypeName;
@@ -426,7 +426,7 @@ public class DiskBasicParam extends DiskBasicParamBase {
         this.basicDescription = src.basicDescription;
     }
 
-    /** 開始終了セクタを計算 */
+    /** Calculate start/end sectors */
     public void calcDirStartEndSector(int sector_size) {
         if (dirStartSector < 0) {
             dirStartSector = reservedSectors + numberOfFats * sectorsPerFat + 1;
@@ -440,235 +440,235 @@ public class DiskBasicParam extends DiskBasicParamBase {
         }
     }
 
-    /** BASIC種類名 */
+    /** BASIC type name */
     public String getBasicTypeName() {
         return basicTypeName;
     }
 
-    /** BASICカテゴリ名 */
+    /** BASIC category name */
     public List<String> getBasicCategoryNames() {
         return basicCategoryNames;
     }
 
-    /** BASICカテゴリ名 */
+    /** BASIC category name */
     public List<String> getBasicCategoryNamesForMod() {
         return basicCategoryNames; // Changed name
     }
 
-    /** BASIC種類 */
+    /** BASIC type */
     public DiskBasicFormat getFormatType() {
         return formatType;
     }
 
-    /** サブタイプ番号 */
+    /** Subtype number */
     public int getFormatSubTypeNumber() {
         return formatSubtypeNumber;
     }
 
-    /** BASICが使用するサイド数 */
+    /** Number of sides used by BASIC */
     public int getSidesPerDiskOnBasic() {
         return sidesOnBasic;
     }
 
-    /** BASIC種類 */
+    /** BASIC type */
     public int getSectorsPerTrackOnBasic() {
         return sectorsOnBasic;
     }
 
-    /** BASICで使用するセクタ番号基準 */
+    /** Sector number base used by BASIC */
     public int getSectorNumberBaseOnBasic() {
         return sectorNumberBase;
     }
 
-    /** BASICで使用するトラック数/サイド */
+    /** Number of tracks/side used by BASIC */
     public int getTracksPerSideOnBasic() {
         return tracksOnBasic;
     }
 
-    /** ファイル管理エリアのあるトラック番号 */
+    /** Track number where file management area is located */
     public int getManagedTrackNumber() {
         return managedTrackNumber;
     }
 
-    /** トラック当たりのグループ数 */
+    /** Number of groups per track */
     public int getGroupsPerTrack() {
         return groupsPerTrack;
     }
 
-    /** セクタ当たりのグループ数 */
+    /** Number of groups per sector */
     public int getGroupsPerSector() {
         return groupsPerSector;
     }
 
-    /** 予約済みセクタ数 */
+    /** Number of reserved sectors */
     public int getReservedSectors() {
         return reservedSectors;
     }
 
-    /** ファイル管理エリアの数 */
+    /** Number of file management areas */
     public int getNumberOfFats() {
         return numberOfFats;
     }
 
-    /** 有効・使用しているファイル管理エリアの数 */
+    /** Number of valid/used file management areas */
     public int getValidNumberOfFats() {
         return validNumberOfFats;
     }
 
-    /** FAT領域のセクタ数 */
+    /** Number of sectors in FAT area */
     public int getSectorsPerFat() {
         return sectorsPerFat;
     }
 
-    /** FAT開始セクタ */
+    /** FAT starting sector */
     public int getFatStartSector() {
         return (reservedSectors + 1);
     }
 
-    /** FAT開始位置（バイト） */
+    /** FAT starting position (bytes) */
     public int getFatStartPos() {
         return fatStartPos;
     }
 
-    /** FAT最大グループ番号 */
+    /** FAT maximum group number */
     public int getFatEndGroup() {
         return fatEndGroup;
     }
 
-    /** FAT領域のあるサイド番号 */
+    /** Side number where FAT area is located */
     public int getFatSideNumber() {
         return fatSideNumber;
     }
 
-    /** 予約済みグループ番号 */
+    /** Reserved group numbers */
     public List<Integer> getReservedGroups() {
         return reservedGroups;
     }
 
-    /** ルートディレクトリ開始セクタ */
+    /** Root directory starting sector */
     public int getDirStartSector() {
         return dirStartSector;
     }
 
-    /** ルートディレクトリ終了セクタ */
+    /** Root directory ending sector */
     public int getDirEndSector() {
         return dirEndSector;
     }
 
-    /** ルートディレクトリエントリ数 */
+    /** Number of root directory entries */
     public int getDirEntryCount() {
         return dirEntryCount;
     }
 
-    /** サブディレクトリの初期グループ数 */
+    /** Initial number of groups for subdirectories */
     public int getSubDirGroupSize() {
         return subdirGroupSize;
     }
 
-    /** グループ幅（バイト） */
+    /** Group width (bytes) */
     public int getGroupWidth() {
         return groupWidth;
     }
 
-    /** １ディレクトリエントリで指定できるグループ数 */
+    /** Number of groups that can be specified in one directory entry */
     public int getGroupsPerDirEntry() {
         return groupsPerDirEntry;
     }
 
-    /** 有効な密度 */
+    /** Valid density */
     public int getValidDensityType() {
         return validDensityType;
     }
 
-    /** ソフトウェアセクタスキュー(セクタ間隔) */
+    /** Software sector skew (sector interval) */
     public int getSectorSkew() {
         return sectorSkew.get();
     }
 
-    /** ソフトウェアセクタスキュー(セクタ間隔) 固有のマップ */
+    /** Software sector skew (sector interval) specific map */
     public int getSectorSkewMap(int idx) {
         return sectorSkew.get(idx);
     }
 
-    /** ソフトウェアセクタスキュー(セクタ間隔) 固有のマップを持っているか */
+    /** Whether it has a specific map for software sector skew (sector interval) */
     public boolean hasSectorSkewMap() {
         return sectorSkew.hasMap();
     }
 
-    /** メディアID */
+    /** Media ID */
     public byte getMediaId() {
         return mediaId;
     }
 
-//    /** ファイル名が必須か */
+//    /** Whether file name is required */
 //    public boolean isFileNameRequired() { return filenameRequire; }
 
-    /** データビットが反転してるか */
+    /** Whether data bits are inverted */
     public boolean isDataInverted() {
         return dataInverted;
     }
 
-    /** サイドが反転してるか */
+    /** Whether sides are reversed */
     public boolean isSideReversed() {
         return sideReversed;
     }
 
-    /** 反転したサイド番号を返す */
+    /** Returns the reversed side number */
     public int getReversedSideNumber(int side_num) {
         return (sideReversed && 0 <= side_num && side_num < sidesOnBasic ? sidesOnBasic - side_num - 1 : side_num);
     }
 
-    /** 片面のみ使用するOSで各面ごとに独立してアクセスできるか */
+    /** Whether each side can be accessed independently in an OS that uses only one side */
     public boolean canMountEachSides() {
         return (mountEachSides && sidesOnBasic == 1);
     }
 
-    /** 説明 */
+    /** Description */
     public String getBasicDescription() {
         return basicDescription;
     }
 
-    /** BASIC種類名 */
+    /** BASIC type name */
     public void setBasicTypeName(String str) {
         basicTypeName = str;
     }
 
-    /** BASICカテゴリ名 */
+    /** BASIC category name */
     public void setBasicCategoryNames(ArrayList<String> arr) {
         basicCategoryNames = arr;
     }
 
-    /** BASIC種類 */
+    /** BASIC type */
     public void setFormatType(DiskBasicFormat val) {
         formatType = val;
     }
 
-    /** サブタイプ番号 */
+    /** Subtype number */
     public void setFormatSubTypeNumber(int val) {
         formatSubtypeNumber = val;
     }
 
-    /** BASICが使用するサイド数 */
+    /** Number of sides used by BASIC */
     public void setSidesPerDiskOnBasic(int val) {
         sidesOnBasic = val;
     }
 
-    /** BASICで使用するセクタ数/トラック */
+    /** Number of sectors/track used by BASIC */
     public void setSectorsPerTrackOnBasic(int val) {
         sectorsOnBasic = val;
     }
 
-    /** BASICで使用するセクタ番号基準 */
+    /** Sector number base used by BASIC */
     public void setSectorNumberBaseOnBasic(int val) {
         sectorNumberBase = val;
     }
 
-    /** BASICで使用するトラック数/サイド */
+    /** Number of tracks/side used by BASIC */
     public void setTracksPerSideOnBasic(int val) {
         tracksOnBasic = val;
     }
 
-    /** ファイル管理エリアのあるトラック番号 */
+    /** Track number where file management area is located */
     public void setManagedTrackNumber(int val) {
         managedTrackNumber = val;
 if (basicCategoryNames.contains("N88")) {
@@ -676,142 +676,142 @@ if (basicCategoryNames.contains("N88")) {
 }
     }
 
-    /** トラック当たりのグループ数 */
+    /** Number of groups per track */
     public void setGroupsPerTrack(int val) {
         groupsPerTrack = val;
     }
 
-    /** セクタ当たりのグループ数 */
+    /** Number of groups per sector */
     public void setGroupsPerSector(int val) {
         groupsPerSector = val;
     }
 
-    /** 予約済みセクタ数 */
+    /** Number of reserved sectors */
     public void setReservedSectors(int val) {
         reservedSectors = val;
     }
 
-    /** ファイル管理エリアの数 */
+    /** Number of file management areas */
     public void setNumberOfFats(int val) {
         numberOfFats = val;
     }
 
-    /** 有効・使用しているファイル管理エリアの数 */
+    /** Number of valid/used file management areas */
     public void setValidNumberOfFats(int val) {
         validNumberOfFats = val;
     }
 
-    /** FAT領域のセクタ数 */
+    /** Number of sectors in FAT area */
     public void setSectorsPerFat(int val) {
         sectorsPerFat = val;
     }
 
-    /** FAT開始位置（バイト） */
+    /** FAT starting position (bytes) */
     public void setFatStartPos(int val) {
         fatStartPos = val;
     }
 
-    /** FAT最大グループ番号 */
+    /** FAT maximum group number */
     public void setFatEndGroup(int val) {
         fatEndGroup = val;
     }
 
-    /** FAT領域のあるサイド番号 */
+    /** Side number where FAT area is located */
     public void setFatSideNumber(int val) {
         fatSideNumber = val;
     }
 
-    /** 予約済みグループ番号 */
+    /** Reserved group numbers */
     public void setReservedGroups(List<Integer> arr) {
         reservedGroups = arr;
     }
 
-    /** ルートディレクトリ開始セクタ */
+    /** Root directory starting sector */
     public void setDirStartSector(int val) {
         dirStartSector = val;
     }
 
-    /** グループ幅（バイト） */
+    /** Group width (bytes) */
     public void setGroupWidth(int val) {
         groupWidth = val;
     }
 
-    /** １ディレクトリエントリで指定できるグループ数 */
+    /** Number of groups that can be specified in one directory entry */
     public void setGroupsPerDirEntry(int val) {
         groupsPerDirEntry = val;
     }
 
-    /** 有効な密度 */
+    /** Valid density */
     public void setValidDensityType(int val) {
         validDensityType = val;
     }
 
-    /** ソフトウェアセクタスキュー(セクタ間隔) */
+    /** Software sector skew (sector interval) */
     public void setSectorSkew(int val) {
         sectorSkew.set(val);
     }
 
-    /** ソフトウェアセクタスキュー(セクタ間隔) */
+    /** Software sector skew (sector interval) */
     public void setSectorSkewMap(List<Integer> arr) {
         sectorSkew.set(arr);
     }
 
-    /** ルートディレクトリ終了セクタ */
+    /** Root directory ending sector */
     public void setDirEndSector(int val) {
         dirEndSector = val;
     }
 
-    /** ルートディレクトリエントリ数 */
+    /** Number of root directory entries */
     public void setDirEntryCount(int val) {
         dirEntryCount = val;
     }
 
-    /** サブディレクトリの初期グループ数 */
+    /** Initial number of groups for subdirectories */
     public void setSubDirGroupSize(int val) {
         subdirGroupSize = val;
     }
 
-    /** メディアID */
+    /** Media ID */
     public void setMediaId(byte val) {
         mediaId = val;
     }
 
-//    /** ファイル名が必須か */
+//    /** Whether file name is required */
 //    public void requireFileName(bool val) { filename_require = val; }
 
-    /** データビットが反転してるか */
+    /** Whether data bits are inverted */
     public void dataInverted(boolean val) {
         dataInverted = val;
     }
 
-    /** サイドが反転してるか */
+    /** Whether sides are reversed */
     public void sideReversed(boolean val) {
         sideReversed = val;
     }
 
-    /** 片面のみ使用するOSで各面ごとに独立してアクセスできるか */
+    /** Whether each side can be accessed independently in an OS that uses only one side */
     public void mountEachSides(boolean val) {
         mountEachSides = val;
     }
 
-    /** 説明 */
+    /** Description */
     public void setBasicDescription(String str) {
         basicDescription = str;
     }
 
-    /** BASICで使用するセクタ数/トラック */
+    /** Number of sectors/track used by BASIC */
     public List<NumSectorsParam> sectorsPerTrackOnBasicList() {
         return sectorsOnBasicList;
     }
 
-    /** BASICカテゴリ名を追加 */
+    /** Add BASIC category name */
     public void addBasicCategoryName(String str) {
         if (!basicCategoryNames.contains(str)) {
             basicCategoryNames.add(str);
         }
     }
 
-    /** BASICカテゴリ名を返す */
+    /** Returns BASIC category name */
     public String getBasicCategoryName() {
         if (basicCategoryNames.isEmpty()) {
             return "";
@@ -820,12 +820,12 @@ if (basicCategoryNames.contains("N88")) {
         }
     }
 
-    /** BASICカテゴリ名が存在するか */
+    /** Whether BASIC category name exists */
     public boolean findBasicCategoryName(String str) {
         return (basicCategoryNames.contains(str));
     }
 
-    /** ReservedGroupsエレメントをロード */
+    /** Load ReservedGroups element */
     public boolean loadReservedGroupsInTypes(Node node, String localeName, StringBuilder errMsgs) {
         Node citeMNode = node.getFirstChild();
         while (citeMNode != null) {
@@ -850,7 +850,7 @@ if (basicCategoryNames.contains("N88")) {
         return true;
     }
 
-    /** SectorSkewMapエレメントをロード */
+    /** Load SectorSkewMap element */
     public boolean loadSectorSkewMap(Node node) {
         List<Integer> map = new ArrayList<>();
         Node cNode = node.getFirstChild();
@@ -866,11 +866,11 @@ if (basicCategoryNames.contains("N88")) {
         return true;
     }
 
-    /** SectorsPerTrackエレメントをロード */
+    /** Load SectorsPerTrack element */
     public boolean loadNumSectorsMap(Node node, String val) {
-        // sec_param  セクタ数/トラック(全トラック同じの場合)
+        // sec_param  Number of sectors/track (if the same for all tracks)
         int secParam = getSectorsPerTrackOnBasic();
-        // sec_params セクタ数/トラック(トラック毎に異なる場合)
+        // sec_params Number of sectors/track (if different for each track)
         List<NumSectorsParam> sec_params = sectorsPerTrackOnBasicList();
 
         String str = "";
@@ -896,7 +896,7 @@ if (basicCategoryNames.contains("N88")) {
         return true;
     }
 
-    /** Categoriesエレメントのロード */
+    /** Load Categories element */
     public boolean loadCategories(Node node, String localeName, StringBuilder errMsgs) {
         boolean valid = true;
         Node item = node.getFirstChild();
@@ -916,18 +916,18 @@ if (basicCategoryNames.contains("N88")) {
         return valid;
     }
 
-    /** 説明文でソート */
+    /** Sort by description */
     public static int sortByDescription(DiskBasicParam item1, DiskBasicParam item2) {
         return item1.getBasicDescription().compareTo(item2.getBasicDescription());
     }
 
-    /** DiskBasicParam のリスト */
+    /** List of DiskBasicParam */
     public static class DiskBasicParams extends TemplatesBase {
 
         List<DiskBasicParam> list = new ArrayList<>();
 
         /**
-         * DiskBasicTypeエレメントのロード
+         * Load DiskBasicType element
          *
          * @see "basicTypes.xml"
          */
@@ -957,12 +957,12 @@ if (basicCategoryNames.contains("N88")) {
                     String formatName = ((Element) item).getAttribute("type");
                     DiskBasicFormat formatType = formats.find(Utils.toInt(formatName));
                     if (!formatName.isEmpty() && formatType != null) {
-                        // フォーマットパラメータを初期値とする
+                        // Use format parameters as initial values
                         p.setFormatType(formatType);
                         //p.RequireFileName(formatType.isFileNameRequired());
                         p.setBasicParamBase(formatType);
                     } else {
-                        // フォーマットタイプがない
+                        // No format type
                         errMsgs.append("\n");
                         errMsgs.append("Unknown format type in DiskBasicType : ");
                         errMsgs.append(typeName);
@@ -1046,7 +1046,7 @@ if (basicCategoryNames.contains("N88")) {
                         list.add(p);
 //System.out.println(p);
                     } else {
-                        // タイプ名が重複している
+                        // Duplicate type name
                         errMsgs.append("\n");
                         errMsgs.append("Duplicate type name in DiskBasicType : ");
                         errMsgs.append(typeName);
@@ -1060,11 +1060,11 @@ if (basicCategoryNames.contains("N88")) {
         }
 
         /**
-         * カテゴリとタイプに一致するパラメータを検索
+         * Search for parameters matching category and type
          *
-         * @param category  カテゴリ名 空文字列の場合は検索条件からはずす
-         * @param basicType タイプ名
-         * @return 一致したパラメータ
+         * @param category  Category name. If empty string, exclude from search criteria.
+         * @param basicType Type name
+         * @return Matching parameters
          */
         public DiskBasicParam find(String category, String basicType) {
             DiskBasicParam matchItem = null;
@@ -1080,11 +1080,11 @@ if (basicCategoryNames.contains("N88")) {
         }
 
         /**
-         * カテゴリが一致し、タイプリストに含まれるパラメータを検索
+         * Search for parameters matching category and included in type list
          *
-         * @param category   カテゴリ名 空文字列の場合は検索条件からはずす
-         * @param basicTypes タイプ名リスト
-         * @return 一致したパラメータ
+         * @param category   Category name. If empty string, exclude from search criteria.
+         * @param basicTypes Type name list
+         * @return Matching parameters
          */
         public DiskBasicParam find(String category, List<DiskParamName> basicTypes) {
             DiskBasicParam matchItem = null;
@@ -1095,20 +1095,20 @@ if (basicCategoryNames.contains("N88")) {
         }
 
         /**
-         * カテゴリ、タイプ、サイド数とセクタ数が一致するパラメータを検索
-         * まず、カテゴリ＆タイプで検索し、なければカテゴリ＆サイド数＆セクタ数で検索
+         * Search for parameters matching category, type, side count, and sector count
+         * First, search by category & type, and if not found, search by category & side count & sector count
          *
-         * @param category  カテゴリ名 必須
-         * @param basicType タイプ名 必須
-         * @param sides     サイド数
-         * @param sectors   セクタ数/トラック -1の場合は検索条件からはずす
-         * @return 一致したパラメータ
+         * @param category  Category name (required)
+         * @param basicType Type name (required)
+         * @param sides     Side count
+         * @param sectors   Sector count/track. If -1, exclude from search criteria.
+         * @return Matching parameters
          */
         public DiskBasicParam find(String category, String basicType, int sides, int sectors) {
             DiskBasicParam match_item = null;
-            // カテゴリ、タイプで一致するか
+            // Whether it matches by category and type
             match_item = find(category, basicType);
-            // カテゴリ、サイド数、セクタ数で一致するか
+            // Whether it matches by category, side count, and sector count
             if (match_item == null) {
                 for (DiskBasicParam item : list) {
                     if (category.equals(item.getBasicCategoryName())) {
@@ -1125,11 +1125,11 @@ if (basicCategoryNames.contains("N88")) {
         }
 
         /**
-         * DISK BASICフォーマット種類に一致するタイプを検索
+         * Search for types matching DISK BASIC format type
          *
-         * @param formatTypes DISK BASICフォーマット種類
-         * @param types       [out] 一致したタイプリスト
-         * @return リストの数
+         * @param formatTypes DISK BASIC format type
+         * @param types       [out] Matching type list
+         * @return List count
          */
         public int findTypes(List<Integer> formatTypes, DiskBasicParams types) {
             types.list.clear();
@@ -1145,11 +1145,11 @@ if (basicCategoryNames.contains("N88")) {
         }
 
         /**
-         * カテゴリ名に一致するタイプ名リストを検索
+         * Search for type name list matching category name
          *
-         * @param categoryName カテゴリ名
-         * @param typeNames    [out] タイプ名リスト
-         * @return リストの数
+         * @param categoryName Category name
+         * @param typeNames    [out] Type name list
+         * @return List count
          */
         public int findNames(String categoryName, List<String> typeNames) {
             typeNames.clear();
@@ -1238,65 +1238,65 @@ if (basicCategoryNames.contains("N88")) {
     }
 }
 
-/** DISK BASICの共通パラメータ */
+/** Common parameters for DISK BASIC */
 class DiskBasicParamBase {
 
     private static final Logger logger = System.getLogger(DiskBasicParamBase.class.getName());
 
-    /** グループ(クラスタ)サイズ */
+    /** Group (cluster) size */
     protected int sectorsPerGroup;
-    /** 最終グループのコード(0xc0 - ) */
+    /** Code for final group (0xc0 - ) */
     protected int groupFinalCode;
-    /** システムで使用するコード(0xfe) */
+    /** Code used by system (0xfe) */
     protected int groupSystemCode;
-    /** 未使用のコード(0xff) */
+    /** Unused code (0xff) */
     protected int groupUnusedCode;
-    /** ディレクトリ名の終端コード */
+    /** Termination code for directory name */
     protected byte dirTerminateCode;
-    /** ディレクトリ名の空白コード */
+    /** Space code for directory name */
     protected byte dirSpaceCode;
-    /** ディレクトリ名の空白コード（とり除くコード） */
+    /** Space code for directory name (trimming code) */
     protected byte dirTrimmingCode;
-    /** サブディレクトリの開始位置（バイト） */
+    /** Starting position of subdirectory (bytes) */
     protected int dirStartPos;
-    /** ルートディレクトリの開始位置（バイト） */
+    /** Starting position of root directory (bytes) */
     protected int dirStartPosOnRoot;
-    /** ディレクトリのセクタ毎の開始位置 */
+    /** Starting position per sector of directory */
     protected int dirStartPosOnSec;
-    /** ディレクトリのグループ毎の開始位置 */
+    /** Starting position per group of directory */
     protected int dirStartPosOnGroup;
-    /** 特別な属性 */
+    /** Special attributes */
     protected List<MyAttribute> specialAttrs = new ArrayList<>();
-    /** 拡張子と属性の関係 */
+    /** Relationship between extension and attributes */
     protected List<MyAttribute> attrsByExtension = new ArrayList<>();
-    /** フォーマット時に埋めるコード */
+    /** Code to fill during formatting */
     protected byte fillcodeOnFormat;
-    /** フォーマット時にFAT領域を埋めるコード */
+    /** Code to fill FAT area during formatting */
     protected byte fillcodeOnFat;
-    /** フォーマット時にディレクトリ領域を埋めるコード */
+    /** Code to fill directory area during formatting */
     protected byte fillcodeOnDir;
-    /** ファイル削除時にセットするコード */
+    /** Code set when deleting a file */
     protected byte deleteCode;
-    /** テキストの終端コード */
+    /** Termination code for text */
     protected byte textTerminateCode;
-    /** ファイル名と拡張子の間に付けるコード('.') */
+    /** Code put between file name and extension ('.') */
     protected byte extensionPreCode;
-    /** ファイル名に設定できるルール */
+    /** Rules that can be set for file name */
     protected ValidNameRule validFileName = new ValidNameRule();
-    /** ボリューム名に設定できるルール */
+    /** Rules that can be set for volume name */
     protected ValidNameRule validVolumeName = new ValidNameRule();
-    /** ファイル名比較時に大文字小文字区別しないか */
+    /** Whether to ignore case during file name comparison */
     protected boolean compareCaseInsensitive;
-    /** ファイル名ダイアログ表示前に大文字に変換するか */
+    /** Whether to convert to uppercase before displaying file name dialog */
     protected boolean toUpperBeforeDialog;
-    /** ファイル名ダイアログ入力後に大文字に変換するか */
+    /** Whether to convert to uppercase after file name dialog input */
     protected boolean toUpperAfterRenamed;
-    /** バイトオーダ ビッグエンディアンか */
+    /** Whether byte order is big endian */
     protected boolean bigEndian;
-    /** その他固有のパラメータ */
+    /** Other specific parameters */
     protected Map<String, Object> variousParams = new HashMap<>();
 
-    /** 初期化 */
+    /** Initialization */
     protected void clearBasicParamBase() {
         sectorsPerGroup = 0;
         groupFinalCode = 0;
@@ -1330,7 +1330,7 @@ class DiskBasicParamBase {
         clearBasicParamBase();
     }
 
-    /** 設定 */
+    /** Configuration */
     public void setBasicParamBase(DiskBasicParamBase src) {
         this.sectorsPerGroup = src.sectorsPerGroup;
         this.groupFinalCode = src.groupFinalCode;
@@ -1361,147 +1361,147 @@ class DiskBasicParamBase {
         this.variousParams.putAll(src.variousParams);
     }
 
-    /** グループ(クラスタ)サイズ */
+    /** Group (cluster) size */
     public int getSectorsPerGroup() {
         return sectorsPerGroup;
     }
 
-    /** 最終グループのコード */
+    /** Code for final group */
     public int getGroupFinalCode() {
         return groupFinalCode;
     }
 
-    /** システムで使用するコード */
+    /** Code used by system */
     public int getGroupSystemCode() {
         return groupSystemCode;
     }
 
-    /** 未使用のコード */
+    /** Unused code */
     public int getGroupUnusedCode() {
         return groupUnusedCode;
     }
 
-    /** ディレクトリ名の終端コード */
+    /** Termination code for directory name */
     public byte getDirTerminateCode() {
         return dirTerminateCode;
     }
 
-    /** ディレクトリ名の空白コード */
+    /** Space code for directory name */
     public byte getDirSpaceCode() {
         return dirSpaceCode;
     }
 
-    /** ディレクトリ名の空白コード（とり除くコード） */
+    /** Space code for directory name (trimming code) */
     public byte getDirTrimmingCode() {
         return dirTrimmingCode;
     }
 
-    /** ディレクトリの開始位置（バイト） */
+    /** Starting position of directory (bytes) */
     public int getDirStartPos() {
         return dirStartPos;
     }
 
-    /** ルートディレクトリの開始位置（バイト） */
+    /** Starting position of root directory (bytes) */
     public int getDirStartPosOnRoot() {
         return dirStartPosOnRoot;
     }
 
-    /** ディレクトリのセクタ毎の開始位置 */
+    /** Starting position per sector of directory */
     public int getDirStartPosOnSector() {
         return dirStartPosOnSec;
     }
 
-    /** ディレクトリのグループ毎の開始位置 */
+    /** Starting position per group of directory */
     public int getDirStartPosOnGroup() {
         return dirStartPosOnGroup;
     }
 
-    /** 特別な属性 */
+    /** Special attributes */
     public List<MyAttribute> getSpecialAttributes() {
         return specialAttrs;
     }
 
-    /** 拡張子と属性の関係 */
+    /** Relationship between extension and attributes */
     public List<MyAttribute> getAttributesByExtension() {
         return attrsByExtension;
     }
 
-    /** フォーマット時に埋めるコード */
+    /** Code to fill during formatting */
     public byte getFillCodeOnFormat() {
         return fillcodeOnFormat;
     }
 
-    /** フォーマット時にFAT領域を埋めるコード */
+    /** Code to fill FAT area during formatting */
     public byte getFillCodeOnFAT() {
         return fillcodeOnFat;
     }
 
-    /** フォーマット時にディレクトリ領域を埋めるコード */
+    /** Code to fill directory area during formatting */
     public byte getFillCodeOnDir() {
         return fillcodeOnDir;
     }
 
-    /** ファイル削除時にセットするコード */
+    /** Code set when deleting a file */
     public byte getDeleteCode() {
         return deleteCode;
     }
 
-    /** テキストの終端コード */
+    /** Termination code for text */
     public byte getTextTerminateCode() {
         return textTerminateCode;
     }
 
-    /** ファイル名と拡張子の間に付けるコード(' . ') */
+    /** Code put between file name and extension (' . ') */
     public byte getExtensionPreCode() {
         return extensionPreCode;
     }
 
-    /** ファイル名に設定できるルール */
+    /** Rules that can be set for file name */
     public ValidNameRule getValidFileName() {
         return validFileName;
     }
 
-    /** ファイル名に設定できるルール */
+    /** Rules that can be set for file name */
     public ValidNameRule getValidFileNameForMod() {
         return validFileName;
     } // Changed name to avoid conflict with final version
 
-    /** ボリューム名に設定できるルール */
+    /** Rules that can be set for volume name */
     public ValidNameRule getValidVolumeName() {
         return validVolumeName;
     }
 
-    /** ボリューム名に設定できるルール */
+    /** Rules that can be set for volume name */
     public ValidNameRule getValidVolumeNameForMod() {
         return validVolumeName;
     } // Changed name
 
-    /** ファイル名比較時に大文字小文字区別しないか */
+    /** Whether to ignore case during file name comparison */
     public boolean isCompareCaseInsensitive() {
         return compareCaseInsensitive;
     }
 
-    /** ファイル名ダイアログ表示前に大文字に変換するか */
+    /** Whether to convert to uppercase before displaying file name dialog */
     public boolean toUpperBeforeDialog() {
         return toUpperBeforeDialog;
     }
 
-    /** ファイル名ダイアログ入力後に大文字に変換するか */
+    /** Whether to convert to uppercase after file name dialog input */
     public boolean toUpperAfterRenamed() {
         return toUpperAfterRenamed;
     }
 
-    /** バイトオーダ ビッグエンディアンか */
+    /** Whether byte order is big endian */
     public boolean isBigEndian() {
         return bigEndian;
     }
 
-    /** 固有のパラメータ */
+    /** Specific parameters */
     public Map<String, Object> getVariousParams() {
         return variousParams;
     }
 
-    /** 固有のパラメータ */
+    /** Specific parameters */
     public void getVariousParam(String key, Object[] val) {
         Object value = variousParams.get(key);
         if (value != null) {
@@ -1509,7 +1509,7 @@ class DiskBasicParamBase {
         }
     }
 
-    /** 固有のパラメータ */
+    /** Specific parameters */
     public int getVariousIntegerParam(String key) {
         Object value = variousParams.get(key);
 logger.log(Level.TRACE, "key: " + key + ", value: " + value);
@@ -1520,7 +1520,7 @@ logger.log(Level.TRACE, "key: " + key + ", value: " + value);
         }
     }
 
-    /** 固有のパラメータ */
+    /** Specific parameters */
     public boolean getVariousBoolParam(String key) {
         Object value = variousParams.get(key);
         if (value != null) {
@@ -1530,7 +1530,7 @@ logger.log(Level.TRACE, "key: " + key + ", value: " + value);
         }
     }
 
-    /** 固有のパラメータ */
+    /** Specific parameters */
     public String getVariousStringParam(String key) {
         Object value = variousParams.get(key);
         if (value != null) {
@@ -1540,137 +1540,137 @@ logger.log(Level.TRACE, "key: " + key + ", value: " + value);
         }
     }
 
-    /** グループ(クラスタ)サイズ */
+    /** Group (cluster) size */
     public void setSectorsPerGroup(int val) {
         sectorsPerGroup = val;
     }
 
-    /** 最終グループのコード */
+    /** Code for final group */
     public void setGroupFinalCode(int val) {
         groupFinalCode = val;
     }
 
-    /** システムで使用するコード */
+    /** Code used by system */
     public void setGroupSystemCode(int val) {
         groupSystemCode = val;
     }
 
-    /** 未使用のコード */
+    /** Unused code */
     public void setGroupUnusedCode(int val) {
         groupUnusedCode = val;
     }
 
-    /** ディレクトリ名の終端コード */
+    /** Termination code for directory name */
     public void setDirTerminateCode(byte val) {
         dirTerminateCode = val;
     }
 
-    /** ディレクトリ名の空白コード */
+    /** Space code for directory name */
     public void setDirSpaceCode(byte val) {
         dirSpaceCode = val;
     }
 
-    /** ディレクトリ名の空白コード（とり除くコード） */
+    /** Space code for directory name (trimming code) */
     public void setDirTrimmingCode(byte val) {
         dirTrimmingCode = val;
     }
 
-    /** ディレクトリの開始位置（バイト） */
+    /** Starting position of directory (bytes) */
     public void setDirStartPos(int val) {
         dirStartPos = val;
     }
 
-    /** ルートディレクトリの開始位置（バイト） */
+    /** Starting position of root directory (bytes) */
     public void setDirStartPosOnRoot(int val) {
         dirStartPosOnRoot = val;
     }
 
-    /** ディレクトリのセクタ毎の開始位置 */
+    /** Starting position per sector of directory */
     public void setDirStartPosOnSector(int val) {
         dirStartPosOnSec = val;
     }
 
-    /** ディレクトリのグループ毎の開始位置 */
+    /** Starting position per group of directory */
     public void setDirStartPosOnGroup(int val) {
         dirStartPosOnGroup = val;
     }
 
-    /** 特別な属性 */
+    /** Special attributes */
     public void setSpecialAttributes(List<MyAttribute> arr) {
         specialAttrs = arr;
     }
 
-    /** 拡張子と属性の関係 */
+    /** Relationship between extension and attributes */
     public void setAttributesByExtension(List<MyAttribute> arr) {
         attrsByExtension = arr;
     }
 
-    /** フォーマット時に埋めるコード */
+    /** Code to fill during formatting */
     public void setFillCodeOnFormat(byte val) {
         fillcodeOnFormat = val;
     }
 
-    /** フォーマット時にFAT領域を埋めるコード */
+    /** Code to fill FAT area during formatting */
     public void setFillCodeOnFAT(byte val) {
         fillcodeOnFat = val;
     }
 
-    /** フォーマット時にディレクトリ領域を埋めるコード */
+    /** Code to fill directory area during formatting */
     public void setFillCodeOnDir(byte val) {
         fillcodeOnDir = val;
     }
 
-    /** ファイル削除時にセットするコード */
+    /** Code set when deleting a file */
     public void setDeleteCode(byte val) {
         deleteCode = val;
     }
 
-    /** テキストの終端コード */
+    /** Termination code for text */
     public void setTextTerminateCode(byte val) {
         textTerminateCode = val;
     }
 
-    /** ファイル名と拡張子の間に付けるコード(' . ') */
+    /** Code put between file name and extension (' . ') */
     public void setExtensionPreCode(byte val) {
         extensionPreCode = val;
     }
 
-    /** ファイル名に設定できるルール */
+    /** Rules that can be set for file name */
     public void setValidFileName(ValidNameRule str) {
         validFileName = str;
     }
 
-    /** ボリューム名に設定できるルール */
+    /** Rules that can be set for volume name */
     public void setValidVolumeName(ValidNameRule str) {
         validVolumeName = str;
     }
 
-    /** ファイル名比較時に大文字小文字区別しないか */
+    /** Whether to ignore case during file name comparison */
     public void compareCaseInsense(boolean val) {
         compareCaseInsensitive = val;
     }
 
-    /** ファイル名ダイアログ表示前に大文字に変換するか */
+    /** Whether to convert to uppercase before displaying file name dialog */
     public void toUpperBeforeDialog(boolean val) {
         toUpperBeforeDialog = val;
     }
 
-    /** ファイル名ダイアログ入力後に大文字に変換するか */
+    /** Whether to convert to uppercase after file name dialog input */
     public void toUpperAfterRenamed(boolean val) {
         toUpperAfterRenamed = val;
     }
 
-    /** バイトオーダ ビッグエンディアンか */
+    /** Whether byte order is big endian */
     public void bigEndian(boolean val) {
         bigEndian = val;
     }
 
-    /** 固有のパラメータ */
+    /** Specific parameters */
     public void setVariousParam(String key, Object val) {
         variousParams.put(key, val);
     }
 
-    /** 固有のパラメータ */
+    /** Specific parameters */
     public void setVariousParams(HashMap<String, Object> val) {
         variousParams = val;
     }

@@ -45,13 +45,13 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_SYSTEM_MASK;
 import static l3diskex.basicfmt.type.DiskBasicTypeXDOS.FORMAT_TYPE_XDOS;
 
 
-/** ディレクトリ１アイテム X-DOS Base */
+/** Directory 1 item X-DOS Base */
 public class DiskBasicDirItemXDOS extends DiskBasicDirItemXDOSBase<DirectoryXDos> {
 
     private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
 
     /**
-     * X-DOSセグメント情報
+     * X-DOS segment information
      */
     @Serdes(bigEndian = false)
     public static class XDosSeg {
@@ -65,7 +65,7 @@ public class DiskBasicDirItemXDOS extends DiskBasicDirItemXDOSBase<DirectoryXDos
     }
 
     /**
-     * ディレクトリエントリ X-DOS X1 (32bytes)
+     * Directory entry X-DOS X1 (32bytes)
      */
     @Serdes(bigEndian = false)
     public static class DirectoryXDos implements Directory {
@@ -85,7 +85,7 @@ public class DiskBasicDirItemXDOS extends DiskBasicDirItemXDOSBase<DirectoryXDos
         @Element(sequence = 1)
         public short time;
         @Element(sequence = 1)
-        public byte attr; // アトリビュート
+        public byte attr; // attribute
         @Element(sequence = 1)
         public XDosSeg start = new XDosSeg();
 
@@ -144,7 +144,7 @@ public class DiskBasicDirItemXDOS extends DiskBasicDirItemXDOSBase<DirectoryXDos
             null
     };
 
-    /** X-DOSチェイン情報 (FAM) */
+    /** X-DOS chain information (FAM) */
     static class XDosChain {
 
         XDosSeg[] seg = new XDosSeg[170];
@@ -156,7 +156,7 @@ public class DiskBasicDirItemXDOS extends DiskBasicDirItemXDOSBase<DirectoryXDos
         }
     }
 
-    /// X-DOS属性値
+    /// X-DOS attribute values
     static final int FILETYPE_XDOS_NUL = 0x00;
     static final int FILETYPE_XDOS_BIN = 0x01;
     static final int FILETYPE_XDOS_BAS = 0x02;
@@ -211,7 +211,7 @@ public class DiskBasicDirItemXDOS extends DiskBasicDirItemXDOSBase<DirectoryXDos
     static final int TYPE_NAME_XDOS2_SYSTEM = 2;
     static final int TYPE_NAME_XDOS2_KANJI = 3;
 
-    /// X-DOSチェイン情報アクセス
+    /** X-DOS chain information access */
     static class DiskBasicDirItemXDOSChain {
 
         private DiskBasic basic;
@@ -318,7 +318,7 @@ public class DiskBasicDirItemXDOS extends DiskBasicDirItemXDOSBase<DirectoryXDos
         }
     }
 
-    /** ディレクトリデータ */
+    /** Directory data */
     private final DiskBasicDirData<DirectoryXDos> data = new DiskBasicDirData<>();
 
     protected void init(DiskBasic basic, int num, DiskBasicGroupItem groupItem, DiskImageSector sector, int secPos, byte[] data, int dataP, SectorParam next, boolean[] unuse, boolean[] inherit) throws IOException {
@@ -352,15 +352,15 @@ public class DiskBasicDirItemXDOS extends DiskBasicDirItemXDOSBase<DirectoryXDos
 
         used(checkUsed(unuse[0]));
 
-        // チェインセクタへのポインタをセット
+        // Set pointer to chain sector
         if (isUsed()) {
             attachChain(getStartGroup(0));
         }
 
-        // ファイルサイズとグループ数を計算
+        // Calculate file size and number of groups
         calcFileSize();
 
-        // 親ディレクトリはツリーに表示しない
+        // Do not display parent directory in tree
         String name = getFileNamePlainStr();
         visibleOnTree(!(isDirectory() && name.equals("!")));
     }
@@ -393,7 +393,7 @@ public class DiskBasicDirItemXDOS extends DiskBasicDirItemXDOSBase<DirectoryXDos
         data.data().fType = (short) val;
     }
 
-    /** 属性１の文字列 */
+    /** Attribute 1 string */
     public String convFileType1Str(int t1) {
         String str = "";
         if (t1 <= 0x0800) {
@@ -401,7 +401,7 @@ public class DiskBasicDirItemXDOS extends DiskBasicDirItemXDOSBase<DirectoryXDos
         } else if (t1 == 0x8000) {
             str = rb.getString(Utils.keyAt(typeNameXDOS1, 9));
         } else if ((t1 & 0x8000) != 0) {
-            // ユーザファイルタイプ
+            // User file type
             str = convUserFileTypeToStr(t1);
         }
         return str;
@@ -423,7 +423,7 @@ public class DiskBasicDirItemXDOS extends DiskBasicDirItemXDOSBase<DirectoryXDos
         return (!unuse && t1 != 0 && t1 != 0xff);
     }
 
-    /** ユーザーファイルタイプ名を得る */
+    /** Get user file type name */
     private static String convUserFileTypeToStr(int type1) {
         byte[] ext = new byte[4];
         ext[0] = (byte) (((type1 >> 10) & 0x1f) + 0x40);
@@ -433,7 +433,7 @@ public class DiskBasicDirItemXDOS extends DiskBasicDirItemXDOSBase<DirectoryXDos
         return new String(ext, 0, 3);
     }
 
-    /** ユーザーファイルタイプに変換 */
+    /** Convert to user file type */
     public static int convStrToUserFileType(String str) {
         int type1 = 0x8000;
         for (int i = 0; i < str.length() && i < 3; i++) {
@@ -459,7 +459,7 @@ public class DiskBasicDirItemXDOS extends DiskBasicDirItemXDOSBase<DirectoryXDos
 
     @Override
     public boolean isDeletable() {
-        // "!"は不可
+        // "!" is not allowed
         boolean valid = true;
         String name = getFileNamePlainStr();
         if (name.equals("!")) {
@@ -470,7 +470,7 @@ public class DiskBasicDirItemXDOS extends DiskBasicDirItemXDOSBase<DirectoryXDos
 
     @Override
     public boolean delete() {
-        // 削除はエントリの先頭にコードを入れるだけ
+        // Deletion is simply putting a code at the beginning of the entry
         data.fill(basic.invertUint8(basic.getDeleteCode()), 1);
         used(false);
         return true;
@@ -484,15 +484,15 @@ public class DiskBasicDirItemXDOS extends DiskBasicDirItemXDOSBase<DirectoryXDos
         int t1 = 0;
         int t2 = 0;
         if (fileType.isDirectory()) {
-            // ディレクトリの場合
+            // Case of directory
             t1 = FILETYPE_XDOS_DIR << 8;
         } else if (fileType.getFormat() == basic.getFormatTypeNumber()) {
-            // 同じOSの場合
+            // Case of same OS
             t1 = fileType.getOrigin();
             t2 = t1 >> 16;
             t1 &= 0xffff;
         } else {
-            // 違うOSの場合
+            // Case of different OS
             if ((fType & FILE_TYPE_DIRECTORY_MASK.getValue()) != 0) {
                 t1 = FILETYPE_XDOS_DIR;
             } else if ((fType & FILE_TYPE_BASIC_MASK.getValue()) != 0) {
@@ -561,7 +561,7 @@ public class DiskBasicDirItemXDOS extends DiskBasicDirItemXDOSBase<DirectoryXDos
             val |= FILE_TYPE_KANJI_MASK;
         }
 
-        // 独自属性にはファイル種類そのまま入れる
+        // Put file type as is in unique attribute
         int extended = (type1 | (type2 << 16));
 
         return new DiskBasicFileType(basic.getFormatTypeNumber(), val, extended);
@@ -740,7 +740,7 @@ public class DiskBasicDirItemXDOS extends DiskBasicDirItemXDOSBase<DirectoryXDos
     public boolean preExportDataFile(String[] filename) {
         if (!config.isAddExtensionExport()) return true;
 
-        // 拡張子を付加する
+        // Attach extension
         if (!isDirectory()) {
             String ext = convFileType1Str(getFileType1());
             filename[0] += ".";
@@ -761,7 +761,7 @@ public class DiskBasicDirItemXDOS extends DiskBasicDirItemXDOSBase<DirectoryXDos
             isContainAttrByExtension(filename[0], typeNameXDOS1, TYPE_NAME_XDOS_BIN, TYPE_NAME_XDOS_DIC, filename, null, p1);
             if (!(TYPE_NAME_XDOS_BIN <= p1[0] && p1[0] <= TYPE_NAME_XDOS_DIC)) {
                 String fn = Path.of(filename[0]).getFileName().toString();
-                // 拡張子は除く
+                // Extension is excluded
                 filename[0] = fn;
             }
         }
@@ -782,12 +782,12 @@ public class DiskBasicDirItemXDOS extends DiskBasicDirItemXDOSBase<DirectoryXDos
         return t1;
     }
 
-    /** 属性からリストの位置を返す(プロパティダイアログ用) */
+    /** Returns position in list from attribute (for property dialog) */
     protected int getFileType1Pos() {
         return getFileType1();
     }
 
-    /** 属性からリストの位置を返す(プロパティダイアログ用) */
+    /** Returns position in list from attribute (for property dialog) */
     protected int getFileType2Pos() {
         return getFileType2();
     }
@@ -808,12 +808,12 @@ public class DiskBasicDirItemXDOS extends DiskBasicDirItemXDOSBase<DirectoryXDos
     }
 }
 
-/// ディレクトリ１アイテム X-DOS Base
+/** Directory 1 item X-DOS Base */
 abstract class DiskBasicDirItemXDOSBase<T extends Directory> extends DiskBasicDirItem<T> {
 
     static final int XDOS_CHAIN_SEGMENTS = 170;
 
-    /** チェイン情報 */
+    /** Chain information */
     protected DiskBasicDirItemXDOSChain chain = new DiskBasicDirItemXDOSChain();
 
     protected void init(DiskBasic basic, int num, DiskBasicGroupItem groupItem, DiskImageSector sector, int secPos, byte[] data, int dataP, SectorParam next, boolean[] unuse, boolean inherit) throws IOException {
@@ -849,7 +849,7 @@ abstract class DiskBasicDirItemXDOSBase<T extends Directory> extends DiskBasicDi
         return true;
     }
 
-    /** チェイン情報を設定 */
+    /** Set chain information */
     protected void attachChain(int groupNum) throws IOException {
         if (groupNum != 0) {
             DiskImageSector sector = basic.getSectorFromGroup(groupNum);
@@ -861,7 +861,7 @@ abstract class DiskBasicDirItemXDOSBase<T extends Directory> extends DiskBasicDi
         }
     }
 
-    /** グループを追加する */
+    /** Add groups */
     protected void addGroups(int groupNum, int nextGroup, DiskBasicGroups groupItems) {
         int[] track = new int[1], side = new int[1], sector = new int[1], div = new int[1], divs = new int[1];
         track[0] = side[0] = sector[0] = -1;
@@ -886,9 +886,9 @@ abstract class DiskBasicDirItemXDOSBase<T extends Directory> extends DiskBasicDi
 
     @Override
     public boolean isOverWritable() {
-        // ディレクトリは不可
+        // Directory is not allowed
         boolean valid = !isDirectory();
-        // "!"は不可
+        // "!" is not allowed
         valid &= isDeletable();
         return valid;
     }
@@ -906,7 +906,7 @@ abstract class DiskBasicDirItemXDOSBase<T extends Directory> extends DiskBasicDi
         int calcGroups = 0;
 
         if (getFileAttr().isDirectory()) {
-            // ディレクトリの場合
+            // Case of directory
             int groupNum = getStartGroup(fileUnitNum);
             for (int idx = 0; idx < basic.getSubDirGroupSize(); idx++) {
                 addGroups(groupNum, idx + 1 != basic.getSubDirGroupSize() ? groupNum + 1 : 0, groupItems);
@@ -915,8 +915,8 @@ abstract class DiskBasicDirItemXDOSBase<T extends Directory> extends DiskBasicDi
                 calcFileSize += basic.getSectorsPerGroup() * basic.getSectorSize();
             }
         } else {
-            // ファイルの場合
-            // ファイルサイズ
+            // Case of file
+            // File size
             calcFileSize += getFileSize();
 
             if (!chain.isValid()) return;
@@ -1015,8 +1015,8 @@ abstract class DiskBasicDirItemXDOSBase<T extends Directory> extends DiskBasicDi
 
     @Override
     public int recalcFileSizeOnSave(InputStream iStream, int fileSize) throws IOException {
-        // ファイルの最終が終端記号で終わっているかを調べる
-        // ただし、ファイルサイズがクラスタサイズと合うなら終端記号は不要
+        // Check if the end of the file ends with a termination symbol
+        // However, if the file size matches the cluster size, the termination symbol is not required
         if ((fileSize % (basic.getSectorSize() * basic.getSectorsPerGroup())) != 0) {
             fileSize = checkEofCode(iStream, fileSize);
         }

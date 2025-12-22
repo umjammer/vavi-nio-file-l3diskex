@@ -26,7 +26,7 @@ public class UiDirItemVFAT extends UiDirItem {
 
     DiskBasicDirItemVFAT dirItem;
 
-    /** ダイアログ内の属性部分のレイアウトを作成 */
+    /** Create layout for attribute part in dialog */
     @Override
     public void createControlsForAttrDialog(IntNameBox parent, int show_flags, String file_path, BoxLayout sizer, Object flags) {
         // int[] is used to pass int by reference
@@ -35,14 +35,14 @@ public class UiDirItemVFAT extends UiDirItem {
 
         dirItem.setFileTypeForAttrDialog(show_flags, file_path, file_type_1, file_type_2);
 
-        // 属性チェックボックスを作成
+        // Create attribute check box
         dirItem.createControlsSubForAttrDialog(parent, show_flags, sizer, flags, file_type_1[0]);
     }
 
-    /** 機種依存の属性を設定する */
+    /** Set machine dependent attributes */
     @Override
     public boolean setAttrInAttrDialog(IntNameBox parent, DiskBasicDirItemAttr attr, DiskBasicError errinfo) {
-        // 属性
+        // Attribute
         dirItem.setAttrSubInAttrDialog(parent, attr);
 
         return true;

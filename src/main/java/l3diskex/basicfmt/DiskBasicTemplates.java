@@ -27,7 +27,7 @@ import static l3diskex.basicfmt.DiskBasicCategory.find;
 
 
 /**
- * DISK BASICパラメータのテンプレートを提供する
+ * Provides templates for DISK BASIC parameters
  */
 public class DiskBasicTemplates extends TemplatesBase {
 
@@ -43,11 +43,11 @@ public class DiskBasicTemplates extends TemplatesBase {
     }
 
     /**
-     * XMLファイル読み込み
+     * Read XML file
      *
-     * @param dataPath   XMLファイルがあるフォルダ
-     * @param localeName ローケル名
-     * @param errMsgs     エラーメッセージ
+     * @param dataPath   Folder where XML files are located
+     * @param localeName Locale name
+     * @param errMsgs    Error messages
      * @return true/false
      * @see "basicTypes.xml"
      */
@@ -106,90 +106,90 @@ logger.log(Level.INFO, "categories: " + categories.size());
     }
 
     /**
-     * カテゴリとタイプに一致するパラメータを検索
+     * Search for parameters matching category and type
      *
-     * @param category   カテゴリ名 空文字列の場合は検索条件からはずす
-     * @param basicType タイプ名
-     * @return 一致したパラメータ
+     * @param category   Category name; if empty string, excluded from search conditions
+     * @param basicType Type name
+     * @return Matched parameters
      */
     public DiskBasicParam findType(String category, String basicType) {
         return types.find(category, basicType);
     }
 
     /**
-     * カテゴリが一致し、タイプリストに含まれるパラメータを検索
+     * Search for parameters whose category matches and is included in the type list
      *
-     * @param category    カテゴリ名 空文字列の場合は検索条件からはずす
-     * @param basicTypes タイプ名リスト
-     * @return 一致したパラメータ
+     * @param category    Category name; if empty string, excluded from search conditions
+     * @param basicTypes Type name list
+     * @return Matched parameters
      */
     public DiskBasicParam findType(String category, List<DiskParamName> basicTypes) {
         return types.find(category, basicTypes);
     }
 
     /**
-     * カテゴリ、タイプ、サイド数とセクタ数が一致するパラメータを検索
-     * まず、カテゴリ＆タイプで検索し、なければカテゴリ＆サイド数＆セクタ数で検索
+     * Search for parameters matching category, type, number of sides, and number of sectors
+     * First, search by category & type, and if not found, search by category & number of sides & number of sectors
      *
-     * @param category   カテゴリ名 必須
-     * @param basicType タイプ名 必須
-     * @param sides      サイド数
-     * @param sectors    セクタ数/トラック -1の場合は検索条件からはずす
-     * @return 一致したパラメータ
+     * @param category   Category name (required)
+     * @param basicType Type name (required)
+     * @param sides      Number of sides
+     * @param sectors    Number of sectors/track; if -1, excluded from search conditions
+     * @return Matched parameters
      */
     public DiskBasicParam findType(String category, String basicType, int sides, int sectors) {
         return types.find(category, basicType, sides, sectors);
     }
 
     /**
-     * DISK BASICフォーマット種類に一致するタイプを検索
+     * Search for types matching DISK BASIC format type
      *
-     * @param formatTypes DISK BASICフォーマット種類
-     * @param types        [out] 一致したタイプリスト
-     * @return リストの数
+     * @param formatTypes DISK BASIC format types
+     * @param types        [out] Matched type list
+     * @return Number of items in the list
      */
     public int findTypes(List<Integer> formatTypes, DiskBasicParams types) {
         return this.types.findTypes(formatTypes, types);
     }
 
     /**
-     * カテゴリ番号に一致するタイプ名リストを検索
+     * Search for type name list matching category number
      *
-     * @param categoryIndex カテゴリ番号
-     * @param typeNames     [out] タイプ名リスト
-     * @return リストの数
+     * @param categoryIndex Category number
+     * @param typeNames     [out] Type name list
+     * @return Number of items in the list
      */
     public int findTypeNames(int categoryIndex, List<String> typeNames) {
         return types.findNames(categories.get(categoryIndex).getName(), typeNames);
     }
 
     /**
-     * カテゴリ名に一致するタイプ名リストを検索
+     * Search for type name list matching category name
      *
-     * @param categoryName カテゴリ名
-     * @param typeNames    [out] タイプ名リスト
-     * @return リストの数
+     * @param categoryName Category name
+     * @param typeNames    [out] Type name list
+     * @return Number of items in the list
      */
     public int findTypeNames(String categoryName, List<String> typeNames) {
         return types.findNames(categoryName, typeNames);
     }
 
     /**
-     * フォーマット種類を検索
+     * Search for format type
      *
-     * @param formatType フォーマット種類
+     * @param formatType Format type
      */
     public DiskBasicFormat findFormat(int formatType) {
         return formats.find(formatType);
     }
 
     /**
-     * タイプリストと一致するパラメータを得る
-     * パラメータリストは説明文でソートする
+     * Obtain parameters matching the type list
+     * Sort parameter list by description
      *
-     * @param typeNames タイプ名リスト
-     * @param params       [out] パラメータリスト
-     * @return パラメータリストの数
+     * @param typeNames Type name list
+     * @param params       [out] Parameter list
+     * @return Number of items in the parameter list
      */
     public int findParams(List<DiskParamName> typeNames, DiskBasicParams params) {
         for (DiskParamName typeName : typeNames) {
@@ -202,20 +202,20 @@ logger.log(Level.INFO, "categories: " + categories.size());
     }
 
     /**
-     * カテゴリを検索
+     * Search for category
      *
-     * @param category カテゴリ名
-     * @return カテゴリ
+     * @param category Category name
+     * @return Category
      */
     public DiskBasicCategory findCategory(String category) {
         return find(categories, category);
     }
 
     /**
-     * カテゴリ名を返す
+     * Returns category name
      *
-     * @param index インデックス
-     * @return カテゴリ名
+     * @param index Index
+     * @return Category name
      */
     public String getCategoryName(int index) {
         return categories.get(index).getName();

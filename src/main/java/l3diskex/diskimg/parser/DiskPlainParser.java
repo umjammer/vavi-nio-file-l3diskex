@@ -23,7 +23,7 @@ import static l3diskex.diskimg.DiskParam.diskTemplates;
 
 
 /**
- * べたディスクパーサー
+ * Plain disk parser
  */
 public class DiskPlainParser extends DiskImageParser {
 
@@ -38,11 +38,11 @@ public class DiskPlainParser extends DiskImageParser {
     }
 
     /**
-     * インターリーブの解析
+     * Interleave analysis
      *
-     * @param track        トラック
-     * @param interleave   インターリーブ
-     * @param sectorOffset セクタオフセット
+     * @param track        Track
+     * @param interleave   Interleave
+     * @param sectorOffset Sector offset
      */
     protected void parseInterleave(DiskImageTrack track, int interleave, int sectorOffset) {
         if (track == null) return;
@@ -74,22 +74,22 @@ public class DiskPlainParser extends DiskImageParser {
     }
 
     /**
-     * セクタデータの解析
+     * Sector data analysis
      *
-     * @param istream      入力ディスクイメージ
-     * @param diskNumber   ディスク番号
-     * @param diskParam    ディスクパラメータ
-     * @param trackNumber  トラック番号
-     * @param sideNumber   サイド番号
-     * @param sectorNumber セクタ番号
-     * @param sectorNums   セクタ数
-     * @param sectorSize   セクタサイズ
-     * @param isDummy      ダミーセクタか(0でパディングするか)
-     * @param track        [in,out] トラック
-     * @return 作成したセクタのサイズ（ヘッダ含む）
+     * @param istream      Input disk image
+     * @param diskNumber   Disk number
+     * @param diskParam    Disk parameter
+     * @param trackNumber  Track number
+     * @param sideNumber   Side number
+     * @param sectorNumber Sector number
+     * @param sectorNums   Number of sectors
+     * @param sectorSize   Sector size
+     * @param isDummy      Whether it is a dummy sector (whether to pad with 0)
+     * @param track        [in,out] Track
+     * @return Size of created sector (including header)
      */
     protected int parseSector(InputStream istream, int diskNumber, DiskParam diskParam, int trackNumber, int sideNumber, int sectorNumber, int[] sectorNums, int[] sectorSize, boolean isDummy, DiskImageTrack track) throws IOException {
-        // 特殊なセクタにするか
+        // Whether to make it a special sector
         int[][] sectorId = new int[1][];
         if (diskParam.findParticularSector(trackNumber, sideNumber, sectorNumber, sectorSize, sectorId)) {
             if ((sectorId[0][1] & TrackParam.ID_IS_VALID) != 0) {
@@ -100,7 +100,7 @@ public class DiskPlainParser extends DiskImageParser {
             }
         }
 
-        // 単密度か
+        // Single density?
         boolean singleDensity = diskParam.findSingleDensity(trackNumber, sideNumber, sectorNumber, sectorSize[0]);
 
         DiskImageSector sector = track.newImageSector(trackNumber, sideNumber, sectorNumber, sectorSize[0], sectorNums[0], singleDensity, 0);
@@ -112,36 +112,36 @@ public class DiskPlainParser extends DiskImageParser {
         if (!isDummy) {
             int len = istream.readNBytes(buf, 0, siz);
             if (len == 0) {
-                // ファイルデータが足りない
+                // Not enough file data
                 //result.setError(DiskResult.ERRV_INVALID_DISK, 0);
-                // ので０パディング
+                // so zero padding
                 isDummy = true;
             }
         }
         if (isDummy) {
-            // ダミーセクタ or 足りない分
+            // Dummy sector or missing part
             sector.fill((byte) 0);
         }
 
         sector.clearModify();
 
-        // このセクタデータのサイズを返す
+        // Return size of this sector data
         return sector.getSize();
     }
 
     /**
-     * トラックデータの解析
+     * Track data analysis
      *
-     * @param istream     入力ディスクイメージ
-     * @param offsetPos   オフセット位置(index)
-     * @param offset      オフセットバイト
-     * @param diskNumber  ディスク番号
-     * @param diskParam   ディスクパラメータ
-     * @param trackNumber トラック番号
-     * @param sideNumber  サイド番号
-     * @param isDummySide ダミーサイドか
-     * @param disk        [in,out] ディスク
-     * @return 作成したトラックのサイズ
+     * @param istream     Input disk image
+     * @param offsetPos   Offset position (index)
+     * @param offset      Offset bytes
+     * @param diskNumber  Disk number
+     * @param diskParam   Disk parameter
+     * @param trackNumber Track number
+     * @param sideNumber  Side number
+     * @param isDummySide Whether it is a dummy side
+     * @param disk        [in,out] Disk
+     * @return Size of created track
      */
     protected int parseTrack(InputStream istream, int offsetPos, int offset, int diskNumber, DiskParam diskParam, int trackNumber, int sideNumber, boolean isDummySide, DiskImageDisk disk) throws IOException {
         DiskImageTrack track = disk.newImageTrack(trackNumber, sideNumber, offsetPos, 1);
@@ -150,16 +150,16 @@ public class DiskPlainParser extends DiskImageParser {
         int[] sectorNums = {diskParam.getSectorsPerTrack()};
         int[] sectorSize = {diskParam.getSectorSize()};
 
-        // 特殊なトラックならセクタ番号＆サイズを得る
+        // Get sector number & size if it is a special track
         diskParam.findParticularTrack(trackNumber, sideNumber, sectorNums, sectorSize);
 
-        // トラック全体が単密度の場合はセクタ数とサイズを得る
+        // Get number of sectors and size if the entire track is single density
         diskParam.findSingleDensity(trackNumber, sideNumber, sectorNums, sectorSize);
 
         int trackSize = 0;
         int sectorOffset = diskParam.getSectorNumberBaseOnDisk();
 
-        // セクタ番号の付番方法(0:サイド毎、1:トラック毎)
+        // Sector numbering method (0: per side, 1: per track)
         if (diskParam.getNumberingSector() != 0) {
             sectorOffset += sideNumber * sectorNums[0];
         }
@@ -168,13 +168,13 @@ public class DiskPlainParser extends DiskImageParser {
             trackSize += parseSector(istream, diskNumber, diskParam, trackNumber, sideNumber, sectorNumber + sectorOffset, sectorNums, sectorSize, isDummySide, track);
         }
         if (result.getValid() >= 0) {
-            // インターリーブ
+            // Interleave
             parseInterleave(track, diskParam.getInterleave(), sectorOffset);
-            // トラックサイズ設定
+            // Set track size
             track.setSize(trackSize);
-            // ディスクに追加
+            // Add to disk
             disk.add(track);
-            // オフセット設定
+            // Set offset
             disk.setOffset(offsetPos, offset);
         }
 
@@ -182,18 +182,18 @@ public class DiskPlainParser extends DiskImageParser {
     }
 
     /**
-     * ディスクデータの解析
+     * Disk data analysis
      *
-     * @param iStream    入力ディスクイメージ
-     * @param diskNumber ディスク番号
-     * @param diskParam  ディスクパラメータ
-     * @return オフセット
+     * @param iStream    Input disk image
+     * @param diskNumber Disk number
+     * @param diskParam  Disk parameter
+     * @return Offset
      */
     protected int parseDisk(InputStream iStream, int diskNumber, DiskParam diskParam) throws IOException {
         DiskImageDisk disk = file.newImageDisk(diskNumber);
 
-        // パラメータの計算値がディスクサイズの２倍なら
-        // 表面にのみデータをセットする
+        // If calculated parameter value is twice the disk size
+        // set data only on the front side
         int dummySide = -1;
         int streamLength = iStream.available();
         if (streamLength * 2 <= diskParam.calcDiskSize()) {
@@ -208,7 +208,7 @@ public class DiskPlainParser extends DiskImageParser {
         int sideNumEd = diskParam.getSidesPerDisk() + sideNumSt;
         for (; trackNum < tracksPerSide && result.getValid() >= 0; trackNum++) {
             for (int sideNum = sideNumSt; sideNum < sideNumEd && result.getValid() >= 0; sideNum++) {
-                // トラック作成
+                // Create track
                 offset += parseTrack(iStream, offsetPos, offset, diskNumber, diskParam, trackNum, sideNum, sideNum == dummySide, disk);
                 offsetPos++;
             }
@@ -216,7 +216,7 @@ public class DiskPlainParser extends DiskImageParser {
         disk.setSize(offset);
 
         if (result.getValid() >= 0) {
-            // ディスクを追加
+            // Add disk
             DiskParam majorDiskParam = disk.calcMajorNumber();
             if (majorDiskParam != null) {
                 disk.setDensity(majorDiskParam.getParamDensity());
@@ -228,15 +228,15 @@ public class DiskPlainParser extends DiskImageParser {
     }
 
     /**
-     * ベタファイルを解析
+     * Analyze plain file
      *
-     * @param iStream   解析対象データ
-     * @param diskParam ディスクパラメータ
-     * @return 0: 正常, -1: エラーあり, 1: 警告あり
+     * @param iStream   Data to be analyzed
+     * @param diskParam Disk parameter
+     * @return 0: normal, -1: error, 1: warning
      */
     @Override
     public int parse(InputStream iStream, DiskParam diskParam) throws IOException {
-        // パラメータ
+        // Parameters
         if (diskParam == null) {
             result.setError(DiskResult.ERRV_INVALID_DISK, 0);
             return result.getValid();
@@ -257,37 +257,37 @@ public class DiskPlainParser extends DiskImageParser {
         int rc = 0;
         int streamSize = iStream.available(); // TODO assume available as length
 
-        // パラメータで判断
+        // Judge by parameters
         if (diskParam != null) {
-            // 特定している
+            // Identified
             diskParams.add(diskParam);
             return rc;
         }
 
         if (diskHints != null) {
-            // パラメータヒントあり
+            // Parameter hint exists
 
-            // 優先順位の高い候補
+            // Candidates with high priority
             for (DiskTypeHint diskHint : diskHints) {
                 String hint = diskHint.getHint();
                 DiskParam param = diskTemplates.find(hint);
                 if (param != null) {
                     int diskSizeHint = param.calcDiskSize();
                     if (streamSize == diskSizeHint) {
-                        // ファイルサイズが一致
+                        // File size matches
                         diskParams.add(param);
                     }
                 }
             }
         }
 
-        // ディスクテンプレート全体から探す
+        // Search from all disk templates
         for (int mag = 1; mag <= 2; mag++) {
             boolean separator = (diskParams.isEmpty());
             for (int i = 0; i < diskTemplates.size(); i++) {
                 DiskParam param = diskTemplates.get(i);
                 if (param != null) {
-                    // 同じ候補がある場合スキップ
+                    // Skip if same candidate exists
                     if (diskParams.contains(param)) {
                         continue;
                     }
@@ -298,29 +298,29 @@ public class DiskPlainParser extends DiskImageParser {
                             diskParams.add(null);
                             separator = true;
                         }
-                        // ファイルサイズが一致
+                        // File size matches
                         diskParams.add(param);
                     }
                 }
             }
         }
 
-        // 候補がないとき、ディスクサイズからパラメータを計算
+        // If no candidate, calculate parameters from disk size
         if (diskParams.isEmpty()) {
             calcParamFromSize(streamSize, manualParam);
         }
 
-        // GUIで選択ダイアログを表示させる
+        // Show selection dialog by GUI
         rc = 1;
 
         return rc;
     }
 
-    // セクタサイズヒント
+    // Sector size hint
     private static final int[] secSizeHints = {
             256, 128, 0
     };
-    // セクタ数ヒント
+    // Number of sectors hint
     private static final int[] secs256 = {10, 16, 18, 0};
     private static final int[] secs512 = {9, 10, 0};
     private static final int[] secs1024 = {4, 5, 0};
@@ -331,9 +331,9 @@ public class DiskPlainParser extends DiskImageParser {
     };
     private static final int[] tracks = {80, 77, 40, 35, 512, 511, 256, 255, 128, 127, 64, 63, 0};
 
-    /** ディスクサイズから尤もらしいパラメータを計算する */
+    /** Calculate plausible parameters from disk size */
     protected void calcParamFromSize(int diskSize, DiskParam diskParam) {
-        // トラック数はディスクサイズで
+        // Number of tracks by disk size
         int maxTracks = 41;
         int minTracks = 40;
         if (diskSize > 1_000_000) {
@@ -351,8 +351,8 @@ public class DiskPlainParser extends DiskImageParser {
         int desidedAllSectors = 0;
 
         for (int secSizeIdx = 0; secSizeHints[secSizeIdx] != 0; secSizeIdx++) {
-            // セクタサイズで割る
-            value = diskSize % secSizeHints[secSizeIdx]; // 余り
+            // Divide by sector size
+            value = diskSize % secSizeHints[secSizeIdx]; // Remainder
             if (value == 0) {
                 desidedSecSizeIdx = secSizeIdx;
                 desidedAllSectors = diskSize / secSizeHints[secSizeIdx];
@@ -360,7 +360,7 @@ public class DiskPlainParser extends DiskImageParser {
             }
         }
         if (desidedSecSizeIdx < 0) {
-            // セクタサイズ候補なし
+            // No sector size candidates
             return;
         }
 
@@ -386,9 +386,9 @@ public class DiskPlainParser extends DiskImageParser {
             }
         }
 
-        // 候補がない
+        // No candidates
         if (!desided) {
-            // ディスクサイズで割り切れる値を候補にする
+            // Make values divisible by disk size candidates
             for (int sides = 2; sides >= 1; sides--) {
                 value = desidedAllSectors % sides;
                 if (value == 0) {
@@ -397,7 +397,7 @@ public class DiskPlainParser extends DiskImageParser {
                     break;
                 }
             }
-            // トラック数で割る
+            // Divide by number of tracks
             for (int t = 0; tracks[t] != 0; t++) {
                 value = desidedAllSectors % tracks[t];
                 if (value == 0) {
@@ -407,7 +407,7 @@ public class DiskPlainParser extends DiskImageParser {
                 }
             }
             if (value != 0) {
-                // セクタ数で割る
+                // Divide by number of sectors
                 for (int s = 32; s >= 2; s--) {
                     value = desidedAllSectors % s;
                     if (value == 0) {

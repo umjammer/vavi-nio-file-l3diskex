@@ -474,7 +474,7 @@ logger.log(Level.TRACE, "streamSize: %d, diskSize: %d".formatted(streamSize, dis
             result.setError(DiskResult.ERRV_DISK_SIZE_ZERO, diskNumber);
             return result.getValid();
         }
-        // チェック
+        // Check
         if (check(iStream) != 0) {
             result.setError(DiskResult.ERRV_INVALID_DISK, diskNumber);
             return result.getValid();

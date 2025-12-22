@@ -38,7 +38,7 @@ import static l3diskex.basicfmt.type.DiskBasicTypeOS9.FORMAT_TYPE_OS9;
 
 
 /**
- * ディレクトリ１アイテム OS-9
+ * Directory 1 item OS-9
  */
 public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
 
@@ -121,7 +121,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     }
 
     /**
-     * ディレクトリエントリ OS-9 (32bytes)
+     * Directory entry OS-9 (32bytes)
      */
     @Serdes
     public static class DirectoryOs9 implements Directory {
@@ -178,7 +178,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     public static final int FILETYPE_MASK_OS9_USER_WRITE = 0x02;
     public static final int FILETYPE_MASK_OS9_USER_READ = 0x01;
 
-    // OS-9属性名
+    // OS-9 attribute names
     public static final String[] G_TYPE_NAME_OS9 = {
             "<DIR>",
             "Non-sharable",
@@ -195,7 +195,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     };
 
     /**
-     * OS-9 File Descriptorエリアのポインタ
+     * Pointer to OS-9 File Descriptor area
      */
     public static class DiskBasicDirItemOS9FD {
 
@@ -218,7 +218,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
             myLsn = -1;
         }
 
-        /** ポインタをセット */
+        /** Set pointer */
         public void set(DiskBasic basic, DiskImageSector sector, int myLsn, DirectoryOs9Fd fd) {
             this.basic = basic;
             this.sector = sector;
@@ -226,13 +226,13 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
             this.fd = fd;
         }
 
-        /** FDのメモリ確保 */
+        /** Allocate memory for FD */
         public void alloc() {
             fd = null;
             fd = new DirectoryOs9Fd();
         }
 
-        /** FDをクリア */
+        /** Clear FD */
         public void clear() {
             if (sector != null) {
                 sector.fill((byte) 0);
@@ -241,61 +241,61 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
             }
         }
 
-        /** 有効か */
+        /** Whether valid */
         public boolean isValid() {
             return (fd != null);
         }
 
-        /** FDへのポインタを返す */
+        /** Returns pointer to FD */
         public DirectoryOs9Fd getFD() {
             return fd;
         }
 
-        /** 自分のLSNを返す */
+        /** Returns own LSN */
         public int getMyLSN() {
             return myLsn;
         }
 
-        /** 自分のLSNを設定 */
+        /** Set own LSN */
         public void setMyLSN(int val) {
             myLsn = val;
         }
 
-        /** 属性を返す */
+        /** Returns attribute */
         public short getAttr() {
             return fd != null ? fd.attr : 0;
         }
 
-        /** 属性をセット */
+        /** Set attribute */
         public void setAttr(short val) {
             if (fd != null) {
                 fd.attr = (byte) val;
             }
         }
 
-        /** ユーザIDを返す */
+        /** Returns owner ID */
         public int getOwnerId() {
             return fd != null ? fd.ownerId : 0;
         }
 
-        /** ユーザIDをセット */
+        /** Set owner ID */
         public void setOwnerId(int val) {
             if (fd != null) {
                 fd.ownerId = (short) val;
             }
         }
 
-        /** セグメントのLSNを返す */
+        /** Returns LSN of segment */
         public int getLsn(int idx) {
             return fd != null ? fd.segments[idx].lsn.getOs9Lsn() : 0;
         }
 
-        /** セグメントのセクタ数を返す */
+        /** Returns number of sectors in segment */
         public int getSize(int idx) {
             return fd != null ? fd.segments[idx].siz : 0;
         }
 
-        /** セグメントにLSNを設定 */
+        /** Set LSN in segment */
         public void setLsn(int idx, int val) {
             if (fd != null) {
                 Os9Lsn x = new Os9Lsn();
@@ -304,50 +304,50 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
             }
         }
 
-        /** セグメントにセクタ数を設定 */
+        /** Set number of sectors in segment */
         public void setSize(int idx, int val) {
             if (fd != null) {
                 fd.segments[idx].siz = (short) val;
             }
         }
 
-        /** ファイルサイズを返す */
+        /** Returns file size */
         public int getSize() {
             return fd != null ? fd.size : 0;
         }
 
-        /** ファイルサイズを設定 */
+        /** Set file size */
         public void setSize(int val) {
             if (fd != null) {
                 fd.size = val;
             }
         }
 
-        /** リンク数を返す */
+        /** Returns number of links */
         public short getLinkCount() {
             return fd != null ? fd.linkCount : 0;
         }
 
-        /** リンク数を設定 */
+        /** Set number of links */
         public void setLinkCount(short val) {
             if (fd != null) {
                 fd.linkCount = (byte) val;
             }
         }
 
-        /** 更新日付を返す */
+        /** Returns modify date */
         public Os9Date getDate() {
             return fd != null ? fd.date : zeroData.date;
         }
 
-        /** 更新日付をセット */
+        /** Set modify date */
         public void setDate(Os9Date val) {
             if (fd != null) {
                 fd.date = val;
             }
         }
 
-        /** 更新日付をセット */
+        /** Set modify date */
         public void setDate(Os9CDate val) {
             if (fd != null) {
                 fd.date.yy = val.yy;
@@ -356,19 +356,19 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
             }
         }
 
-        /** 作成日付を返す */
+        /** Returns creation date */
         public Os9CDate getCDate() {
             return fd != null ? fd.cDate : zeroData.cDate;
         }
 
-        /** 作成日付をセット */
+        /** Set creation date */
         public void setCDate(Os9CDate val) {
             if (fd != null) {
                 fd.cDate = val;
             }
         }
 
-        /** 更新にする */
+        /** Set as modified */
         public void setModify() {
         }
     }
@@ -377,16 +377,16 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     //
     //
 
-    /** ディレクトリデータ */
+    /** Directory data */
     private final DiskBasicDirData<DirectoryOs9> data = new DiskBasicDirData<>();
 
-    /** File Descriptorエリアのポインタ */
+    /** Pointer to File Descriptor area */
     private final DiskBasicDirItemOS9.DiskBasicDirItemOS9FD fd = new DiskBasicDirItemOS9FD();
 
-    /** ユーザID(プロパティダイアログ用) */
+    /** Owner ID (for property dialog) */
     public int ownerId;
 
-    /** グループID(プロパティダイアログ用) */
+    /** Group ID (for property dialog) */
     public int groupId;
 
     @Override
@@ -424,7 +424,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
 
         used(checkUsed(unuse[0]));
 
-        // FDセクタへのポインタをセット
+        // Set pointer to FD sector
         if (isUsed()) {
             int lsn = this.data.data().deLsn.getOs9Lsn();
             if (lsn != 0) {
@@ -439,20 +439,20 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
 
         calcFileSize();
 
-        // カレント or 親ディレクトリはツリーに表示しない
+        // Do not display current or parent directory in tree
         String name = getFileNamePlainStr();
         visibleOnTree(!(isDirectory() && (name.equals(".") || name.equals(".."))));
     }
 
     /**
-     * アイテムへのポインタを設定
+     * Set pointer to item
      *
-     * @param num    通し番号
-     * @param groupItem  トラック番号などのデータ
-     * @param sector セクタ
-     * @param sectorPos セクタ内のディレクトリエントリの位置
-     * @param data   ディレクトリアイテム
-     * @param next   [out] 次のセクタ
+     * @param num    Serial number
+     * @param groupItem  Data such as track number
+     * @param sector Sector
+     * @param sectorPos Position of directory entry within sector
+     * @param data   Directory item
+     * @param next   [out] Next sector
      */
     @Override
     public void setData(int num, DiskBasicGroupItem groupItem, DiskImageSector sector, int sectorPos,
@@ -463,7 +463,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     }
 
     /**
-     * ファイル名を格納する位置を返す
+     * Returns position where file name is stored
      */
     @Override
     protected byte[] getFileNamePos(int num, int[] size, int[] len) {
@@ -477,7 +477,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     }
 
     /**
-     * 属性１を返す
+     * Returns attribute 1
      */
     @Override
     protected int getFileType1() {
@@ -485,7 +485,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     }
 
     /**
-     * 属性１のセット
+     * Set attribute 1
      */
     @Override
     protected void setFileType1(int val) {
@@ -493,7 +493,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     }
 
     /**
-     * 使用しているアイテムか
+     * Whether it is a used item
      */
     @Override
     public boolean checkUsed(boolean unuse) {
@@ -501,28 +501,28 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     }
 
     /**
-     * ユーザIDを返す
+     * Returns owner ID
      */
     public int getUserID() {
         return fd.getOwnerId();
     }
 
     /**
-     * ユーザIDのセット
+     * Set owner ID
      */
     public void setUserID(int val) {
         fd.setOwnerId(val & 0xffff);
     }
 
     /**
-     * 属性からリストの位置を返す(プロパティダイアログ用)
+     * Returns position in list from attribute (for property dialog)
      */
     public int getFileType1Pos() {
         return getFileType1();
     }
 
     /**
-     * ファイル名を設定
+     * Set file name
      */
     @Override
     protected void setNativeName(byte[] filename, int size, int length) {
@@ -532,18 +532,18 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     }
 
     /**
-     * ファイル名を得る
+     * Get file name
      */
     @Override
     public void getNativeFileName(byte[] name, int[] nLen, byte[] ext, int[] eLen) {
         super.getNativeFileName(name, nLen, ext, eLen);
 
-        // 文字列の最後はMSBがセットされているのでクリア
+        // MSB is set on the last character of the string, so clear it
         nLen[0] = decodeString(name, nLen[0], name, nLen[0]);
     }
 
     /**
-     * 日付を変換
+     * Convert date
      */
     public LocalDate convDateToTm(Os9CDate date) {
         return LocalDate.of(
@@ -554,7 +554,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     }
 
     /**
-     * 時間を変換
+     * Convert time
      */
     public LocalTime convTimeToTm(Os9Date time) {
         return LocalTime.of(
@@ -564,7 +564,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     }
 
     /**
-     * 日付に変換
+     * Convert to date
      */
     public void convTmToDate(LocalDateTime tm, Os9CDate date) {
         date.yy = (byte) (tm.getYear() % 100);
@@ -573,7 +573,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     }
 
     /**
-     * 時間に変換
+     * Convert to time
      */
     public void convTmToTime(LocalDateTime tm, Os9Date time) {
         time.hh = (byte) tm.getHour();
@@ -581,7 +581,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     }
 
     /**
-     * ディレクトリアイテムのチェック
+     * Check directory item
      */
     @Override
     public boolean check(boolean[] last) {
@@ -593,18 +593,18 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     }
 
     /**
-     * 削除
+     * Delete
      */
     @Override
     public boolean delete() {
-        // 削除はエントリの先頭にコードを入れるだけ
+        // Deletion is simply putting a code at the beginning of the entry
         data.data().deNam[0] = basic.getDeleteCode();
         used(false);
         return true;
     }
 
     /**
-     * 属性を設定
+     * Set attribute
      */
     @Override
     public void setFileAttr(DiskBasicFileType fileType) {
@@ -637,7 +637,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     }
 
     /**
-     * 属性を返す
+     * Returns attribute
      */
     @Override
     public DiskBasicFileType getFileAttr() {
@@ -657,7 +657,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     }
 
     /**
-     * 属性の文字列を返す(ファイル一覧画面表示用)
+     * Returns attribute string (for file list display)
      */
     @Override
     public String getFileAttrStr() {
@@ -684,7 +684,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     }
 
     /**
-     * ファイルサイズをセット
+     * Set file size
      */
     @Override
     public void setFileSize(int val) {
@@ -693,7 +693,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     }
 
     /**
-     * ファイルサイズを返す
+     * Returns file size
      */
     @Override
     public int getFileSize() {
@@ -703,7 +703,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     }
 
     /**
-     * ファイルサイズとグループ数を計算する
+     * Calculate file size and number of groups
      */
     @Override
     public void calcFileUnitSize(int fileUnitNum) {
@@ -713,7 +713,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     }
 
     /**
-     * 指定ディレクトリのすべてのグループを取得
+     * Get all groups of specified directory
      */
     @Override
     public void getUnitGroups(int fileUnitNum, DiskBasicGroups groupItems) {
@@ -755,7 +755,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     }
 
     /**
-     * 作成日付を得る
+     * Get creation date
      */
     @Override
     public LocalDate getFileCreateDate(LocalDateTime tm) {
@@ -767,7 +767,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     }
 
     /**
-     * 作成日付を文字列で返す
+     * Returns creation date string
      */
     @Override
     public String getFileCreateDateStr() {
@@ -777,7 +777,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     }
 
     /**
-     * 作成日付をセット
+     * Set creation date
      */
     @Override
     public void setFileCreateDate(LocalDateTime tm) {
@@ -789,7 +789,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     }
 
     /**
-     * 更新日付を得る
+     * Get modify date
      */
     @Override
     public LocalDate getFileModifyDate(LocalDateTime tm) {
@@ -805,7 +805,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     }
 
     /**
-     * 更新時間を得る
+     * Get modify time
      */
     @Override
     public LocalTime getFileModifyTime(LocalDateTime tm) {
@@ -817,7 +817,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     }
 
     /**
-     * 更新日付を文字列で返す
+     * Returns modify date string
      */
     @Override
     public String getFileModifyDateStr() {
@@ -827,7 +827,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     }
 
     /**
-     * 更新時間を文字列で返す
+     * Returns modify time string
      */
     @Override
     public String getFileModifyTimeStr() {
@@ -837,7 +837,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     }
 
     /**
-     * 更新日付を設定
+     * Set modify date
      */
     @Override
     public void setFileModifyDate(LocalDateTime tm) {
@@ -849,7 +849,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     }
 
     /**
-     * 更新時間を設定
+     * Set modify time
      */
     @Override
     public void setFileModifyTime(LocalDateTime tm) {
@@ -861,7 +861,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     }
 
     /**
-     * 日時の表示順序を返す（ダイアログ用）
+     * Returns display order of date and time (for dialog)
      */
     @Override
     public int getFileDateTimeOrder(int idx) {
@@ -869,7 +869,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     }
 
     /**
-     * 日時を返す（ファイルリスト用）
+     * Returns date and time (for file list)
      */
     @Override
     public String getFileDateTimeStr() {
@@ -877,7 +877,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     }
 
     /**
-     * 最初のグループ番号を設定
+     * Set the first group number
      */
     @Override
     public void setStartGroup(int fileUnitNum, int val, int size /* = 0 */) {
@@ -885,7 +885,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     }
 
     /**
-     * 最初のグループ番号を返す
+     * Returns the first group number
      */
     @Override
     public int getStartGroup(int fileUnitNum) {
@@ -893,7 +893,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     }
 
     /**
-     * 追加のグループ番号をセット FDセクタへのLSNをセット
+     * Set extra group number: set LSN to FD sector
      */
     @Override
     public void setExtraGroup(int val) {
@@ -901,7 +901,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     }
 
     /**
-     * 追加のグループ番号を返す FDセクタへのLSNを返す
+     * Returns extra group number: returns LSN to FD sector
      */
     @Override
     public int getExtraGroup() {
@@ -909,7 +909,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     }
 
     /**
-     * 追加のグループ番号を得る
+     * Get extra group number
      */
     @Override
     public void getExtraGroups(List<Integer> arr) {
@@ -917,7 +917,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     }
 
     /**
-     * チェイン用のセクタをセット
+     * Set sector for chain
      */
     @Override
     public void setChainSector(DiskImageSector sector, int lsn, byte[] data, DiskBasicDirItem<DirectoryOs9> pItem) throws IOException {
@@ -926,19 +926,19 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
         this.fd.set(basic, sector, lsn, fd);
         this.fd.clear();
 
-        // 属性をコピー
+        // Copy attribute
         if (pItem != null) copyItem(pItem);
 
-        // リンク数
+        // Link count
         this.fd.setLinkCount((short) 1);
     }
 
     /**
-     * アイテムを削除できるか
+     * Whether item can be deleted
      */
     @Override
     public boolean isDeletable() {
-        // ".", ".."は不可
+        // ".", ".." are not allowed
         boolean valid = true;
         String name = getFileNamePlainStr();
         if (name.equals(".") || name.equals("..")) {
@@ -948,47 +948,47 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     }
 
     /**
-     * ファイル名を編集できるか
+     * Whether file name can be edited
      */
     @Override
     public boolean isFileNameEditable() {
-        // ".", ".."は不可
+        // ".", ".." are not allowed
         return isDeletable();
     }
 
     /**
-     * アイテムをロード・エクスポートできるか
+     * Whether item can be loaded or exported
      */
     @Override
     public boolean isLoadable() {
-        // ".", ".."は不可
+        // ".", ".." are not allowed
         return isDeletable();
     }
 
     /**
-     * アイテムをコピー(内部でDnD)できるか
+     * Whether item can be copied (DnD internally)
      */
     @Override
     public boolean isCopyable() {
-        // ".", ".."は不可
+        // ".", ".." are not allowed
         return isDeletable();
     }
 
     /**
-     * アイテムを上書きできるか
+     * Whether item can be overwritten
      */
     @Override
     public boolean isOverWritable() {
-        // ディレクトリは不可
+        // Directory is not allowed
         int t1 = getFileType1();
         boolean valid = ((t1 & FILETYPE_MASK_OS9_DIRECTORY) == 0);
-        // ".", ".."は不可
+        // ".", ".." are not allowed
         valid &= isDeletable();
         return valid;
     }
 
     /**
-     * ディレクトリアイテムのサイズ
+     * Size of directory item
      */
     @Override
     public int getDataSize() {
@@ -996,7 +996,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     }
 
     /**
-     * アイテムを返す
+     * Returns item
      */
     @Override
     public DirectoryOs9 getData() {
@@ -1004,7 +1004,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     }
 
     /**
-     * アイテムをコピー
+     * Copy item
      */
     @Override
     public boolean copyData(byte[] val) {
@@ -1012,7 +1012,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     }
 
     /**
-     * ディレクトリをクリア
+     * Clear directory
      */
     @Override
     public void clearData() {
@@ -1020,7 +1020,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     }
 
     /**
-     * アイテムをコピー
+     * Copy item
      */
     @Override
     public void copyItem(DiskBasicDirItem<DirectoryOs9> src) {
@@ -1034,14 +1034,14 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     }
 
     /**
-     * FDセクタのポインタを返す
+     * Returns pointer to FD sector
      */
     public DiskBasicDirItemOS9FD getFd() {
         return fd;
     }
 
     /**
-     * アイテムの属するセクタを変更済みにする
+     * Set sector to which item belongs as modified
      */
     @Override
     public void setModify() {
@@ -1050,14 +1050,14 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     }
 
     /**
-     * 文字列の最後のMSBをセット
+     * Set MSB on the last character of the string
      */
     public static int encodeString(byte[] dst, int dLen, String src, int sLen) {
         Arrays.fill(dst, 0, dLen, (byte) 0);
         int len = dLen > sLen ? sLen : dLen;
         System.arraycopy(src, 0, dst, 0, sLen);
 
-        // 文字列の最後にMSBをセット
+        // Set MSB on the last character of the string
         for (int i = len - 1; i >= 0; i--) {
             if (dst[i] != 0) {
                 dst[i] |= (byte) 0x80;
@@ -1068,12 +1068,12 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     }
 
     /**
-     * 文字列の最後のMSBをクリア
+     * Clear MSB from the last character of the string
      */
     public static int decodeString(byte[] dst, int dLen, byte[] src, int sLen) {
         int len = dLen > sLen ? sLen : dLen;
 
-        // 文字列のMSBをクリア
+        // Clear MSB of string
         boolean last = false;
         for (int i = 0; i < len; i++) {
             last = ((src[i] & 0x80) != 0);
@@ -1090,7 +1090,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     }
 
     /**
-     * データをエクスポートする前に必要な処理
+     * Processing required before exporting data
      */
     @Override
     public boolean preExportDataFile(String[] filename) {
@@ -1103,7 +1103,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     }
 
     /**
-     * データをインポートする前に必要な処理
+     * Processing required before importing data
      */
     @Override
     public boolean preImportDataFile(String[] filename) {
@@ -1115,7 +1115,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     }
 
     /**
-     * ファイル名から属性を決定する
+     * Determine attribute from file name
      */
     @Override
     public int convOriginalTypeFromFileName(String filename) {
@@ -1126,10 +1126,10 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
         t1 |= FILETYPE_MASK_OS9_PUBLIC_READ;
         t1 |= FILETYPE_MASK_OS9_USER_WRITE;
         t1 |= FILETYPE_MASK_OS9_USER_READ;
-        // 拡張子で実行属性を付ける
+        // Attach execution attribute by extension
         MyAttribute sa = findUpperCase(basic.getAttributesByExtension(), Utils.getExt(filename), FILE_TYPE_BINARY_MASK, FILE_TYPE_BINARY_MASK);
         if (sa != null) {
-            // 実行属性を付ける
+            // Attach execution attribute
             t1 |= FILETYPE_MASK_OS9_PUBLIC_EXEC;
             t1 |= FILETYPE_MASK_OS9_USER_EXEC;
         }
@@ -1138,7 +1138,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     }
 
     /**
-     * その他の属性値を設定する
+     * Set other attribute values
      */
     @Override
     public void setOptionalAttr(DiskBasicDirItemAttr attr) {
@@ -1146,7 +1146,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
     }
 
     /**
-     * プロパティで表示する内部データを設定
+     * Set internal data displayed in properties
      */
     @Override
     public void setInternalDataInAttrDialog(KeyValArray vals) throws IOException {

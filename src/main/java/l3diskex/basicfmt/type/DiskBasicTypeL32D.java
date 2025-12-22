@@ -12,7 +12,7 @@ import l3diskex.diskimg.DiskImage.DiskImageSector;
 
 
 /**
- * LEVEL-3 BASIC 2D(両面・倍密度)の処理
+ * LEVEL-3 BASIC 2D (double side, double density) processing
  */
 public class DiskBasicTypeL32D extends DiskBasicTypeFAT8<DirectoryL32d> {
 
@@ -29,16 +29,16 @@ public class DiskBasicTypeL32D extends DiskBasicTypeFAT8<DirectoryL32d> {
     }
 
     /**
-     * ディスクから各パラメータを取得＆必要なパラメータを計算
+     * Get each parameter from disk and calculate necessary parameters
      *
-     * @param isFormatting フォーマット中か
-     * @return 1.0: 正常, 0.0~1.0: 警告あり, <0.0: エラーあり
+     * @param isFormatting Whether formatting is in progress
+     * @return 1.0: Normal, 0.0~1.0: Warning present, <0.0: Error present
      */
     @Override
     public double parseParamOnDisk(boolean isFormatting) {
         if (basic.getFatEndGroup() == 0) {
             int endGroup = basic.getTracksPerSideOnBasic() * basic.getSidesPerDiskOnBasic() * basic.getSectorsPerTrackOnBasic();
-            // トラック０と管理トラック分を引く
+            // Subtract track 0 and management track portions
             endGroup -= basic.getSidesPerDiskOnBasic() * basic.getSectorsPerTrackOnBasic() * (basic.getManagedTrackNumber() == 0 ? 1 : 2);
             endGroup /= basic.getSectorsPerGroup();
             basic.setFatEndGroup(endGroup - 1);
@@ -47,16 +47,16 @@ public class DiskBasicTypeL32D extends DiskBasicTypeFAT8<DirectoryL32d> {
     }
 
     /**
-     * FATエリアをチェック
+     * Check FAT area
      *
-     * @param isFormatting フォーマット中か
-     * @return 1.0 正常, 0.0‑1.0 警告あり, <0.0 エラーあり
+     * @param isFormatting Whether formatting is in progress
+     * @return 1.0 Normal, 0.0-1.0 Warning present, <0.0 Error present
      */
     @Override
     public double checkFat(boolean isFormatting) {
         double validRatio = super.checkFat(isFormatting);
         if (validRatio >= 0.0) {
-            // FAT先頭エリアのチェック
+            // Check FAT header area
             DiskImageSector sector = basic.getManagedSector(basic.getFatStartSector() - 1);
             if (sector == null) {
                 validRatio = -1.0;
@@ -68,19 +68,19 @@ public class DiskBasicTypeL32D extends DiskBasicTypeFAT8<DirectoryL32d> {
     }
 
     /**
-     * 空きFAT位置を返す
+     * Returns a free FAT position
      *
-     * @return 0xff: 空きなし
+     * @return 0xff: No free space
      */
     @Override
     public int getEmptyGroupNumber() {
         int newNum = INVALID_GROUP_NUMBER;
-        // 管理エリアに近い位置から検索
+        // Search from positions close to the management area
 
-        // トラック当たりのグループ数
+        // Number of groups per track
         int groupsPerTrack = basic.getSectorsPerTrackOnBasic() * 2 / basic.getSectorsPerGroup();
 
-        // 最大グループ数
+        // Maximum number of groups
         int maxGroup = basic.getFatEndGroup() + 1 - managedStartGroup;
         if (maxGroup < managedStartGroup) maxGroup = managedStartGroup;
         maxGroup = maxGroup * 2 - 1;
@@ -107,9 +107,9 @@ public class DiskBasicTypeL32D extends DiskBasicTypeFAT8<DirectoryL32d> {
     }
 
     /**
-     * 管理エリアのトラック番号からグループ番号を計算
+     * Calculate group number from track number of management area
      *
-     * @return 計算されたグループ番号
+     * @return Computed group number
      */
     @Override
     public int calcManagedStartGroup() {
@@ -118,16 +118,16 @@ public class DiskBasicTypeL32D extends DiskBasicTypeFAT8<DirectoryL32d> {
         int sides = basic.getSidesPerDiskOnBasic();
         int sectorsPerGroup = basic.getSectorsPerGroup();
         int sectorsPerTrack = basic.getSectorsPerTrackOnBasic();
-        // トラック1から開始するので-1する
+        // Subtract 1 as it starts from track 1
         track--;
         managedStartGroup = (track * sides + side) * sectorsPerTrack / sectorsPerGroup;
         return managedStartGroup;
     }
 
     /**
-     * スキップするトラック番号
+     * Track number to skip
      *
-     * @return 管理トラック番号
+     * @return Management track number
      */
     @Override
     public int calcSkippedTrack() {
@@ -135,34 +135,34 @@ public class DiskBasicTypeL32D extends DiskBasicTypeFAT8<DirectoryL32d> {
     }
 
     /**
-     * データ領域の開始セクタを計算
+     * Calculate start sector of data area
      *
-     * @return 開始セクタ位置
+     * @return Start sector position
      */
     @Override
     public int calcDataStartSectorPos() {
-        // トラック0を除く
+        // Exclude track 0
         return basic.getSectorsPerTrackOnBasic() * basic.getSidesPerDiskOnBasic();
     }
 
     /**
-     * グループ確保時に最後のグループ番号を計算する
+     * Calculate the last group number when allocating groups
      *
-     * @param groupNum   現在のグループ番号
-     * @param sizeRemain 残りのデータサイズ（参照渡しを配列で実装）
-     * @return 最後のグループ番号
+     * @param groupNum   Current group number
+     * @param sizeRemain Remaining data size (reference implementation via array)
+     * @return Final group number
      */
     @Override
     public int calcLastGroupNumber(int groupNum, int[] sizeRemain) {
         if ((sizeRemain[0] % basic.getSectorSize()) == 0) {
-            // サイズがセクタ境界になる場合はサイズを+1する。→次のセクタも確保させる
+            // If size is on a sector boundary, increment size by 1 to ensure next sector allocation.
             sizeRemain[0]++;
         }
         if (sizeRemain[0] > (basic.getSectorsPerGroup() * basic.getSectorSize())) {
-            // 次のグループが必要
+            // Next group is required
             return groupNum;
         } else {
-            // ここが最終グループ
+            // This is the final group
             return super.calcLastGroupNumber(groupNum, sizeRemain);
         }
     }

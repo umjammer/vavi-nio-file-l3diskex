@@ -32,19 +32,19 @@ public class UiDirItemMZFDOS extends UiDirItem {
 
     DiskBasicDirItemMZFDOS dirItem;
 
-    // ダイアログ表示前にファイルの属性を設定
+    // Set file attributes before displaying dialog
     private void SetFileTypeForAttrDialog(int show_flags, String name, int[] file_type_1, int[] file_type_2) {
         // INTNAME_NEW_FILE is a constant not defined here. Assuming its value.
         final int INTNAME_NEW_FILE = 1;
         if ((show_flags & INTNAME_NEW_FILE) != 0) {
-            // 外部からインポート時
+            // When importing from external
             file_type_1[0] = dirItem.convOriginalTypeFromFileName(name);
             file_type_2[0] = file_type_1[0] >> 8;
             file_type_1[0] &= 0xff;
         }
     }
 
-    // ダイアログ内の属性部分のレイアウトを作成
+    // Create layout for attribute part in dialog
     public void CreateControlsForAttrDialog(IntNameBox parent, int show_flags, String file_path, BoxLayout sizer, Object flags) {
         int type1 = dirItem.getFileType1();
         int type2 = dirItem.getFileType2();
@@ -89,7 +89,7 @@ public class UiDirItemMZFDOS extends UiDirItem {
         // parent.Bind(wxEVT_CHOICE, parent.OnChangeType1, parent, IDC_COMBO_TYPE1); // Placeholder
     }
 
-    // 属性を変更した際に呼ばれるコールバック
+    // Callback called when attribute is changed
     public void ChangeTypeInAttrDialog(IntNameBox parent) {
         JComboBox comType1 = null; // (wxChoice)parent.FindWindow(IDC_COMBO_TYPE1); // Placeholder
 
@@ -114,7 +114,7 @@ public class UiDirItemMZFDOS extends UiDirItem {
         parent.EnableExecuteAddress(enable);
     }
 
-    // 属性1を得る
+    // Get attribute 1
     public int GetFileType1InAttrDialog(IntNameBox parent) {
         JComboBox comType1 = null; // (wxChoice)parent.FindWindow(IDC_COMBO_TYPE1); // Placeholder
 
@@ -122,7 +122,7 @@ public class UiDirItemMZFDOS extends UiDirItem {
         return 0;
     }
 
-    // 属性2を得る
+    // Get attribute 2
     public int GetFileType2InAttrDialog(IntNameBox parent) {
         JTextField txtAttr1 = null; // (wxTextCtrl)parent.FindWindow(IDC_TEXT_ATTR1); // Placeholder
 
@@ -137,7 +137,7 @@ public class UiDirItemMZFDOS extends UiDirItem {
         return attr1;
     }
 
-    // リストの位置から属性を返す(プロパティダイアログ用)
+    // Return attribute from list position (for property dialog)
     private int CalcFileTypeFromPos(int pos) {
         int val = 0;
         int TYPE_NAME_MZ_FDOS_OBJ_VAL = TYPE_NAME_MZ_FDOS_OBJ.ordinal();
@@ -152,7 +152,7 @@ public class UiDirItemMZFDOS extends UiDirItem {
         return val;
     }
 
-    // 機種依存の属性を設定する
+    // Set machine dependent attributes
     public boolean SetAttrInAttrDialog(IntNameBox parent, DiskBasicDirItemAttr attr, DiskBasicError errinfo) {
         int val = GetFileType1InAttrDialog(parent);
 
@@ -168,28 +168,28 @@ public class UiDirItemMZFDOS extends UiDirItem {
         return true;
     }
 
-    // 属性値を加工する
+    // Process attribute values
     public boolean ProcessAttr(DiskBasicDirItemAttr attr, DiskBasicError errinfo) {
         int t1 = (attr.getFileOriginAttr(0) & 0xff);
         int FILETYPE_MZ_FDOS_OBJ_VAL = en_file_type_mz_fdos.FILETYPE_MZ_FDOS_OBJ.getValue();
         int FILETYPE_MZ_FDOS_SYS_VAL = en_file_type_mz_fdos.FILETYPE_MZ_FDOS_SYS.getValue();
 
         if (t1 != FILETYPE_MZ_FDOS_OBJ_VAL && t1 != FILETYPE_MZ_FDOS_SYS_VAL) {
-            // バイナリ以外はアドレス固定
+            // Address is fixed except for binary
             attr.setStartAddress(0);
             attr.setExecuteAddress(0xffff);
         }
         return true;
     }
 
-    // ファイルサイズが適正か
+    // Is file size appropriate?
     public boolean IsFileValidSize(JWindow parent, int size, int[] limit) {
         return true;
     }
 
-    // ダイアログ入力後のファイル名チェック
+    // Check file name after dialog input
     public boolean ValidateFileName(JWindow parent, String filename, String[] errormsg) {
-        // 空白はNG
+        // Empty is NG
         if (filename.isEmpty()) {
             errormsg[0] = "File name is empty"; // wxGetTranslation(gDiskBasicErrorMsgs[DiskBasicError::ERR_FILENAME_EMPTY]); // Placeholder
             return false;
@@ -197,7 +197,7 @@ public class UiDirItemMZFDOS extends UiDirItem {
         return true;
     }
 
-    // ファイル名に付随する拡張属性をセットする
+    // Set extended attribute associated with file name
     public int GetOptionalNameInAttrDialog(IntNameBox parent) {
         int val = GetFileType1InAttrDialog(parent);
         if (val >= 0) {

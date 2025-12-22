@@ -33,11 +33,11 @@ public class UiDirItemFLEX extends UiDirItem {
 
     DiskBasicDirItemFLEX dirItem;
 
-    /** インポート時ダイアログ表示前にファイルの属性を設定 */
+    /** Set file attributes before displaying dialog on import */
     public void setFileTypeForAttrDialog(int show_flags, String name, int[] file_type_1, int[] file_type_2) {
     }
 
-    /** ダイアログ内の属性部分のレイアウトを作成 */
+    /** Create layout for attribute part in dialog */
     @Override
     public void createControlsForAttrDialog(IntNameBox parent, int show_flags, String file_path, BoxLayout sizer, Object flags) {
         int file_type_1 = dirItem.getFileAttr().getType();
@@ -64,19 +64,19 @@ public class UiDirItemFLEX extends UiDirItem {
         // Assuming sizer is a JPanel with a layout manager like BoxLayout
         sizer.add(staType1);
 
-        // ユーザ定義データ(ランダムファイル属性値)
         parent.SetUserData(file_type_2);
+        // User defined data (random file attribute value)
     }
 
     // wxWidgets to Swing helper IDs
     public static final int IDC_CHECK_ATTR1 = 51;
 
-    /** 属性を変更した際に呼ばれるコールバック */
+    /** Callback called when attribute is changed */
     @Override
     public void changeTypeInAttrDialog(IntNameBox parent) {
     }
 
-    /** 機種依存の属性を設定する */
+    /** Set machine dependent attributes */
     @Override
     public boolean setAttrInAttrDialog(IntNameBox parent, DiskBasicDirItemAttr attr, DiskBasicError errinfo) {
         int val = 0;
@@ -87,7 +87,7 @@ public class UiDirItemFLEX extends UiDirItem {
             }
         }
 
-        // ユーザ定義データ(ランダムファイル属性値)
+        // User defined data (random file attribute value)
         int random = 0;
         if ((val & FILE_TYPE_RANDOM_MASK.getValue()) != 0) {
             random = parent.GetUserData();
@@ -98,7 +98,7 @@ public class UiDirItemFLEX extends UiDirItem {
         return true;
     }
 
-    /** ダイアログ入力後のファイル名チェック */
+    /** Check file name after dialog input */
     public boolean validateFileName(IntNameBox parent, String filename, StringBuilder errormsg) {
         // wxFileName fn(filename) equivalent
         int lastDot = filename.lastIndexOf('.');

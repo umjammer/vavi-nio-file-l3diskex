@@ -39,7 +39,7 @@ public class UiDirItemMSX extends UiDirItem {
     /*  Dialog helpers                                                        */
     /* -- */
 
-    /** ダイアログ表示前にファイルの属性を設定 */
+    /** Set file attributes before displaying dialog */
     @Override
     public void setFileTypeForAttrDialog(int showFlags,
                                          String name,
@@ -48,7 +48,7 @@ public class UiDirItemMSX extends UiDirItem {
         // C++ implementation is empty – keep it that way
     }
 
-    /** ダイアログ内の属性部分のレイアウトを作成 */
+    /** Create layout for attribute part in dialog */
     @Override
     public void createControlsForAttrDialog(IntNameBox parent,
                                             int showFlags,
@@ -72,7 +72,7 @@ public class UiDirItemMSX extends UiDirItem {
         sizer.add(staType1, flags);
     }
 
-    /** 機種依存の属性を設定する */
+    /** Set machine dependent attributes */
     @Override
     public boolean setAttrInAttrDialog(IntNameBox parent,
                                        DiskBasicDirItemAttr attr,

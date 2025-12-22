@@ -54,10 +54,10 @@ public class UiDirItemN88 extends UiDirItem {
     DiskBasicDirItemN88 dirItem;
 
     // C++ method: SetFileTypeForAttrDialog
-    // ダイアログ表示前にファイルの属性を設定
+    // Set file attributes before displaying dialog
     public void setFileTypeForAttrDialog(int showFlags, String name, int[] fileType1, int[] fileType2) {
         if ((showFlags & 0x01) != 0) { // Assuming INTNAME_NEW_FILE is 0x01
-            // 外部からインポート時
+            // When importing from external
             fileType1[0] = dirItem.convOriginalTypeFromFileName(name);
         }
         // fileType2 is not modified for N88 in the C++ code for INTNAME_NEW_FILE.
@@ -162,7 +162,7 @@ public class UiDirItemN88 extends UiDirItem {
     }
 
     // C++ method: CalcFileTypeFromPos
-    // リストの位置から属性を返す(プロパティダイアログ用)
+    // Return attribute from list position (for property dialog)
     public int calcFileTypeFromPos(int pos) {
         int val = 0;
         if (pos == TYPE_NAME_N88_MACHINE) {

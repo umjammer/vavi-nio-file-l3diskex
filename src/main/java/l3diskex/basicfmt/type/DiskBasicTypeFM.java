@@ -13,12 +13,12 @@ import l3diskex.diskimg.DiskImage.DiskImageSector;
 
 
 /**
- * F-BASICの処理
+ * F-BASIC processing
  * <p>
- * DiskBasicParam 固有パラメータ
+ * DiskBasicParam Specific parameters
  *
- * <li>IDSectorPosition  IDセクタの論理セクタ番号</li>
- * <li>IDString          IDセクタの最初の文字列</li>
+ * <li>IDSectorPosition  Logical sector number of ID sector</li>
+ * <li>IDString          First string of ID sector</li>
  */
 public class DiskBasicTypeFM extends DiskBasicTypeFAT8<DirectoryFp> {
 

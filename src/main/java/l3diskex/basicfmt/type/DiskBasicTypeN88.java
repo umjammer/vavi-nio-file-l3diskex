@@ -21,11 +21,11 @@ import l3diskex.diskimg.DiskImage.DiskImageTrack;
 
 
 /**
- * N88-BASICの処理
+ * N88-BASIC processing
  * <p>
  * DiskBasicParam
  *
- * <li>ReservedGroups : Group 予約済みにするグループ（クラスタ）番号</li>
+ * <li>ReservedGroups : Group numbers (clusters) to be reserved</li>
  */
 public class DiskBasicTypeN88 extends DiskBasicTypeFAT8<DirectoryN88> {
 
@@ -44,11 +44,11 @@ public class DiskBasicTypeN88 extends DiskBasicTypeFAT8<DirectoryN88> {
     @Override
     public int getEmptyGroupNumber() {
         int newNum = INVALID_GROUP_NUMBER;
-        // 管理エリアに近い位置から検索
+        // Search from positions close to the management area
 
-        // トラック当たりのグループ数
+        // Number of groups per track
         int grpsPerTrk = basic.getSectorsPerTrackOnBasic() / basic.getSectorsPerGroup();
-        // 最大グループ数
+        // Maximum number of groups
         int maxGroup = basic.getFatEndGroup() - managedStartGroup;
         if (maxGroup < managedStartGroup) maxGroup = managedStartGroup;
         maxGroup = maxGroup * 2 - 1;
@@ -87,7 +87,7 @@ public class DiskBasicTypeN88 extends DiskBasicTypeFAT8<DirectoryN88> {
     public double checkFat(boolean isFormatting) {
         double validRatio = super.checkFat(isFormatting);
         if (validRatio >= 0.0) {
-            // FAT,ディレクトリエリアはシステム予約となっているか
+            // Check whether FAT and directory area are system reserved
             List<Integer> groups = basic.getReservedGroups();
             for (int group : groups) {
                 int groupNum = getGroupNumber(group);
@@ -107,7 +107,7 @@ public class DiskBasicTypeN88 extends DiskBasicTypeFAT8<DirectoryN88> {
 
     @Override
     public boolean additionalProcessOnFormatted(DiskBasicIdentifiedData data) {
-        // FAT,DIRエリア
+        // FAT, DIR area
         DiskImageTrack track = basic.getTrack(basic.getManagedTrackNumber(), basic.getFatSideNumber());
         if (track == null) return false;
         List<DiskImageSector> sectors = track.getSectors();
@@ -115,12 +115,12 @@ public class DiskBasicTypeN88 extends DiskBasicTypeFAT8<DirectoryN88> {
         int idSector = (basic.getDirEndSector() + 1) % basic.getSectorsPerTrackOnBasic();
         for (DiskImageSector sector : sectors) {
             if (sector != null) {
-                // ファイル管理エリアをクリア IDエリアは0でクリア
+                // Clear file management area. ID area is cleared with 0
                 sector.fill(sector.getSectorNumber() != idSector ? basic.getFillCodeOnFAT() : 0);
             }
         }
 
-        // システムで使用している部分のクラスタ位置を予約済みにする
+        // Reserve cluster positions used by the system
         List<Integer> groups = basic.getReservedGroups();
         for (int group : groups) {
             setGroupNumber(group, basic.getGroupSystemCode());
@@ -130,15 +130,15 @@ public class DiskBasicTypeN88 extends DiskBasicTypeFAT8<DirectoryN88> {
     }
 
     /**
-     * ファイルの最終セクタのデータサイズを求める
+     * Determine the data size of the last sector of the file
      *
-     * @param item          ディレクトリアイテム
-     * @param iStream       [in,out] 入力ストリーム ベリファイ時に使用 データ読み出し時は {@code null}
-     * @param oStream       [in,out] 出力先 データ読み出し時に使用 ベリファイ時は {@code null}
-     * @param sectorBuffer セクタバッファ
-     * @param sectorSize   バッファサイズ
-     * @param remainSize   残りサイズ
-     * @return 残りサイズ
+     * @param item          Directory item
+     * @param iStream       [in,out] Input stream. Used for verify. {@code null} when reading data.
+     * @param oStream       [in,out] Output destination. Used when reading data. {@code null} during verify.
+     * @param sectorBuffer  Sector buffer
+     * @param sectorSize    Buffer size
+     * @param remainSize    Remaining size
+     * @return Remaining size
      */
     @Override
     public int calcDataSizeOnLastSector(DiskBasicDirItem<DirectoryN88> item,
@@ -148,12 +148,12 @@ public class DiskBasicTypeN88 extends DiskBasicTypeFAT8<DirectoryN88> {
                                         int sectorOffset,
                                         int sectorSize,
                                         int remainSize) throws IOException {
-        // ファイルサイズはセクタサイズ境界なので要計算
+        // File size is at sector size boundary, so calculation is required
         if (item.needCheckEofCode()) {
-            // 終端コードの1つ前までを出力
+            // Output up to one byte before the termination code
             byte eofCode = basic.invertUint8(basic.getTextTerminateCode());
             byte nullCode = basic.invertUint8((byte) 0);
-            // ランダムアクセス時は除く
+            // Except when random access
             int len = sectorSize - 1;
             for (; len >= 0; len--) {
                 if (sectorBuffer[len] != eofCode && sectorBuffer[len] != nullCode)
@@ -162,7 +162,7 @@ public class DiskBasicTypeN88 extends DiskBasicTypeFAT8<DirectoryN88> {
             if (len >= 0)
                 sectorSize = len + 1;
         } else {
-            // 計算手段がないので残りサイズをそのまま返す
+            // No means of calculation, so return the remaining size as is
             if (iStream != null) {
                 sectorSize = iStream.available() % sectorSize; // TODO assume available as length
             } else {
@@ -187,13 +187,13 @@ public class DiskBasicTypeN88 extends DiskBasicTypeFAT8<DirectoryN88> {
 
         int len = 0;
         if (remain <= size) {
-            // 残り少ない
+            // Few left
             if (remain < 0) remain = 0;
             if (remain > 0) {
                 if (needEofCode) {
                     int bytesRead = iStream.read(buffer, 0, remain);
-                    // 最終は終端コードを入れる
-                    // ただし、残りサイズが丁度セクタサイズなら入れない
+                    // Insert termination code at the end
+                    // However, if the remaining size matches the sector size, do not insert it
                     if (bytesRead + 1 == remain) {
                         buffer[remain - 1] = basic.getTextTerminateCode();
                     }
@@ -202,16 +202,16 @@ public class DiskBasicTypeN88 extends DiskBasicTypeFAT8<DirectoryN88> {
                 }
             }
             if (size > remain) {
-                // バッファの余りは0サプレス
+                // Remaining buffer is zero-suppressed
                 Arrays.fill(buffer, remain, size, (byte) 0);
             }
             len = remain;
         } else {
-            // 継続
+            // Continuous
             iStream.readNBytes(buffer, 0, size);
             len = size;
         }
-        // 反転
+        // Invert
         basic.invertMemory(buffer, size);
 
         return len;

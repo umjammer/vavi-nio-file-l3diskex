@@ -40,29 +40,29 @@ public class UiDirItemFROST extends UiDirItem {
     static final int IDC_RADIO_TYPE2 = 55;
 
     //
-    // ダイアログ用
+    // For dialog
     //
 
     /**
-     * 属性からリストの位置を返す(プロパティダイアログ用)
+     * Return position in list from attribute (for property dialog)
      */
     int GetFileType2Pos() {
         return dirItem.getFileAttr().getType();
     }
 
     /**
-     * ダイアログ表示前にファイルの属性を設定
+     * Set file attributes before displaying dialog
      */
     private void SetFileTypeForAttrDialog(int show_flags, String name, int[] file_type_1, int[] file_type_2) {
         // Assume INTNAME_NEW_FILE is a constant in IntNameBox
         if ((show_flags & IntNameBox.INTNAME_NEW_FILE) != 0) {
-            // 外部からインポート時
+            // When importing from external
             file_type_1[0] = dirItem.convOriginalTypeFromFileName(name);
         }
     }
 
     /**
-     * ダイアログ内の属性部分のレイアウトを作成
+     * Create layout for attribute part in dialog
      */
     @Override
     public void createControlsForAttrDialog(IntNameBox parent, int show_flags, String file_path, BoxLayout sizer, Object flags) {
@@ -103,7 +103,7 @@ public class UiDirItemFROST extends UiDirItem {
     }
 
     /**
-     * 機種依存の属性を設定する
+     * Set machine dependent attributes
      */
     @Override
     public boolean setAttrInAttrDialog(IntNameBox parent, DiskBasicDirItemAttr attr, DiskBasicError errinfo) {
@@ -128,13 +128,13 @@ public class UiDirItemFROST extends UiDirItem {
     }
 
     /**
-     * 属性値を加工する
+     * Process attribute values
      */
     @Override
     public boolean processAttr(DiskBasicDirItemAttr attr, DiskBasicError errinfo) {
         int t1 = attr.getFileOriginAttr(0);
 
-        // BASの場合、開始アドレスを1にする
+        // If BAS, set start address to 1
         if (t1 == FILETYPE_FROST_BAS) {
             attr.setStartAddress(1);
         }

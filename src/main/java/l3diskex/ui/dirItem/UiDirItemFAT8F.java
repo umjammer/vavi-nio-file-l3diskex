@@ -31,8 +31,8 @@ public class UiDirItemFAT8F extends UiDirItem {
 
     public void SetFileTypeForAttrDialog(int show_flags, String name, int[] file_type_1, int[] file_type_2) {
         if ((show_flags & INTNAME_NEW_FILE) != 0) {
-            // 外部からインポート時
-            // 拡張子で属性を設定する
+            // When importing from external
+            // Set attribute by extension
             String ext = dirItem.getExtension(name); // Assuming getExtension helper method
             Parambase.MyAttribute sa = dirItem.getBasic().diskBasicParam.getAttributesByExtension().findUpperCase(ext);
 

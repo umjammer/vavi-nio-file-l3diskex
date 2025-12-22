@@ -53,10 +53,10 @@ import static l3diskex.basicfmt.type.DiskBasicTypeAmiga.AmigaOneBitmap.addBitmap
 
 
 /**
- Amiga DOS の処理
+ Amiga DOS processing
 
  DiskBasicParam
- <li>FastFileSystem FFSかどうか(bool)</li>
+ <li>Whether FastFileSystem FFS (bool)</li>
  */
 public class DiskBasicTypeAmiga extends DiskBasicType<DirectoryAmiga> {
 
@@ -81,7 +81,7 @@ public class DiskBasicTypeAmiga extends DiskBasicType<DirectoryAmiga> {
         byte[] program = new byte[500];
     }
 
-    /** Amiga Bitmap Block (all Big Endien) */
+    /** Amiga Bitmap Block (all Big Endian) */
     @Serdes
     static class AmigaBitmapBlock {
 
@@ -92,7 +92,7 @@ public class DiskBasicTypeAmiga extends DiskBasicType<DirectoryAmiga> {
         int[] map;
     }
 
-    /** AMIGA ビットマップ 1つ */
+    /** One AMIGA bitmap */
     static class AmigaOneBitmap {
 
         int blockNum;
@@ -100,9 +100,9 @@ public class DiskBasicTypeAmiga extends DiskBasicType<DirectoryAmiga> {
         AmigaBitmapBlock map;
 
         /**
-         * 指定位置のビットを変更する
-         * @param blockNum  ブロック番号(2..)
-         * @param use セットする場合true
+         * Change bit at specified position
+         * @param blockNum  Block number (2..)
+         * @param use Set if true
          */
         public void modify(int blockNum, boolean use) {
             int pos = blockNum >> 5;
@@ -116,9 +116,9 @@ public class DiskBasicTypeAmiga extends DiskBasicType<DirectoryAmiga> {
         }
 
         /**
-         * 指定位置が空いているか
-         * @param blockNum  ブロック番号(2..)
-         * @return 空いている場合 true
+         * Whether specified position is free
+         * @param blockNum  Block number (2..)
+         * @return true if free
          */
         public boolean isFree(int blockNum) {
             int pos = blockNum >> 5;
@@ -128,8 +128,8 @@ public class DiskBasicTypeAmiga extends DiskBasicType<DirectoryAmiga> {
         }
 
         /**
-         * 指定ブロックまですべて未使用にする
-         * @param blockNum 最終ブロック番号
+         * Mark all blocks up to specified block as unused
+         * @param blockNum Last block number
          */
         public void freeAll(int blockNum) {
             if (blockNum >= getNumOfBlocks()) {
@@ -144,12 +144,12 @@ public class DiskBasicTypeAmiga extends DiskBasicType<DirectoryAmiga> {
             map.map[pos] = data;
         }
 
-        /** ブロック数を返す */
+        /** Returns block count */
         public int getNumOfBlocks() {
             return (blockSize - 4) * 8;
         }
 
-        /** チェックサムの更新 */
+        /** Update checksum */
         public void updateCheckSum() {
             try {
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -169,11 +169,11 @@ logger.log(Level.TRACE, e.getMessage());
         //
 
         /**
-         * ビットマップを追加
+         * Add bitmap
          *
-         * @param blockNum  ブロック番号
-         * @param mapBuffer マップのあるバッファ
-         * @param blockSize バッファサイズ
+         * @param blockNum  Block number
+         * @param mapBuffer Buffer containing map
+         * @param blockSize Buffer size
          */
         public static void addBitmap(List<AmigaOneBitmap> list, int blockNum, byte[] mapBuffer, int blockSize) throws IOException {
             AmigaBitmapBlock b = new AmigaBitmapBlock();
@@ -186,10 +186,10 @@ logger.log(Level.TRACE, e.getMessage());
         }
 
         /**
-         * 指定位置のビットを変更する
+         * Change bit at specified position
          *
-         * @param blockNum ブロック番号(2..)
-         * @param use      セットする場合true
+         * @param blockNum Block number (2..)
+         * @param use      Set if true
          */
         public static void modify(List<AmigaOneBitmap> list, int blockNum, boolean use) {
             if (blockNum < 2) return;
@@ -206,10 +206,10 @@ logger.log(Level.TRACE, e.getMessage());
         }
 
         /**
-         * 指定位置が空いているか
+         * Whether specified position is free
          *
-         * @param blockNum ブロック番号(2..)
-         * @return 空いている場合 true
+         * @param blockNum Block number (2..)
+         * @return true if free
          */
         public static boolean isFree(List<AmigaOneBitmap> list, int blockNum) {
             if (blockNum < 2) return false;
@@ -226,9 +226,9 @@ logger.log(Level.TRACE, e.getMessage());
         }
 
         /**
-         * 指定ブロックまですべて未使用にする
+         * Mark all blocks up to specified block as unused
          *
-         * @param blockNum 最終ブロック番号
+         * @param blockNum Last block number
          */
         public static void freeAll(List<AmigaOneBitmap> list, int blockNum) {
             if (blockNum < 2) return;
@@ -245,7 +245,7 @@ logger.log(Level.TRACE, e.getMessage());
             }
         }
 
-        /** ブロック数を返す */
+        /** Returns block count */
         public static int getNumOfBlocks(List<AmigaOneBitmap> list) {
             int blockNums = 0;
             for (AmigaOneBitmap item : list) {
@@ -254,7 +254,7 @@ logger.log(Level.TRACE, e.getMessage());
             return blockNums;
         }
 
-        /** チェックサムの更新 */
+        /** Update checksum */
         public static void updateCheckSum(List<AmigaOneBitmap> list) {
             for (AmigaOneBitmap item : list) {
                 item.updateCheckSum();
@@ -263,7 +263,7 @@ logger.log(Level.TRACE, e.getMessage());
     }
 
     //
-    // Amiga DOS の処理
+    // Amiga DOS processing
     //
 
     /** Root Block */
@@ -353,12 +353,12 @@ logger.log(Level.TRACE, e.getMessage());
         AmigaBootBlock bb = new AmigaBootBlock();
         Serdes.Util.deserialize(new ByteArrayInputStream(b), bb);
 
-        // チェック
+        // Check
         if ((!Arrays.equals(bb.type, 0, 3, "DOS".getBytes(), 0, 3)) &&
                 (!Arrays.equals(bb.type, 0, 4, "KICK".getBytes(), 0, 4))) {
             return -1.0;
         }
-        // Fast File System か
+        // Fast File System?
         boolean diskIsFast = (bb.type[3] != 'K' && (bb.type[3] & 1) != 0);
         boolean paramIsFast = basic.getVariousBoolParam(KEY_FAST_FILE_SYSTEM);
         if (diskIsFast != paramIsFast) {
@@ -371,7 +371,7 @@ logger.log(Level.TRACE, e.getMessage());
         //
         root.blockNum = bb.rootBlock;
         if (root.blockNum < 2 || root.blockNum > basic.getFatEndGroup()) {
-            // ブート領域かディスクをオーバしている
+            // Boot area or exceeds disk
             if (validRatio >= 0.0) validRatio *= 0.8;
             root.blockNum = basic.getManagedTrackNumber() * basic.getSidesPerDiskOnBasic() * basic.getSectorsPerTrackOnBasic() + basic.getDirStartSector() - 1;
         }
@@ -387,7 +387,7 @@ logger.log(Level.TRACE, e.getMessage());
         }
         root.pre = new AmigaBlockPre();
         Serdes.Util.deserialize(new ByteArrayInputStream(b, 0, b.length), root.pre);
-        // hash_tableはセクタサイズ（ブロックサイズ）で可変
+        // hash_table is variable according to sector size (block size)
         int offset = basic.getSectorSize() - AmigaRootBlockPost.SIZE;
         if (offset < 0) {
             return -1.0;
@@ -402,7 +402,7 @@ logger.log(Level.TRACE, e.getMessage());
         basic.setDirStartSector(sector.getSectorNumber());
 
         //
-        // ビットマップ
+        // Bitmap
         //
         if (root.post.u.r.bmFlag == -1) {
             for (int i = 0; i < 25; i++) {
@@ -425,10 +425,10 @@ logger.log(Level.TRACE, e.getMessage());
         basic.setFatEndGroup(basic.getSidesPerDiskOnBasic() * basic.getTracksPerSideOnBasic() * basic.getSectorsPerTrackOnBasic() - 1);
 
         //
-        // ディレクトリエリア
+        // Directory area
         //
 
-        // root block の hash table を追跡
+        // Track hash table of root block
         int maxHashtable = root.pre.tableSize;
         int calcMaxHashtable = (basic.getSectorSize() - AmigaBlockPre.SIZE - AmigaRootBlockPost.SIZE + 4) / 4;
         if (maxHashtable > calcMaxHashtable) {
@@ -439,10 +439,10 @@ logger.log(Level.TRACE, e.getMessage());
         for (int hashtable = 0; hashtable < maxHashtable; hashtable++) {
             int num = root.pre.u.table[hashtable];
             if (num > 0 && num < 2) {
-                // boot領域にある？
+                // Is it in the boot area?
                 if (validRatio > 0.0) validRatio *= 0.5;
             } else if (num > basic.getFatEndGroup()) {
-                // 範囲外
+                // Out of range
                 if (validRatio > 0.0) validRatio *= 0.5;
             }
         }
@@ -570,14 +570,14 @@ logger.log(Level.TRACE, e.getMessage());
 
         int rc = 0;
 
-        // ディレクトリ新規作成の時は何もしない
+        // Do nothing when creating a new directory
         if (flags == AllocateGroupFlags.ALLOCATE_GROUPS_NEW && item.isDirectory()) {
             return 0;
         }
 
         int blockSize = basic.getSectorSize();
         if (!basic.getVariousBoolParam(KEY_FAST_FILE_SYSTEM)) {
-            // OFSなら24バイト減らす
+            // For OFS, reduce by 24 bytes
             blockSize -= AmigaFileDataPre.SIZE - 1;
         }
         int remain = dataSize;
@@ -594,11 +594,11 @@ logger.log(Level.TRACE, e.getMessage());
 
         while (remain > 0 && limit >= 0 && rc >= 0) {
             if (blockIndex < 0) {
-                // データテーブルがいっぱいになったので
-                // extensionブロックを新たに確保する
+                // Data table is full,
+                // so allocate a new extension block
                 int extentionNum = getEmptyGroupNumber();
                 if (extentionNum == INVALID_GROUP_NUMBER) {
-                    // 空きなし
+                    // No free space
                     rc = -2;
                     break;
                 }
@@ -612,14 +612,14 @@ logger.log(Level.TRACE, e.getMessage());
                     rc = -2;
                     break;
                 }
-                // 使用済みにする
+                // Mark as used
                 setGroupNumber(extentionNum, 1);
 
-                // extensionブロックへのリンクを作成
+                // Create link to extension block
                 aItem.setExtension(extentionNum);
                 aItem.setHighSeq(blockNums);
 
-                // aitem切替
+                // Switch aitem
                 aItem = (DiskBasicDirItemAmiga) dir.newItem(sector, extension, buffer, 0);
 
                 sector.fill((byte) 0);
@@ -630,14 +630,14 @@ logger.log(Level.TRACE, e.getMessage());
                 extension++;
             }
 
-            // 空きをさがす
+            // Search for free space
             groupNum = getEmptyGroupNumber();
             if (groupNum == INVALID_GROUP_NUMBER) {
                 rc = groups > 0 ? -2 : -1;
                 break;
             }
 
-            // 使用済みにする
+            // Mark as used
             if (prevGroupNum > 0) {
                 basic.getNumsFromGroup(prevGroupNum, groupNum, basic.getSectorSize(), prevRemain, groupItems[0]);
             }
@@ -661,7 +661,7 @@ logger.log(Level.TRACE, e.getMessage());
         aItem.setHighSeq(blockNums - blockIndex - 1);
 
         if (limit < 0) {
-            // 無限ループ？
+            // Infinite loop?
             rc = groups > 0 ? -2 : -1;
         }
 
@@ -693,25 +693,25 @@ logger.log(Level.TRACE, e.getMessage());
         int[] len = {name.length};
         int[] eLen = new int[1];
 
-        // ファイル名からハッシュ番号を算出し、ハッシュテーブルに関連付ける
+        // Calculate hash number from file name and associate with hash table
         if (parent != null && pItem != null) {
             if (!parent.getFileAttr().isDirectory()) {
                 return matchItem;
             }
 
-            // ファイル名を得る
+            // Get file name
             pItem.getNativeFileName(name, len, null, eLen);
-            // ハッシュ番号を計算
+            // Calculate hash number
             int hash = createHashNumberFromName(name, len[0]);
 
-            // 新しいセクタを確保
+            // Allocate a new sector
             int new_num = getEmptyGroupNumber();
             if (new_num == INVALID_GROUP_NUMBER) {
-                // 空きなし
+                // No free space
                 return matchItem;
             }
 
-            // 実際にセクタがあるか
+            // Whether the sector actually exists
             DiskImageSector sector = basic.getSectorFromGroup(new_num);
             if (sector == null) {
                 return matchItem;
@@ -721,28 +721,28 @@ logger.log(Level.TRACE, e.getMessage());
                 return matchItem;
             }
 
-            // ヘッダ情報をセット
+            // Set header information
             DiskBasicDirItemAmiga apitem = (DiskBasicDirItemAmiga) pItem;
             apitem.setStartGroup(0, new_num);
             apitem.initForHeaderBlock(parent.getStartGroup(0));
 
-            // アイテムを新規作成
+            // Create a new item
             matchItem = dir.newItem(sector, 0, buffer, 0);
 
-            // セクタにヘッダ情報をセット
+            // Set header information in sector
             sector.fill((byte) 0);
 
-            // セクタ使用中にする
+            // Mark sector as used
             setGroupNumber(new_num, 1);
 
-            // 親ディレクトリをセット
+            // Set parent directory
             matchItem.setParent(parent);
 
-            // ハッシュ番号を登録
+            // Register hash number
             DiskBasicDirItemAmiga aparent = (DiskBasicDirItemAmiga) parent;
             aparent.chainHashNumber(hash, new_num, matchItem);
 
-            // ディレクトリリストに追加する
+            // Add to directory list
             int limit = basic.getFatEndGroup() + 1;
             int[] tables = aparent.getBlockTable();
             int nums = aparent.getNumOfDataBlocks();
@@ -773,10 +773,10 @@ logger.log(Level.TRACE, e.getMessage());
     public void additionalProcessOnMadeDirectory(
             DiskBasicDirItem<DirectoryAmiga> item, DiskBasicGroups groupItems, DiskBasicDirItem<DirectoryAmiga> parentItem) {
 
-        // ビットマップのチェックサムを更新する
+        // Date and time
         AmigaOneBitmap.updateCheckSum(bitmap);
 
-        // 日時
+        // Update checksum of bitmap
         LocalDateTime tm = LocalDateTime.now();
         item.setFileModifyDateTime(tm);
 
@@ -785,16 +785,16 @@ logger.log(Level.TRACE, e.getMessage());
 
         DiskBasicDirItemAmiga aparent = (DiskBasicDirItemAmiga) parent;
 
-        // 親ディレクトリの日時を更新する（ルートディレクトリの場合も含む）
+        // Update date and time of parent directory (including root directory)
         aparent.setFileModifyDateTime(tm);
 
-        // ルートディレクトリのボリューム日時を更新する
+        // Update volume date and time of root directory
         setVolumeDateTime(tm);
 
-        // 親ディレクトリのチェックサムを更新する
+        // Update checksum of parent directory
         aparent.updateCheckSum();
 
-        // ルートディレクトリのチェックサムを更新する
+        // Update checksum of root directory
         if (aparent.getParent() != null) updateCheckSumOnRoot();
     }
 
@@ -810,7 +810,7 @@ logger.log(Level.TRACE, e.getMessage());
         int sectorNum;
 
         //
-        // Boot Block を作成
+        // Create Boot Block
         //
         int block = 0;
         sector = basic.getSectorFromGroup(block);
@@ -839,7 +839,7 @@ logger.log(Level.TRACE, e.getMessage());
         boot.rootBlock = rootBlock;
 
         //
-        // bitmapブロックを確保
+        // Allocate bitmap block
         //
         basic.setFatEndGroup(basic.getSidesPerDiskOnBasic() * basic.getTracksPerSideOnBasic() * basic.getSectorsPerTrackOnBasic() - 1);
         bitmap.clear();
@@ -855,7 +855,7 @@ logger.log(Level.TRACE, e.getMessage());
         basic.setSectorsPerFat(bitmap.size());
 
         //
-        // Root Block を作成
+        // Create Root Block
         //
         sector = basic.getSectorFromGroup(rootBlock);
         sector.fill((byte) 0);
@@ -884,7 +884,7 @@ logger.log(Level.TRACE, e.getMessage());
             root.post.u.r.extension = 0;
         }
 
-        // 日時
+        // Date and time
         LocalDateTime tm = LocalDateTime.now();
         setCreateDateTime(tm);
         setVolumeDateTime(tm);
@@ -893,10 +893,10 @@ logger.log(Level.TRACE, e.getMessage());
         // volume name
         setIdentifiedData(data);
 
-        // bitmapをセット
+        // set bitmap
         AmigaOneBitmap.modify(bitmap, rootBlock, true);
 
-        // チェックサムを計算
+        // Calculate checksum
         AmigaOneBitmap.updateCheckSum(bitmap);
         root.pre.checkSum = calcCheckSumOnBootBlock(rootBuffer, basic.getSectorSize());
 
@@ -904,10 +904,10 @@ logger.log(Level.TRACE, e.getMessage());
     }
 
     /**
-     * チェックサムを計算
+     * Calculate checksum
      *
-     * @param data ブロックデータ
-     * @param size ブロックサイズ
+     * @param data Block data
+     * @param size Block size
      */
     static int calcCheckSum(byte[] data, int size) {
         IntBuffer dp = ByteBuffer.wrap(data).order(ByteOrder.LITTLE_ENDIAN).asIntBuffer();
@@ -923,28 +923,28 @@ logger.log(Level.TRACE, e.getMessage());
     }
 
     /**
-     * チェックサムを計算
+     * Calculate checksum
      *
-     * @param data ブロックデータ
-     * @param size ブロックサイズ
+     * @param data Block data
+     * @param size Block size
      */
     public static int calcCheckSumOnBootBlock(byte[] data, int size) {
         return calcCheckSum(data, size);
     }
 
     /**
-     * データの読み込み/比較処理
+     * Data read/comparison processing
      *
-     * @param fileUnitNum  ファイル番号
-     * @param item         ディレクトリアイテム
-     * @param iStream      [in,out] 入力ストリーム ベリファイ時に使用 データ読み出し時は {@code null}
-     * @param oStream      [in,out] 出力先 データ読み出し時に使用 ベリファイ時は {@code null}
-     * @param sectorBuffer セクタバッファ
-     * @param sectorSize   バッファサイズ
-     * @param remainSize   残りサイズ
-     * @param sectorNum    セクタ番号
-     * @param sectorEnd    最終セクタ番号
-     * @return >=0: 処理したサイズ, -1: 比較不一致
+     * @param fileUnitNum  File number
+     * @param item         Directory item
+     * @param iStream      [in,out] Input stream. Used during verify. {@code null} when reading data.
+     * @param oStream      [in,out] Output destination. Used when reading data. {@code null} during verify.
+     * @param sectorBuffer Sector buffer
+     * @param sectorSize   Buffer size
+     * @param remainSize   Remaining size
+     * @param sectorNum    Sector number
+     * @param sectorEnd    Final sector number
+     * @return >=0: Processed size, -1: Comparison mismatch
      */
     @Override
     public int accessFile(int fileUnitNum, DiskBasicDirItem<DirectoryAmiga> item, InputStream iStream, OutputStream oStream, byte[] sectorBuffer, int sectorSize, int remainSize, int sectorNum, int sectorEnd) throws IOException {
@@ -952,7 +952,7 @@ logger.log(Level.TRACE, e.getMessage());
         int size = sectorSize;
 
         if (!basic.getVariousBoolParam(KEY_FAST_FILE_SYSTEM)) {
-            // OFSなら24バイト減らす
+            // For OFS, reduce by 24 bytes
             size -= AmigaFileDataPre.SIZE - 1;
             bufferOffset += AmigaFileDataPre.SIZE - 1;
         }
@@ -962,19 +962,19 @@ logger.log(Level.TRACE, e.getMessage());
 
         byte[] temp;
         if (oStream != null) {
-            // 書き出し
+            // Writing out
             temp = Arrays.copyOfRange(sectorBuffer, bufferOffset, bufferOffset + size);
             if (basic.isDataInverted()) Common.invertMemory(temp, temp.length);
             oStream.write(temp, 0, temp.length);
         }
         if (iStream != null) {
-            // 読み込んで比較
+            // Read and compare
             temp = new byte[size];
             iStream.readNBytes(temp, 0, temp.length);
             if (basic.isDataInverted()) Common.invertMemory(temp, temp.length);
 
             if (!Arrays.equals(temp, 0, size, sectorBuffer, bufferOffset, bufferOffset + size)) {
-                // データが異なる
+                // Data is different
                 return -1;
             }
         }
@@ -990,7 +990,7 @@ logger.log(Level.TRACE, e.getMessage());
     public boolean isEnoughFileSize(int size) {
         int blockSize = basic.getSectorSize();
         if (!basic.getVariousBoolParam(KEY_FAST_FILE_SYSTEM)) {
-            // OFSなら24バイト減らす
+            // For OFS, reduce by 24 bytes
             blockSize -= AmigaFileDataPre.SIZE - 1;
         }
 
@@ -1010,7 +1010,7 @@ logger.log(Level.TRACE, e.getMessage());
         int bufferOffset = 0;
 
         if (!basic.getVariousBoolParam(KEY_FAST_FILE_SYSTEM)) {
-            // OFSなら24バイト減らす
+            // For OFS, reduce by 24 bytes
             pre = new AmigaFileDataPre();
             Serdes.Util.deserialize(new ByteArrayInputStream(buffer), pre);
             size -= AmigaFileDataPre.SIZE - 1;
@@ -1018,7 +1018,7 @@ logger.log(Level.TRACE, e.getMessage());
         }
 
         if (remain <= size) {
-            // 残り少ない
+            // Few remaining
             if (remain < 0) remain = 0;
             if (remain > 0) iStream.readNBytes(buffer, bufferOffset, remain);
             if (size > remain) {
@@ -1026,13 +1026,13 @@ logger.log(Level.TRACE, e.getMessage());
             }
             len = remain;
         } else {
-            // 継続
+            // Continuous
             iStream.readNBytes(buffer, bufferOffset, size);
             len = size;
         }
 
         if (pre != null) {
-            // OFSの場合、パラメータをセット
+            // In case of OFS, set parameters
             DiskBasicDirItemAmiga aitem = (DiskBasicDirItemAmiga) item;
             int val = FILETYPE_MASK_AMIGA_DATA;
             pre.o.type = val;
@@ -1050,7 +1050,7 @@ logger.log(Level.TRACE, e.getMessage());
 
     @Override
     public void additionalProcessOnSavedFile(DiskBasicDirItem<DirectoryAmiga> item) {
-        // ビットマップのチェックサムを更新する
+        // Update checksum of bitmap
         AmigaOneBitmap.updateCheckSum(bitmap);
 
         DiskBasicDirItemAmiga aItem = (DiskBasicDirItemAmiga) item;
@@ -1061,17 +1061,17 @@ logger.log(Level.TRACE, e.getMessage());
 
         DiskBasicDirItemAmiga aParent = (DiskBasicDirItemAmiga) parent;
 
-        // 親ディレクトリの日時を更新する（ルートディレクトリの場合も含む）
+        // Update date and time of parent directory (including root directory)
         LocalDateTime tm = LocalDateTime.now();
         aParent.setFileModifyDateTime(tm);
 
-        // ルートディレクトリのボリューム日時を更新する
+        // Update volume date and time of root directory
         setVolumeDateTime(tm);
 
-        // 親ディレクトリのチェックサムを更新する
+        // Update checksum of parent directory
         aParent.updateCheckSum();
 
-        // ルートディレクトリのチェックサムを更新する
+        // Update checksum of root directory
         if (aParent.getParent() != null) updateCheckSumOnRoot();
     }
 
@@ -1081,14 +1081,14 @@ logger.log(Level.TRACE, e.getMessage());
         int[] len = {name.length};
         int[] eLen = new int[1];
 
-        // ファイル名を得る
+        // Get file name
         item.getNativeFileName(name, len, null, eLen);
-        // ハッシュ番号を計算
+        // Calculate hash number
         int hashNum = createHashNumberFromName(name, len[0]);
 
         DiskBasicDirItemAmiga aItem = (DiskBasicDirItemAmiga) item;
         if (hashNum == aItem.getHashNumber()) {
-            // ハッシュ番号が同じなら変更なし
+            // No change if hash number is same
             return;
         }
 
@@ -1101,29 +1101,29 @@ logger.log(Level.TRACE, e.getMessage());
         int[] tables = aParent.getBlockTable();
         int tableSize = aParent.getNumOfDataBlocks();
 
-        // ディレクトリリストから削除する
+        // Remove from directory list
         DiskBasicDirItemAmiga.deleteItemInDirectory(basic, tables, tableSize, limit, parent.getChildren(), item);
 
-        // ハッシュ番号を登録
+        // Register hash number
         int blockNum = item.getStartGroup(0);
         aParent.chainHashNumber(hashNum, blockNum, item);
 
-        // ディレクトリリストに追加する
+        // Add to directory list
         DiskBasicDirItemAmiga.insertItemInDirectory(basic, tables, tableSize, limit, parent.getChildren(), item);
     }
 
     @Override
     public void deleteGroupNumber(int groupNum) {
-        // 未使用にする
+        // Make it unused
         setGroupNumber(groupNum, 0);
     }
 
     @Override
     public boolean additionalProcessOnDeletedFile(DiskBasicDirItem<DirectoryAmiga> item) {
-        // ビットマップのチェックサムを更新する
+        // Update checksum of bitmap
         AmigaOneBitmap.updateCheckSum(bitmap);
 
-        // ディレクトリリストから削除する
+        // Remove from directory list
         DiskBasicDirItem<DirectoryAmiga> parent = item.getParent();
         if (parent == null) return false;
 
@@ -1135,17 +1135,17 @@ logger.log(Level.TRACE, e.getMessage());
 
         DiskBasicDirItemAmiga.deleteItemInDirectory(basic, tables, tableSize, limit, parent.getChildren(), item);
 
-        // 親ディレクトリの日時を更新する（ルートディレクトリの場合も含む）
+        // Update date and time of parent directory (including root directory)
         LocalDateTime tm = LocalDateTime.now();
         aparent.setFileModifyDateTime(tm);
 
-        // ルートディレクトリのボリューム日時を更新する
+        // Update volume date and time of root directory
         setVolumeDateTime(tm);
 
-        // 親ディレクトリのチェックサムを更新する
         aparent.updateCheckSum();
+        // Update checksum of parent directory
 
-        // ルートディレクトリのチェックサムを更新する
+        // Update checksum of root directory
         if (aparent.getParent() != null) updateCheckSumOnRoot();
 
         return true;
@@ -1194,16 +1194,16 @@ logger.log(Level.TRACE, e.getMessage());
         }
     }
 
-    /** ルートのチェックサムを計算 */
+    /** Calculate root checksum */
     public void updateCheckSumOnRoot() {
         DiskBasicDirItem<DirectoryAmiga> aRoot = dir.getRootItem();
         ((DiskBasicDirItemAmiga) aRoot).updateCheckSum();
     }
 
     /**
-     * ルートの更新日時をセット
+     * Set root update date and time
      *
-     * @param tm 日時
+     * @param tm Date and time
      */
     public void setModifyDateTime(LocalDateTime tm) {
         int[] days = new int[1];
@@ -1219,9 +1219,9 @@ logger.log(Level.TRACE, e.getMessage());
     }
 
     /**
-     * ルートのボリューム日時をセット
+     * Set root volume date and time
      *
-     * @param tm 日時
+     * @param tm Date and time
      */
     public void setVolumeDateTime(LocalDateTime tm) {
         int[] days = new int[1];
@@ -1237,9 +1237,9 @@ logger.log(Level.TRACE, e.getMessage());
     }
 
     /**
-     * ルートの作成日時をセット
+     * Set root creation date and time
      *
-     * @param tm 日時
+     * @param tm Date and time
      */
     public void setCreateDateTime(LocalDateTime tm) {
         int[] days = new int[1];
@@ -1255,9 +1255,9 @@ logger.log(Level.TRACE, e.getMessage());
     }
 
     /**
-     * 空き位置を返す
+     * Returns a free position
      *
-     * @return INVALID_GROUP_NUMBER: 空きなし
+     * @return INVALID_GROUP_NUMBER: No free space
      */
     private int getEmptyGroupNumberM() {
         int newNum = INVALID_GROUP_NUMBER;
@@ -1269,13 +1269,13 @@ logger.log(Level.TRACE, e.getMessage());
         for (int i = 0; i < 2; i++) {
             switch (i) {
                 case 0:
-                    // 外側へ検索
+                    // Search outwards
                     startTrack = basic.getManagedTrackNumber();
                     endTrack = basic.getTracksPerSideOnBasic() + basic.getTrackNumberBaseOnDisk();
                     direction = 1;
                     break;
                 case 1:
-                    // 内側へ検索
+                    // Search inwards
                     startTrack = basic.getManagedTrackNumber() - 1;
                     endTrack = basic.getTrackNumberBaseOnDisk() - 1;
                     direction = -1;
@@ -1296,11 +1296,11 @@ logger.log(Level.TRACE, e.getMessage());
     }
 
     /**
-     * ファイル名からハッシュ番号を生成する
+     * Generate hash number from file name
      *
-     * @param name [in,out] ファイル名
-     * @param size サイズ
-     * @return ハッシュ番号
+     * @param name [in,out] File name
+     * @param size Size
+     * @return Hash number
      */
     private int createHashNumberFromName(byte[] name, int size) {
         int hash;

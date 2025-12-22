@@ -17,7 +17,7 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_HIDDEN_MASK;
 import static l3diskex.basicfmt.type.DiskBasicTypeMSX.FORMAT_TYPE_MSX;
 
 
-/** ディレクトリ１アイテム MSX-DOS */
+/** Directory 1 item MSX-DOS */
 public class DiskBasicDirItemMSX extends DiskBasicDirItemMSDOS {
 
     static final ResourceBundle rb = ResourceBundle.getBundle("messages");
@@ -52,7 +52,7 @@ public class DiskBasicDirItemMSX extends DiskBasicDirItemMSDOS {
         super.init(basic, num, gitem, sector, sectorPos, data, dataPos, next, unuse);
     }
 
-    /** 属性の文字列を返す(ファイル一覧画面表示用) */
+    /** Returns attribute string (for file list display) */
     @Override
     public String getFileAttrStr() {
         String attr = null;
@@ -68,10 +68,10 @@ public class DiskBasicDirItemMSX extends DiskBasicDirItemMSDOS {
     }
 
     //
-    // ダイアログ用
+    // For dialog
     //
 
-    /** 日付のタイトル名（ダイアログ用） */
+    /** Title name of date (for dialog) */
     @Override
     public String getFileCreateDateTimeTitle() {
         return "Created Date";

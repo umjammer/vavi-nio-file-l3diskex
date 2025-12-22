@@ -22,7 +22,7 @@ import vavi.io.SeekableDataOutputStream;
 import vavi.util.serdes.Serdes;
 
 
-/** D88形式ディスクライター */
+/** D88 format disk writer */
 public class DiskD88Writer extends DiskImageWriter {
 
     /**
@@ -155,7 +155,7 @@ public class DiskD88Writer extends DiskImageWriter {
             disk.setSizeWithoutHeader(newSize);
         }
 
-        // ディスクヘッダ
+        // Disk Header
         d88Header.newHeader(disk.getHeader());
 
         // write disk header
@@ -167,7 +167,7 @@ public class DiskD88Writer extends DiskImageWriter {
             return result.getValid();
         }
 
-        // オフセットクリア
+        // Clear Offsets
         d88Header.clearOffsets();
 
         int trackStart = sideNumber < 0 ? 0 : sideNumber;
@@ -186,12 +186,12 @@ public class DiskD88Writer extends DiskImageWriter {
                 DiskImageSector sector = sectors.get(sector_num);
                 if (sector == null) continue;
 
-                // セクタヘッダ
+                // Sector Header
                 DiskD88SectorHeader sectHdr = new DiskD88SectorHeader();
                 sectHdr.newHeader(sector.getHeader());
 
                 if (sideNumber >= 0) {
-                    // 片面だけ保存のときはID Hを0にする
+                    // When saving only one side, set ID H to 0
                     sectHdr.setIDH((byte) 0);
                 }
 
@@ -209,7 +209,7 @@ public class DiskD88Writer extends DiskImageWriter {
             }
             //
             if (!writer.isTrimUnusedData()) {
-                // 余分なデータ
+                // Extra Data
                 byte[] extra = track.getExtraData();
                 int extraSize = track.getExtraDataSize();
                 if (extra != null && extraSize > 0) {
@@ -218,7 +218,7 @@ public class DiskD88Writer extends DiskImageWriter {
                 }
             }
             if (trackSize > 0) {
-                // オフセットをセット
+                // Set Offset
                 d88Header.setOffset(trackOffPos, trackOffset);
                 trackOffPos++;
                 trackOffset += trackSize;
@@ -226,7 +226,7 @@ public class DiskD88Writer extends DiskImageWriter {
             }
         }
         if (sideNumber >= 0) {
-            // 片面だけ保存のときはディスクヘッダを更新
+            // When saving only one side, update the disk header
             ((SeekableDataOutputStream) oStream).position(0);
             Serdes.Util.deserialize(d88Header.getHeader(), oStream);
         }

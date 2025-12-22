@@ -25,11 +25,11 @@ import static l3diskex.basicfmt.diritem.DiskBasicDirItemX1HU.EXTERNAL_X1_SWORD;
 
 
 /**
- * X1 Hu-BASICの処理
+ * X1 Hu-BASIC processing
  * <p>
- * DiskBasicParam 固有パラメータ
+ * DiskBasicParam Specific parameters
  *
- * <li>IPLString : セクタ1のIPL</li>
+ * <li>IPLString: IPL string in sector 1</li>
  */
 public class DiskBasicTypeX1HU extends DiskBasicType<DirectoryX1Hu> {
 
@@ -45,7 +45,7 @@ public class DiskBasicTypeX1HU extends DiskBasicType<DirectoryX1Hu> {
         super.init(basic, fat, dir);
     }
 
-    /** FAT位置をセット */
+    /** Set FAT position */
     @Override
     public void setGroupNumber(int num, int val) {
         DiskBasicFatArea fatArea = this.fat.getDiskBasicFatArea();
@@ -64,7 +64,7 @@ public class DiskBasicTypeX1HU extends DiskBasicType<DirectoryX1Hu> {
         }
     }
 
-    /** FAT位置を返す */
+    /** Returns FAT position */
     @Override
     public int getGroupNumber(int num) {
         int newNum = INVALID_GROUP_NUMBER;
@@ -87,11 +87,11 @@ public class DiskBasicTypeX1HU extends DiskBasicType<DirectoryX1Hu> {
         return newNum;
     }
 
-    /** 空きFAT位置を返す */
+    /** Returns a free FAT position */
     @Override
     public int getEmptyGroupNumber() {
         int newNum = INVALID_GROUP_NUMBER;
-        // 若い番号順に検索
+        // Search in ascending order of numbers
         for (int num = 0; num <= basic.getFatEndGroup(); num++) {
             if (num == basic.getGroupFinalCode()) num += basic.getGroupFinalCode();
             int groupNum = getGroupNumber(num);
@@ -103,19 +103,19 @@ public class DiskBasicTypeX1HU extends DiskBasicType<DirectoryX1Hu> {
         return newNum;
     }
 
-    /** 次の空き位置を返す */
+    /** Returns next free position */
     @Override
     public int getNextEmptyGroupNumber(int currentGroup) {
         int newNum = INVALID_GROUP_NUMBER;
 
-        // グループが連続するように検索
+        // Search so that groups are continuous
         int groupMax = basic.getFatEndGroup() + 1;
         int groupStart = currentGroup;
         int groupEnd;
         int dir;
         boolean found = false;
 
-        dir = 1; // 始めは+方向、なければ-方向に検索
+        dir = 1; // Initially search in + direction, if not found, search in - direction
         for (int i = 0; i < 2; i++) {
             groupEnd = (dir > 0 ? groupMax : -1);
             for(int group = groupStart; group != groupEnd; group += dir) {
@@ -134,12 +134,12 @@ public class DiskBasicTypeX1HU extends DiskBasicType<DirectoryX1Hu> {
         return newNum;
     }
 
-    /** FATエリアをチェック */
+    /** Check FAT area */
     @Override
     public double checkFat(boolean isFormatting) {
         double validRatio = 1.0;
 
-        // FAT領域の先頭がFAT領域のセクタ数であるか
+        // Whether the beginning of the FAT region is the number of sectors in the FAT region
         DiskBasicFatArea fatArea = fat.getDiskBasicFatArea();
         if (fatArea.matchData8(0, basic.invertUint8((byte) 0x01)) != fatArea.size()) {
             return -1.0;
@@ -148,14 +148,14 @@ public class DiskBasicTypeX1HU extends DiskBasicType<DirectoryX1Hu> {
         int end = basic.getFatEndGroup();
         int[] table = new int[end + 1];
 
-        // 同じグループ番号が重複しているか
+        // Check whether the same group number is duplicated
         for (int pos = 0; pos <= end; pos++) {
             int groupNum = getGroupNumber(pos);
             if (groupNum > 0 && groupNum <= end) {
                 table[groupNum]++;
             }
         }
-        // 同じグループ番号が重複している場合エラー
+        // Error if the same group number is duplicated
         for (int value : table) {
             if (value > 1) {
                 validRatio = 0.0;
@@ -163,17 +163,17 @@ public class DiskBasicTypeX1HU extends DiskBasicType<DirectoryX1Hu> {
             }
         }
 
-        // Hu-BASIC か S-OS SWORD か
+        // Hu-BASIC or S-OS SWORD?
         if (validRatio >= 0) {
             int aType = basic.getVariousIntegerParam("DefaultAsciiType");
             int point = 0;
             for (int i = 0; i < 2; i++) {
                 DiskImageSector sector = switch (i) {
                     case 0 ->
-                        // IPL領域
+                        // IPL area
                             basic.getSector(0, 0, 1);
                     case 1 ->
-                        // ディレクトリ領域
+                        // Directory area
                             basic.getManagedSector(basic.getDirStartSector() - 1);
                     default -> null;
                 };
@@ -196,7 +196,7 @@ public class DiskBasicTypeX1HU extends DiskBasicType<DirectoryX1Hu> {
         return validRatio;
     }
 
-    /** ディスクから各パラメータを取得＆必要なパラメータを計算 */
+    /** Get each parameter from disk and calculate necessary parameters */
     @Override
     public double parseParamOnDisk(boolean isFormatting) {
         if (basic.getFatEndGroup() == 0) {
@@ -210,7 +210,7 @@ public class DiskBasicTypeX1HU extends DiskBasicType<DirectoryX1Hu> {
         return 1.0;
     }
 
-    /** 使用可能なディスクサイズを得る */
+    /** Get usable disk size */
     @Override
     public void getUsableDiskSize(int[] diskSize, int[] groupSize) {
         groupSize[0] = basic.getFatEndGroup() + 1;
@@ -218,7 +218,7 @@ public class DiskBasicTypeX1HU extends DiskBasicType<DirectoryX1Hu> {
         diskSize[0] = groupSize[0] * basic.getSectorSize() * basic.getSectorsPerGroup();
     }
 
-    /** 残りディスクサイズを計算 */
+    /** Calculate remaining disk size */
     @Override
     public void calcDiskFreeSize(boolean wrote) {
         int fSize = 0;
@@ -240,28 +240,28 @@ public class DiskBasicTypeX1HU extends DiskBasicType<DirectoryX1Hu> {
         }
     }
 
-    /** グループ番号から開始セクタ番号を得る */
+    /** Get start sector number from group number */
     @Override
     public int getStartSectorFromGroup(int groupNum) {
         if (groupNum > basic.getGroupSystemCode()) {
-            // 0x100以降の番号は0x80減算
+            // Subtract 0x80 for numbers 0x100 and after
             groupNum -= basic.getGroupFinalCode();
         }
         return groupNum * basic.getSectorsPerGroup();
     }
 
-    /** グループ番号から最終セクタ番号を得る */
+    /** Get final sector number from group number */
     @Override
     public int getEndSectorFromGroup(int groupNum, int nextGroup, int sectorStart, int sectorSize, int remainSize) {
         int sectorEnd = sectorStart + basic.getSectorsPerGroup() - 1;
         if (nextGroup >= basic.getGroupFinalCode() && nextGroup <= basic.getGroupSystemCode()) {
-            // 最終グループの場合指定したセクタまで
+            // If it is the final group, up to the specified sector
             sectorEnd = sectorStart + (nextGroup - basic.getGroupFinalCode());
         }
         return sectorEnd;
     }
 
-    /** ディレクトリがルートかを判定 */
+    /** Judge whether directory is root */
     @Override
     public boolean isRootDirectory(int groupNum) {
         int secNum = basic.getDirEndSector();
@@ -269,19 +269,19 @@ public class DiskBasicTypeX1HU extends DiskBasicType<DirectoryX1Hu> {
         return groupNum < startGroup;
     }
 
-    /** ディレクトリ名の変更 */
+    /** Rename directory */
     @Override
     public boolean renameOnMakingDirectory(String[] dirName) {
-        // 空や"."で始まるディレクトリは作成不可
+        // Directories starting with empty or "." cannot be created
         if (dirName[0].isEmpty() || dirName[0].startsWith(".")) {
             return false;
         }
         int pos = dirName[0].indexOf(".");
         if (pos != -1) {
-            // 拡張子以下を除く
+            // Remove extension and below
             dirName[0] = dirName[0].substring(0, pos);
         }
-        // 拡張子を付ける
+        // Add extension
         dirName[0] += ".DIR";
 
         return true;

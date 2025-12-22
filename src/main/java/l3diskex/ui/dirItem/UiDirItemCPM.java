@@ -50,7 +50,7 @@ public class UiDirItemCPM extends UiDirItem {
     DiskBasicDirItemCPM dirItem;
 
     //
-    // ダイアログ用
+    // For dialog
     //
 
     // Assuming IntNameBox, wxSpinCtrl, JCheckBox, wxRadioBox, BoxLayout,
@@ -58,33 +58,33 @@ public class UiDirItemCPM extends UiDirItem {
     // by Java UI libraries or placeholder classes.
 
     /**
-     * 属性からリストの位置を返す(プロパティダイアログ用)
+     * Return position in list from attribute (for property dialog)
      */
     public int GetFileType1Pos() {
         return dirItem.getFileType1();
     }
 
     /**
-     * 属性からリストの位置を返す(プロパティダイアログ用)
+     * Return position in list from attribute (for property dialog)
      */
     public int GetFileType2Pos() {
         return dirItem.getFileType2();
     }
 
     /**
-     * ダイアログ用に属性を設定する
-     * ダイアログ表示前にファイルの属性を設定
+     * Set attributes for dialog
+     * Set file attributes before displaying dialog
      */
     public void SetFileTypeForAttrDialog(int show_flags, String name, int[] file_type_1, int[] file_type_2) {
         // Assuming INTNAME_NEW_FILE is a defined constant
         if ((show_flags & 0x01) != 0 /*INTNAME_NEW_FILE*/) {
-            // 外部からインポート時
+            // When importing from external
             file_type_2[0] = dirItem.convFileTypeFromFileName(name);
         }
     }
 
     /**
-     * ダイアログ内の属性部分のレイアウトを作成
+     * Create layout for attribute part in dialog
      */
     @Override
     public void createControlsForAttrDialog(IntNameBox parent, int show_flags, String file_path, BoxLayout sizer, Object flags) {
@@ -129,14 +129,14 @@ public class UiDirItemCPM extends UiDirItem {
     }
 
     /**
-     * 属性を変更した際に呼ばれるコールバック
+     * Callback called when attribute is changed
      */
     @Override
     public void changeTypeInAttrDialog(IntNameBox parent) {
     }
 
     /**
-     * 機種依存の属性を設定する
+     * Set machine dependent attributes
      */
     @Override
     public boolean setAttrInAttrDialog(IntNameBox parent, DiskBasicDirItemAttr attr, DiskBasicError errinfo) {

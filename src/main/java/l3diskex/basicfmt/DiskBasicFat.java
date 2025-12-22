@@ -16,19 +16,19 @@ import static l3diskex.basicfmt.DiskBasicType.INVALID_GROUP_NUMBER;
 
 
 /**
- * FATアクセス
+ * FAT Access
  */
 public class DiskBasicFat {
 
     private static final Logger logger = System.getLogger(DiskBasicFat.class.getName());
 
     /**
-     * 使用状況テーブル
+     * Usage Status Table
      */
     public static class DiskBasicAvailability {
 
         /**
-         * 使用状況テーブル enum
+         * Usage Status Table enum
          */
         public enum FatAvailability {
             FAT_AVAIL_FREE,
@@ -43,9 +43,9 @@ public class DiskBasicFat {
 
         List<FatAvailability> list = new ArrayList<>();
 
-        /** 空きサイズ */
+        /** Free size */
         private int freeSize;
-        /** 空きグループ数 */
+        /** Number of free groups */
         private int freeGroups;
 
         public DiskBasicAvailability() {
@@ -55,7 +55,7 @@ public class DiskBasicFat {
         }
 
         /**
-         * 初期化 空きサイズを 0 にする
+         * Initialization: set free size to 0
          */
         public void clear() {
             list.clear();
@@ -64,7 +64,7 @@ public class DiskBasicFat {
         }
 
         /**
-         * 初期化 空きサイズを 0 にする
+         * Initialization: set free size to 0
          */
         public void empty() {
             list.clear();
@@ -73,7 +73,7 @@ public class DiskBasicFat {
         }
 
         /**
-         * 初期化 空きサイズを -1 にする
+         * Initialization: set free size to -1
          */
         public void emptyInit() {
             list.clear();
@@ -82,10 +82,10 @@ public class DiskBasicFat {
         }
 
         /**
-         * @param val   値
-         * @param size  空きサイズ
-         * @param group 空きグループ数
-         *              追加
+         * @param val   Value
+         * @param size  Free size
+         * @param group Number of free groups
+         *              Append
          */
         public void add(FatAvailability val, int size, int group) {
             list.add(val);
@@ -94,9 +94,9 @@ public class DiskBasicFat {
         }
 
         /**
-         * @param idx 位置
-         * @param val 値
-         *            セット (Safety)
+         * @param idx Position
+         * @param val Value
+         *            Set (Safety)
          */
         public void set(int idx, FatAvailability val) {
             if (idx < list.size()) {
@@ -105,9 +105,9 @@ public class DiskBasicFat {
         }
 
         /**
-         * @param index 位置
-         * @return 値
-         * ゲット (Safety)
+         * @param index Position
+         * @return Value
+         * Get (Safety)
          */
         public final FatAvailability get(int index) {
             FatAvailability val = FAT_AVAIL_FREE;
@@ -123,28 +123,28 @@ public class DiskBasicFat {
         }
 
         /**
-         * 空きサイズを返す
+         * Returns free size
          */
         public int getFreeSize() {
             return freeSize;
         }
 
         /**
-         * 空きグループ数を返す
+         * Returns number of free groups
          */
         public int getFreeGroups() {
             return freeGroups;
         }
 
         /**
-         * 空きサイズをセット
+         * Set free size
          */
         public void setFreeSize(int val) {
             freeSize = val;
         }
 
         /**
-         * 空きグループ数をセット
+         * Set number of free groups
          */
         public void setFreeGroups(int val) {
             freeGroups = val;
@@ -156,7 +156,7 @@ public class DiskBasicFat {
     }
 
     /**
-     * ビット ON/OFF バッファ １つ
+     * Bit ON/OFF buffer (single)
      *
      * @see DiskBasicBitMLMap
      */
@@ -176,10 +176,10 @@ public class DiskBasicFat {
         }
 
         /**
-         * 指定位置のビットを変更する
+         * Change bit at specified position
          *
-         * @param num ビット位置
-         * @param val true:セット / false:リセット
+         * @param num Bit position
+         * @param val true: set / false: reset
          */
         public void modify(int num, boolean val) {
             int pos = num >> 3;
@@ -194,10 +194,10 @@ public class DiskBasicFat {
         }
 
         /**
-         * 指定位置のビットがセットされているか
+         * Whether bit at specified position is set
          *
-         * @param num ビット位置
-         * @return true:セット / false:リセット
+         * @param num Bit position
+         * @return true: set / false: reset
          */
         public boolean isSet(int num) {
             int pos = num >> 3;
@@ -209,11 +209,11 @@ public class DiskBasicFat {
         }
 
         /**
-         * 指定位置のビット位置を計算
+         * Calculate bit position of specified bit position
          *
-         * @param num ビット位置
-         * @param pos バッファ位置
-         * @param bit ビット
+         * @param num Bit position
+         * @param pos Buffer position
+         * @param bit Bit
          */
         public void getPos(int num, int[] pos, int[] bit) {
             pos[0] = num >> 3;
@@ -221,21 +221,21 @@ public class DiskBasicFat {
         }
 
         /**
-         * バッファを返す
+         * Returns buffer
          */
         public byte[] getBuffer() {
             return buffer;
         }
 
         /**
-         * サイズ(ビット数)を返す
+         * Returns size (number of bits)
          */
         public int getBitSize() {
             return size << 3;
         }
 
         /**
-         * バッファサイズを返す
+         * Returns buffer size
          */
         public int getSize() {
             return size;
@@ -243,7 +243,7 @@ public class DiskBasicFat {
     }
 
     /**
-     * ビット ON/OFF マップ BitMLBuffer の配列
+     * Bit ON/OFF map: array of BitMLBuffer
      */
     public static class DiskBasicBitMLMap {
 
@@ -253,16 +253,16 @@ public class DiskBasicFat {
         }
 
         /**
-         * ポインタをセット
+         * Set pointer
          */
         public void addBuffer(byte[] buffer, int size) {
             list.add(new BitMLBuffer(buffer, size));
         }
 
         /**
-         * @param group_num 位置
-         * @param val       true:セット / false:リセット
-         *                  指定位置のビットを変更する
+         * @param group_num Position
+         * @param val       true: set / false: reset
+         *                  Change bit at specified position
          */
         public void modify(int group_num, boolean val) {
             for (int idx = 0; idx < size(); idx++) {
@@ -277,10 +277,10 @@ public class DiskBasicFat {
         }
 
         /**
-         * 指定位置が空いているか
+         * Whether specified position is free
          *
-         * @param group_num 位置
-         * @return true:セット / false:リセット
+         * @param group_num Position
+         * @return true: set / false: reset
          */
         public boolean isSet(int group_num) {
             boolean val = false;
@@ -297,13 +297,13 @@ public class DiskBasicFat {
         }
 
         /**
-         * 指定位置からバッファ内の位置を計算
+         * Calculate position within buffer from specified position
          *
-         * @param group_num 位置
-         * @param idx       MAPの位置
-         * @param pos       MAP内のバッファ位置(byte)
-         * @param bit       ビット位置
-         * @return true / false オーバフロー
+         * @param group_num Position
+         * @param idx       MAP position
+         * @param pos       Buffer position in MAP (byte)
+         * @param bit       Bit position
+         * @return true / false overflow
          */
         public boolean getPosInMap(int group_num, int[] idx, int[] pos, int[] bit) {
             boolean valid = false;
@@ -331,15 +331,15 @@ public class DiskBasicFat {
     }
 
     /**
-     * FATエリア（セクタ）へのポインタを保持
+     * Holds pointer to FAT area (sector)
      */
     public static class DiskBasicFatBuffer {
 
-        /** バッファサイズ */
+        /** Buffer size */
         private final int size;
-        /** バッファポインタ（セクタ内の開始ポインタ） */
+        /** Buffer pointer (start pointer within sector) */
         private final byte[] buffer;
-        /** バッファ内のオフセット */
+        /** Offset within buffer */
         private final int offset;
 
         public DiskBasicFatBuffer() {
@@ -355,23 +355,23 @@ public class DiskBasicFat {
         }
 
         /**
-         * バッファポインタを返す
+         * Returns buffer pointer
          */
         public byte[] getBuffer() {
             return buffer;
         }
 
         /**
-         * バッファサイズを返す
+         * Returns buffer size
          */
         public int getSize() {
             return size;
         }
 
         /**
-         * バッファを指定コードで埋める
+         * Fill buffer with specified code
          *
-         * @param code コード
+         * @param code Code
          */
         public void fill(byte code) {
             if (buffer != null) {
@@ -380,10 +380,10 @@ public class DiskBasicFat {
         }
 
         /**
-         * バッファにコピー
+         * Copy to buffer
          *
-         * @param buf バッファ
-         * @param len サイズ
+         * @param buf Buffer
+         * @param len Size
          */
         public void copy(byte[] buf, int len) {
             if (buffer != null) {
@@ -393,20 +393,20 @@ public class DiskBasicFat {
         }
 
         /**
-         * 指定位置のデータを返す(8ビット)
+         * Returns data at specified position (8 bits)
          *
-         * @param pos 位置(8ビット1単位)
-         * @return 値
+         * @param pos Position (unit of 8 bits)
+         * @return Value
          */
         public int get(int pos) {
             return buffer != null ? (buffer[offset + pos] & 0xff) : INVALID_GROUP_NUMBER;
         }
 
         /**
-         * 指定位置にデータをセット(8ビット)
+         * Set data at specified position (8 bits)
          *
-         * @param pos 位置(8ビット1単位)
-         * @param val 値
+         * @param pos Position (unit of 8 bits)
+         * @param val Value
          */
         public void set(int pos, int val) {
             if (buffer != null) {
@@ -415,13 +415,13 @@ public class DiskBasicFat {
         }
 
         /**
-         * 指定位置のビットをセット/リセット
+         * Set/reset bit at specified position
          *
-         * @param pos    位置(8ビット1単位)
-         * @param mask   対象のビット
-         * @param val    セット/リセット
-         * @param invert 反転するか
-         * @return 処理したか
+         * @param pos    Position (unit of 8 bits)
+         * @param mask   Target bit
+         * @param val    Set/reset
+         * @param invert Whether to invert
+         * @return Whether processed
          */
         public boolean bit(int pos, int mask, boolean val, boolean invert) {
             if (pos >= size) return false;
@@ -435,12 +435,12 @@ public class DiskBasicFat {
         }
 
         /**
-         * 指定位置のビットがONか
+         * Whether bit at specified position is ON
          *
-         * @param pos    位置(8ビット1単位)
-         * @param mask   対象のビット
-         * @param invert 反転するか
-         * @return ビットがON
+         * @param pos    Position (unit of 8 bits)
+         * @param mask   Target bit
+         * @param invert Whether to invert
+         * @return Bit is ON
          */
         public boolean bitTest(int pos, byte mask, boolean invert) {
             if (pos >= size) return false;
@@ -451,10 +451,10 @@ public class DiskBasicFat {
         }
 
         /**
-         * 指定位置のデータを返す(16ビット、リトルエンディアン)
+         * Returns data at specified position (16 bits, little endian)
          *
-         * @param pos 位置(8ビット1単位)
-         * @return 値
+         * @param pos Position (unit of 8 bits)
+         * @return Value
          */
         public int get16LE(int pos) {
             if (buffer == null || pos + 1 >= size) return INVALID_GROUP_NUMBER;
@@ -464,10 +464,10 @@ public class DiskBasicFat {
         }
 
         /**
-         * 指定位置にデータをセット(16ビット、リトルエンディアン)
+         * Set data at specified position (16 bits, little endian)
          *
-         * @param pos 位置(8ビット1単位)
-         * @param val 値
+         * @param pos Position (unit of 8 bits)
+         * @param val Value
          */
         public void set16LE(int pos, int val) {
             if (buffer != null && pos + 1 < size) {
@@ -477,10 +477,10 @@ public class DiskBasicFat {
         }
 
         /**
-         * 指定位置のデータを返す(16ビット、ビッグエンディアン)
+         * Returns data at specified position (16 bits, big endian)
          *
-         * @param pos 位置(8ビット1単位)
-         * @return 値
+         * @param pos Position (unit of 8 bits)
+         * @return Value
          */
         public int get16BE(int pos) {
             if (buffer == null || pos + 1 >= size) return INVALID_GROUP_NUMBER;
@@ -490,10 +490,10 @@ public class DiskBasicFat {
         }
 
         /**
-         * 指定位置にデータをセット(16ビット、ビッグエンディアン)
+         * Set data at specified position (16 bits, big endian)
          *
-         * @param pos 位置(8ビット1単位)
-         * @param val 値
+         * @param pos Position (unit of 8 bits)
+         * @param val Value
          */
         public void Set16BE(int pos, int val) {
             if (buffer != null && pos + 1 < size) {
@@ -507,10 +507,10 @@ public class DiskBasicFat {
         //
 
         /**
-         * 8ビットデータを返す
+         * Returns 8-bit data
          *
-         * @param pos 位置(8ビット1単位)
-         * @return 値
+         * @param pos Position (unit of 8 bits)
+         * @return Value
          */
         public static int getData8(List<DiskBasicFatBuffer> list, int pos) {
             int val = INVALID_GROUP_NUMBER;
@@ -525,10 +525,10 @@ public class DiskBasicFat {
         }
 
         /**
-         * 8ビットデータをセット
+         * Set 8-bit data
          *
-         * @param pos 位置(8ビット1単位)
-         * @param val 値
+         * @param pos Position (unit of 8 bits)
+         * @param val Value
          */
         public static void setData8(List<DiskBasicFatBuffer> list, int pos, int val) {
             for (DiskBasicFatBuffer buf : list) {
@@ -541,11 +541,11 @@ public class DiskBasicFat {
         }
 
         /**
-         * 8ビットデータが一致するか
+         * Whether 8-bit data matches
          *
-         * @param pos 位置(8ビット1単位)
-         * @param val 値
-         * @return 一致する
+         * @param pos Position (unit of 8 bits)
+         * @param val Value
+         * @return true: match
          */
         public static boolean matchData8(List<DiskBasicFatBuffer> list, int pos, int val) {
             boolean match = false;
@@ -560,13 +560,13 @@ public class DiskBasicFat {
         }
 
         /**
-         * 8ビットデータのビットをセット/リセット
+         * Set/reset bit of 8-bit data
          *
-         * @param pos    位置(8ビット1単位)
-         * @param mask   対象のビット
-         * @param val    セット/リセット
-         * @param invert 反転するか
-         * @return 処理したか
+         * @param pos    Position (unit of 8 bits)
+         * @param mask   Target bit
+         * @param val    Set/reset
+         * @param invert Whether to invert
+         * @return Whether processed
          */
         public static boolean bitData8(List<DiskBasicFatBuffer> list, int pos, byte mask, boolean val, boolean invert) {
             boolean processed = false;
@@ -579,10 +579,10 @@ public class DiskBasicFat {
         }
 
         /**
-         * 12ビットデータ(リトルエンディアン)を返す
+         * Returns 12-bit data (little endian)
          *
-         * @param pos 位置(12ビット1単位)
-         * @return 値
+         * @param pos Position (unit of 12 bits)
+         * @return Value
          */
         public static int getData12LE(List<DiskBasicFatBuffer> list, int pos) {
             int val = INVALID_GROUP_NUMBER;
@@ -608,10 +608,10 @@ public class DiskBasicFat {
         }
 
         /**
-         * 12ビットデータ(リトルエンディアン)をセット
+         * Set 12-bit data (little endian)
          *
-         * @param pos 位置(12ビット1単位)
-         * @param val 値
+         * @param pos Position (unit of 12 bits)
+         * @param val Value
          */
         public static void setData12LE(List<DiskBasicFatBuffer> list, int pos, int val) {
             boolean odd = ((pos & 1) != 0);
@@ -635,10 +635,10 @@ public class DiskBasicFat {
         }
 
         /**
-         * 16ビットデータ(リトルエンディアン)を返す
+         * Returns 16-bit data (little endian)
          *
-         * @param pos 位置(16ビット1単位)
-         * @return 値
+         * @param pos Position (unit of 16 bits)
+         * @return Value
          */
         public static int getData16LE(List<DiskBasicFatBuffer> list, int pos) {
             int val = INVALID_GROUP_NUMBER;
@@ -654,10 +654,10 @@ public class DiskBasicFat {
         }
 
         /**
-         * 16ビットデータ(リトルエンディアン)をセット
+         * Set 16-bit data (little endian)
          *
-         * @param pos 位置(16ビット1単位)
-         * @param val 値
+         * @param pos Position (unit of 16 bits)
+         * @param val Value
          */
         public static void setData16LE(List<DiskBasicFatBuffer> list, int pos, int val) {
             pos *= 2;
@@ -671,10 +671,10 @@ public class DiskBasicFat {
         }
 
         /**
-         * 16ビットデータ(ビッグエンディアン)を返す
+         * Returns 16-bit data (big endian)
          *
-         * @param pos 位置(16ビット1単位)
-         * @return 値
+         * @param pos Position (unit of 16 bits)
+         * @return Value
          */
         public static int getData16BE(List<DiskBasicFatBuffer> list, int pos) {
             int val = INVALID_GROUP_NUMBER;
@@ -690,10 +690,10 @@ public class DiskBasicFat {
         }
 
         /**
-         * 16ビットデータ(ビッグエンディアン)をセット
+         * Set 16-bit data (big endian)
          *
-         * @param pos 位置(16ビット1単位)
-         * @param val 値
+         * @param pos Position (unit of 16 bits)
+         * @param val Value
          */
         public static void setData16BE(List<DiskBasicFatBuffer> list, int pos, int val) {
             pos *= 2;
@@ -708,13 +708,13 @@ public class DiskBasicFat {
     }
 
     /**
-     * FATバッファ（ミラーリング含む） DiskBasicFatBuffers の配列
+     * FAT buffer (including mirroring): array of DiskBasicFatBuffers
      */
     public static class DiskBasicFatArea {
 
         List<List<DiskBasicFat.DiskBasicFatBuffer>> list = new ArrayList<>();
 
-        /** 有効なバッファ数 */
+        /** Number of valid buffers */
         private int validCount;
 
         public DiskBasicFatArea() {
@@ -722,7 +722,7 @@ public class DiskBasicFat {
         }
 
         /**
-         * 代入
+         * Assignment
          */
         public DiskBasicFatArea operatorAssign(DiskBasicFatArea src) {
             list.clear();
@@ -732,7 +732,7 @@ public class DiskBasicFat {
         }
 
         /**
-         * クリア
+         * Clear
          */
         public void empty() {
             list.clear();
@@ -740,10 +740,10 @@ public class DiskBasicFat {
         }
 
         /**
-         * 追加
+         * Append
          *
-         * @param lItem   追加するアイテム
-         * @param nInsert 追加する数
+         * @param lItem   Item to append
+         * @param nInsert Number to append
          */
         public void add(List<DiskBasicFatBuffer> lItem, int nInsert) {
             for (int i = 0; i < nInsert; i++) {
@@ -757,25 +757,25 @@ public class DiskBasicFat {
         }
 
         /**
-         * 有効なバッファ数をセット
+         * Set number of valid buffers
          */
         public void setValidCount(int val) {
             validCount = val;
         }
 
         /**
-         * 有効なバッファ数を返す
+         * Returns number of valid buffers
          */
         public int getValidCount() {
             return validCount;
         }
 
         /**
-         * 8ビットデータを返す
+         * Returns 8-bit data
          *
-         * @param idx ミラーリング位置
-         * @param pos 位置(8ビット1単位)
-         * @return 値
+         * @param idx Mirroring position
+         * @param pos Position (unit of 8 bits)
+         * @return Value
          */
         public int getData8(int idx, int pos) {
             int val = INVALID_GROUP_NUMBER;
@@ -787,10 +787,10 @@ public class DiskBasicFat {
         }
 
         /**
-         * 8ビットデータをセット
+         * Set 8-bit data
          *
-         * @param pos 位置(8ビット1単位)
-         * @param val 値
+         * @param pos Position (unit of 8 bits)
+         * @param val Value
          */
         public void setData8(int pos, int val) {
             for (int n = 0; n < getValidCount(); n++) {
@@ -799,11 +799,11 @@ public class DiskBasicFat {
         }
 
         /**
-         * 8ビットデータをセット
+         * Set 8-bit data
          *
-         * @param idx ミラーリング位置
-         * @param pos 位置(8ビット1単位)
-         * @param val 値
+         * @param idx Mirroring position
+         * @param pos Position (unit of 8 bits)
+         * @param val Value
          */
         public void setData8(int idx, int pos, int val) {
             if (idx >= list.size()) return;
@@ -813,11 +813,11 @@ public class DiskBasicFat {
         }
 
         /**
-         * 8ビットデータが一致するか
+         * Whether 8-bit data matches
          *
-         * @param pos 位置(8ビット1単位)
-         * @param val 値
-         * @return 一致した数（多重分）
+         * @param pos Position (unit of 8 bits)
+         * @param val Value
+         * @return Number of matches (for multiple mirroring)
          */
         public int matchData8(int pos, int val) {
             int matchCount = 0;
@@ -828,12 +828,12 @@ public class DiskBasicFat {
         }
 
         /**
-         * 8ビットデータが一致するか
+         * Whether 8-bit data matches
          *
-         * @param idx ミラーリング位置
-         * @param pos 位置(8ビット1単位)
-         * @param val 値
-         * @return 一致した
+         * @param idx Mirroring position
+         * @param pos Position (unit of 8 bits)
+         * @param val Value
+         * @return true: matched
          */
         public boolean matchData8(int idx, int pos, int val) {
             if (idx >= list.size()) return false;
@@ -843,13 +843,13 @@ public class DiskBasicFat {
         }
 
         /**
-         * 8ビットデータのビットをセット/リセット
+         * Set/reset bit of 8-bit data
          *
-         * @param idx    ミラーリング位置
-         * @param pos    位置(8ビット1単位)
-         * @param mask   対象のビット
-         * @param val    セット/リセット
-         * @param invert 反転するか
+         * @param idx    Mirroring position
+         * @param pos    Position (unit of 8 bits)
+         * @param mask   Target bit
+         * @param val    Set/reset
+         * @param invert Whether to invert
          */
         public void bitData8(int idx, int pos, byte mask, boolean val, boolean invert) {
             if (idx >= list.size()) return;
@@ -859,11 +859,11 @@ public class DiskBasicFat {
         }
 
         /**
-         * 12ビットデータ(リトルエンディアン)を返す
+         * Returns 12-bit data (little endian)
          *
-         * @param idx ミラーリング位置
-         * @param pos 位置(12ビット1単位)
-         * @return 値
+         * @param idx Mirroring position
+         * @param pos Position (unit of 12 bits)
+         * @return Value
          */
         public int getData12LE(int idx, int pos) {
             int val = INVALID_GROUP_NUMBER;
@@ -875,10 +875,10 @@ public class DiskBasicFat {
         }
 
         /**
-         * 12ビットデータ(リトルエンディアン)をセット
+         * Set 12-bit data (little endian)
          *
-         * @param pos 位置(12ビット1単位)
-         * @param val 値
+         * @param pos Position (unit of 12 bits)
+         * @param val Value
          */
         public void setData12LE(int pos, int val) {
             for (int n = 0; n < getValidCount(); n++) {
@@ -887,11 +887,11 @@ public class DiskBasicFat {
         }
 
         /**
-         * 12ビットデータ(リトルエンディアン)をセット
+         * Set 12-bit data (little endian)
          *
-         * @param idx ミラーリング位置
-         * @param pos 位置(12ビット1単位)
-         * @param val 値
+         * @param idx Mirroring position
+         * @param pos Position (unit of 12 bits)
+         * @param val Value
          */
         public void setData12LE(int idx, int pos, int val) {
             if (idx >= list.size()) return;
@@ -901,11 +901,11 @@ public class DiskBasicFat {
         }
 
         /**
-         * 16ビットデータ(リトルエンディアン)を返す
+         * Returns 16-bit data (little endian)
          *
-         * @param idx ミラーリング位置
-         * @param pos 位置(16ビット1単位)
-         * @return 値
+         * @param idx Mirroring position
+         * @param pos Position (unit of 16 bits)
+         * @return Value
          */
         public int getData16LE(int idx, int pos) {
             int val = INVALID_GROUP_NUMBER;
@@ -917,10 +917,10 @@ public class DiskBasicFat {
         }
 
         /**
-         * 16ビットデータ(リトルエンディアン)をセット
+         * Set 16-bit data (little endian)
          *
-         * @param pos 位置(16ビット1単位)
-         * @param val 値
+         * @param pos Position (unit of 16 bits)
+         * @param val Value
          */
         public void setData16LE(int pos, int val) {
             for (int n = 0; n < getValidCount(); n++) {
@@ -929,11 +929,11 @@ public class DiskBasicFat {
         }
 
         /**
-         * 16ビットデータ(リトルエンディアン)をセット
+         * Set 16-bit data (little endian)
          *
-         * @param idx ミラーリング位置
-         * @param pos 位置(16ビット1単位)
-         * @param val 値
+         * @param idx Mirroring position
+         * @param pos Position (unit of 16 bits)
+         * @param val Value
          */
         public void setData16LE(int idx, int pos, int val) {
             if (idx >= list.size()) return;
@@ -943,11 +943,11 @@ public class DiskBasicFat {
         }
 
         /**
-         * 16ビットデータ(ビッグエンディアン)を返す
+         * Returns 16-bit data (big endian)
          *
-         * @param idx ミラーリング位置
-         * @param pos 位置(16ビット1単位)
-         * @return 値
+         * @param idx Mirroring position
+         * @param pos Position (unit of 16 bits)
+         * @return Value
          */
         public int getData16BE(int idx, int pos) {
             int val = INVALID_GROUP_NUMBER;
@@ -959,10 +959,10 @@ public class DiskBasicFat {
         }
 
         /**
-         * 16ビットデータ(ビッグエンディアン)をセット
+         * Set 16-bit data (big endian)
          *
-         * @param pos 位置(16ビット1単位)
-         * @param val 値
+         * @param pos Position (unit of 16 bits)
+         * @param val Value
          */
         public void setData16BE(int pos, int val) {
             for (int n = 0; n < getValidCount(); n++) {
@@ -971,11 +971,11 @@ public class DiskBasicFat {
         }
 
         /**
-         * 16ビットデータ(ビッグエンディアン)をセット
+         * Set 16-bit data (big endian)
          *
-         * @param idx ミラーリング位置
-         * @param pos 位置(16ビット1単位)
-         * @param val 値
+         * @param idx Mirroring position
+         * @param pos Position (unit of 16 bits)
+         * @param val Value
          */
         public void setData16BE(int idx, int pos, int val) {
             if (idx >= list.size()) return;
@@ -995,15 +995,15 @@ public class DiskBasicFat {
 
     private DiskBasic basic;
     private DiskBasicType type;
-    /** FATの数 */
+    /** Number of FATs */
     private int count;
-    /** 使用しているFATの数 */
+    /** Number of FATs being used */
     private int vCount;
-    /** FATサイズ(セクタ数) */
+    /** FAT size (number of sectors) */
     private int size;
-    /** 開始セクタ番号 */
+    /** Start sector number */
     private int start;
-    /** 開始位置 */
+    /** Start position */
     private int startPos;
 
     private final DiskBasicFatArea bufs = new DiskBasicFatArea();
@@ -1015,10 +1015,10 @@ public class DiskBasicFat {
     }
 
     /**
-     * FATエリアをアサイン
+     * Assign FAT area
      *
-     * @param isFormatting フォーマット中か
-     * @return 1.0: 正常, <1.0: 警告あり, <0.0: エラーあり
+     * @param isFormatting Whether during formatting
+     * @return 1.0: normal, <1.0: warning exists, <0.0: error exists
      */
     public double assign(boolean isFormatting) throws IOException {
         double validRatio = 1.0;
@@ -1036,10 +1036,10 @@ public class DiskBasicFat {
             int[] sectorNums = new int[] {sectorNum};
 
             if (sideNum >= 0) {
-                // トラック、サイド番号から計算
+                // Calculate from track and side numbers
                 managed_track = basic.getTrack(basic.getManagedTrackNumber(), sideNum);
             } else {
-                // セクタ番号の通し番号で計算
+                // Calculate by serial number of sector numbers
                 managed_track = basic.getManagedTrack(basic.getReservedSectors(), sideNums, sectorNums);
             }
             if (managed_track == null) {
@@ -1049,7 +1049,7 @@ public class DiskBasicFat {
             sideNum = sideNums[0];
             sectorNum = sectorNums[0];
 
-            // セクタ位置を得る
+            // Get sector position
             start = type.getSectorPosFromNum(basic.getManagedTrackNumber(), sideNum, sectorNum, 0, 1);
 
             count = basic.getNumberOfFats();
@@ -1085,7 +1085,7 @@ logger.log(Level.TRACE, "sector is null");
 
 //                    int sectorSize = sSize;
                     if (secNum == startSector) {
-                        // 最初のセクタだけ開始位置がずれる
+                        // Starting position is shifted only for the first sector
                         offset += startPos;
                         sSize -= startPos;
                     }
@@ -1108,7 +1108,7 @@ logger.log(Level.TRACE, "sector is null");
         return validRatio;
     }
 
-    /** FATエリアのアサインを解除 */
+    /** Release assignment of FAT area */
     public void clear() {
         count = 0;
         vCount = 0;
@@ -1119,15 +1119,15 @@ logger.log(Level.TRACE, "sector is null");
         bufs.list.clear();
     }
 
-    /** FATエリアのアサインを解除 */
+    /** Release assignment of FAT area */
     public void empty() {
         clear();
     }
 
     /**
-     * FAT領域の最初のセクタの指定位置のデータを取得
+     * Get data at specified position in the first sector of the FAT area
      *
-     * @param pos 位置
+     * @param pos Position
      */
     public int get(int pos) {
         int code = 0;
@@ -1143,10 +1143,10 @@ logger.log(Level.TRACE, "sector is null");
     }
 
     /**
-     * FAT領域の最初のセクタにデータを書く
+     * Write data to specified position in the first sector of the FAT area
      *
-     * @param pos  位置
-     * @param code コード
+     * @param pos  Position
+     * @param code Code
      */
     public void set(int pos, byte code) {
         int start_sector = start;
@@ -1164,10 +1164,10 @@ logger.log(Level.TRACE, "sector is null");
     }
 
     /**
-     * FAT領域の最初のセクタにデータを書く
+     * Write data to the first sector of the FAT area
      *
-     * @param buf バッファ
-     * @param len サイズ
+     * @param buf Buffer
+     * @param len Size
      */
     public void copy(byte[] buf, int len) {
         int startSector = start;
@@ -1181,9 +1181,9 @@ logger.log(Level.TRACE, "sector is null");
     }
 
     /**
-     * FAT領域を指定コードで埋める
+     * Fill the FAT area with specified code
      *
-     * @param code コード
+     * @param code Code
      */
     public void fill(byte code) {
         int startSector = start;
@@ -1201,16 +1201,16 @@ logger.log(Level.TRACE, "sector is null");
     }
 
     /**
-     * FAT領域を返す
+     * Returns FAT area
      */
     public DiskBasicFatArea getDiskBasicFatArea() {
         return bufs;
     }
 
     /**
-     * FATバッファを返す
+     * Returns FAT buffer
      *
-     * @param idx ミラーリングしているときのインデックス
+     * @param idx Index when mirrored
      */
     public List<DiskBasicFatBuffer> getDiskBasicFatBuffers(int idx) {
         if (idx >= bufs.list.size()) {
@@ -1220,10 +1220,10 @@ logger.log(Level.TRACE, "sector is null");
     }
 
     /**
-     * FATバッファ（セクタ）を返す
+     * Returns FAT buffer (sector)
      *
-     * @param idx    ミラーリングしているときのインデックス
-     * @param subidx バッファ位置
+     * @param idx    Index when mirrored
+     * @param subidx Buffer position
      */
     public DiskBasicFatBuffer getDiskBasicFatBuffer(int idx, int subidx) {
         List<DiskBasicFatBuffer> fatBufs = getDiskBasicFatBuffers(idx);

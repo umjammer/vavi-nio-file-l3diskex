@@ -22,7 +22,7 @@ import vavi.util.serdes.Serdes;
 
 
 /**
- * TRS-80 JV3 ディスクパーサー
+ * TRS-80 JV3 disk parser
  *
  * TRS-80 is the PC by one of 1977 Trinity（Apple, Commodore, Tandy)
  *
@@ -46,7 +46,7 @@ public class DiskJV3Parser extends DiskImageParser {
     private static final short[] jv3SizeMap = {1, 0, 3, 2};
 
     /**
-     * セクタ番号情報
+     * Sector number information
      */
     @Serdes
     public static class Jv3SectorId {
@@ -62,7 +62,7 @@ public class DiskJV3Parser extends DiskImageParser {
     }
 
     /**
-     * ヘッダ情報
+     * Header information
      */
     @Serdes
     public static class Jv3Header {
@@ -97,7 +97,7 @@ public class DiskJV3Parser extends DiskImageParser {
     }
 
     /**
-     * セクタデータの作成
+     * Create sector data
      */
     private int parseSector(InputStream iStream, int trackNumber, int sideNumber, int sectorNumber, int sectorSize, int numOfSectors, boolean singleDensity, DiskImageTrack track) throws IOException {
         DiskImageSector sector = track.newImageSector(trackNumber, sideNumber, sectorNumber, sectorSize, numOfSectors, singleDensity, 0);
@@ -108,21 +108,21 @@ public class DiskJV3Parser extends DiskImageParser {
 
         int len = iStream.read(buf, 0, size);
         if (len < size) {
-            // ファイルデータが足りない
+            // Not enough file data
             result.setError(DiskResult.ERRV_INVALID_DISK, 0);
         }
 
         sector.clearModify();
 
-        // このセクタデータのサイズを返す
+        // Return size of this sector data
         return sector.getSize();
     }
 
     /**
-     * ディスクの解析
+     * Analyze disk
      *
-     * @param iStream 解析対象データ
-     * @return サイズ
+     * @param iStream Data to be analyzed
+     * @return Size
      */
     private int parseDisk(InputStream iStream) throws IOException {
         Jv3Header header = new Jv3Header();
@@ -149,10 +149,10 @@ public class DiskJV3Parser extends DiskImageParser {
                 int sectorSize = (128 << jv3SizeMap[header.ids[i].flags & JV3_SIZE]);
                 boolean single_density = (header.ids[i].flags & JV3_DENSITY) == 0;
 
-                // トラックが存在するか
+                // Whether track exists
                 DiskImageTrack track = disk.getTrack(trackNumber, sideNumber);
                 if (track == null) {
-                    // 新規トラック
+                    // New track
                     track = disk.newImageTrack(trackNumber, sideNumber, offsetPos, 1);
                     disk.add(track);
                     offsetPos++;
@@ -162,18 +162,18 @@ public class DiskJV3Parser extends DiskImageParser {
                     }
                 }
                 int trackSize = track.getSize();
-                // セクタ作成
+                // Create sector
                 int newSectorSize = parseSector(iStream, trackNumber, sideNumber, sectorNumber, sectorSize, 1, single_density, track);
-                // トラックサイズ更新
+                // Update track size
                 track.setSize(trackSize + newSectorSize);
                 start += newSectorSize;
 
                 maxTrackNumber = Math.max(maxTrackNumber, trackNumber);
             }
         }
-        // ディスクサイズ設定
+        // Set disk size
         disk.setSize(start);
-        // 最大トラック番号設定
+        // Set maximum track number
         disk.setMaxTrackNumber(maxTrackNumber);
 
         if (result.getValid() >= 0) {
@@ -182,17 +182,17 @@ public class DiskJV3Parser extends DiskImageParser {
             for (int pos = 0; pos < tracks.size(); pos++) {
                 DiskImageTrack track = tracks.get(pos);
 
-                // インターリーブの計算
+                // Calculate interleave
                 track.calcInterleave();
-                // サイズの再計算
+                // Recalculate size
                 track.shrink(false);
-                // オフセットの設定
+                // Set offset
                 disk.setOffset(pos, start);
 
                 start += track.getSize();
             }
 
-            // ディスクを追加
+            // Add disk
             DiskParam diskParam = disk.calcMajorNumber();
             if (diskParam != null) {
                 disk.setDensity(diskParam.getParamDensity());
@@ -207,10 +207,10 @@ public class DiskJV3Parser extends DiskImageParser {
     }
 
     /**
-     * ファイルを解析
+     * Analyze file
      *
-     * @param iStream 解析対象データ
-     * @return 0: 正常, -1: エラーあり, 1: 警告あり
+     * @param iStream Data to be analyzed
+     * @return 0: normal, -1: error, 1: warning
      */
     @Override
     public int parse(InputStream iStream, DiskParam diskParam) throws IOException {
@@ -228,10 +228,10 @@ public class DiskJV3Parser extends DiskImageParser {
     }
 
     /**
-     * チェック
+     * Check
      *
-     * @param iStream 解析対象データ
-     * @return 0: 正常, -1: 対象データではない
+     * @param iStream Data to be analyzed
+     * @return 0: normal, -1: not target data
      */
     @Override
     public int check(InputStream iStream) throws IOException {
@@ -250,12 +250,12 @@ public class DiskJV3Parser extends DiskImageParser {
                 return result.getValid();
             }
             Serdes.Util.deserialize(iStream, header);
-            // 書き込み禁止エリア
+            // Write protected area
             if (header.writeProtected != JV3_WRITABLE && header.writeProtected != JV3_WPROTECT) {
                 result.setError(DiskResult.ERRV_INVALID_DISK, 0);
                 return result.getValid();
             }
-            // ディスクサイズを計算
+            // Calculate disk size
             int dataSize = 0;
             int errZero = 0;
             int errTracks = 0;
@@ -264,21 +264,21 @@ public class DiskJV3Parser extends DiskImageParser {
                 if (header.ids[i].trackNumber == JV3_FREE || header.ids[i].sectorNumber == JV3_FREE) {
                     continue;
                 }
-                // 全て０か
+                // Whether all zero
                 if (header.ids[i].trackNumber == 0 && header.ids[i].sectorNumber == 0 && header.ids[i].flags == 0) {
                     errZero++;
                 }
-                // トラック番号が連続しているか
+                // Whether track numbers are continuous
                 if (i > 0) {
                     if (!((header.ids[i - 1].trackNumber & 0xff) == (header.ids[i].trackNumber & 0xff) || (header.ids[i - 1].trackNumber & 0xff) + 1 == (header.ids[i].trackNumber & 0xff))) {
                         errTracks++;
                     }
                 }
-                // トラック番号は80以内か
+                // Whether track number is within 80
                 if ((header.ids[i].trackNumber & 0xff) > 80) {
                     errTracks++;
                 }
-                // セクタ番号は32以内か
+                // Whether sector number is within 32
                 if ((header.ids[i].sectorNumber & 0xff) > 32) {
                     errSectors++;
                 }
@@ -286,17 +286,17 @@ public class DiskJV3Parser extends DiskImageParser {
             }
 
             if (errZero >= 40) {
-                // ゼロパディングなのでJV3形式ではない
+                // Not JV3 format because of zero padding
                 result.setError(DiskResult.ERRV_INVALID_DISK, 0);
                 return result.getValid();
             }
             if (errTracks >= 20) {
-                // トラック番号がJV3形式ではない
+                // Track number is not JV3 format
                 result.setError(DiskResult.ERRV_ID_TRACK, 0);
                 return result.getValid();
             }
             if (errSectors >= 20) {
-                // セクタ番号がJV3形式ではない
+                // Sector number is not JV3 format
                 result.setError(DiskResult.ERRV_ID_SECTOR, 0);
                 return result.getValid();
             }
@@ -305,7 +305,7 @@ public class DiskJV3Parser extends DiskImageParser {
             int fileOffset = current + dataSize;
             ((SeekableDataInputStream) iStream).position(fileOffset);
             if (fileOffset != dataSize || fileOffset < Jv3Header.SIZE + dataSize) {
-                // ファイルサイズ足りない
+                // Not enough file size
                 result.setError(DiskResult.ERRV_DISK_TOO_SMALL, 0);
                 return result.getValid();
             }

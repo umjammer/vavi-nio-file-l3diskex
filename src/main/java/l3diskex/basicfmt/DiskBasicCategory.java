@@ -10,7 +10,7 @@ import org.w3c.dom.Node;
 
 
 /**
- * DISK BASICのカテゴリ(メーカ毎、OS毎にまとめる)クラス
+ * DISK BASIC category class (grouped by manufacturer, OS, etc.)
  */
 public class DiskBasicCategory {
 
@@ -30,27 +30,27 @@ public class DiskBasicCategory {
         this.description = n_description;
     }
 
-    /** カテゴリ名 */
+    /** Category name */
     public String getName() {
         return name;
     }
 
-    /** 説明 */
+    /** Description */
     public String getDescription() {
         return description;
     }
 
-    /** 説明の設定 */
+    /** Set description */
     public void setDescription(String str) {
         description = str;
     }
 
     /**
-     * DiskBasicCategoryエレメントのロード
+     * Load DiskBasicCategory element
      *
-     * @param node       ノード
-     * @param localeName ローケル名
-     * @param errMsgs    [out] エラー時メッセージ
+     * @param node       Node
+     * @param localeName Locale name
+     * @param errMsgs    [out] Error messages
      * @return true / false
      * @see "category_types.xml"
      */
@@ -111,10 +111,10 @@ public class DiskBasicCategory {
     }
 
     /**
-     * カテゴリを検索
+     * Search category
      *
-     * @param category カテゴリ名
-     * @return カテゴリ
+     * @param category Category name
+     * @return Category
      */
     public static DiskBasicCategory find(List<DiskBasicCategory> list, String category) {
         for (DiskBasicCategory item : list) {

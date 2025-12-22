@@ -32,12 +32,12 @@ import static l3diskex.basicfmt.DiskBasicTemplates.diskBasicTemplates;
 
 
 /**
- * MS-DOSの処理
+ * MS-DOS processing
  * <p>
- * DiskBasicParam 固有のパラメータ
+ * DiskBasicParam Specific parameters
  *
- * <li>MediaID  メディアID</li>
- * <li>IgnoreParameter  セクタ1のパラメータを無視するか</li>
+ * <li>MediaID  Media ID</li>
+ * <li>IgnoreParameter  Whether to ignore parameters in sector 1</li>
  */
 public class DiskBasicTypeMSDOS extends DiskBasicTypeFAT12<DirectoryMsDos> {
 
@@ -95,12 +95,12 @@ public class DiskBasicTypeMSDOS extends DiskBasicTypeFAT12<DirectoryMsDos> {
      */
     @Override
     public double checkFat(boolean isFormatting) throws IOException {
-        // 重複チェック
+        // Duplication check
         double validRatio = super.checkFat(isFormatting);
 
         if (validRatio < 0.0) return validRatio;
 
-        // FATエリアの先頭がメディアIDであること
+        // First of FAT area must be media ID
         int match = 0;
         DiskBasicFatArea bufs = fat.getDiskBasicFatArea();
         match = bufs.matchData8(0, basic.getMediaId());
@@ -108,7 +108,7 @@ public class DiskBasicTypeMSDOS extends DiskBasicTypeFAT12<DirectoryMsDos> {
             validRatio -= 0.5;
         }
 
-        // 最終グループ番号を計算
+        // Calculate final group number
         int maxGroupOnFat = basic.getSectorsPerFat() * basic.getSectorSize() * 2 / 3;
         int maxGroupOnParam = (basic.getSidesPerDiskOnBasic() * basic.getTracksPerSide() * basic.getSectorsPerTrackOnBasic() - basic.getDirEndSector()) / basic.getSectorsPerGroup() + 1;
 
@@ -148,7 +148,7 @@ public class DiskBasicTypeMSDOS extends DiskBasicTypeFAT12<DirectoryMsDos> {
         int nums = 0;
         int valids = 0;
 
-        // MS-DOS ディスク上のパラメータを読む
+        // Read parameters on MS-DOS disk
         DiskImageSector sector = basic.getSector(0, 0, 1);
         if (sector == null) return -1.0;
         byte[] data = sector.getSectorBuffer();
@@ -182,14 +182,14 @@ public class DiskBasicTypeMSDOS extends DiskBasicTypeFAT12<DirectoryMsDos> {
             valids++;
         }
 
-        // FATエリアの先頭メディアIDが一致するか
+        // Whether the leading media ID of FAT area matches
         DiskBasicFatArea bufs = fat.getDiskBasicFatArea();
         nums++;
         if (bufs.matchData8(0, 0, basic.getMediaId())) {
             valids++;
         }
 
-        // ディスク内のパラメータで更新する
+        // Update with parameters in the disk
         if (nums == valids) {
             basic.setSidesPerDiskOnBasic(bpb.numberOfHeads);
             basic.setSectorsPerGroup(bpb.sectorPerCluster);
@@ -206,7 +206,7 @@ public class DiskBasicTypeMSDOS extends DiskBasicTypeFAT12<DirectoryMsDos> {
 
             basic.setMediaId((byte) bpb.media);
 
-            // トラック数
+            // Number of tracks
             int tracks = bpb.totalSectors16;
             if (tracks > 0) {
                 tracks = tracks / basic.getSidesPerDiskOnBasic() / basic.getSectorsPerTrackOnBasic();
@@ -214,7 +214,7 @@ public class DiskBasicTypeMSDOS extends DiskBasicTypeFAT12<DirectoryMsDos> {
             }
         }
 
-        // さらにJmpBootとOEMNameをチェック
+        // Furthermore, check JmpBoot and OEMName
         byte[] jump = basic.getVariousStringParam("JumpBoot").getBytes();
         int len = jump.length < bpb.jumpBoot.length ? jump.length : bpb.jumpBoot.length;
         nums++;
@@ -229,13 +229,13 @@ public class DiskBasicTypeMSDOS extends DiskBasicTypeFAT12<DirectoryMsDos> {
             valids += 5;
         }
 
-        // 最終グループ番号を計算
+        // Calculate final group number
         int maxGroupOnFat = basic.getSectorsPerFat() * basic.getSectorSize() * 2 / 3;
         int maxGroupOnParam = (basic.getSidesPerDiskOnBasic() * basic.getTracksPerSide() * basic.getSectorsPerTrackOnBasic() - basic.getDirEndSector()) / basic.getSectorsPerGroup() + 1;
 
         basic.setFatEndGroup(Math.min(maxGroupOnFat, maxGroupOnParam));
 
-        // テンプレートに一致するものがあるか
+        // Whether there is one matching the template
         DiskBasicParam param = diskBasicTemplates.findType(basic.getBasicCategoryName(), basic.getBasicTypeName(), basic.getSidesPerDiskOnBasic(), basic.getSectorsPerTrackOnBasic());
         if (param != null) {
             basic.setBasicDescription(param.getBasicDescription());
@@ -250,27 +250,27 @@ public class DiskBasicTypeMSDOS extends DiskBasicTypeFAT12<DirectoryMsDos> {
 
     @Override
     public boolean isRootDirectory(int groupNum) {
-        // オフセット未満だったらルート
+        // If it is less than the offset, it is root
         return groupNum <= 1;
     }
 
     @Override
     public boolean renameOnMakingDirectory(String[] dirName) {
-        // 空や"."で始まるディレクトリは作成不可
+        // Directories starting with empty or "." cannot be created
         if (dirName[0].isEmpty() || dirName[0].startsWith(".")) {
             return false;
         }
         return true;
     }
 
-    /** サブディレクトリを作成した後の個別処理 */
+    /** Individual processing after creating subdirectory */
     @Override
     public void additionalProcessOnMadeDirectory(DiskBasicDirItem<DirectoryMsDos> item,
                                                  DiskBasicGroups groupItems,
                                                  DiskBasicDirItem<DirectoryMsDos> parentItem) throws IOException {
         if (groupItems.size() <= 0) return;
 
-        // カレントと親ディレクトリのエントリを作成する
+        // Create entries for current and parent directory
         DiskBasicGroupItem gItem = groupItems.get(0);
 
         DiskImageSector sector = basic.getDisk().getSector(gItem.track, gItem.side, gItem.sectorStart);
@@ -288,10 +288,10 @@ public class DiskBasicTypeMSDOS extends DiskBasicTypeFAT12<DirectoryMsDos> {
         bufOffset += newItem.getDataSize();
         newItem.setData(0, null, sector, 0, buf, bufOffset, null);
         if (parentItem != null) {
-            // 親がサブディレクトリ
+            // Parent is subdirectory
             newItem.copyData(parentItem.getRawData());
         } else {
-            // 親がルート
+            // Parent is root
             newItem.copyData(item.getRawData());
             newItem.setStartGroup(0, 0);
         }
@@ -303,8 +303,8 @@ public class DiskBasicTypeMSDOS extends DiskBasicTypeFAT12<DirectoryMsDos> {
     }
 
     /**
-     * セクタデータを埋めた後の個別処理
-     * フォーマット IPLの書き込み
+     * Individual processing after filling sector data
+     * Format Writing IPL
      */
     @Override
     public boolean additionalProcessOnFormatted(DiskBasicIdentifiedData data) throws IOException {
@@ -328,7 +328,7 @@ public class DiskBasicTypeMSDOS extends DiskBasicTypeFAT12<DirectoryMsDos> {
         return true;
     }
 
-    /// BIOS Parameter Block を作成
+    /// Create BIOS Parameter Block
     public boolean createBiosParameterBlock(String jump, String name, byte[][] sectorBuffer) throws IOException {
         DiskImageSector sec = basic.getSector(0, 0, 1);
         if (sec == null) return false;
@@ -357,7 +357,7 @@ public class DiskBasicTypeMSDOS extends DiskBasicTypeFAT12<DirectoryMsDos> {
 
         byte[] nameBytes = basic.getVariousStringParam("OEMName").getBytes();
         if (nameBytes.length > 0) name = new String(nameBytes);
-        // 上記パラメータ領域をまたがって設定可能にする
+        // Make it possible to set across the above parameter area
         len = Math.min(name.length(), 16);
         Arrays.fill(hed.oemName, (byte) 0x20);
         System.arraycopy(name.getBytes(), 0, hed.oemName, 0, len);
@@ -396,10 +396,10 @@ public class DiskBasicTypeMSDOS extends DiskBasicTypeFAT12<DirectoryMsDos> {
         }
     }
 
-    /** ボリュームラベルを更新 なければ作成 */
+    /** Update volume label, create if not present */
     protected boolean modifyOrMakeVolumeLabel(String filename) throws IOException {
         DiskBasicDirItem<DirectoryMsDos>[] nextItem = new DiskBasicDirItem[1];
-        // ボリュームラベルがあるか
+        // Whether volume label exists
         DiskBasicDirItem<DirectoryMsDos> item = dir.findFileByAttrOnRoot(FILE_TYPE_VOLUME_MASK.getValue(),
                 FILE_TYPE_VOLUME_MASK.getValue() | FILE_TYPE_DIRECTORY_MASK.getValue(), null);
         if (item == null) {

@@ -13,7 +13,7 @@ import l3diskex.basicfmt.DiskBasicFat;
 
 
 /**
- * FAT16の処理
+ * FAT16 processing
  */
 public abstract class DiskBasicTypeFAT16<T extends Directory> extends DiskBasicTypeFATBase<T> {
 

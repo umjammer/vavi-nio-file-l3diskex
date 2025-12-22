@@ -33,15 +33,15 @@ import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailabili
 
 
 /**
- * Sord M68 FDos (KDos) の処理
+ * Sord M68 FDos (KDos) processing
  * <p>
- * DiskBasicParam 固有のパラメータ
+ * DiskBasicParam Specific parameters
  *
- * <li>IPLString : セクタ1のIPL</li>
+ * <li>IPLString: IPL string in sector 1</li>
  */
 public class DiskBasicTypeM68FDOS extends DiskBasicTypeMZBase<DirectoryM68FDos> {
 
-    /** 使用状況テーブル */
+    /** Usage status table */
     private final DiskBasicBitMLMap bitmap = new DiskBasicBitMLMap();
 
     public static final int FORMAT_TYPE_M68FDOS = 81;
@@ -56,38 +56,38 @@ public class DiskBasicTypeM68FDOS extends DiskBasicTypeMZBase<DirectoryM68FDos> 
         super.init(basic, fat, dir);
     }
 
-    /** 使用しているグループの位置を得る */
+    /** Get position of used groups */
     @Override
     public void calcUsedGroupPos(int num, int[] pos, int[] mask) {
         mask[0] = 1 << (pos[0] & 7);
         pos[0] = (pos[0] >> 3);
     }
 
-    /** FAT位置をセット */
+    /** Set FAT position */
     @Override
     public void setGroupNumber(int num, int val) {
         bitmap.modify(num, val != 0);
     }
 
-    /** FAT位置を返す */
+    /** Returns FAT position */
     @Override
     public int getGroupNumber(int num) {
         return num;
     }
 
-    /** 使用しているグループ番号か */
+    /** Whether it is a used group number */
     @Override
     public boolean isUsedGroupNumber(int num) {
         return bitmap.isSet(num);
     }
 
-    /** 次のグループ番号を得る */
+    /** Get next group number */
     @Override
     public int getNextGroupNumber(int num, int sectorPos) {
         return num + 1;
     }
 
-    /** 空きFAT位置を返す */
+    /** Returns free FAT position */
     @Override
     public int getEmptyGroupNumber() {
         int found = DiskBasicType.INVALID_GROUP_NUMBER;
@@ -101,16 +101,16 @@ public class DiskBasicTypeM68FDOS extends DiskBasicTypeMZBase<DirectoryM68FDos> 
     }
 
     /**
-     * FATエリアをチェック
+     * Check FAT area
      *
-     * @param is_formatting フォーマット中か
-     * @return 1.0: 正常, 0.0 - 1.0: 警告あり, <0.0: エラーあり
+     * @param is_formatting Whether formatting is in progress
+     * @return 1.0: Normal, 0.0 - 1.0: Warning present, <0.0: Error present
      */
     @Override
     public double checkFat(boolean is_formatting) {
         double validRatio = 1.0;
 
-        // FATエリア
+        // FAT area
         DiskImageSector sector = basic.getManagedSector(basic.getFatStartSector() - 1);
         if (sector == null) {
             return -1.0;
@@ -119,7 +119,7 @@ public class DiskBasicTypeM68FDOS extends DiskBasicTypeMZBase<DirectoryM68FDos> 
             validRatio = -1.0;
         }
 
-        // トラック１
+        // Track 1
         sector = basic.getSector(1, 0, 1);
         if (sector == null) {
             return -1.0;
@@ -128,7 +128,7 @@ public class DiskBasicTypeM68FDOS extends DiskBasicTypeMZBase<DirectoryM68FDos> 
             validRatio = -1.0;
         }
 
-        // 使用状況エリア 2セクタ
+        // Usage area 2 sectors
         for (int i = 0; i < 2; i++) {
             sector = basic.getManagedSector(basic.getFatStartSector() + i);
             if (sector == null) {
@@ -137,7 +137,7 @@ public class DiskBasicTypeM68FDOS extends DiskBasicTypeMZBase<DirectoryM68FDos> 
             bitmap.addBuffer(sector.getSectorBuffer(), sector.getSectorBufferSize());
         }
 
-        // 最終グループ番号
+        // Final group number
         if (basic.getFatEndGroup() == 0) {
             basic.setFatEndGroup(basic.getTracksPerSideOnBasic() * basic.getSidesPerDiskOnBasic() * basic.getSectorsPerTrackOnBasic() - 1);
         }
@@ -146,11 +146,11 @@ public class DiskBasicTypeM68FDOS extends DiskBasicTypeMZBase<DirectoryM68FDos> 
     }
 
     /**
-     * ルートディレクトリのセクタリストを計算
+     * Calculate sector list for root directory
      *
-     * @param startSector ディレクトリ開始セクタ番号
-     * @param endSector   ディレクトリ終了セクタ番号 (unused in logic)
-     * @param groupItems  [out] セクタリスト
+     * @param startSector Starting sector number of directory
+     * @param endSector   Ending sector number of directory (unused in logic)
+     * @param groupItems  [out] Sector list
      * @return true
      */
     @Override
@@ -171,7 +171,7 @@ public class DiskBasicTypeM68FDOS extends DiskBasicTypeMZBase<DirectoryM68FDos> 
             groupItems.add(secPos, 0, trackNum[0], sideNum[0], sectorNum[0], sectorNum[0], divNum[0], numOfDivs[0]);
             dirSize += (sector.getSectorSize() / numOfDivs[0]);
 
-            // 次のセクタ番号を得る
+            // Get next sector number
             secPos = sector.get16(sector.getSectorSize() - 2, true) & 0xffff; // TODO -2
             if (secPos <= 0 || secPos > endSectorPos) break;
             sector = basic.getSectorFromSectorPos(secPos, trackNum, sideNum, divNum, numOfDivs);
@@ -184,12 +184,12 @@ public class DiskBasicTypeM68FDOS extends DiskBasicTypeMZBase<DirectoryM68FDos> 
     }
 
     /**
-     * ディレクトリエリアのサイズに達したらアサイン終了するか
+     * Whether to end assigning if directory area size is reached
      *
-     * @param pos         [in,out] ディレクトリの位置
-     * @param size        [in,out] ディレクトリのセクタサイズ
-     * @param size_remain [in,out] ディレクトリの残りサイズ
-     * @return 0: 終了しない, 1: 強制的に未使用とする アサインは継続, -1: 現グループでアサイン終了。次のグループから継続, -2: 強制的にアサイン終了する
+     * @param pos         [in,out] Position of directory
+     * @param size        [in,out] Sector size of directory
+     * @param size_remain [in,out] Remaining size of directory
+     * @return 0: Do not end, 1: Force unused, continue assign, -1: End assign at current group. Continue from next group, -2: Force end assign
      */
     @Override
     public int finishAssigningDirectory(int[] pos, int[] size, int[] size_remain) {
@@ -197,17 +197,17 @@ public class DiskBasicTypeM68FDOS extends DiskBasicTypeMZBase<DirectoryM68FDos> 
     }
 
     /**
-     * ディレクトリアサインでセクタ毎に位置を調整する
+     * Adjust position for each sector during directory assignment
      *
-     * @return 調整後のディレクトリの位置
-     * @param pos ディレクトリの位置
+     * @return Adjusted directory position
+     * @param pos Directory position
      */
     @Override
     public int adjustPositionAssigningDirectory(int pos) {
         return 0;
     }
 
-    /** 使用可能なディスクサイズを得る */
+    /** Get usable disk size */
     @Override
     public void getUsableDiskSize(int[] diskSize, int[] groupSize) {
         groupSize[0] = basic.getFatEndGroup() + 1 - dataStartGroup;
@@ -215,16 +215,16 @@ public class DiskBasicTypeM68FDOS extends DiskBasicTypeMZBase<DirectoryM68FDos> 
     }
 
     /**
-     * 残りディスクサイズを計算
+     * Calculate remaining disk size
      *
-     * @param wrote 書込み操作を行った後か
+     * @param wrote Whether after write operation
      */
     @Override
     public void calcDiskFreeSize(boolean wrote) {
         //int used = 0;
         fatAvailability.empty();
 
-        // 使用済みかチェック
+        // Check if used
         int groups = 0;
         FatAvailability fatStatus;
         for (int groupNum = 0; groupNum <= basic.getFatEndGroup(); groupNum++) {
@@ -241,13 +241,13 @@ public class DiskBasicTypeM68FDOS extends DiskBasicTypeMZBase<DirectoryM68FDos> 
             fatAvailability.add(fatStatus, 0, 0);
         }
 
-        // ディレクトリエントリのグループ
+        // Groups of directory entries
         List<DiskBasicDirItem<DirectoryM68FDos>> items = dir.getCurrentItems(null);
         if (items != null) {
             for (DiskBasicDirItem<DirectoryM68FDos> item : items) {
                 if (item == null || !item.isUsed()) continue;
 
-                // グループ番号のマップを調べる
+                // Examine map of group numbers
                 int groupCount = item.getGroupCount();
                 if (groupCount > 0) {
                     DiskBasicGroupItem groupItem = item.getGroup(groupCount - 1);
@@ -266,13 +266,13 @@ public class DiskBasicTypeM68FDOS extends DiskBasicTypeMZBase<DirectoryM68FDos> 
     }
 
     /**
-     * ファイルをセーブする前の準備を行う
+     * Prepare before saving file
      *
-     * @param iStream  ストリームバッファ
-     * @param fileSize [in,out] 出力サイズ
-     * @param pItem    [in,out] ファイル名、属性を持っているディレクトリアイテム
-     * @param nItem    [in,out] 確保したディレクトリアイテム
-     * @param errInfo  [in,out] エラー情報
+     * @param iStream  Stream buffer
+     * @param fileSize [in,out] Output size
+     * @param pItem    [in,out] Directory item with file name and attributes
+     * @param nItem    [in,out] Allocated directory item
+     * @param errInfo  [in,out] Error information
      */
     @Override
     public boolean prepareToSaveFile(InputStream iStream, int[] fileSize, DiskBasicDirItem<DirectoryM68FDos> pItem, DiskBasicDirItem<DirectoryM68FDos> nItem, DiskBasicError errInfo) {
@@ -280,14 +280,14 @@ public class DiskBasicTypeM68FDOS extends DiskBasicTypeMZBase<DirectoryM68FDos> 
     }
 
     /**
-     * データサイズ分のグループを確保する
+     * Allocate groups for data size
      *
-     * @param fileUnitNum ファイル番号
-     * @param item        [in,out] ディレクトリアイテム
-     * @param size        確保するデータサイズ（バイト）
-     * @param flags       新規か追加か
-     * @param groupItems  [out] 確保したセクタリスト
-     * @return >0: 正常 -1: 空きなし (開始グループ設定前) -2: 空きなし (開始グループ設定後)
+     * @param fileUnitNum File number
+     * @param item        [in,out] Directory item
+     * @param size        Data size to allocate (bytes)
+     * @param flags       New or append
+     * @param groupItems  [out] Allocated sector list
+     * @return >0: Normal, -1: No free space (before setting start group), -2: No free space (after setting start group)
      */
     @Override
     public int allocateUnitGroups(int fileUnitNum, DiskBasicDirItem<DirectoryM68FDos> item, int size, AllocateGroupFlags flags, DiskBasicGroups[] groupItems) throws IOException {
@@ -296,43 +296,43 @@ public class DiskBasicTypeM68FDOS extends DiskBasicTypeMZBase<DirectoryM68FDos> 
 
         int rc = 0;
         int remain = size;
-        // セクタ末尾に次のセクタ番号を入れるか
+        // Whether to put next sector number at the end of sector
         boolean isChain = item.needChainInData();
         int sectorSize = basic.getSectorSize();
         if (isChain) {
             sectorSize -= 2;
         }
 
-        // 必要なグループ数
+        // Required number of groups
         int groupSize = ((size - 1) / sectorSize / basic.getSectorsPerGroup()) + 1;
         if (isChain) {
             groupSize = 1;
         }
 
-        // 未使用が連続している位置をさがす
+        // Find a position where unused are continuous
         int[] groupStart = {DiskBasicType.INVALID_GROUP_NUMBER};
         int count = findContinuousArea(groupSize, groupStart);
         if (count < groupSize) {
-            // 十分な空きがない
+            // Not enough free space
             rc = -1;
             return rc;
         }
 
-        // データの開始グループ決定
+        // Decide data start group
         item.setStartGroup(fileUnitNum, groupStart[0]);
 
-        // 領域を確保する
+        // Allocate area
         rc = allocateGroupsSub(item, groupStart[0], remain, sectorSize, groupItems[0], fileSize, groups);
 
-        // 確保したグループ数をセット
+        // Set number of allocated groups
         item.setGroupSize(groups[0]);
-        // 最終グループをセット
+        // Set final group
         item.setExtraGroup(groupItems[0].last().group);
 
         return rc;
     }
 
-    /** グループを確保して使用中にする */
+    /** Allocate groups and mark as used */
     @Override
     public int allocateGroupsSub(DiskBasicDirItem<DirectoryM68FDos> item, int group_start, int remain, int sectorSize, DiskBasicGroups groupItems, int[] fileSize, int[] groups) {
         int rc = 0;
@@ -343,11 +343,11 @@ public class DiskBasicTypeM68FDOS extends DiskBasicTypeMZBase<DirectoryM68FDos> 
 
         int limit = basic.getFatEndGroup() + 1;
         while (remain > 0 && limit >= 0) {
-            // 使用しているか
+            // Whether it is used
             boolean usedGroup = isUsedGroupNumber(groupNum);
             if (!usedGroup) {
                 if (prevGroup > 0 && prevGroup <= basic.getFatEndGroup()) {
-                    // 使用済みにする
+                                        // Mark as used
                     basic.getNumsFromGroup(prevGroup, groupNum, sectorSize, remain, groupItems);
                     setGroupNumber(prevGroup, 1);
                     fileSize[0] += (basic.getSectorSize() * basic.getSectorsPerGroup());
@@ -356,37 +356,37 @@ public class DiskBasicTypeM68FDOS extends DiskBasicTypeMZBase<DirectoryM68FDos> 
                 remain -= (sectorSize * basic.getSectorsPerGroup());
                 prevGroup = groupNum;
             }
-            // 次のグループ
+            // Next group
             groupNum++;
             limit--;
         }
         if (prevGroup > 0 && prevGroup <= basic.getFatEndGroup()) {
-            // 使用済みにする
+            // Mark as used
             basic.getNumsFromGroup(prevGroup, 0, sectorSize, remain, groupItems);
             setGroupNumber(prevGroup, 1);
             fileSize[0] += basic.getSectorSize() * basic.getSectorsPerGroup();
             groups[0]++;
         }
         if (prevGroup > basic.getFatEndGroup()) {
-            // ファイルがオーバフローしている
+            // File is overflowing
             rc = -2;
         } else if (limit < 0) {
-            // 無限ループ？
+            // Infinite loop?
             rc = -2;
         }
         return rc;
     }
 
     /**
-     * セクタデータを埋めた後の個別処理
-     * フォーマット FAT予約済みをセット
+     * Individual processing after filling sector data
+     * Format Set FAT reserved
      */
     @Override
     public boolean additionalProcessOnFormatted(DiskBasicIdentifiedData data) {
         DiskImageSector sector;
 
         //
-        // FATエリア
+        // FAT area
         //
         int managedSectorPos = basic.getManagedTrackNumber() * basic.getSectorsPerTrackOnBasic() * basic.getSidesPerDiskOnBasic();
         for (int s = basic.getFatStartSector() - 1, pos = 0; s < basic.getDirStartSector() - 1; s++, pos++) {
@@ -426,7 +426,7 @@ public class DiskBasicTypeM68FDOS extends DiskBasicTypeMZBase<DirectoryM68FDos> 
         }
 
         //
-        // DIRエリア
+        // DIR area
         //
         for (int s = basic.getDirStartSector() - 1, pos = 0; s < basic.getDirEndSector() - 1; s++, pos++) {
             sector = basic.getSectorFromSectorPos(managedSectorPos + s);
@@ -439,7 +439,7 @@ public class DiskBasicTypeM68FDOS extends DiskBasicTypeMZBase<DirectoryM68FDos> 
                 sector.copy(ByteUtil.getBeBytes(next), 2, basic.getSectorSize() - 2);
             }
             if (pos == 0) {
-                // エントリ１つ
+                // One entry
                 sector.copy(new byte[] {
                         (byte) 0x62, (byte) 0x56, (byte) 0xc1, (byte) 0xc0, (byte) 0xa7, (byte) 0x30, (byte) 0xf9, (byte) 0x80,
                         (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x5c, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
@@ -458,18 +458,18 @@ public class DiskBasicTypeM68FDOS extends DiskBasicTypeMZBase<DirectoryM68FDos> 
     }
 
     /**
-     * データの読み込み/比較処理
+     * Data read/comparison processing
      *
-     * @param fileUnitNum  ファイル番号
-     * @param item         ディレクトリアイテム
-     * @param iStream      [in,out] 入力ストリーム ベリファイ時に使用 データ読み出し時はnull
-     * @param oStream      [in,out] 出力先 データ読み出し時に使用 ベリファイ時はnull
-     * @param sectorBuffer セクタバッファ
-     * @param sectorSize   バッファサイズ
-     * @param remainSize   残りサイズ
-     * @param sectorNum    セクタ番号
-     * @param sectorEnd    最終セクタ番号
-     * @return >=0: 処理したサイズ, -1: 比較不一致, -2: セクタがおかしい
+     * @param fileUnitNum  File number
+     * @param item         Directory item
+     * @param iStream      [in,out] Input stream. Used during verify. null when reading data.
+     * @param oStream      [in,out] Output destination. Used when reading data. null during verify.
+     * @param sectorBuffer Sector buffer
+     * @param sectorSize   Buffer size
+     * @param remainSize   Remaining size
+     * @param sectorNum    Sector number
+     * @param sectorEnd    Final sector number
+     * @return >=0: Processed size, -1: Comparison mismatch, -2: Sector is invalid
      */
     @Override
     public int accessFile(int fileUnitNum, DiskBasicDirItem<DirectoryM68FDos> item, InputStream iStream, OutputStream oStream,
@@ -477,7 +477,7 @@ public class DiskBasicTypeM68FDOS extends DiskBasicTypeMZBase<DirectoryM68FDos> 
         boolean needChain = item.needChainInData();
 
         if (needChain) {
-            // セクタの最終バイトはチェイン用セクタ番号がある
+            // The final byte of the sector has the sector number for chaining
             sectorSize -= 2;
         }
 
@@ -497,7 +497,7 @@ public class DiskBasicTypeM68FDOS extends DiskBasicTypeMZBase<DirectoryM68FDos> 
             if (basic.isDataInverted()) Common.invertMemory(temp, temp.length);
 
             if (!Arrays.equals(temp, 0, temp.length, sectorBuffer, 0, size)) {
-                // データが異なる
+                // Data is different
                 return -1;
             }
         }
@@ -505,19 +505,19 @@ public class DiskBasicTypeM68FDOS extends DiskBasicTypeMZBase<DirectoryM68FDos> 
     }
 
     /**
-     * データの書き込み処理
+     * Data writing processing
      *
-     * @param item      ディレクトリアイテム
-     * @param iStream   ストリームデータ
-     * @param buffer    [out] セクタ内の書き込み先バッファ
-     * @param size      書き込み先バッファサイズ
-     * @param remain    残りのデータサイズ
-     * @param sectorNum セクタ番号
-     * @param groupNum  現在のグループ番号
-     * @param nextGroup 次のグループ番号
-     * @param sectorEnd 最終セクタ番号
-     * @param seqNum    通し番号(0...)
-     * @return 書き込んだバイト数
+     * @param item       Directory item
+     * @param iStream    Stream data
+     * @param buffer     [out] Buffer to write within sector
+     * @param size       Buffer size to write
+     * @param remain     Remaining data size
+     * @param sectorNum  Sector number
+     * @param groupNum   Current group number
+     * @param nextGroup  Next group number
+     * @param sectorEnd  Final sector number
+     * @param seqNum     Serial number (0...)
+     * @return Number of bytes written
      */
     @Override
     public int writeFile(DiskBasicDirItem<DirectoryM68FDos> item, InputStream iStream, byte[] buffer, int size, int remain,
@@ -530,23 +530,23 @@ public class DiskBasicTypeM68FDOS extends DiskBasicTypeMZBase<DirectoryM68FDos> 
         }
 
         if (remain <= size) {
-            // 残り少ない
+            // Few left
             if (remain < 0) remain = 0;
             if (remain > 0) {
                 iStream.readNBytes(buffer, 0, remain);
             }
             if (size > remain) {
-                // バッファの余りは0サプレス
+                // Remaining buffer is zero-suppressed
                 Arrays.fill(buffer, remain, size, (byte) 0);
             }
             len = remain;
         } else {
-            // 継続
+            // Continuous
             iStream.readNBytes(buffer, 0, size);
             len = size;
         }
 
-        // 次のセクタ番号を書く
+        // Write next sector number
         if (needChain) {
             int next_sector = nextGroup * basic.getSectorsPerGroup();
             if (next_sector >= 0) {
@@ -559,19 +559,19 @@ public class DiskBasicTypeM68FDOS extends DiskBasicTypeMZBase<DirectoryM68FDos> 
         return len;
     }
 
-    /** データの書き込み終了後の処理 */
+    /** Processing after data writing completion */
     @Override
     public void additionalProcessOnSavedFile(DiskBasicDirItem<DirectoryM68FDos> item) {
 //        DiskBasicDirItemM68FDOS dItem = (DiskBasicDirItemM68FDOS) item;
 //        dItem.setUnknownData();
     }
 
-    /** IPLや管理エリアの属性を得る */
+    /** Get attributes of IPL and managed area */
     @Override
     public void getIdentifiedData(DiskBasicIdentifiedData data) {
     }
 
-    /** IPLや管理エリアの属性をセット */
+    /** Set attributes of IPL and managed area */
     @Override
     public void setIdentifiedData(DiskBasicIdentifiedData data) {
     }

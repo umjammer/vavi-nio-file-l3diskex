@@ -33,12 +33,12 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_MACHINE_MASK;
 import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_RANDOM_MASK;
 
 
-/** ディレクトリ１アイテム FAT8ビット */
+/** Directory 1 item FAT 8-bit */
 public abstract class DiskBasicDirItemFAT8<T extends Directory> extends DiskBasicDirItem<T> {
 
     private static final Logger logger = System.getLogger(DiskBasicDirItemFAT8.class.getName());
 
-    /// L3/S1/F BASIC タイプ1 0...BASIC 1...DATA 2...MACHINE
+    /// L3/S1/F BASIC Type 1 0...BASIC 1...DATA 2...MACHINE
     public static final String[] TYPE_NAME_1 = {
             "BASIC",
             "Data",
@@ -46,20 +46,20 @@ public abstract class DiskBasicDirItemFAT8<T extends Directory> extends DiskBasi
             "???"
     };
 
-    /// L3 BASIC and F-BASIC タイプ1 0...BASIC 1...DATA 2...MACHINE
+    /// L3 BASIC and F-BASIC Type 1 0...BASIC 1...DATA 2...MACHINE
     public static final int TYPE_NAME_1_BASIC = 0;
     public static final int TYPE_NAME_1_DATA = 1;
     public static final int TYPE_NAME_1_MACHINE = 2;
     static final int TYPE_NAME_1_UNKNOWN = 3;
 
-    /// L3/S1/F BASIC タイプ2 0...Binary 1...Ascii 2...Random Access
+    /// L3/S1/F BASIC Type 2 0...Binary 1...Ascii 2...Random Access
     public static final String[] TYPE_NAME_2 = {
             "Binary",
             "Ascii",
             "Random Access"
     };
 
-    /// L3 BASIC and F-BASIC タイプ2 0...Binary 1...Ascii 2...Random Access
+    /// L3 BASIC and F-BASIC Type 2 0...Binary 1...Ascii 2...Random Access
     public static final int TYPE_NAME_2_BINARY = 0;
     public static final int TYPE_NAME_2_ASCII = 1;
     public static final int TYPE_NAME_2_RANDOM = 2;
@@ -68,11 +68,11 @@ public abstract class DiskBasicDirItemFAT8<T extends Directory> extends DiskBasi
     //
     //
 
-    /** ファイル内部で持っている開始アドレス */
+    /** Start address held inside file */
     protected int startAddress;
-    /** ファイル内部で持っている終了アドレス */
+    /** End address held inside file */
     protected int endAddress;
-    /** ファイル内部で持っている実行アドレス */
+    /** Execution address held inside file */
     protected int execAddress;
 
     @Override
@@ -105,7 +105,7 @@ public abstract class DiskBasicDirItemFAT8<T extends Directory> extends DiskBasi
         used(super.checkUsed(unuse[0]));
     }
 
-    // 属性からリストの位置を返す(プロパティダイアログ用)
+    // Returns position in list from attribute (for property dialog)
     public int getFileType1Pos() {
         int t1 = getFileType1();
         if (t1 < TYPE_NAME_1_BASIC || t1 > TYPE_NAME_1_MACHINE) {
@@ -114,7 +114,7 @@ public abstract class DiskBasicDirItemFAT8<T extends Directory> extends DiskBasi
         return t1;
     }
 
-    // 属性からリストの位置を返す(プロパティダイアログ用)
+    // Returns position in list from attribute (for property dialog)
     public int getFileType2Pos() {
         int t2 = getFileType2();
         int t3 = getFileType3();
@@ -122,7 +122,7 @@ public abstract class DiskBasicDirItemFAT8<T extends Directory> extends DiskBasi
         return t2;
     }
 
-    /** ファイル内部のアドレスを取り出す */
+    /** Extract addresses inside file */
     protected void takeAddressesInFile() {
         if (groups.getSize() == 0 || getFileType1() != TYPE_NAME_1_MACHINE) {
             startAddress = -1;
@@ -137,15 +137,15 @@ public abstract class DiskBasicDirItemFAT8<T extends Directory> extends DiskBasi
 
         boolean is_bigendian = basic.isBigEndian();
 
-        // 開始アドレス
+        // Start address
         startAddress = sector.get16(3, is_bigendian);
-        // 終了アドレス
+        // End address
         endAddress = (int) sector.get16(1, is_bigendian) + startAddress - 1;
 
         item = groups.last();
         sector = basic.getSector(item.track, item.side, item.sectorEnd);
         if (sector == null) return;
-        // 実行アドレス
+        // Execution address
         int remain_size = groups.getSize() % sector.getSectorSize();
         if (remain_size >= 2) {
             execAddress = sector.get16(remain_size - 2, is_bigendian);
@@ -161,7 +161,7 @@ public abstract class DiskBasicDirItemFAT8<T extends Directory> extends DiskBasi
         }
     }
 
-    /** ファイル名に拡張子を付ける */
+    /** Attach extension to file name */
     protected String addExtension(int file_type_1, String name) {
         return name;
     }
@@ -244,20 +244,20 @@ public abstract class DiskBasicDirItemFAT8<T extends Directory> extends DiskBasi
         while (working) {
             int nextGroup = type.getGroupNumber(groupNum);
             if (nextGroup == groupNum) {
-                // 同じポジションならエラー
+                // Error if same position
                 rc = false;
             } else if (nextGroup >= basic.getGroupSystemCode()) {
-                // システム領域はエラー(0xfe - )
+                // System area is error (0xfe - )
                 rc = false;
             } else if (nextGroup >= basic.getGroupFinalCode()) {
-                // 最終グループ(0xc1 - )
+                // Final group (0xc1 - )
                 basic.getNumsFromGroup(groupNum, nextGroup, basic.getSectorSize(), 0, groupItems);
                 calcFileSize += basic.getSectorSize() * (nextGroup - basic.getGroupFinalCode() + 1);
                 calcGroups++;
                 calcFileSize = recalcFileSize(groupItems, calcFileSize);
                 working = false;
             } else if (nextGroup > basic.getFatEndGroup()) {
-                // グループ番号がおかしい
+                // Invalid group number
                 rc = false;
             } else {
                 basic.getNumsFromGroup(groupNum, nextGroup, basic.getSectorSize(), 0, groupItems);
@@ -278,7 +278,7 @@ public abstract class DiskBasicDirItemFAT8<T extends Directory> extends DiskBasi
             rc = false;
         }
         if (rc) {
-            // ファイル内部のアドレスを得る
+            // Get addresses inside file
             takeAddressesInFile();
         }
     }
@@ -311,7 +311,7 @@ public abstract class DiskBasicDirItemFAT8<T extends Directory> extends DiskBasi
     @Override
     public int convFileTypeFromFileName(String filename) {
         int ftype = 0;
-        // 拡張子で属性を設定する
+        // Set attribute by extension
         Parambase.MyAttribute sa = findUpperCase(basic.getAttributesByExtension(), Utils.getExt(filename));
         if (sa != null) {
             ftype = sa.getType();
@@ -323,11 +323,11 @@ public abstract class DiskBasicDirItemFAT8<T extends Directory> extends DiskBasi
     //
     //
 
-    /// ディレクトリ１アイテム FAT8ビット(F-BASIC, L3 1S)
+    /// Directory 1 item FAT 8-bit (F-BASIC, L3 1S)
     public static abstract class DiskBasicDirItemFAT8F extends DiskBasicDirItemFAT8<DirectoryFat8F> {
 
         /**
-         * ディレクトリエントリ L3 ３インチ(単密度) / F-BASIC 倍密度
+         * Directory entry L3 3-inch (single density) / F-BASIC double density
          */
         @Serdes(bigEndian = false)
         public static class DirectoryFat8F implements Directory {
@@ -350,7 +350,7 @@ public abstract class DiskBasicDirItemFAT8<T extends Directory> extends DiskBasi
             public static final int SIZE = 32;
         }
 
-        /** ディレクトリデータ */
+        /** Directory data */
         protected DiskBasicDirData<DirectoryFat8F> data = new DiskBasicDirData<>();
 
         @Override
@@ -376,7 +376,7 @@ public abstract class DiskBasicDirItemFAT8<T extends Directory> extends DiskBasi
 
             used(checkUsed(unuse[0]));
 
-            // ファイルサイズとグループ数を計算
+            // Calculate file size and number of groups
             calcFileSize();
         }
 
@@ -398,7 +398,7 @@ public abstract class DiskBasicDirItemFAT8<T extends Directory> extends DiskBasi
                 last[0] = true;
                 return valid;
             }
-            // 属性に想定外の値がある場合はエラー
+            // Error if attribute contains unexpected value
             if (p.type2 != 0 && p.type2 != (byte) 0xff) {
                 valid = false;
             } else if (p.type3 != 0 && p.type3 != (byte) 0xff) {
@@ -414,7 +414,7 @@ public abstract class DiskBasicDirItemFAT8<T extends Directory> extends DiskBasi
 
         @Override
         public boolean delete() {
-            // 削除はエントリの先頭にコードを入れるだけ
+            // Deletion is simply putting a code at the beginning of the entry
             data.fill(basic.invertUint8(basic.getDeleteCode()), 1);
             used(false);
             return true;
@@ -508,14 +508,14 @@ public abstract class DiskBasicDirItemFAT8<T extends Directory> extends DiskBasi
 
         @Override
         public boolean needCheckEofCode() {
-            // ランダムアクセス時は除く
+            // Except when random access
             return getFileType3() != 0xff;
         }
 
         @Override
         public int recalcFileSizeOnSave(InputStream iStream, int fileSize) throws IOException {
             if (needCheckEofCode()) {
-                // ファイルの最終が終端記号で終わっているかを調べる
+                // Check if the end of the file ends with a termination symbol
                 fileSize = checkEofCode(iStream, fileSize);
             }
             return fileSize;

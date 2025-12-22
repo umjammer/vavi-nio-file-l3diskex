@@ -50,8 +50,8 @@ public class UiDirItemMAGICAL extends UiDirItem {
         int t2 = dirItem.getFileType2();
 
         if ((show_flags & 0x01) != 0) { // INTNAME_NEW_FILE is assumed to be 1
-            // 外部からインポート時
-            // 拡張子で属性を設定する
+            // When importing from external
+            // Set attribute by extension
             t1 = dirItem.convOriginalTypeFromFileName(file_path);
             t2 = t1 >> 8;
             t1 &= 0xff;

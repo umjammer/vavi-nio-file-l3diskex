@@ -102,23 +102,23 @@ public class UiDirItemFAT8 extends UiDirItem {
                     if (cur_pos == 2) {
                         radType2.SetSelection(0);
                     }
-                    radType2.setEnabled(2, false);    // ランダムアクセス指定不可
+                    radType2.setEnabled(2, false);    // Random access cannot be specified
                 }
             } else if (selected_idx == 1) {
-                // データ
+                // Data
                 if (cur_pos == 0) {
                     radType2.SetSelection(1);
                 }
-                radType2.enable(0, false);    // バイナリ指定不可
+                radType2.enable(0, false);    // Binary cannot be specified
             } else if (selected_idx == 2) {
-                // 機械語
+                // Machine code
                 radType2.SetSelection(0);
-                radType2.setEnabled(1, false);    // アスキー指定不可
+                radType2.setEnabled(1, false);    // Ascii cannot be specified
                 if (cnt > 2) {
-                    radType2.enable(2, false);    // ランダムアクセス指定不可
+                    radType2.enable(2, false);    // Random access cannot be specified
                 }
             }
-            // 拡張子を付加
+            // Add extension
             if (txtIntName != null) {
                 txtIntName.setText(addExtension(selected_idx, txtIntName.getValue()));
             }

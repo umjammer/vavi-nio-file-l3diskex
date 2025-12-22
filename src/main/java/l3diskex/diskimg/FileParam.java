@@ -331,12 +331,12 @@ public class FileParam {
         }
 
         /**
-         * XMLファイルをロード
+         * Load XML file
          *
-         * @param dataPath    ファイルパス
-         * @param localeName  ローケル(jaなど)
-         * @param errMessages [out] エラーメッセージ
-         * @return false: エラー
+         * @param dataPath    File path
+         * @param localeName  Locale (ja etc.)
+         * @param errMessages [out] Error messages
+         * @return false: error
          * @see "file_types.xml"
          */
         public boolean load(String dataPath, String localeName, StringBuilder errMessages) {
