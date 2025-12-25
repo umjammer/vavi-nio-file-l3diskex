@@ -65,6 +65,16 @@ you can also mount all formats using [fuse](https://github.com/umjammer/vavi-nio
 
 ## Usage
 
+### JSR-203 & fuse
+
+```java
+    URI uri = URI.create("l3:file:///foo/bar.d88");
+    fs = FileSystems.newFileSystem(uri, Collections.emptyList());
+    Fuse fuse = Fuse.getFuse().mount(fs, MOUNT_POINT, Collections.emptyList());
+```
+
+### sample
+
  - [sample](src/test/java/TestCase.java)
 
 ### system property
