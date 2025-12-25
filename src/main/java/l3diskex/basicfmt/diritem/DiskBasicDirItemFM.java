@@ -15,7 +15,7 @@ import l3diskex.diskimg.DiskParam.SectorParam;
 import static l3diskex.basicfmt.type.DiskBasicTypeFM.FORMAT_TYPE_FM;
 
 
-/** ディレクトリ１アイテム F-BASIC */
+/** Directory 1 item F-BASIC */
 public class DiskBasicDirItemFM extends DiskBasicDirItemFAT8F {
 
     @Override

@@ -24,7 +24,7 @@ import static l3diskex.basicfmt.type.DiskBasicTypeHU68K.FORMAT_TYPE_HU68K;
 public class DiskBasicDirItemHU68K extends DiskBasicDirItemMSDOS {
 
     /**
-     * ディレクトリエントリ Human68K (MS-DOS compatible) (32bytes)
+     * Directory entry Human68K (MS-DOS compatible) (32bytes)
      */
     @Serdes
     public static class DirectoryHu68k implements Directory {
@@ -119,7 +119,7 @@ public class DiskBasicDirItemHU68K extends DiskBasicDirItemMSDOS {
     }
 
     //
-    // ダイアログ用
+    // For dialog
     //
 
     @Override

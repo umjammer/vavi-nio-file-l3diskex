@@ -45,16 +45,16 @@ import static l3diskex.basicfmt.type.DiskBasicTypeX1HU.FORMAT_TYPE_X1HU;
 
 
 /**
- * ディレクトリ１アイテム X1 Hu-BASIC
+ * Directory 1 item X1 Hu-BASIC
  *
- * <li>DefaultAsciiType アスキーファイル(Hu-BASIC or S-OS)</li>
+ * <li>DefaultAsciiType ASCII file (Hu-BASIC or S-OS)</li>
  */
 public class DiskBasicDirItemX1HU extends DiskBasicDirItem<DirectoryX1Hu> {
 
     private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
 
     /**
-     * ディレクトリエントリ X1 Hu-BASIC
+     * Directory entry X1 Hu-BASIC
      */
     @Serdes(bigEndian = false)
     public static class DirectoryX1Hu implements Directory {
@@ -85,7 +85,7 @@ public class DiskBasicDirItemX1HU extends DiskBasicDirItem<DirectoryX1Hu> {
         public static final int SIZE = 32;
     }
 
-    // X1 Hu-BASIC 属性1位置
+    // X1 Hu-BASIC attribute 1 position
     public static final int TYPE_NAME_X1HU_BINARY = 0;
     public static final int TYPE_NAME_X1HU_BASIC = 1;
     public static final int TYPE_NAME_X1HU_ASCII = 2;
@@ -94,7 +94,7 @@ public class DiskBasicDirItemX1HU extends DiskBasicDirItem<DirectoryX1Hu> {
     public static final int TYPE_NAME_X1HU_DIRECTORY = 5;
     public static final int TYPE_NAME_X1HU_END = 6;
 
-    // X1 Hu-BASIC 属性1値
+    // X1 Hu-BASIC attribute 1 value
     public static final int FILETYPE_X1HU_BINARY = 0x01;
     public static final int FILETYPE_X1HU_BASIC = 0x02;
     public static final int FILETYPE_X1HU_ASCII = 0x04;
@@ -106,13 +106,13 @@ public class DiskBasicDirItemX1HU extends DiskBasicDirItem<DirectoryX1Hu> {
     public static final int EXTERNAL_X1_RANDOM = 1;
     public static final int EXTERNAL_X1_SWORD = 2;
 
-    // X1 Hu-BASIC 属性2位置
+    // X1 Hu-BASIC attribute 2 position
     public static final int TYPE_NAME_X1HU_HIDDEN = 0;
     public static final int TYPE_NAME_X1HU_READ_WRITE = 1;
     public static final int TYPE_NAME_X1HU_READ_ONLY = 2;
     public static final int TYPE_NAME_X1HU_PASSWORD = 3;
 
-    // X1 Hu-BASIC 属性2値
+    // X1 Hu-BASIC attribute 2 value
     public static final int DATATYPE_X1HU_HIDDEN = 0x10;
     public static final int DATATYPE_X1HU_READ_WRITE = 0x20;
     public static final int DATATYPE_X1HU_READ_ONLY = 0x40;
@@ -139,7 +139,7 @@ public class DiskBasicDirItemX1HU extends DiskBasicDirItem<DirectoryX1Hu> {
         put("Password", DATATYPE_X1HU_RESERVED);
     }};
 
-    /** ディレクトリデータ */
+    /** Directory data */
     private final DiskBasicDirData<DirectoryX1Hu> data = new DiskBasicDirData<>();
 
     @Override
@@ -173,19 +173,19 @@ public class DiskBasicDirItemX1HU extends DiskBasicDirItem<DirectoryX1Hu> {
 
         used(checkUsed(unuse[0]));
 
-        // グループ数を計算
+        // Calculate the number of groups
         calcFileSize();
     }
 
     /**
      * Item pointer setting
      *
-     * @param num       通し番号
-     * @param groupItem トラック番号などのデータ
-     * @param sector    セクタ
-     * @param sectorPos    セクタ内のディレクトリエントリの位置
-     * @param data      ディレクトリアイテム
-     * @param next      [out] 次のセクタ
+     * @param num       Serial number
+     * @param groupItem Data such as track number
+     * @param sector    Sector
+     * @param sectorPos Position of directory entry within sector
+     * @param data      Directory item
+     * @param next      [out] Next sector
      */
     @Override
     public void setData(int num, DiskBasicGroupItem groupItem, DiskImageSector sector, int sectorPos,
@@ -249,8 +249,8 @@ public class DiskBasicDirItemX1HU extends DiskBasicDirItem<DirectoryX1Hu> {
     /**
      * Directory item check
      *
-     * @param last [in,out] チェックを終了するか
-     * @return チェックOK
+     * @param last [in,out] Whether to end the check
+     * @return Check OK
      */
     @Override
     public boolean check(boolean[] last) {
@@ -258,14 +258,14 @@ public class DiskBasicDirItemX1HU extends DiskBasicDirItem<DirectoryX1Hu> {
 
         int type1 = getFileType1();
         boolean valid = true;
-        // 属性が不正 (Attribute invalid)
+        // Attribute is invalid
         if (type1 != 0xff && (type1 & 0x08) != 0) {
             valid = false;
         }
         return valid;
     }
 
-    // Delete item */
+    /** Delete item */
     @Override
     public boolean delete() {
         // Deletion only puts a code at the beginning of the entry
@@ -274,7 +274,7 @@ public class DiskBasicDirItemX1HU extends DiskBasicDirItem<DirectoryX1Hu> {
         return true;
     }
 
-    // Set file attributes */
+    /** Set file attributes */
     @Override
     public void setFileAttr(DiskBasicFileType fileType) {
         int fType = fileType.getType();
@@ -305,7 +305,7 @@ public class DiskBasicDirItemX1HU extends DiskBasicDirItem<DirectoryX1Hu> {
         setFileType2(passwd);
     }
 
-    // Convert to native type */
+    /** Convert to native type */
     private int convToNativeType(int fileType, int val) {
         // X1 Hu
         val &= ~FILETYPE_X1HU_MASK;
@@ -328,7 +328,7 @@ public class DiskBasicDirItemX1HU extends DiskBasicDirItem<DirectoryX1Hu> {
         return val;
     }
 
-    // Get file attributes */
+    /** Get file attributes */
     @Override
     public DiskBasicFileType getFileAttr() {
         int t1 = getFileType1();
@@ -352,7 +352,7 @@ public class DiskBasicDirItemX1HU extends DiskBasicDirItem<DirectoryX1Hu> {
         return new DiskBasicFileType(basic.getFormatTypeNumber(), val, (externalAttr << 16) | (passwd << 8) | t1);
     }
 
-    // Get attribute string for display */
+    /** Get attribute string for display */
     @Override
     public String getFileAttrStr() {
         int t = (getFileType1() | (externalAttr << 16));
@@ -369,7 +369,7 @@ public class DiskBasicDirItemX1HU extends DiskBasicDirItem<DirectoryX1Hu> {
         return attr;
     }
 
-    // Set file size */
+    /** Set file size */
     @Override
     public void setFileSize(int val) {
         groups.setSize(val);
@@ -382,7 +382,7 @@ public class DiskBasicDirItemX1HU extends DiskBasicDirItem<DirectoryX1Hu> {
         }
     }
 
-    // Get file size */
+    /** Get file size */
     @Override
     public int getFileSize() {
         if ((getFileType1() & FILETYPE_X1HU_ASCII) != 0) {
@@ -393,7 +393,7 @@ public class DiskBasicDirItemX1HU extends DiskBasicDirItem<DirectoryX1Hu> {
         }
     }
 
-    // Calculate file unit size and group count */
+    /** Calculate file unit size and group count */
     @Override
     public void calcFileUnitSize(int fileUnitNum) throws IOException {
         if (!isUsed()) return;
@@ -401,7 +401,7 @@ public class DiskBasicDirItemX1HU extends DiskBasicDirItem<DirectoryX1Hu> {
         getUnitGroups(fileUnitNum, groups);
     }
 
-    // Get all groups for a directory */
+    /** Get all groups for a directory */
     @Override
     public void getUnitGroups(int fileUnitNum, DiskBasicGroups groupItems) throws IOException {
         boolean rc = true;
@@ -448,7 +448,7 @@ public class DiskBasicDirItemX1HU extends DiskBasicDirItem<DirectoryX1Hu> {
         }
     }
 
-    // Recalculate file size based on last sector */
+    /** Recalculate file size based on last sector */
     @Override
     public int recalcFileSize(DiskBasicGroups groupItems, int occupiedSize) throws IOException {
         if (groupItems.size() == 0) return occupiedSize;
@@ -465,7 +465,7 @@ public class DiskBasicDirItemX1HU extends DiskBasicDirItem<DirectoryX1Hu> {
         return occupiedSize;
     }
 
-    // Get file creation date */
+    /** Get file creation date */
     @Override
     public LocalDate getFileCreateDate(LocalDateTime tm) {
         byte[] date = new byte[data.data().date.length + 1];
@@ -477,7 +477,7 @@ public class DiskBasicDirItemX1HU extends DiskBasicDirItem<DirectoryX1Hu> {
                 (date[2] & 0xff) <= 0x99 ? ((date[2] & 0xf0) >> 4) * 10 + (date[2] & 0x0f) : -1); // BCD
     }
 
-    // Get file creation time */
+    /** Get file creation time */
     @Override
     public LocalTime getFileCreateTime(LocalDateTime tm) {
         byte[] time = new byte[data.data().time.length + 1];
@@ -488,7 +488,7 @@ public class DiskBasicDirItemX1HU extends DiskBasicDirItem<DirectoryX1Hu> {
                 0);
     }
 
-    // Get file creation date string */
+    /** Get file creation date string */
     @Override
     public String getFileCreateDateStr() {
         LocalDateTime tm = LocalDateTime.now();
@@ -496,7 +496,7 @@ public class DiskBasicDirItemX1HU extends DiskBasicDirItem<DirectoryX1Hu> {
         return Utils.formatYMDStr(ld);
     }
 
-    // Get file creation time string */
+    /** Get file creation time string */
     @Override
     public String getFileCreateTimeStr() {
         LocalDateTime tm = LocalDateTime.now();
@@ -504,7 +504,7 @@ public class DiskBasicDirItemX1HU extends DiskBasicDirItem<DirectoryX1Hu> {
         return Utils.formatHMStr(lt);
     }
 
-    // Set file creation date */
+    /** Set file creation date */
     @Override
     public void setFileCreateDate(LocalDateTime tm) {
         if (tm.getYear() < 0 || tm.getMonth().ordinal() < -1 || tm.getDayOfMonth() < 0) return;

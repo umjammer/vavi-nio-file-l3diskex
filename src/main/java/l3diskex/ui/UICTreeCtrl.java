@@ -12,7 +12,7 @@ public class UICTreeCtrl extends JTree {
     /*----------------------------------------------------------
      *  Protected members
      *----------------------------------------------------------*/
-    protected boolean m_selecting;      // 選択処理中
+    protected boolean m_selecting;      // Selecting process in progress
 
     /*----------------------------------------------------------
      *  Constructor
@@ -25,7 +25,7 @@ public class UICTreeCtrl extends JTree {
     }
 
     /*----------------------------------------------------------
-     *  アイコンを追加
+     *  Add icons
      *----------------------------------------------------------*/
     protected void AssignTreeIcons(String[][] icons) {
         wxImageList ilist = new wxImageList(16, 16);
@@ -39,7 +39,7 @@ public class UICTreeCtrl extends JTree {
     }
 
     /*----------------------------------------------------------
-     *  ツリーアイテムを選択
+     *  Select tree item
      *----------------------------------------------------------*/
     public void SelectTreeNode(TreeNode node) {
         if (!m_selecting) {
@@ -50,49 +50,49 @@ public class UICTreeCtrl extends JTree {
     }
 
     /*----------------------------------------------------------
-     *  ツリーノードが子供を持つか
+     *  Whether tree node has children
      *----------------------------------------------------------*/
     public boolean TreeNodeHasChildren(TreeNode node) {
         return HasChildren(node);
     }
 
     /*----------------------------------------------------------
-     *  ツリーノードの子供の数を返す
+     *  Return number of children of tree node
      *----------------------------------------------------------*/
     public int GetTreeChildCount(TreeNode parent) {
         return GetChildrenCount(parent);
     }
 
     /*----------------------------------------------------------
-     *  ツリーノードを編集
+     *  Edit tree node
      *----------------------------------------------------------*/
     public void EditTreeNode(TreeNode node) {
         editLabel(node);
     }
 
     /*----------------------------------------------------------
-     *  ツリーノードを削除
+     *  Delete tree node
      *----------------------------------------------------------*/
     public void DeleteTreeNode(TreeNode node) {
         delete(node);
     }
 
     /*----------------------------------------------------------
-     *  親ツリーノードを返す
+     *  Return parent tree node
      *----------------------------------------------------------*/
     public TreeNode GetParentTreeNode(TreeNode node) {
         return GetItemParent(node);
     }
 
     /*----------------------------------------------------------
-     *  ルートノードを追加する
+     *  Add root node
      *----------------------------------------------------------*/
     public TreeNode AddRootTreeNode(String text, int def_icon, int sel_icon, Object n_data) {
         return AddRoot(text, def_icon, sel_icon, n_data);
     }
 
     /*----------------------------------------------------------
-     *  ノードを追加する (コンテナ)
+     *  Add node (container)
      *----------------------------------------------------------*/
     public TreeNode AddTreeContainer(TreeNode parent, String text,
                                      int def_icon, int sel_icon, Object n_data) {
@@ -102,7 +102,7 @@ public class UICTreeCtrl extends JTree {
     }
 
     /*----------------------------------------------------------
-     *  ノードを追加する (単純ノード)
+     *  Add node (simple node)
      *----------------------------------------------------------*/
     public TreeNode AddTreeNode(TreeNode parent, String text,
                                 int def_icon, int sel_icon, Object n_data) {
@@ -112,7 +112,7 @@ public class UICTreeCtrl extends JTree {
     }
 
     /*----------------------------------------------------------
-     *  指定した座標にノードがあるか
+     *  Whether there is a node at specified coordinates
      *----------------------------------------------------------*/
     public boolean HasNodeAtPoint(int x, int y) {
         Point pt = new Point(x, y);
@@ -120,7 +120,7 @@ public class UICTreeCtrl extends JTree {
     }
 
     /*----------------------------------------------------------
-     *  指定した座標にあるノードを返す
+     *  Return node at specified coordinates
      *----------------------------------------------------------*/
     public TreeNode GetNodeAtPoint(int x, int y) {
         Point pt = new Point(x, y);

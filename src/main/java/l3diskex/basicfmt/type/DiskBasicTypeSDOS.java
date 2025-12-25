@@ -27,7 +27,7 @@ import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailabili
 /** */
 public class DiskBasicTypeSDOS extends DiskBasicType<DirectorySDos> {
 
-    // 空き開始グループ
+    // Start group for free space
     private int emptyGroupNum;
 
     public static final int FORMAT_TYPE_SDOS = 54;
@@ -45,18 +45,18 @@ public class DiskBasicTypeSDOS extends DiskBasicType<DirectorySDos> {
         this.emptyGroupNum = 0;
     }
 
-    /** FAT位置をセット（現在は実装なし） */
+    /** Set FAT position (not implemented yet) */
     @Override
     public void setGroupNumber(int num, int val) {
     }
 
-    /** FAT位置を返す */
+    /** Returns FAT position */
     @Override
     public int getGroupNumber(int num) {
         return INVALID_GROUP_NUMBER;
     }
 
-    /** 空きFAT位置を返す */
+    /** Returns a free FAT position */
     @Override
     public int getEmptyGroupNumber() {
         int newNum = INVALID_GROUP_NUMBER;
@@ -68,7 +68,7 @@ public class DiskBasicTypeSDOS extends DiskBasicType<DirectorySDos> {
         return newNum;
     }
 
-    /** 次の空きFAT位置を返す */
+    /** Returns the next free FAT position */
     @Override
     public int getNextEmptyGroupNumber(int currentGroup) {
         int newNum = INVALID_GROUP_NUMBER;
@@ -81,12 +81,12 @@ public class DiskBasicTypeSDOS extends DiskBasicType<DirectorySDos> {
         return newNum;
     }
 
-    /** FATエリアをチェック */
+    /** Check FAT area */
     @Override
     public double checkFat(boolean isFormatting) {
         double validRatio = -1.0;
 
-        // 最初のセクタにある文字列で判断
+        // Judge by the string in the first sector
         DiskImageSector sector = basic.getSectorFromSectorPos(0);
         if (sector != null) {
             byte[] id = basic.getVariousStringParam("IPLCompareString").getBytes();
@@ -99,10 +99,10 @@ public class DiskBasicTypeSDOS extends DiskBasicType<DirectorySDos> {
         return validRatio;
     }
 
-    /** ディスクから各パラメータを取得＆必要なパラメータを計算 */
+    /** Get each parameter from disk and calculate necessary parameters */
     @Override
     public double parseParamOnDisk(boolean isFormatting) {
-        // グループ数
+        // Number of groups
         if (basic.getFatEndGroup() == 0) {
             int endGroup = basic.getTracksPerSideOnBasic() * basic.getSidesPerDiskOnBasic() * basic.getSectorsPerTrackOnBasic();
             basic.setFatEndGroup(endGroup - 1);
@@ -110,14 +110,14 @@ public class DiskBasicTypeSDOS extends DiskBasicType<DirectorySDos> {
         return 1.0;
     }
 
-    /** ディレクトリエリアのサイズに達したらアサイン終了するか */
+    /** Whether to end assigning if directory area size is reached */
     @Override
     public int finishAssigningDirectory(int[] pos, int[] size, int[] sizeRemain) {
-        // サイズに達したら終了
+        // End if size is reached
         return (sizeRemain[0] < DirectorySDos.SIZE) ? -2 : 0;
     }
 
-    /** 使用可能なディスクサイズを得る */
+    /** Get usable disk size */
     @Override
     public void getUsableDiskSize(int[] diskSize, int[] groupSize) {
         groupSize[0] = 0;
@@ -130,7 +130,7 @@ public class DiskBasicTypeSDOS extends DiskBasicType<DirectorySDos> {
         diskSize[0] = groupSize[0] * basic.getSectorSize() / basic.getGroupsPerSector();
     }
 
-    /** 残りディスクサイズを計算 */
+    /** Calculate remaining disk size */
     @Override
     public void calcDiskFreeSize(boolean wrote) {
         fatAvailability.empty();
@@ -139,14 +139,14 @@ public class DiskBasicTypeSDOS extends DiskBasicType<DirectorySDos> {
         int groupNum;
         int maxGroupNum = 0;
 
-        // ディレクトリエントリのグループ
+        // Groups of directory entries
         List<DiskBasicDirItem<DirectorySDos>> items = dir.getCurrentItems(null);
         for (DiskBasicDirItem<DirectorySDos> item : items) {
             if (item == null || !item.isUsed()) continue;
-            // 開始グループ
+            // Start group
             int startGroupNum = item.getStartGroup(0);
 
-            // グループ番号のマップを調べる
+            // Examine map of group numbers
             int groupCount = item.getGroupCount();
             for (int groupIndex = 0; groupIndex < groupCount; groupIndex++) {
                 DiskBasicGroupItem groupItem = item.getGroup(groupIndex);
@@ -159,19 +159,19 @@ public class DiskBasicTypeSDOS extends DiskBasicType<DirectorySDos> {
             }
         }
 
-        // 空きをチェック
+        // Check free space
         int groups = 0;
         int groupEnd = basic.getReservedSectors();
         for(int pos = 0; pos <= basic.getFatEndGroup(); pos++) {
             if (pos < groupEnd) {
-                // ディレクトリエリアは使用済み
+                // Directory area is used
                 fatAvailability.set(pos, FAT_AVAIL_SYSTEM);
             } else if (fatAvailability.get(pos) == FAT_AVAIL_FREE) {
                 if (pos < maxGroupNum) {
-                    // 削除されたエリア
+                    // Deleted area
                     fatAvailability.set(pos, FAT_AVAIL_LEAK);
                 } else {
-                    // 空き
+                    // Free space
                     groups++;
                 }
             }
@@ -185,7 +185,7 @@ public class DiskBasicTypeSDOS extends DiskBasicType<DirectorySDos> {
         fatAvailability.setFreeGroups(groups);
     }
 
-    /** データサイズ分のグループを確保する */
+    /** Allocate groups for data size */
     @Override
     public int allocateUnitGroups(int fileUnitNum, DiskBasicDirItem<DirectorySDos> item, int dataSize, AllocateGroupFlags flags, DiskBasicGroups[] groupItems) {
 
@@ -209,12 +209,12 @@ public class DiskBasicTypeSDOS extends DiskBasicType<DirectorySDos> {
             limit--;
         }
         if (groupNum == INVALID_GROUP_NUMBER || limit < 0) {
-            // 空きなし or 無限ループ？
+            // No free space or infinite loop?
             rc = -1;
         }
 
         if (rc == 0) {
-            // 最初のグループをセット
+            // Set first group
             if (groupItems[0].size() > 0) {
                 item.setStartGroup(fileUnitNum, groupItems[0].get(0).group);
             }
@@ -222,31 +222,31 @@ public class DiskBasicTypeSDOS extends DiskBasicType<DirectorySDos> {
         return rc;
     }
 
-    /** グループ番号から開始セクタ番号を得る */
+    /** Get start sector number from group number */
     @Override
     public int getStartSectorFromGroup(int groupNum) {
         return groupNum;
     }
 
-    /** フォーマットできるか – S‑DOS ではサポートしない */
+    /** Whether formatting is possible – not supported in S‑DOS */
     @Override
     public boolean supportFormatting() {
         return false;
     }
 
-    /** セクタデータを指定コードで埋める */
+    /** Fill sector data with specified code */
     @Override
     public void fillSector(DiskImageTrack track, DiskImageSector sector) {
         sector.fill(basic.getFillCodeOnFormat());
     }
 
-    /** セクタデータを埋めた後の個別処理 */
+    /** Individual processing after filling sector data */
     @Override
     public boolean additionalProcessOnFormatted(DiskBasicIdentifiedData data) {
         return true;
     }
 
-    /** データの書き込み処理 */
+    /** Data write process */
     @Override
     public int writeFile(DiskBasicDirItem<DirectorySDos> item,
                          InputStream iStream,
@@ -263,39 +263,39 @@ public class DiskBasicTypeSDOS extends DiskBasicType<DirectorySDos> {
 
         int len = 0;
         if (remain <= size) {
-            // 残り少ない
+            // Few left
             if (remain < 0) remain = 0;
             if (need_eof_code) {
-                // 最終は終端コード
+                // Final is termination code
                 if (remain > 1) iStream.readNBytes(buffer, 0, remain - 1);
                 if (remain > 0) buffer[remain - 1]=basic.getTextTerminateCode();
             } else {
                 if (remain > 0) iStream.readNBytes(buffer, 0, remain);
             }
             if (size > remain) {
-                // バッファの余りは0サプレス
+                // Remaining buffer is zero-suppressed
                 Arrays.fill(buffer, remain, size, (byte) 0);
             }
             len = remain;
         } else {
-            // 継続
+            // Continuous
             iStream.readNBytes(buffer, 0, size);
             len = size;
             if (need_eof_code && remain == size + 1) {
-                // のこりが終端コードだけなら終端コードを出さずここで終了
+                // If only termination code remains, end here without outputting it
                 len++;
             }
         }
-        // 反転
+        // Invert
         basic.invertMemory(buffer, size);
 
         return len;
     }
 
-    /** ファイル削除後の処理 */
+    /** Processing after file deletion */
     @Override
     public boolean additionalProcessOnDeletedFile(DiskBasicDirItem<DirectorySDos> item) {
-        // 削除したディレクトリエントリ以降をシフトする
+        // Shift directory entries after the deleted one
         DiskBasicDirItem<DirectorySDos> parent = item.getParent();
         if (parent == null) return true;
 

@@ -20,7 +20,7 @@ import vavi.util.serdes.Element;
 import vavi.util.serdes.Serdes;
 
 
-/** D88ディスクイメージ入出力 */
+/** D88 disk image I/O */
 public class DiskD88 {
 
     /** disk density 0: 2D, 1: 2DD, 2: 2HD */
@@ -128,7 +128,7 @@ public class DiskD88 {
         }
     }
 
-    /** セクタデータへのヘッダ部分を渡すクラス */
+    /** Class that passes the header part to the sector data */
     public static class DiskD88SectorHeader extends DiskImageSectorHeader {
 
         /** sector header */
@@ -334,7 +334,7 @@ public class DiskD88 {
         }
     }
 
-    /** セクタデータへのポインタを保持するクラス */
+    /** Class that holds a pointer to the sector data */
     static class DiskD88Sector extends DiskImageSector {
 
         /** sector header */
@@ -661,7 +661,7 @@ public class DiskD88 {
         }
     }
 
-    /** トラックデータへのポインタを保持するクラス */
+    /** Class that holds a pointer to the track data */
     public static class DiskD88Track extends DiskImageTrack {
 
         public DiskD88Track(DiskImageDisk disk) {
@@ -683,7 +683,7 @@ public class DiskD88 {
         }
     }
 
-    /** １ディスクのヘッダを渡すクラス */
+    /** Class that passes the header of one disk */
     public static class DiskD88DiskHeader extends DiskImageDiskHeader {
 
         private D88Header header;
@@ -842,14 +842,14 @@ public class DiskD88 {
         }
     }
 
-    /** １ディスクへのポインタを保持するクラス */
+    /** Class that holds a pointer to one disk */
     public static class DiskD88Disk extends DiskImageDisk {
 
         /** disk header */
         private final DiskD88DiskHeader header = new DiskD88DiskHeader();
         private final DiskD88DiskHeader headerOrigin = new DiskD88DiskHeader();
 
-        /** 変更したか */
+        /** Whether modified */
         private boolean modified;
 
         private final int offsetStart;
@@ -1014,7 +1014,7 @@ public class DiskD88 {
         }
     }
 
-    /** ディスクイメージへのポインタを保持するクラス */
+    /** Class that holds a pointer to the disk image */
     public static class DiskD88Image extends DiskImage {
 
         public DiskD88Image() {

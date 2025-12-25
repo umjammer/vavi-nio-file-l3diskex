@@ -33,15 +33,15 @@ public abstract class DiskBasicTypeFATBase<T extends Directory> extends DiskBasi
     }
 
     /**
-     * 次の空きFAT位置を返す
+     * Returns the next free FAT position
      *
-     * @return INVALID_GROUP_NUMBER: 空きなし
+     * @return INVALID_GROUP_NUMBER: No free space
      */
     @Override
     public int getNextEmptyGroupNumber(int currentGroup) throws IOException {
         int newNum = INVALID_GROUP_NUMBER;
 
-        // グループが連続するように検索
+        // Search for continuous groups
         int groupStart = currentGroup;
         int groupEnd = basic.getFatEndGroup();
         boolean found = false;
@@ -57,33 +57,33 @@ public abstract class DiskBasicTypeFATBase<T extends Directory> extends DiskBasi
                 }
             }
             if (found) break;
-            // ないときは最初からさがす
+            // If not found, search from the beginning
             groupStart = 2;
         }
         return newNum;
     }
 
     /**
-     * FATエリアの重複チェック
+     * Check for duplication in FAT area
      *
-     * @param isFormatting フォーマット中か
-     * @param startGroup   重複チェックを開始するグループ番号
-     * @param maxGroup     重複チェックを行う最大グループ番号
-     * @return 1.0: 正常, 0.0-1.0: 警告あり, <0.0: エラーあり
+     * @param isFormatting Whether formatting is in progress
+     * @param startGroup   Group number to start duplicate check
+     * @param maxGroup     Maximum group number to perform duplicate check
+     * @return 1.0: Normal, 0.0-1.0: Warning present, <0.0: Error present
      */
     public double checkFatDuplicated(boolean isFormatting, int startGroup, int maxGroup) throws IOException {
         int end = Math.min(basic.getFatEndGroup(), maxGroup);
         int[] table = new int[end + 1];
         Arrays.fill(table, 0);
 
-        // 同じグループ番号が重複しているか
+        // Check whether the same group number is duplicated
         for (int pos = 0; pos <= end; pos++) {
             int groupNum = getGroupNumber(pos);
             if (groupNum <= end) {
                 table[groupNum]++;
             }
         }
-        // 同じグループ番号が重複している場合エラー
+        // Error if the same group number is duplicated
         double validRatio = 1.0;
         for (int pos = startGroup; pos <= end; pos++) {
             if (table[pos] > 4) {
@@ -96,7 +96,7 @@ public abstract class DiskBasicTypeFATBase<T extends Directory> extends DiskBasi
     }
 
     /**
-     * 管理エリアのトラック番号からグループ番号を計算
+     * Calculate group number from track number of management area
      */
     @Override
     public int calcManagedStartGroup() {
@@ -105,7 +105,7 @@ public abstract class DiskBasicTypeFATBase<T extends Directory> extends DiskBasi
     }
 
     /**
-     * 使用可能なディスクサイズを得る (MS-DOS用)
+     * Get usable disk size (for MS-DOS)
      */
     @Override
     public void getUsableDiskSize(int[] diskSize, int[] groupSize) {
@@ -114,21 +114,21 @@ public abstract class DiskBasicTypeFATBase<T extends Directory> extends DiskBasi
     }
 
     /**
-     * 残りディスクサイズを計算 (MS-DOS用)
+     * Calculate remaining disk size (for MS-DOS)
      *
-     * @param wrote      書き込んだ後か
-     * @param startGroup 開始グループ番号
-     * @param usedGroup  使用中グループ番号
+     * @param wrote      Whether after writing
+     * @param startGroup Start group number
+     * @param usedGroup  In-use group number
      */
     public void calcDiskFreeSizeBase(boolean wrote, int startGroup, int usedGroup) throws IOException {
         fatAvailability.clear();
 
-        // システム領域
+        // System area
         for (int pos = 0; pos < startGroup; pos++) {
             fatAvailability.add(FAT_AVAIL_SYSTEM, 0, 0);
         }
 
-        // クラスタは2から始まる(MS-DOS)
+        // Clusters start from 2 (MS-DOS)
         for (int pos = startGroup; pos <= basic.getFatEndGroup(); pos++) {
             int fSize = 0;
             int groups = 0;
@@ -147,11 +147,11 @@ public abstract class DiskBasicTypeFATBase<T extends Directory> extends DiskBasi
     }
 
     /**
-     * グループ番号から開始セクタ番号を得る
+     * Get starting sector number from group number
      */
     @Override
     public int getStartSectorFromGroup(int groupNum) {
-        // 2から始まる (0,1は予約)
+        // Starts from 2 (0, 1 are reserved)
         if (groupNum < 2) {
             return -1;
         }
@@ -159,7 +159,7 @@ public abstract class DiskBasicTypeFATBase<T extends Directory> extends DiskBasi
     }
 
     /**
-     * グループ番号から最終セクタ番号を得る
+     * Get final sector number from group number
      */
     @Override
     public int getEndSectorFromGroup(int groupNum, int nextGroup, int sectorStart, int sectorSize, int remainSize) {
@@ -168,30 +168,30 @@ public abstract class DiskBasicTypeFATBase<T extends Directory> extends DiskBasi
     }
 
     /**
-     * データ領域の開始セクタを計算
+     * Calculate start sector of data area
      */
     @Override
     public int calcDataStartSectorPos() {
-        return basic.getDirEndSector(); // ディレクトリの次が0始まりで計算する
+        return basic.getDirEndSector(); // Calculate starting from 0 after the directory
     }
 
     /**
-     * セクタデータを指定コードで埋める
+     * Fill sector data with specified code
      */
     @Override
     public void fillSector(DiskImageTrack track, DiskImageSector sector) {
         int sectorPos = basic.calcSectorPosFromNumForGroup(track.getTrackNumber(), track.getSideNumber(), sector.getSectorNumber(), 0, 1);
         if (sectorPos < 0) {
-            // ファイル管理エリアの場合
+            // In case of file management area
             sector.fill(basic.getFillCodeOnFAT());
         } else {
-            // ユーザーエリア
+            // User area
             sector.fill(basic.getFillCodeOnFormat());
         }
     }
 
     /**
-     * グループ確保時に最後のグループ番号を計算する
+     * Calculate the last group number when allocating groups
      */
     @Override
     public int calcLastGroupNumber(int groupNum, int[] sizeRemain) {

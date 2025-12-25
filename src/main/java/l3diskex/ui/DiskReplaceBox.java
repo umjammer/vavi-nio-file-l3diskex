@@ -59,7 +59,7 @@ public class DiskReplaceBox extends JDialog {
 
             if (disk.IsReversible() &&
                     (side_number >= 0 || tag_disk.GetSidesPerDisk() == 1)) {
-                /* AB 面があり、片面だけ置換する場合 */
+                /* When AB sides exist and only one side is replaced */
                 sstr = " ( side %c ( side %d ))";
                 sstr = String.format(sstr, 'A', 0);
                 comDisk.Append(str + sstr);

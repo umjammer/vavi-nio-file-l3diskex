@@ -23,12 +23,12 @@ import vavi.util.serdes.Serdes;
 
 
 /**
- Magical DOSの処理
+ Magical DOS processing
 
  DiskBasicParam
- <li>DirStartPositionOnRoot : ルートディレクトリ開始セクタのエントリの開始位置</li>
- <li>DirStartPosition       : サブディレクトリ開始セクタのエントリの開始位置</li>
- <li>SubDirGroupSize        : サブディレクトリの初期グループ数</li>
+ <li>DirStartPositionOnRoot : Starting position of entry in root directory start sector</li>
+ <li>DirStartPosition       : Starting position of entry in subdirectory start sector</li>
+ <li>SubDirGroupSize        : Initial number of groups for subdirectory</li>
  */
 public class DiskBasicTypeMAGICAL extends DiskBasicTypeXDOS<DirectoryMagical> {
 
@@ -81,7 +81,7 @@ public class DiskBasicTypeMAGICAL extends DiskBasicTypeXDOS<DirectoryMagical> {
                 return -1.0;
             }
 
-            // セクタ数チェック
+            // Check sector count
             for (int i = 2; i < basic.getTracksPerSide() * basic.getSidesPerDiskOnBasic(); i++) {
                 if (sector.get(i) != hed[1]) {
                     validRatio -= 0.5;
@@ -112,10 +112,10 @@ public class DiskBasicTypeMAGICAL extends DiskBasicTypeXDOS<DirectoryMagical> {
         byte[] buf = sector.getSectorBuffer();
         if (buf == null) return;
 
-        // セクタの先頭をクリア
+        // Clear the beginning of sector
         sector.fill((byte) 0, basic.getDirStartPos(), 0);
 
-        // セクタ名を設定
+        // Set sector name
         byte[] name = new byte[32];
         int nameLen = name.length;
         item.getFileName(name, nameLen);
@@ -123,15 +123,15 @@ public class DiskBasicTypeMAGICAL extends DiskBasicTypeXDOS<DirectoryMagical> {
 
         int parentGroup = DiskBasicType.INVALID_GROUP_NUMBER;
         if (parentItem != null) {
-            // 親がサブディレクトリ
+            // Parent is subdirectory
             parentGroup = parentItem.getStartGroup(0);
         }
         if (parentGroup == DiskBasicType.INVALID_GROUP_NUMBER) {
-            // ルート
+            // Root
             parentGroup = basic.getDirStartSector() - 1;
         }
 
-        // サイズ
+        // Size
         int[] track = new int[1], side = new int[1], sectorNum = new int[1];
         basic.calcNumFromSectorPosForGroup(parentGroup, track, side, sectorNum, null, null);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -164,14 +164,14 @@ public class DiskBasicTypeMAGICAL extends DiskBasicTypeXDOS<DirectoryMagical> {
         sector = basic.getSectorFromSectorPos(basic.getFatStartSector() - 1);
         if (sector != null) {
             sector.fill(basic.invertUint8(basic.getFillCodeOnFAT()));
-            // セクタ数
+            // Number of sectors
             byte val = (byte) (0x40 | basic.getSectorsPerTrackOnBasic());
             int tracks = basic.getTracksPerSideOnBasic() * basic.getSidesPerDiskOnBasic();
             sector.fill(val, tracks, 0);
-            // トラック0は予約
+            // Track 0 is reserved
             sector.fill((byte) (basic.getParamDensity() >> 4), 1, 0);
             sector.fill((byte) 0, 1, 1);
-            // 使用状況
+            // Usage status
             int mapi = (1 << basic.getSectorsPerTrackOnBasic()) - 1;
             mapi <<= (16 - basic.getSectorsPerTrackOnBasic());
             byte[] map = new byte[2];
@@ -191,7 +191,7 @@ public class DiskBasicTypeMAGICAL extends DiskBasicTypeXDOS<DirectoryMagical> {
                 sector.fill(basic.invertUint8(basic.getFillCodeOnDir()));
                 if (pos == basic.getDirStartSector()) {
                     sector.fill(basic.invertUint8(basic.getFillCodeOnFAT()), basic.getDirStartPosOnRoot(), 0);
-                    // サイズ
+                    // Size
                     int[] track = new int[1], side = new int[1], sectorNum = new int[1];
                     basic.calcNumFromSectorPosForGroup(pos - 1, track, side, sectorNum, null, null);
                     XDosSeg s = new XDosSeg();

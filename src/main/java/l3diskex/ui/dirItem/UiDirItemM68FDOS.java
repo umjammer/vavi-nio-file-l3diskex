@@ -34,16 +34,16 @@ public class UiDirItemM68FDOS extends UiDirItem {
 
     DiskBasicDirItemM68FDOS dirItem;
 
-    /** インポート時ダイアログ表示前にファイルの属性を設定 */
+    /** Set file attributes before displaying dialog on import */
     public void SetFileTypeForAttrDialog(int show_flags, String name, int[] file_type_1, int[] file_type_2) {
         if ((show_flags & INTNAME_NEW_FILE) != 0) {
-            // 外部からインポート時
+            // When importing from external
             file_type_1[0] = dirItem.convOriginalTypeFromFileName(name);
             file_type_2[0] = 0;
         }
     }
 
-    /// 属性1を得る
+    /// Get attribute 1
     private int GetFileType1InAttrDialog(IntNameBox parent) {
         JCheckBox chkAttr = null;
         int val = 0;
@@ -58,15 +58,15 @@ public class UiDirItemM68FDOS extends UiDirItem {
         return val;
     }
 
-    /// 属性2を得る
+    /// Get attribute 2
     private int GetFileType2InAttrDialog(IntNameBox parent) {
         return 0;
     }
 
-    /// @name プロパティダイアログ用
+    /// @name For property dialog
     // @{
 
-    /** ダイアログ内の属性部分のレイアウトを作成 */
+    /** Create layout for attribute part in dialog */
     public void CreateControlsForAttrDialog(IntNameBox parent, int show_flags, String file_path, BoxLayout sizer, Object flags) {
         int type1 = dirItem.getFileType1();
         // int type2 = GetFileType2(); // not used
@@ -106,7 +106,7 @@ public class UiDirItemM68FDOS extends UiDirItem {
         // sizer.Add(hbox, flags);
     }
 
-    /** 機種依存の属性を設定する */
+    /** Set machine dependent attributes */
     public boolean SetAttrInAttrDialog(IntNameBox parent, DiskBasicDirItemAttr attr, DiskBasicError errinfo) {
         int t1 = GetFileType1InAttrDialog(parent);
         int t2 = dirItem.getFileType2();
@@ -118,14 +118,14 @@ public class UiDirItemM68FDOS extends UiDirItem {
         return true;
     }
 
-    /** ファイルサイズが適正か */
+    /** Is file size valid? */
     public boolean IsFileValidSize(IntNameBox parent, int size, int[] limit) {
         return true;
     }
 
-    /** ダイアログ入力後のファイル名チェック */
+    /** Check file name after dialog input */
     public boolean ValidateFileName(JWindow parent, String filename, String[] errormsg) {
-        // 空白はNG
+        // Empty is NG
         if (filename.isEmpty()) {
             errormsg[0] = rb.getString(gDiskBasicErrorMsgs[DiskBasicError.ERR_FILENAME_EMPTY]);
             return false;
@@ -133,7 +133,7 @@ public class UiDirItemM68FDOS extends UiDirItem {
         return true;
     }
 
-    /** ダイアログの終了アドレスを編集できるか */
+    /** Can edit end address in dialog */
     public boolean IsEndAddressEditableInAttrDialog(IntNameBox parent) {
         return false;
     }

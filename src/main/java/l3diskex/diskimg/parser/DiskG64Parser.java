@@ -25,7 +25,7 @@ import vavi.util.serdes.Element;
 import vavi.util.serdes.Serdes;
 
 
-/** Commodore G64 ディスクパーサ */
+/** Commodore G64 disk parser */
 public class DiskG64Parser extends DiskImageParser {
 
     /** G64 header */
@@ -102,18 +102,18 @@ public class DiskG64Parser extends DiskImageParser {
     }
 
     /**
-     * セクタデータの作成
+     * Create sector data
      *
-     * @param inData        セクタデータ
-     * @param diskNumber    ディスク番号
-     * @param trackNumber   トラック番号
-     * @param sideNumber    サイド番号
-     * @param numOfSectors  セクタ数
-     * @param sectorNumber  セクタ番号
-     * @param sectorSize    セクタサイズ
-     * @param singleDensity 単密度か
-     * @param track         [in,out] トラック
-     * @return ヘッダ込みのセクタサイズ
+     * @param inData        Sector data
+     * @param diskNumber    Disk number
+     * @param trackNumber   Track number
+     * @param sideNumber    Side number
+     * @param numOfSectors  Number of sectors
+     * @param sectorNumber  Sector number
+     * @param sectorSize    Sector size
+     * @param singleDensity Whether single density
+     * @param track         [in,out] Track
+     * @return Sector size including header
      */
     private int parseSector(byte[] inData, int diskNumber, int trackNumber, int sideNumber, int numOfSectors,
                             int sectorNumber, int sectorSize, boolean singleDensity, DiskImageTrack track) {
@@ -143,12 +143,12 @@ public class DiskG64Parser extends DiskImageParser {
     };
 
     /**
-     * GCRデータをデコード
+     * Decode GCR data
      *
-     * @param inData   入力データ
-     * @param inBitLen 入力データ長さ(bit単位)
-     * @param outData  [out] 出力データ
-     * @param outLen   出力データバッファサイズ
+     * @param inData   Input data
+     * @param inBitLen Input data length (in bits)
+     * @param outData  [out] Output data
+     * @param outLen   Output data buffer size
      */
     private static int decodeGCR(byte[] inData, int bitPos, int inBitLen, byte[] outData, int outPos, int outLen) {
         while (bitPos < inBitLen && outPos < outLen) {
@@ -177,15 +177,15 @@ public class DiskG64Parser extends DiskImageParser {
     }
 
     /**
-     * トラックデータの作成
+     * Create track data
      *
-     * @param iStream    ディスクイメージ
-     * @param diskNumber ディスク番号
-     * @param sideNumber サイド番号
-     * @param offsetPos  オフセット番号
-     * @param offset     オフセット位置
-     * @param disk       [in,out] ディスク
-     * @return -1: エラー or 終り, >0: トラックサイズ
+     * @param iStream    Disk image
+     * @param diskNumber Disk number
+     * @param sideNumber Side number
+     * @param offsetPos  Offset number
+     * @param offset     Offset position
+     * @param disk       [in,out] Disk
+     * @return -1: Error or end, >0: Track size
      */
     private int parseTrack(InputStream iStream, int diskNumber, int sideNumber, int offsetPos, int offset, DiskImageDisk disk) throws IOException {
         // Read track size
@@ -281,19 +281,19 @@ public class DiskG64Parser extends DiskImageParser {
         }
 
         if (result.getValid() >= 0) {
-            // インターリーブの計算
+            // Calculate interleave
             track.calcInterleave();
         }
 
         if (result.getValid() >= 0) {
-            // トラックサイズ設定
+            // Set track size
             track.setSize(d88TrackSize);
-            // サイド番号は各セクタのID Hに合わせる
+            // Side number matches ID H of each sector
             track.setSideNumber(track.getMajorIDH());
 
-            // ディスクに追加
+            // Add to disk
             disk.add(track);
-            // オフセット設定
+            // Set offset
             disk.setOffset(offsetPos, offset);
         }
 
@@ -301,10 +301,10 @@ public class DiskG64Parser extends DiskImageParser {
     }
 
     /**
-     * ファイルを解析
+     * Analyze file
      *
-     * @param iStream     解析対象データ
-     * @param diskNumber ディスク番号
+     * @param iStream    Data to be analyzed
+     * @param diskNumber Disk number
      * @return -1: finish parsing, 0: parse next disk
      */
     private int parseDisk(InputStream iStream, int diskNumber) throws IOException {
@@ -326,7 +326,7 @@ public class DiskG64Parser extends DiskImageParser {
             int offset = ByteUtil.readLeShort(buf, 0) & 0xffff;
 
             offsets.add(offset);
-            // ハーフトラックを持っているか
+            // Whether it has a half track
             hasHalfTrack |= offset != 0 && (pos & 1) != 0;
         }
 
@@ -359,7 +359,7 @@ public class DiskG64Parser extends DiskImageParser {
         disk.setSize(d88Offset);
 
         if (result.getValid() >= 0) {
-            // ディスクを追加
+            // Add disk
             DiskParam disk_param = disk.calcMajorNumber();
             if (disk_param != null) {
                 disk.setDensity(disk_param.getParamDensity());
@@ -371,11 +371,11 @@ public class DiskG64Parser extends DiskImageParser {
     }
 
     /**
-     * ヘッダ解析
+     * Header analysis
      *
-     * @param iStream    解析対象データ
-     * @param diskNumber ディスク番号
-     * @return -1: エラー, 0:
+     * @param iStream    Data to be analyzed
+     * @param diskNumber Disk number
+     * @return -1: Error, 0:
      */
     private int parseHeader(InputStream iStream, int diskNumber) throws IOException {
         int len = iStream.available();
@@ -401,10 +401,10 @@ public class DiskG64Parser extends DiskImageParser {
     }
 
     /**
-     * チェック
+     * Check
      *
-     * @param iStream 解析対象データ
-     * @return 1: 選択ダイアログ表示, 0: 正常（候補が複数ある時はダイアログ表示）
+     * @param iStream Data to be analyzed
+     * @return 1: Display selection dialog, 0: Normal (display selection dialog when there are multiple candidates)
      */
     @Override
     public int check(InputStream iStream) throws IOException {
@@ -418,11 +418,11 @@ public class DiskG64Parser extends DiskImageParser {
     }
 
     /**
-     * ファイルを解析
+     * Analyze file
      *
-     * @param iStream   解析対象データ
-     * @param diskParam パラメータ通常不要
-     * @return 0: 正常, -1: エラーあり, 1: 警告あり
+     * @param iStream   Data to be analyzed
+     * @param diskParam Parameters usually unnecessary
+     * @return 0: normal, -1: error exists, 1: warning exists
      */
     @Override
     public int parse(InputStream iStream, DiskParam diskParam) throws IOException {

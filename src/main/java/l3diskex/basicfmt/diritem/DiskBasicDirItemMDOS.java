@@ -25,12 +25,12 @@ import static l3diskex.basicfmt.type.DiskBasicTypeMDOS.FORMAT_TYPE_MDOS;
 
 
 /**
- * ディレクトリ１アイテム MDOS
+ * Directory 1 item MDOS
  */
 public class DiskBasicDirItemMDOS extends DiskBasicDirItem<DirectoryMdos> {
 
     /**
-     * ディレクトリエントリ MDOS (16bytes)
+     * Directory entry MDOS (16bytes)
      */
     @Serdes
     public static class DirectoryMdos implements Directory {
@@ -49,7 +49,7 @@ public class DiskBasicDirItemMDOS extends DiskBasicDirItem<DirectoryMdos> {
         public static final int SIZE = 16;
     }
 
-    /** ディレクトリデータ */
+    /** Directory data */
     private final DiskBasicDirData<DirectoryMdos> data = new DiskBasicDirData<>();
 
     @Override
@@ -80,11 +80,11 @@ public class DiskBasicDirItemMDOS extends DiskBasicDirItem<DirectoryMdos> {
         used(checkUsed(unuse[0]));
         unuse[0] = (unuse[0] || (this.data.data() != null && this.data.data().name != null && this.data.data().name[0] == 0));
 
-        // ファイルサイズとグループ数を計算
+        // Calculate file size and number of groups
         calcFileSize();
     }
 
-    /** アイテムへのポインタを設定 */
+    /** Set pointer to item */
     @Override
     public void setData(int num, DiskBasicGroupItem groupItem, DiskImageSector sector, int sectorPos,
                         byte[] data, int dataPos, SectorParam next) throws IOException {
@@ -93,23 +93,23 @@ public class DiskBasicDirItemMDOS extends DiskBasicDirItem<DirectoryMdos> {
         this.data.attach(DirectoryMdos.class, data, dataPos);
     }
 
-    /** ディレクトリアイテムのチェック */
+    /** Check directory item */
     @Override
     public boolean check(boolean[] last) {
         byte[] data = this.data.getRawData();
         return DiskBasicDirItem.checkData((data != null) ? data : null, getDataSize(), last);
     }
 
-    /** 削除 */
+    /** Delete */
     @Override
     public boolean delete() {
-        // 削除はエントリの先頭にコードを入れるだけ
+        // Deletion is simply putting a code at the beginning of the entry
         data.fill(basic.invertUint8(basic.getDeleteCode()), 1);
         used(false);
         return true;
     }
 
-    /** ファイル名を格納する位置を返す */
+    /** Returns position where file name is stored */
     @Override
     protected byte[] getFileNamePos(int num, int[] size, int[] len) {
         if (num == 0) {
@@ -121,28 +121,28 @@ public class DiskBasicDirItemMDOS extends DiskBasicDirItem<DirectoryMdos> {
         }
     }
 
-    /** 拡張子を格納する位置を返す */
+    /** Returns position where extension is stored */
     @Override
     protected byte[] getFileExtPos(int[] len) {
         len[0] = data.data().ext.length;
         return data.data().ext;
     }
 
-//    /** 属性１を返す */
+//    /** Returns attribute 1 */
 //    public int getFileType1();
 
-    /** 属性１のセット */
+    /** Set attribute 1 */
     @Override
     protected void setFileType1(int val) {
     }
 
-    /** 使用しているアイテムか */
+    /** Whether it is a used item */
     @Override
     public boolean checkUsed(boolean unuse) {
         return !unuse && this.data.data().name[0] != 0;
     }
 
-    /** 属性を返す */
+    /** Returns attribute */
     @Override
     public DiskBasicFileType getFileAttr() {
         int val = FILE_TYPE_BINARY_MASK.getValue();
@@ -150,27 +150,27 @@ public class DiskBasicDirItemMDOS extends DiskBasicDirItem<DirectoryMdos> {
         return new DiskBasicFileType(basic.getFormatTypeNumber(), val, 0);
     }
 
-    /** 属性の文字列を返す(ファイル一覧画面表示用) */
+    /** Returns attribute string (for file list display) */
     @Override
     public String getFileAttrStr() {
         return "";
     }
 
-    /** ファイルサイズをセット */
+    /** Set file size */
     @Override
     public void setFileSize(int val) {
         groups.setSize(val);
         data.data().fileSize = (short) val; // le
     }
 
-    /** ファイルサイズを返す */
+    /** Returns file size */
     @Override
     public int getFileSize() {
         short val = data.data().fileSize;
         return val /* le */ & 0xffff;
     }
 
-    /** ファイルサイズとグループ数を計算する */
+    /** Calculate file size and number of groups */
     @Override
     public void calcFileUnitSize(int fileUnitNum) throws IOException {
         if (!isUsed()) return;
@@ -178,7 +178,7 @@ public class DiskBasicDirItemMDOS extends DiskBasicDirItem<DirectoryMdos> {
         getUnitGroups(fileUnitNum, groups);
     }
 
-    /** 指定ディレクトリのすべてのグループを取得 */
+    /** Get all groups of specified directory */
     @Override
     public void getUnitGroups(int fileUnitNum, DiskBasicGroups groupItems) throws IOException {
         int calcFileSize = 0;
@@ -192,16 +192,16 @@ public class DiskBasicDirItemMDOS extends DiskBasicDirItem<DirectoryMdos> {
         while (working) {
             int nextGroup = basic.getType().getGroupNumber(groupNum);
             if (nextGroup == groupNum) {
-                // 同じポジションならエラー
+                // Error if same position
                 rc = false;
             } else if (nextGroup == basic.getGroupFinalCode()) {
-                // 最終グループ(0xffff)
+                // Final group (0xffff)
                 working = false;
             } else if (nextGroup > basic.getFatEndGroup()) {
-                // グループ番号がおかしい
+                // Invalid group number
                 rc = false;
             } else if (nextGroup >= basic.getGroupSystemCode()) {
-                // システム領域はエラー(0xeeee)
+                // System area is error (0xeeee)
                 rc = false;
             }
             if (rc) {
@@ -224,75 +224,75 @@ public class DiskBasicDirItemMDOS extends DiskBasicDirItem<DirectoryMdos> {
         }
     }
 
-    /** 最初のグループ番号をセット */
+    /** Set the first group number */
     @Override
     public void setStartGroup(int fileUnitNum, int val, int size) {
         data.data().startGroup = (short) (val & 0xffff); // be
     }
 
-    /** 最初のグループ番号を返す */
+    /** Returns the first group number */
     @Override
     public int getStartGroup(int fileUnitNum) {
         return data.data().startGroup & 0xffff; // be
     }
 
-    /** ファイルの終端コードをチェックする必要があるか */
+    /** Whether EOF code needs to be checked */
     @Override
     public boolean needCheckEofCode() {
         return false;
     }
 
-    /** セーブ時にファイルサイズを再計算する ファイルの終端コードが必要な場合など */
+    /** Recalculate file size on save: when EOF code is needed, etc. */
     @Override
     public int recalcFileSizeOnSave(InputStream iStream, int fileSize) {
         return fileSize;
     }
 
-    /** ディレクトリアイテムのサイズ */
+    /** Size of directory item */
     @Override
     public int getDataSize() {
         return data.getDataSize();
     }
 
-    /** アイテムを返す */
+    /** Returns item */
     @Override
     public DirectoryMdos getData() {
         return data.data();
     }
 
-    /** アイテムをコピー */
+    /** Copy item */
     @Override
     public boolean copyData(byte[] val) {
         return data.copy(val);
     }
 
-    /** ディレクトリをクリア ファイル新規作成時 */
+    /** Clear directory: during creation of a new file */
     @Override
     public void clearData() {
         data.fill(basic.getFillCodeOnDir());
     }
 
-    /** アイテムが実行アドレスを持っているか */
+    /** Whether the item has execution address */
     @Override
     public boolean hasExecuteAddress() {
         return false;
     }
 
-    /** ファイル名から属性を決定する */
+    /** Determine attribute from file name */
     @Override
     public int convFileTypeFromFileName(String filename) {
         int fType = FILE_TYPE_BINARY_MASK.getValue();
         return fType;
     }
 
-    /** ファイル名から属性を決定する */
+    /** Determine attribute from file name */
     @Override
     public int convOriginalTypeFromFileName(String filename) {
         int t1 = 0;
         return t1;
     }
 
-    /** プロパティで表示する内部データを設定 */
+    /** Set internal data displayed in properties */
     @Override
     public void setInternalDataInAttrDialog(KeyValArray vals) {
         vals.add("NAME", data.data().name, data.data().name.length);

@@ -39,13 +39,13 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_SYSTEM_MASK;
 import static l3diskex.basicfmt.type.DiskBasicTypeMAGICAL.FORMAT_TYPE_MAGICAL;
 
 
-/** ディレクトリ１アイテム Magical DOS */
+/** Directory 1 item Magical DOS */
 public class DiskBasicDirItemMAGICAL extends DiskBasicDirItemXDOSBase<DirectoryMagical> {
 
     static final ResourceBundle rb = ResourceBundle.getBundle("messages");
 
     /**
-     * Magical DOS セグメント情報
+     * Magical DOS segment information
      */
     @Serdes
     public static class MagicalSeg {
@@ -59,7 +59,7 @@ public class DiskBasicDirItemMAGICAL extends DiskBasicDirItemXDOSBase<DirectoryM
     }
 
     /**
-     * ディレクトリエントリ Magical DOS
+     * Directory entry Magical DOS
      */
     @Serdes
     public static class DirectoryMagical extends DirectoryXDos {
@@ -183,7 +183,7 @@ public class DiskBasicDirItemMAGICAL extends DiskBasicDirItemXDOSBase<DirectoryM
         TYPE_NAME_MAGICAL_BANK_Unknown
     }
 
-    /// Magical DOS 属性名
+    /// Magical DOS attribute name
     public static final Map<String, Object> typeNameMagical1 = new LinkedHashMap<>() {{
         put("SYS", FileTypeMagical.FILETYPE_MAGICAL_SYS.ordinal()); // 0x01
         put("BAS", FileTypeMagical.FILETYPE_MAGICAL_BAS.ordinal()); // 0x22
@@ -247,10 +247,10 @@ public class DiskBasicDirItemMAGICAL extends DiskBasicDirItemXDOSBase<DirectoryM
             /*rb.getString(*/"Unknown"/*)*/,
     };
 
-    /** ディレクトリデータ */
+    /** Directory data */
     private final DiskBasicDirData<DirectoryMagical> data = new DiskBasicDirData<>();
 
-    /** セクタ内部へのポインタ */
+    /** Pointer inside sector */
     private final DirItemSectorBoundary sectorData = new DirItemSectorBoundary();
 
     @Override
@@ -284,12 +284,12 @@ public class DiskBasicDirItemMAGICAL extends DiskBasicDirItemXDOSBase<DirectoryM
 
         used(checkUsed(unuse[0]));
 
-        // チェインセクタへのポインタをセット
+        // Set pointer to chain sector
         if (isUsed()) {
             attachChain(getStartGroup(0));
         }
 
-        // ファイルサイズとグループ数を計算
+        // Calculate file size and number of groups
         calcFileSize();
     }
 
@@ -308,11 +308,11 @@ public class DiskBasicDirItemMAGICAL extends DiskBasicDirItemXDOSBase<DirectoryM
         boolean bound = sectorData.set(basic, sector, position, data.getRawData(), getDataSize(), next);
 
         if (bound) {
-            // セクタをまたぐ場合、dataは内部で確保する
+            // When spanning sectors, data is allocated internally
             data.fill((byte) 0);
         }
 
-        // コピー
+        // Copy
         sectorData.copyTo(data.getRawData());
 
         return true;
@@ -388,7 +388,7 @@ public class DiskBasicDirItemMAGICAL extends DiskBasicDirItemXDOSBase<DirectoryM
 
     @Override
     public boolean delete() {
-        // 削除はエントリの先頭にコードを入れるだけ
+        // Deletion only requires putting a code at the beginning of the entry
         data.fill(basic.invertUint8(basic.getDeleteCode()), 1);
         used(false);
         return true;
@@ -397,8 +397,8 @@ public class DiskBasicDirItemMAGICAL extends DiskBasicDirItemXDOSBase<DirectoryM
     @Override
     public int recalcFileSizeOnSave(InputStream iStream, int fileSize) throws IOException {
         if (needCheckEofCode()) {
-            // ファイルの最終が終端記号で終わっているかを調べる
-            // ただし、ファイルサイズがクラスタサイズと合うなら終端記号は不要
+            // Check if the end of the file ends with a terminator
+            // However, if the file size matches the cluster size, a terminator is not necessary
             if ((fileSize % (basic.getSectorSize() * basic.getSectorsPerGroup())) != 0) {
                 fileSize = checkEofCode(iStream, fileSize);
             }
@@ -414,15 +414,15 @@ public class DiskBasicDirItemMAGICAL extends DiskBasicDirItemXDOSBase<DirectoryM
         int t1 = 0;
         int t2 = DataTypeMagical.DATATYPE_MAGICAL_MASK_m.ordinal();
         if (fileType.isDirectory()) {
-            // ディレクトリの場合
+            // If directory
             t1 = FileTypeMagical.FILETYPE_MAGICAL_DIR.ordinal();
         } else if (fileType.getFormat() == basic.getFormatTypeNumber()) {
-            // 同じOSの場合
+            // If same OS
             t1 = fileType.getOrigin();
             t2 = t1 >> 8;
             t1 &= 0xff;
         } else {
-            // 違うOSの場合
+            // If different OS
             if ((fType & FILE_TYPE_BINARY_MASK.getValue()) != 0) {
                 if ((fType & FILE_TYPE_SYSTEM_MASK.getValue()) != 0) {
                     t1 = FileTypeMagical.FILETYPE_MAGICAL_SYS.ordinal();
@@ -693,7 +693,7 @@ public class DiskBasicDirItemMAGICAL extends DiskBasicDirItemXDOSBase<DirectoryM
     public boolean preExportDataFile(String[] filename) {
         if (!config.isAddExtensionExport()) return true;
 
-        // 拡張子を付加する
+        // Append extension
         if (!isDirectory()) {
             String ext = convFileType1Str(getFileType1());
             filename[0] += ".";
@@ -719,16 +719,16 @@ public class DiskBasicDirItemMAGICAL extends DiskBasicDirItemXDOSBase<DirectoryM
     @Override
     public int convOriginalTypeFromFileName(String filename) {
         int[] t1 = {0};
-        // 拡張子で属性を設定する
+        // Set attribute by extension
         if (!isContainAttrByExtension(filename, typeNameMagical1, TypeNameMagical1.TYPE_NAME_MAGICAL_SYS.ordinal(), TypeNameMagical1.TYPE_NAME_MAGICAL_BGM.ordinal(), null, t1, null)) {
-            // 不明の拡張子
+            // Unknown extension
             t1[0] = FileTypeMagical.FILETYPE_MAGICAL_ASC.v;
         }
         //int extType = getFileTypeFromExtension(filename);
         //if (extType != -1) {
         //    t1 = extType;
         //} else {
-        //    // 不明の拡張子
+        //    // Unknown extension
         //    t1 = en_file_type_magical.FILETYPE_MAGICAL_ASC.ordinal();
         //}
         t1[0] |= (DataTypeMagical.DATATYPE_MAGICAL_MASK_m.ordinal() << 8);

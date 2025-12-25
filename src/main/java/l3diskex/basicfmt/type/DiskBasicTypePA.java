@@ -11,11 +11,11 @@ import l3diskex.basicfmt.diritem.DiskBasicDirItemN88.DirectoryN88;
 
 
 /**
- * PASOPIA T-BASICの処理
+ * PASOPIA T-BASIC processing
  * <p>
  * DiskBasicParam
  *
- * <li>ReservedGroups : Group 予約済みにするグループ（クラスタ）番号</li>
+ * <li>ReservedGroups : Group numbers (clusters) to be reserved</li>
  */
 public class DiskBasicTypePA extends DiskBasicTypeN88 {
 
@@ -32,15 +32,15 @@ public class DiskBasicTypePA extends DiskBasicTypeN88 {
     }
 
     /**
-     * グループ番号から開始セクタ番号を得る
+     * Get the starting sector number from the group number
      *
-     * @param groupNum グループ番号
-     * @return 開始セクタ番号
+     * @param groupNum Group number
+     * @return Starting sector number
      */
     @Override
     public int getStartSectorFromGroup(int groupNum) {
-        // グループ（クラスタ）番号はサイド（サーフェース）優先なので、
-        // セクタ番号はトラック優先になるよう変換する。
+        // Since group (cluster) numbers are side (surface) prioritized,
+        // convert sector numbers to be track prioritized.
         int sides = basic.getSidesPerDiskOnBasic();
         int groupPerTrack = basic.getSectorsPerTrack() / basic.getSectorsPerGroup();
         int groupPerSide = sides * groupPerTrack;

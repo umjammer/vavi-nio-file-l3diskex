@@ -15,17 +15,17 @@ import l3diskex.diskimg.DiskParam.SectorParam;
 import static l3diskex.basicfmt.BasicCommon.FORMAT_TYPE_UNKNOWN;
 
 
-/** ディレクトリアクセス */
+/** Directory access */
 public class DiskBasicDir<T extends Directory> {
 
     private final DiskBasic basic;
     private final DiskBasicFat fat;
 
-    /** フォーマットタイプ */
+    /** Format type */
     private DiskBasicFormat formatType;
-    /** ルートディレクトリの仮想的なアイテム */
+    /** Virtual item for root directory */
     private DiskBasicDirItem<T> root;
-    /** 現ディレクトリのアイテム */
+    /** Current directory item */
     private DiskBasicDirItem<T> currentItem;
 
     public DiskBasicDir(DiskBasic basic) {

@@ -37,7 +37,7 @@ public class UiDirItemTRSDOS extends UiDirItem {
 
     DiskBasicDirItemTRSDOS<?> dirItem;
 
-    // プロパティダイアログ用
+    // For property dialog
 
     static final int IDC_CHECK_INVISIBLE = 51;
     static final int IDC_CHECK_SYSTEM = 52;
@@ -46,18 +46,18 @@ public class UiDirItemTRSDOS extends UiDirItem {
     static final int IDC_SPIN_ACCESS = 55;
 
     /**
-     * インポート時ダイアログ表示前にファイルの属性を設定
+     * Set file attributes before displaying dialog on import
      */
     protected void SetFileTypeForAttrDialog(int show_flags, String name, int[] file_type_1, int[] file_type_2) {
         if ((show_flags & INTNAME_NEW_FILE) != 0) {
-            // 外部からインポート時
+            // When importing from external
             // file_type_1[0] = FILETYPE_MASK_PRODOS_SEEDING << 8 | FILETYPE_MASK_PRODOS_ACCESS_ALL;
             // file_type_2[0] = ConvOriginalTypeFromFileName(name);
         }
     }
 
     /**
-     * ダイアログ内の属性部分のレイアウトを作成
+     * Create layout for attribute part in dialog
      */
     @Override
     public void createControlsForAttrDialog(IntNameBox parent, int show_flags, String file_path, BoxLayout sizer, Object flags) {
@@ -112,7 +112,7 @@ public class UiDirItemTRSDOS extends UiDirItem {
     }
 
     /**
-     * ダイアログ内の値を設定
+     * Set values in dialog
      */
     @Override
     public void initializeForAttrDialog(IntNameBox parent, int show_flags, int[] user_data) {
@@ -120,7 +120,7 @@ public class UiDirItemTRSDOS extends UiDirItem {
     }
 
     /**
-     * 機種依存の属性を設定する
+     * Set machine dependent attributes
      */
     @Override
     public boolean setAttrInAttrDialog(IntNameBox parent, DiskBasicDirItemAttr attr, DiskBasicError errinfo) {

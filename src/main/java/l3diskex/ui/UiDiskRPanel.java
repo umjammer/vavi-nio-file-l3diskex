@@ -16,65 +16,65 @@ import javax.swing.Timer;
 
 
 /* ------------------------------------------------------------------
- *  2. 右パネル（UiDiskRPanel）
+ *  2. Right Panel (UiDiskRPanel)
  * ------------------------------------------------------------------ */
 public class UiDiskRPanel extends JSplitPane {
 
-    /* ------------- メンバ変数 ---------------------------- */
     private final Component parent;
+    /* ------------- Member variables ---------------------------- */
     private final UiDiskFrame frame;
 
     private final UiDiskDiskAttr diskattr;
-    private final UiDiskRBPanel bpanel;   // 下部パネル
+    private final UiDiskRBPanel bpanel;   // Bottom panel
 
-    /* ---------------- コンストラクタ -------------------- */
+    /* ---------------- Constructor -------------------- */
     public UiDiskRPanel(UiDiskFrame parentframe, Component parentwindow, int selected_window) {
         super(VERTICAL_SPLIT);
         this.parent = parentwindow;
         this.frame = parentframe;
 
-        /* サイズ合わせ */
+        /* Size adjustment */
         setPreferredSize(parentwindow.getPreferredSize());
 
-        /* 下部パネル作成 */
+        /* Create bottom panel */
         diskattr = new UiDiskDiskAttr(parentframe, this);
         bpanel = new UiDiskRBPanel(parentframe, this, selected_window);
 
-        /* 分割 */
+        /* Split */
         setTopComponent(diskattr);
         setBottomComponent(bpanel);
 
-        /* デフォルトのスプリッタ設定 */
-        setResizeWeight(0.0);        // 上部を固定
+        /* Default splitter setting */
+        setResizeWeight(0.0);        // Fix top
         setDividerSize(4);
 
-        /* 最小サイズ */
+        /* Minimum size */
         setMinimumSize(new Dimension(10, 10));
     }
 
-    /* ---------------- パネル切替 -------------------- */
+    /* ---------------- Switch panel -------------------- */
     public void changePanel(int num) {
         if (bpanel != null) bpanel.changePanel(num);
     }
 
-    /* ---------------- ディスク属性パネル取得 -------------------- */
+    /* ---------------- Get disk attribute panel -------------------- */
     public UiDiskDiskAttr getDiskAttrPanel() {
         return diskattr;
     }
 
-    /* ---------------- ファイルリストパネル取得 -------------------- */
+    /* ---------------- Get file list panel -------------------- */
     public UiDiskFileList getFileListPanel(boolean inst) {
         if (bpanel != null) return bpanel.getFileListPanel(inst);
         return null;
     }
 
-    /* ---------------- Rawパネル取得 -------------------- */
+    /* ---------------- Get Raw panel -------------------- */
     public UiDiskRawPanel getRawPanel(boolean inst) {
         if (bpanel != null) return bpanel.getRawPanel(inst);
         return null;
     }
 
-    /* ---------------- フォント設定 -------------------- */
+    /* ---------------- Font setting -------------------- */
     public void setListFont(Font font) {
         if (diskattr != null) diskattr.setListFont(font);
         UiDiskFileList flist = getFileListPanel(true);
@@ -84,45 +84,45 @@ public class UiDiskRPanel extends JSplitPane {
     }
 
     /* ------------------------------------------------------------------
-     *  3. 右下パネル（UiDiskRBPanel）を内部クラスとして実装
+     *  3. Implement Right Bottom Panel (UiDiskRBPanel) as inner class
      * ------------------------------------------------------------------ */
     public static class UiDiskRBPanel extends JSplitPane {
 
-        /* ------------- メンバ変数 ---------------------------- */
+        /* ------------- Member variables ---------------------------- */
         private final UiDiskRPanel parent;
         private final UiDiskFrame frame;
 
         private final UiDiskFileList filelist;
         private final UiDiskRawPanel rawpanel;
-        private final JPanel proppanel;   // 省略
+        private final JPanel proppanel;   // omitted
 
-        /* ---------------- コンストラクタ -------------------- */
+        /* ---------------- Constructor -------------------- */
         public UiDiskRBPanel(UiDiskFrame parentframe, UiDiskRPanel parentwindow, int selected_window) {
             super(HORIZONTAL_SPLIT);
             this.parent = parentwindow;
             this.frame = parentframe;
 
-            /* サイズ合わせ */
+            /* Size adjustment */
             setPreferredSize(parentwindow.getPreferredSize());
 
-            /* コンポーネント作成 */
+            /* Create components */
             filelist = new UiDiskFileList(parentframe, this);
             rawpanel = new UiDiskRawPanel(parentframe, this);
             proppanel = new JPanel(this);
 
-            /* 位置調整 */
+            /* Adjust position */
             setResizeWeight(0.0);
             setDividerSize(4);
             setMinimumSize(new Dimension(10, 10));
 
-            /* 初期モード設定 */
+            /* Initial mode setting */
             switch (selected_window) {
-                case 1:      // RAWモード
+                case 1:      // RAW mode
                     setLeftComponent(rawpanel);
                     setRightComponent(proppanel);
                     filelist.setVisible(false);
                     break;
-                default:     // BASICモード
+                default:     // BASIC mode
                     setLeftComponent(filelist);
                     setRightComponent(proppanel);
                     rawpanel.setVisible(false);
@@ -130,7 +130,7 @@ public class UiDiskRPanel extends JSplitPane {
             }
         }
 
-        /* ---------------- パネル切替 -------------------- */
+        /* ---------------- Switch panel -------------------- */
         public void changePanel(int num) {
             switch (num) {
                 case 1:   // RAW
@@ -154,13 +154,13 @@ public class UiDiskRPanel extends JSplitPane {
             }
         }
 
-        /* ---------------- ファイルリスト取得 -------------------- */
+        /* ---------------- Get file list -------------------- */
         public UiDiskFileList getFileListPanel(boolean inst) {
             if (filelist != null && (inst || filelist.isVisible())) return filelist;
             return null;
         }
 
-        /* ---------------- Rawパネル取得 -------------------- */
+        /* ---------------- Get Raw panel -------------------- */
         public UiDiskRawPanel getRawPanel(boolean inst) {
             if (rawpanel != null && (inst || rawpanel.isVisible())) return rawpanel;
             return null;
@@ -168,7 +168,7 @@ public class UiDiskRPanel extends JSplitPane {
     }
 
     /* ------------------------------------------------------------------
-     *  4. デバッグ用 main
+     *  4. main for debug
      * ------------------------------------------------------------------ */
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
@@ -181,7 +181,7 @@ public class UiDiskRPanel extends JSplitPane {
 
             frame.setVisible(true);
 
-            // デモ：数秒後に RAW モードに切り替え
+            // Demo: Switch to RAW mode after a few seconds
             new Timer(3000, e -> {
                 panel.changePanel(1);
                 panel.setListFont(new Font("Serif", Font.PLAIN, 12));

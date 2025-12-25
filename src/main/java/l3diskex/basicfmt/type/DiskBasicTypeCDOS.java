@@ -32,43 +32,43 @@ import static l3diskex.Utils.TEMP_DATA_SIZE;
 
 
 /**
- * C-DOSの処理
+ * C-DOS processing
  * <p>
  * DiskBasicParam
- * <li>IDString     FATエリアにあるID</li>
- * <li>IPLString    セクタ1のIPL</li>
- * <li>VolumeString ボリューム名</li>
- * <li>Endian       16ビット値のバイトオーダ</li>
+ * <li>IDString     ID in FAT area</li>
+ * <li>IPLString    IPL in sector 1</li>
+ * <li>VolumeString volume name</li>
+ * <li>Endian       byte order of 16-bit values</li>
  *
  * @see "http://fukui.s17.xrea.com/retro/cdos/index.html"
  */
 public class DiskBasicTypeCDOS extends DiskBasicTypeMZBase<DirectoryCDos> {
 
-    /** CDos 使用状況セクタ */
+    /** CDos usage sector */
     @Serdes
     static class FatCDos {
-        // 使用状況
+        /** Usage status */
         @Element(sequence = 1)
         public byte[] bits = new byte[0xae];
-        // 拡張ディレクトリ
+        /** Extended directory (not supported) */
         @Element(sequence = 2)
         public short exDir;
-        // ボリューム番号
+        /** Volume number */
         @Element(sequence = 3)
         public short volumeNum;
-        // 年
+        /** Year */
         @Element(sequence = 4)
         public byte yy;
-        // 月
+        /** Month */
         @Element(sequence = 5)
         public byte mm;
-        // 日
+        /** Day */
         @Element(sequence = 6)
         public byte dd;
-        // ボリューム名
+        /** Volume name */
         @Element(sequence = 7)
         public byte[] volumeName = new byte[27];
-        // ID
+        /** ID */
         @Element(sequence = 8)
         public byte[] id = new byte[16];
         @Element(sequence = 9)
@@ -89,7 +89,7 @@ public class DiskBasicTypeCDOS extends DiskBasicTypeMZBase<DirectoryCDos> {
     }
 
     /**
-     * 使用しているグループの位置を得る
+     * Get the position of used groups
      */
     @Override
     public void calcUsedGroupPos(int num, int[] pos, int[] mask) {
@@ -98,13 +98,13 @@ public class DiskBasicTypeCDOS extends DiskBasicTypeMZBase<DirectoryCDos> {
     }
 
     /**
-     * FATエリアをチェック
+     * Check FAT area
      */
     @Override
     public double checkFat(boolean isFormatting) throws IOException {
         double valid_ratio = 1.0;
 
-        // FATエリア
+        // FAT area
         DiskBasicFatBuffer fatbuf = fat.getDiskBasicFatBuffer(0, 0);
         if (fatbuf == null) {
             return -1.0;
@@ -116,7 +116,7 @@ public class DiskBasicTypeCDOS extends DiskBasicTypeMZBase<DirectoryCDos> {
         }
         byte[] d_id = basic.getVariousStringParam("IDString").getBytes(); // To8BitData
         if (d_id.length > 0) {
-            // FM用はID部分に"FM"とある
+            // For FM, there is "FM" in the ID part
             byte[] s_id = new byte[f.id.length];
             basic.invertMemory(f.id, f.id.length, s_id);
             if (!Arrays.equals(s_id, d_id)) {
@@ -124,14 +124,14 @@ public class DiskBasicTypeCDOS extends DiskBasicTypeMZBase<DirectoryCDos> {
             }
         }
 
-        // 最終グループ番号
+        // Final group number
         basic.setFatEndGroup(basic.getTracksPerSide() * basic.getSidesPerDiskOnBasic() * basic.getSectorsPerTrackOnBasic() - 1);
 
         return valid_ratio;
     }
 
     /**
-     * データサイズ分のグループを確保する
+     * Allocate groups for data size
      */
     @Override
     public int allocateUnitGroups(int fileUnitNum, DiskBasicDirItem<DirectoryCDos> item, int dataSize, AllocateGroupFlags flags, DiskBasicGroups[] groupItems) throws IOException {
@@ -143,30 +143,30 @@ public class DiskBasicTypeCDOS extends DiskBasicTypeMZBase<DirectoryCDos> {
         int remain = dataSize;
         int sectorSize = basic.getSectorSize();
 
-        // 必要なグループ数
+        // Number of required groups
         int groupSize = ((dataSize - 1) / sectorSize / basic.getSectorsPerGroup()) + 1;
 
-        // 未使用が連続している位置をさがす
+        // Find a position where unused are continuous
         int[] groupStart = new int[1];
         int cnt = findContinuousArea(groupSize, groupStart);
 
         if (cnt < groupSize) {
-            // 十分な空きがない
+            // Not enough free space
             rc = -1;
             return rc;
         }
 
-        // 開始グループ決定
+        // Start group decided
         item.setStartGroup(fileUnitNum, groupStart[0]);
 
-        // 領域を確保する
+        // Allocate area
         rc = allocateGroupsSub(item, groupStart[0], remain, sectorSize, groupItems[0], fileSize, groups);
 
         return rc;
     }
 
     /**
-     * サブディレクトリを作成できるか
+     * Whether a subdirectory can be created
      */
     @Override
     public boolean canMakeDirectory() {
@@ -174,7 +174,7 @@ public class DiskBasicTypeCDOS extends DiskBasicTypeMZBase<DirectoryCDos> {
     }
 
     /**
-     * セクタデータを埋めた後の個別処理
+     * Individual processing after filling sector data
      */
     @Override
     public boolean additionalProcessOnFormatted(DiskBasicIdentifiedData data) throws IOException {
@@ -196,7 +196,7 @@ public class DiskBasicTypeCDOS extends DiskBasicTypeMZBase<DirectoryCDos> {
         }
 
         //
-        // FATエリア
+        // FAT area
         //
         DiskBasicFatBuffer fatbuf = fat.getDiskBasicFatBuffer(0, 0);
         if (fatbuf == null) {
@@ -213,7 +213,7 @@ public class DiskBasicTypeCDOS extends DiskBasicTypeMZBase<DirectoryCDos> {
         FatCDos f = new FatCDos();
         Serdes.Util.deserialize(new ByteArrayInputStream(b), f);
 
-        // システムエリアは使用済みにする
+        // Mark system area as used
         basic.invertMemory(f.bits, f.bits.length);
 
         int groupNumStart = 0;
@@ -224,7 +224,7 @@ public class DiskBasicTypeCDOS extends DiskBasicTypeMZBase<DirectoryCDos> {
             calcUsedGroupPos(groupNum, pos, mask);
             f.bits[pos[0]] |= (byte) mask[0];
         }
-        // オーバートラック部分は使用済みにする
+        // Mark overtrack part as used
         groupNumStart = basic.getFatEndGroup() + 1;
         groupNumEnd = (0xb0 << 3);
         for (int groupNum = groupNumStart; groupNum < groupNumEnd; groupNum++) {
@@ -236,7 +236,7 @@ public class DiskBasicTypeCDOS extends DiskBasicTypeMZBase<DirectoryCDos> {
 
         basic.invertMemory(f.bits, f.bits.length);
 
-        // 拡張ディレクトリ（未対応）
+        // Extended directory
         f.exDir = basic.invertUint16((short) 0xffff);
 
         // ID
@@ -245,10 +245,10 @@ public class DiskBasicTypeCDOS extends DiskBasicTypeMZBase<DirectoryCDos> {
             basic.invertMemory(id, id.length, f.id);
         }
 
-        // ボリューム番号を設定
+        // Set volume number
         int vol_num = data.getVolumeNumber();
         f.volumeNum = basic.invertAndOrderUint16((short) vol_num);
-        // ボリューム名を設定
+        // Set volume name
         byte[] volumeName;
         if (!data.getVolumeName().isEmpty()) {
             volumeName = data.getVolumeName().getBytes();
@@ -257,7 +257,7 @@ public class DiskBasicTypeCDOS extends DiskBasicTypeMZBase<DirectoryCDos> {
         }
         Common.copyMemory(volumeName, volumeName.length, (byte) 0, f.volumeName, f.volumeName.length);
         basic.invertMemory(f.volumeName, f.volumeName.length);
-        // ボリューム日付
+        // Volume date
         LocalDate tm = Utils.convDateStrToTm(data.getVolumeDate());
         if (tm == null) {
             tm = LocalDate.now();
@@ -277,7 +277,7 @@ public class DiskBasicTypeCDOS extends DiskBasicTypeMZBase<DirectoryCDos> {
         }
 
         //
-        // DIRエリア
+        // DIR area
         //
         int[] trackNumber = new int[1], sideNumber = new int[1], sectorNumber = new int[1];
         for (int sectorPos = basic.getDirStartSector(); sectorPos <= basic.getDirEndSector(); sectorPos++) {
@@ -292,7 +292,7 @@ public class DiskBasicTypeCDOS extends DiskBasicTypeMZBase<DirectoryCDos> {
     }
 
     /**
-     * データの読み込み/比較処理
+     * Data read/comparison processing
      */
     @Override
     public int accessFile(int fileUnitNum, DiskBasicDirItem<DirectoryCDos> item, InputStream iStream, OutputStream oStream, byte[] sectorBuffer, int sectorSize, int remainSize, int sectorNum, int sectorEnd) throws IOException {
@@ -300,20 +300,20 @@ public class DiskBasicTypeCDOS extends DiskBasicTypeMZBase<DirectoryCDos> {
 
         byte[] temp;
         if (oStream != null) {
-            // 書き出し
+            // Writing out
             temp = Arrays.copyOfRange(sectorBuffer, 0, size);
             if (basic.isDataInverted()) Common.invertMemory(temp, temp.length);
 
             oStream.write(temp, 0, temp.length);
         }
         if (iStream != null) {
-            // 読み込んで比較
+            // Read and compare
             temp = new byte[size];
             iStream.readNBytes(temp, 0, temp.length);
             if (basic.isDataInverted()) Common.invertMemory(temp, temp.length);
 
             if (Arrays.compare(temp, sectorBuffer) != 0) {
-                // データが異なる
+                // Data is different
                 return -1;
             }
         }
@@ -322,14 +322,14 @@ public class DiskBasicTypeCDOS extends DiskBasicTypeMZBase<DirectoryCDos> {
     }
 
     /**
-     * 内部ファイルをエクスポートする際に内容を変換
+     * Convert contents when exporting an internal file
      */
     @Override
     public boolean convertDataForLoad(DiskBasicDirItem<DirectoryCDos> item, InputStream iStream, OutputStream oStream) throws IOException {
         int oSize = iStream.available(); // TODO assume available as GetLength()
 
         if (item.getFileAttr().isAscii()) {
-            // 最終バイトが0かどうかチェック
+            // Check if the final byte is 0
             ((SeekableDataInputStream) iStream).position(oSize - 1);
             if (iStream.read() == 0) {
                 oSize--;
@@ -348,7 +348,7 @@ public class DiskBasicTypeCDOS extends DiskBasicTypeMZBase<DirectoryCDos> {
     }
 
     /**
-     * エクスポートしたファイルをベリファイする際に内容を変換
+     * Convert contents when verifying an exported file
      */
     @Override
     public boolean convertDataForVerify(DiskBasicDirItem<DirectoryCDos> item, InputStream iStream, OutputStream oStream) throws IOException {
@@ -356,7 +356,7 @@ public class DiskBasicTypeCDOS extends DiskBasicTypeMZBase<DirectoryCDos> {
 
         boolean needNullCode = false;
         if (item.getFileAttr().isAscii()) {
-            // 最終バイトが0かどうかチェック
+            // Check if the final byte is 0
             ((SeekableDataInputStream) iStream).position(osize - 1);
             int c = iStream.read();
             if (c > 0 && c != 0xff) {
@@ -372,30 +372,30 @@ public class DiskBasicTypeCDOS extends DiskBasicTypeMZBase<DirectoryCDos> {
         }
 
         if (needNullCode) {
-            // 最後に$00をつけて出力
+            // Append $00 at the end and output
             oStream.write(0);
         }
         return true;
     }
 
     /**
-     * ファイルをセーブする前にデータを変換
+     * Convert data before saving file
      */
     @Override
     public boolean convertDataForSave(DiskBasicDirItem<DirectoryCDos> item, InputStream iStream, OutputStream oStream) throws IOException {
-        // 処理はベリファイと同じ
+        // Processing is same as verify
         return convertDataForVerify(item, iStream, oStream);
     }
 
     /**
-     * データの書き込み処理
+     * Data write process
      */
     @Override
     public int writeFile(DiskBasicDirItem<DirectoryCDos> item, InputStream iStream, byte[] buffer, int size, int remain, int sectorNum, int groupNum, int nextGroup, int sectorEnd, int seqNum) throws IOException {
         int len = 0;
 
         if (remain <= size) {
-            // 残り少ない
+            // Few left
             if (remain < 0) remain = 0;
             if (remain > 0) {
                 byte[] temp = new byte[remain];
@@ -404,12 +404,12 @@ public class DiskBasicTypeCDOS extends DiskBasicTypeMZBase<DirectoryCDos> {
                 System.arraycopy(temp, 0, buffer, 0, temp.length);
             }
             if (size > remain) {
-                // バッファの余りは0サプレス
+                // Remaining buffer is zero-suppressed
                 Arrays.fill(buffer, remain, size, (byte) 0);
             }
             len = remain;
         } else {
-            // 継続
+            // Continuous
             byte[] temp = new byte[size];
             iStream.readNBytes(temp, 0, temp.length);
 
@@ -418,18 +418,18 @@ public class DiskBasicTypeCDOS extends DiskBasicTypeMZBase<DirectoryCDos> {
             len = size;
         }
 
-        // 反転
+        // Invert
         basic.invertMemory(buffer, size);
 
         return len;
     }
 
     /**
-     * IPLや管理エリアの属性を得る
+     * Get attributes of IPL and managed area
      */
     @Override
     public void getIdentifiedData(DiskBasicIdentifiedData data) throws IOException {
-        // FATエリア
+        // FAT area
         DiskBasicFatBuffer fatBuf = fat.getDiskBasicFatBuffer(0, 0);
         if (fatBuf == null) {
             return;
@@ -454,11 +454,11 @@ public class DiskBasicTypeCDOS extends DiskBasicTypeMZBase<DirectoryCDos> {
     }
 
     /**
-     * IPLや管理エリアの属性をセット
+     * Set attributes of IPL and managed area
      */
     @Override
     public void setIdentifiedData(DiskBasicIdentifiedData data) throws IOException {
-        // FATエリア
+        // FAT area
         DiskBasicFatBuffer fatBuf = fat.getDiskBasicFatBuffer(0, 0);
         if (fatBuf == null) {
             return;

@@ -37,7 +37,7 @@ import static l3diskex.basicfmt.diritem.DiskBasicDirItemAppleDOS.AppleDosChain.A
  * Processing for Apple DOS 3.x
  *
  * DiskBasicParam
- * <li>DirStartPositionOnSector ディレクトリエントリの開始位置</li>
+ * <li>DirStartPositionOnSector Starting position of directory entry</li>
  */
 public class DiskBasicTypeAppleDOS extends DiskBasicType<DirectoryAppleDos> {
 
@@ -470,7 +470,7 @@ public class DiskBasicTypeAppleDOS extends DiskBasicType<DirectoryAppleDos> {
     /** Prepare before saving file */
     @Override
     public boolean prepareToSaveFile(InputStream iStream, int[] fileSize, DiskBasicDirItem<DirectoryAppleDos> pItem, DiskBasicDirItem<DirectoryAppleDos> nItem, DiskBasicError errInfo) throws IOException {
-        // チェインセクタをクリア (Clear chain sector)
+        // Clear chain sector (Clear chain sector)
         nItem.clearChainSector(null);
 
         return true;
@@ -572,11 +572,11 @@ public class DiskBasicTypeAppleDOS extends DiskBasicType<DirectoryAppleDos> {
         if (divNum != null) divNum[0] = (sectorPos % groupsPerTrack) % groupsPerSector;
 
         if (numberingSector == 1) {
-            // トラックごとに連番の場合 (If numbering is sequential per track)
+            // Case of sequential numbering per track (If numbering is sequential per track)
             sectorNum[0] += (sideNum[0] * sectorsPerTrack);
         }
 
-        // サイド番号を逆転するか (Reverse side number?)
+        // Whether to reverse side number? (Reverse side number?)
         sideNum[0] = basic.getReversedSideNumber(sideNum[0]);
 
         trackNum[0] += basic.getTrackNumberBaseOnDisk();
@@ -714,7 +714,7 @@ public class DiskBasicTypeAppleDOS extends DiskBasicType<DirectoryAppleDos> {
         // volume number
         setIdentifiedData(data);
 
-        // DIRエリア (DIR area)
+        // DIR area (DIR area)
         int dirStartLSector = basic.getDirStartSector();
         int dirEndLSector = 2;
         for (int lSectorPos = dirStartLSector; lSectorPos >= dirEndLSector; lSectorPos--) {

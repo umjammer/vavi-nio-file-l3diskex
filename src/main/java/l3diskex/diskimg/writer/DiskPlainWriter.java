@@ -21,12 +21,12 @@ import l3diskex.diskimg.DiskWriter.DiskImageWriter;
 
 
 /**
- * べたディスクライター
+ * Plain disk writer
  */
 public class DiskPlainWriter extends DiskImageWriter {
 
     //
-    // べた形式で保存
+    // Save in plain format
     //
 
     @Override
@@ -40,12 +40,12 @@ public class DiskPlainWriter extends DiskImageWriter {
     }
 
     /**
-     * ディスク1つを保存
+     * Save one disk
      *
-     * @param disk       ディスク1つのイメージ
-     * @param sideNumber サイド番号(0-) / -1のときは両面
-     * @param oStream    出力先
-     * @return 0 正常, -1 エラー
+     * @param disk       Image of one disk
+     * @param sideNumber Side number (0-) / If -1, both sides
+     * @param oStream    Output destination
+     * @return 0 Normal, -1 Error
      */
     private int saveDisk(DiskImageDisk disk, int sideNumber, OutputStream oStream) throws IOException {
         if (disk == null) {
@@ -68,7 +68,7 @@ public class DiskPlainWriter extends DiskImageWriter {
             if (track == null) continue;
             List<DiskImageSector> sectors = track.getSectors();
             if (sectors == null) continue;
-            // セクタ番号順に出力する
+            // Output in order of sector number
             List<DiskImageSector> sortedSectors = new ArrayList<>(sectors);
             sortedSectors.sort(Comparator.comparingInt(DiskImageSector::getIDR));
             for (DiskImageSector sector : sortedSectors) {
@@ -89,13 +89,13 @@ public class DiskPlainWriter extends DiskImageWriter {
     }
 
     /**
-     * べたイメージでファイルに保存
+     * Save to file as plain image
      *
-     * @param image      ディスクイメージ
-     * @param diskNumber ディスク番号(0-) / -1のときは全体
-     * @param sideNumber サイド番号(0-) / -1のときは両面
-     * @param oStream    出力先
-     * @return 0 正常, -1 エラー
+     * @param image      Disk image
+     * @param diskNumber Disk number (0-) / If -1, all
+     * @param sideNumber Side number (0-) / If -1, both sides
+     * @param oStream    Output destination
+     * @return 0 Normal, -1 Error
      */
     @Override
     public int saveDisk(DiskImage image, int diskNumber, int sideNumber, OutputStream oStream) throws IOException {
@@ -108,7 +108,7 @@ public class DiskPlainWriter extends DiskImageWriter {
         }
 
         if (diskNumber < 0) {
-            // 最初のディスクだけを保存
+            // Save only the first disk
             List<DiskImageDisk> disks = file.getDisks();
             if (disks == null || disks.size() <= 0) {
                 result.setError(DiskResult.ERR_NO_DISK);
@@ -119,7 +119,7 @@ public class DiskPlainWriter extends DiskImageWriter {
                 saveDisk(disk, -1, oStream);
             }
         } else {
-            // 指定したディスクを保存
+            // Save specified disk
             DiskImageDisk disk = file.getDisk(diskNumber);
             saveDisk(disk, sideNumber, oStream);
         }

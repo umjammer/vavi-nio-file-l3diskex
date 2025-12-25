@@ -22,7 +22,7 @@ import vavi.util.serdes.Serdes;
 
 
 /**
- * TRS-80 DMKディスクパーサー
+ * TRS-80 DMK disk parser
  *
  * @see "https://electrickery.hosting.philpem.me.uk/comp/trs80-4p/dmkeilImages/trstech.htm"
  */
@@ -102,7 +102,7 @@ public class DiskDmkParser extends DiskImageParser {
     };
 
     //
-    // TRS-80 DMK形式をD88形式にする
+    // Convert TRS-80 DMK format to D88 format
     //
 
     @Override
@@ -125,7 +125,7 @@ public class DiskDmkParser extends DiskImageParser {
         super.init(file, modFlags, result);
     }
 
-    /** データマークをさがす */
+    /** Find data mark */
     private static boolean findDataMark(InputStream iStream, int sectorSize, boolean doubleDensity, int[] deleted) throws IOException {
         byte[] buf = new byte[64];
 
@@ -161,7 +161,7 @@ public class DiskDmkParser extends DiskImageParser {
         return true;
     }
 
-    /** セクタデータの作成 */
+    /** Create sector data */
     private int parseSector(InputStream iStream, int sectorNums, int flags, DiskImageTrack track) throws IOException {
         int len = iStream.available();
         if (len != TrsDmkSectorId.SIZE) {
@@ -177,14 +177,14 @@ public class DiskDmkParser extends DiskImageParser {
         int sectorSizeCode = id.n & 0xff;
 
         if (sectorSizeCode > 7) {
-            // セクタサイズが大きすぎる
+            // Sector size is too large
             result.setError(DiskResult.ERRV_SECTOR_SIZE_SECTOR, 0, trackNumber, sideNumber, sectorNumber, sectorSizeCode, sectorSizeCode);
             return 0;
         }
 
         int sectorSize = 128 << sectorSizeCode;
 
-        // データの開始位置をさがす
+        // Find start position of data
         int[] deleted = new int[1];
         if (!findDataMark(iStream, sectorSize, (flags & DMK_IDAM_DENSITY) != 0, deleted)) {
             result.setError(DiskResult.ERRV_NO_SECTOR, 0, sectorNumber, trackNumber, sideNumber);
@@ -199,18 +199,18 @@ public class DiskDmkParser extends DiskImageParser {
 
         len = iStream.readNBytes(buf, 0, siz);
         if (len < siz) {
-            // ファイルデータが足りない
+            // Not enough file data
             result.setError(DiskResult.ERRV_INVALID_DISK, 0);
         }
 
         sector.setDeletedMark(deleted[0] != 0);
         sector.clearModify();
 
-        // このセクタデータのサイズを返す
+        // Return size of this sector data
         return sector.getSize();
     }
 
-    /** トラックデータの作成 */
+    /** Create track data */
     private int parseTrack(InputStream iStream, int trackSize, int offsetPos, int offset, DiskImageDisk disk) throws IOException {
         int file_offset = (int) ((SeekableDataInputStream) iStream).position();
 
@@ -222,7 +222,7 @@ public class DiskDmkParser extends DiskImageParser {
         TrsDmkTrack trackHeader = new TrsDmkTrack();
         Serdes.Util.deserialize(iStream, trackHeader);
 
-        // セクタ数を計算
+        // Calculate number of sectors
         int numOfSectors = 0;
         for (int pos = 0; pos < 64; pos++) {
             if (trackHeader.pointers[pos] == 0) {
@@ -244,34 +244,34 @@ public class DiskDmkParser extends DiskImageParser {
         }
 
         if (result.getValid() >= 0) {
-            // インターリーブの計算
+            // Calculate interleave
             track.calcInterleave();
 
-            // トラックサイズ設定
+            // Set track size
             track.setSize(d88TrackSize);
-            // トラック番号は各セクタのID Cに合わせる
+            // Track number matches ID C of each sector
             int track_number = track.getMajorIDC();
             track.setTrackNumber(track_number);
-            // サイド番号は各セクタのID Hに合わせる
+            // Side number matches ID H of each sector
             track.setSideNumber(track.getMajorIDH());
 
-            // ディスクに追加
+            // Add to disk
             disk.add(track);
-            // オフセット設定
+            // Set offset
             disk.setOffset(offsetPos, offset);
-            // 最大トラック番号設定
+            // Set maximum track number
             disk.setMaxTrackNumber(track_number);
 
             disk.clearModify();
         }
 
-        // 次のトラックデータの先頭へ
+        // To the start of the next track data
         ((SeekableDataInputStream) iStream).position(file_offset + trackSize); // wxFromStart
 
         return d88TrackSize;
     }
 
-    /** ディスクの解析 */
+    /** Analyze disk */
     private int parseDisk(InputStream iStream) throws IOException {
         DiskImageDisk disk = file.newImageDisk(0);
 
@@ -298,7 +298,7 @@ public class DiskDmkParser extends DiskImageParser {
         disk.setSize(d88Offset);
 
         if (result.getValid() >= 0) {
-            // ディスクを追加
+            // Add disk
             DiskParam diskParam = disk.calcMajorNumber();
             if (diskParam != null) {
                 disk.setDensity(diskParam.getParamDensity());
@@ -316,7 +316,7 @@ public class DiskDmkParser extends DiskImageParser {
         return check(iStream);
     }
 
-    /** TRS-80 DMKファイルかどうかをチェック */
+    /** Check if it is TRS-80 DMK file */
     @Override
     public int check(InputStream iStream) throws IOException {
         ((SeekableDataInputStream) iStream).position(0);
@@ -349,7 +349,7 @@ public class DiskDmkParser extends DiskImageParser {
         return 0;
     }
 
-    /** TRS-80 DMKファイルを解析 */
+    /** Analyze TRS-80 DMK file */
     @Override
     public int parse(InputStream iStream, DiskParam diskParam) throws IOException {
         parseDisk(iStream);

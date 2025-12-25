@@ -37,13 +37,13 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_WRITEONLY_MAS
 import static l3diskex.basicfmt.type.DiskBasicTypeFLEX.FORMAT_TYPE_FLEX;
 
 
-/** ディレクトリ１アイテム FLEX */
+/** Directory 1 item FLEX */
 public class DiskBasicDirItemFLEX extends DiskBasicDirItem<DirectoryFlex> {
 
     private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
 
     /**
-     * ディレクトリエントリ FLEX (24bytes)
+     * Directory entry FLEX (24bytes)
      */
     @Serdes(bigEndian = false)
     public static class DirectoryFlex implements Directory {
@@ -111,7 +111,7 @@ public class DiskBasicDirItemFLEX extends DiskBasicDirItem<DirectoryFlex> {
     static final int TYPE_NAME_FLEX_HIDDEN = 3;
     static final int TYPE_NAME_FLEX_RANDOM = 4;
 
-    // FLEX属性
+    // FLEX attributes
     static final int FILETYPE_MASK_FLEX_READ_ONLY = 0x80;
     static final int FILETYPE_MASK_FLEX_UNDELETE = 0x40;
     static final int FILETYPE_MASK_FLEX_WRITE_ONLY = 0x20;
@@ -120,7 +120,7 @@ public class DiskBasicDirItemFLEX extends DiskBasicDirItem<DirectoryFlex> {
     public static final int FILETYPE_FLEX_RANDOM_MASK = 0xff0_0000;
     public static final int FILETYPE_FLEX_RANDOM_POS = 20;
 
-    // FLEX属性名
+    // FLEX attribute names
     public static final Map<String, Object> gTypeNameFLEX = new LinkedHashMap<>() {{
         put("Read Only", FILE_TYPE_READONLY_MASK.getValue());
         put("Undeletable", FILE_TYPE_UNDELETE_MASK.getValue());
@@ -140,10 +140,10 @@ public class DiskBasicDirItemFLEX extends DiskBasicDirItem<DirectoryFlex> {
     //
     //
 
-    /** ディレクトリデータ */
+    /** Directory data */
     private final DiskBasicDirData<DirectoryFlex> data = new DiskBasicDirData<>();
 
-    /** ランダムアクセスファイルのインデックス(FSM)のグループ番号 */
+    /** Index (FSM) group number of random access file */
     private final List<Integer> randomNumOfGroups = new ArrayList<>();
 
     @Override
@@ -177,7 +177,7 @@ public class DiskBasicDirItemFLEX extends DiskBasicDirItem<DirectoryFlex> {
         calcFileSize();
     }
 
-    /** アイテムへのポインタを設定 */
+    /** Set pointer to item */
     @Override
     public void setData(int num, DiskBasicGroupItem groupItem, DiskImageSector sector, int sectorPos, byte[] data, int dataPos, SectorParam next) throws IOException {
         super.setData(num, groupItem, sector, sectorPos, data, dataPos, next);
@@ -197,7 +197,7 @@ public class DiskBasicDirItemFLEX extends DiskBasicDirItem<DirectoryFlex> {
         return sectorSize / basic.getGroupsPerSector();
     }
 
-    /** ファイル名を格納する位置を返す */
+    /** Returns position where file name is stored */
     @Override
     protected byte[] getFileNamePos(int num, int[] size, int[] len) {
         if (num == 0) {
@@ -209,44 +209,44 @@ public class DiskBasicDirItemFLEX extends DiskBasicDirItem<DirectoryFlex> {
         }
     }
 
-    /** 拡張子を格納する位置を返す */
+    /** Returns position where extension is stored */
     @Override
     protected byte[] getFileExtPos(int[] len) {
         len[0] = data.data().ext.length;
         return data.data().ext;
     }
 
-    /** 属性１を返す */
+    /** Returns attribute 1 */
     @Override
     protected int getFileType1() {
         return data.data().type & 0xff;
     }
 
-    /** 属性１のセット */
+    /** Set attribute 1 */
     @Override
     protected void setFileType1(int val) {
         data.data().type = (byte) (val & 0xff);
     }
 
-    /** 属性２を返す */
+    /** Returns attribute 2 */
     @Override
     public int getFileType2() {
         return data.data().randomAccess & 0xff;
     }
 
-    /** 属性２のセット */
+    /** Set attribute 2 */
     @Override
     protected void setFileType2(int val) {
         data.data().randomAccess = (byte) (val & 0xff);
     }
 
-    /** 使用しているアイテムか */
+    /** Whether it is a used item */
     @Override
     public boolean checkUsed(boolean unuse) {
         return data.data().name[0] != 0 && (data.data().name[0] & 0x80) == 0;
     }
 
-    /** ディレクトリアイテムのチェック */
+    /** Check directory item */
     @Override
     public boolean check(boolean[] last) {
         if (!data.isValid()) return false;
@@ -257,23 +257,23 @@ public class DiskBasicDirItemFLEX extends DiskBasicDirItem<DirectoryFlex> {
             last[0] = true;
             return valid;
         }
-        // 属性 0-3bitはゼロ
+        // Bits 0-3 of attribute are zero
         if ((data.data().type & 0x0f) != 0) {
             valid = false;
         }
         return valid;
     }
 
-    /** 削除 */
+    /** Delete */
     @Override
     public boolean delete() {
-        // 削除はエントリのMSBをセットするだけ
+        // Deletion is simply setting the MSB of the entry
         data.data().name[0] |= (byte) 0x80;
         used(false);
         return true;
     }
 
-    /** 属性を設定 */
+    /** Set attribute */
     @Override
     public void setFileAttr(DiskBasicFileType fileType) {
         int ftype = fileType.getType();
@@ -293,7 +293,7 @@ public class DiskBasicDirItemFLEX extends DiskBasicDirItem<DirectoryFlex> {
         setFileType1(val);
     }
 
-    /** 属性を返す */
+    /** Returns attribute */
     @Override
     public DiskBasicFileType getFileAttr() {
         int val = 0;
@@ -312,7 +312,7 @@ public class DiskBasicDirItemFLEX extends DiskBasicDirItem<DirectoryFlex> {
         return new DiskBasicFileType(basic.getFormatTypeNumber(), val, random);
     }
 
-    /** 属性の文字列を返す(ファイル一覧画面表示用) */
+    /** Returns attribute string (for file list display) */
     @Override
     public String getFileAttrStr() {
         StringBuilder sb = new StringBuilder();
@@ -327,7 +327,7 @@ public class DiskBasicDirItemFLEX extends DiskBasicDirItem<DirectoryFlex> {
         return sb.toString();
     }
 
-    /** ファイルサイズをセット */
+    /** Set file size */
     @Override
     public void setFileSize(int val) {
         groups.setSize(val);
@@ -336,7 +336,7 @@ public class DiskBasicDirItemFLEX extends DiskBasicDirItem<DirectoryFlex> {
         data.data().totalSectors = (short) val; // le
     }
 
-    /** ファイルサイズとグループ数を計算する */
+    /** Calculate file size and number of groups */
     @Override
     public void calcFileUnitSize(int fileUnitNum) throws IOException {
         if (!isUsed()) return;
@@ -344,10 +344,10 @@ public class DiskBasicDirItemFLEX extends DiskBasicDirItem<DirectoryFlex> {
         getUnitGroups(fileUnitNum, groups);
     }
 
-    /** 指定ディレクトリのすべてのグループを取得 */
+    /** Obtain all groups of specified directory */
     @Override
     public void getUnitGroups(int fileUnitNum, DiskBasicGroups groupItems) throws IOException {
-        // セクタ先頭4バイトを除く
+        // Exclude first 4 bytes of sector
         int secSize = logSectorSize(basic.getSectorSize()) - 4;
 
         int calcFileSize = 0;
@@ -363,7 +363,7 @@ public class DiskBasicDirItemFLEX extends DiskBasicDirItem<DirectoryFlex> {
 
         int randomFile = getFileType2();
         if (randomFile > 0) {
-            // ランダムアクセスファイル
+            // Random access file
             for (int index = 0; index < randomFile; index++) {
                 int groupNum = type.getSectorPosFromNumS(trackNum, sectorNum);
 
@@ -415,7 +415,7 @@ public class DiskBasicDirItemFLEX extends DiskBasicDirItem<DirectoryFlex> {
             limit--;
 
             if (trackNum == 0 || sectorNum == 0) {
-                // 最終セクタは0パディング部分のサイズを減らす
+                // For the last sector, reduce the size by the 0 padding part
                 byte[] buf = sector.getSectorBuffer(secBufOfs(divNum[0] + 1));
                 for (int pos = logSectorSize(sector.getSectorSize()) - 1; pos >= 4; pos--) {
                     if (buf[pos] != 0) break;
@@ -427,7 +427,7 @@ public class DiskBasicDirItemFLEX extends DiskBasicDirItem<DirectoryFlex> {
 
         groupItems.setNums(calcGroups);
 
-        // ファイルサイズ
+        // File size
         //int interFileSize = data.data().totalSectors) * sectorSize;
         //if (interFileSize == 0) {
         //    interFileSize = calcFileSize;
@@ -451,7 +451,7 @@ public class DiskBasicDirItemFLEX extends DiskBasicDirItem<DirectoryFlex> {
         return false;
     }
 
-    /** 日付を返す */
+    /** Returns date */
     @Override
     public LocalDate getFileCreateDate(LocalDateTime tm) {
         return LocalDate.of(
@@ -460,13 +460,13 @@ public class DiskBasicDirItemFLEX extends DiskBasicDirItem<DirectoryFlex> {
                 data.data().day);
     }
 
-    /** 時間を返す */
+    /** Returns time */
     @Override
     public LocalTime getFileCreateTime(LocalDateTime tm) {
         return LocalTime.of(0, 0, 0);
     }
 
-    /** 日付を返す */
+    /** Returns date */
     @Override
     public String getFileCreateDateStr() {
         LocalDateTime tm = LocalDateTime.now();
@@ -474,13 +474,13 @@ public class DiskBasicDirItemFLEX extends DiskBasicDirItem<DirectoryFlex> {
         return Utils.formatYMDStr(ld);
     }
 
-    /** 時間を返す */
+    /** Returns time */
     @Override
     public String getFileCreateTimeStr() {
         return "";
     }
 
-    /** 日付をセット */
+    /** Set date */
     @Override
     public void setFileCreateDate(LocalDateTime tm) {
         if (tm.getYear() < 0 || tm.getMonth().ordinal() < -1) return;
@@ -490,42 +490,42 @@ public class DiskBasicDirItemFLEX extends DiskBasicDirItem<DirectoryFlex> {
         data.data().day = (byte) tm.getDayOfMonth();
     }
 
-    /** 時間をセット */
+    /** Set time */
     @Override
     public void setFileCreateTime(LocalDateTime tm) {
     }
 
-    /** ディレクトリアイテムのサイズ */
+    /** Size of directory item */
     @Override
     public int getDataSize() {
         return data.getDataSize();
     }
 
-    /** アイテムを返す */
+    /** Returns item */
     @Override
     public DirectoryFlex getData() {
         return data.data();
     }
 
-    /** アイテムをコピー */
+    /** Copy item */
     @Override
     public boolean copyData(byte[] val) {
         return data.copy(val);
     }
 
-    /** ディレクトリをクリア ファイル新規作成時 */
+    /** Clear directory: during creation of a new file */
     @Override
     public void clearData() {
         data.fill(0);
     }
 
-    /** アイテムを削除できるか */
+    /** Whether item can be deleted */
     @Override
     public boolean isDeletable() {
         return true;
     }
 
-    /** 最初のグループ番号をセット */
+    /** Set the first group number */
     @Override
     public void setStartGroup(int fileUnitNum, int val, int size) {
         int[] trackNum = {0};
@@ -535,14 +535,14 @@ public class DiskBasicDirItemFLEX extends DiskBasicDirItem<DirectoryFlex> {
         data.data().startSector = (byte) sectorNum[0];
     }
 
-    /** 最初のグループ番号を返す */
+    /** Returns the first group number */
     @Override
     public int getStartGroup(int fileUnitNum) {
         int val = type.getSectorPosFromNumS(data.data().startTrack, data.data().startSector);
         return val;
     }
 
-    /** 最後のグループ番号をセット */
+    /** Set the last group number */
     @Override
     public void setLastGroup(int val) {
         int[] trackNum = {0};
@@ -552,64 +552,64 @@ public class DiskBasicDirItemFLEX extends DiskBasicDirItem<DirectoryFlex> {
         data.data().lastSector = (byte) sectorNum[0];
     }
 
-    /** 最後のグループ番号を返す */
+    /** Returns the last group number */
     @Override
     public int getLastGroup() {
         int val = type.getSectorPosFromNumS(data.data().lastTrack, data.data().lastSector);
         return val;
     }
 
-    /** 追加のグループ番号を得る(機種依存) */
+    /** Obtain additional group numbers (machine dependent) */
     @Override
     public void getExtraGroups(List<Integer> arr) {
         arr.addAll(randomNumOfGroups);
     }
 
-    /** 最初のトラック番号をセット */
+    /** Set the first track number */
     public void setStartTrack(int val) {
         data.data().startTrack = (byte) val;
     }
 
-    /** 最初のセクタ番号をセット */
+    /** Set the first sector number */
     public void setStartSector(int val) {
         data.data().startSector = (byte) val;
     }
 
-    /** 最初のトラック番号を返す */
+    /** Returns the first track number */
     public int getStartTrack() {
         return data.data().startTrack & 0xff;
     }
 
-    /** 最初のセクタ番号を返す */
+    /** Returns the first sector number */
     public int getStartSector() {
         return data.data().startSector & 0xff;
     }
 
-    /** 最後のトラック番号をセット */
+    /** Set the last track number */
     public void setLastTrack(int val) {
         data.data().lastTrack = (byte) val;
     }
 
-    /** 最後のセクタ番号をセット */
+    /** Set the last sector number */
     public void setLastSector(int val) {
         data.data().lastSector = (byte) val;
     }
 
-    /** 最後のトラック番号を返す */
+    /** Returns the last track number */
     public int getLastTrack() {
         return data.data().lastTrack & 0xff;
     }
 
-    /** 最後のセクタ番号を返す */
+    /** Returns the last sector number */
     public int getLastSector() {
         return data.data().lastSector & 0xff;
     }
 
     //
-    // ダイアログ用
+    // For dialog
     //
 
-    /** プロパティで表示する内部データを設定 */
+    /** Set internal data displayed in properties */
     @Override
     public void setInternalDataInAttrDialog(KeyValArray vals) {
         vals.add("NAME", data.data().name, data.data().name.length);

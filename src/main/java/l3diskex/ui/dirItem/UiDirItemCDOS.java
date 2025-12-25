@@ -25,7 +25,7 @@ public class UiDirItemCDOS extends UiDirItem {
 
     DiskBasicDirItemCDOS dirItem;
 
-    /** 属性1を得る */
+    /** Get attribute 1 */
     private int GetFileType1InAttrDialog(IntNameBox parent) {
         Object obj = parent.getComponent(IDC_COMBO_TYPE1);
         if (obj instanceof JComboBox) {
@@ -34,7 +34,7 @@ public class UiDirItemCDOS extends UiDirItem {
         return -1;
     }
 
-    /** インポート時ダイアログ表示前にファイルの属性を設定 */
+    /** Set file attributes before displaying dialog on import */
     private void SetFileTypeForAttrDialog(int show_flags, String name, int[] file_type_1, int[] file_type_2) {
         // empty in original
     }

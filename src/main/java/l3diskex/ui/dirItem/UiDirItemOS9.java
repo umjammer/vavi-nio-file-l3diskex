@@ -36,7 +36,7 @@ public class UiDirItemOS9 extends UiDirItem {
     DiskBasicDirItemOS9 dirItem;
 
     /**
-     * @name プロパティダイアログ用
+     * @name For property dialog
      * @{
      */
 
@@ -55,18 +55,18 @@ public class UiDirItemOS9 extends UiDirItem {
     private final int INTNAME_NEW_FILE = 0x01; // Assuming constant definition
 
     /**
-     * インポート時ダイアログ表示前にファイルの属性を設定
+     * Set file attributes before displaying dialog on import
      */
     public void setFileTypeForAttrDialog(int show_flags, String name, int[] file_type_1) {
         final int INTNAME_NEW_FILE = 0x01;
         if ((show_flags & INTNAME_NEW_FILE) != 0) {
-            // 外部からインポート時
+            // When importing from external
             file_type_1[0] = dirItem.convOriginalTypeFromFileName(name);
         }
     }
 
     /**
-     * ダイアログ内の属性部分のレイアウトを作成
+     * Create layout for attribute part in dialog
      */
     @Override
     public void createControlsForAttrDialog(IntNameBox parent, int show_flags, String file_path, BoxLayout sizer, Object flags) {
@@ -104,21 +104,21 @@ public class UiDirItemOS9 extends UiDirItem {
     }
 
     /**
-     * ダイアログ内の値を設定
+     * Set values in dialog
      */
     public void InitializeForAttrDialog(IntNameBox parent, int show_flags, int[] user_data) {
         // No logic in C++, so no logic here.
     }
 
     /**
-     * 属性を変更した際に呼ばれるコールバック
+     * Callback called when attribute is changed
      */
     public void ChangeTypeInAttrDialog(IntNameBox parent) {
         // No logic in C++, so no logic here.
     }
 
     /**
-     * 機種依存の属性を設定する
+     * Set machine dependent attributes
      */
     public boolean SetAttrInAttrDialog(IntNameBox parent, DiskBasicDirItemAttr attr, DiskBasicError errinfo) {
         // Placeholder for getting values from dialog controls:
@@ -151,12 +151,12 @@ public class UiDirItemOS9 extends UiDirItem {
     }
 
     /**
-     * ダイアログ入力後のファイル名チェック
+     * Check file name after dialog input
      */
     public boolean ValidateFileName(JWindow parent, String filename, String errormsg) {
         boolean valid = true;
         String name = filename;
-        // ".",".."は設定できない
+        // ".",".." cannot be set
         if (name.equals(".") || name.equals("..")) {
             //errormsg = String.Format(Utils.getTranslation(DiskBasicErrorMsgs.ERRV_CANNOT_SET_NAME), name); // Placeholder
             valid = false;

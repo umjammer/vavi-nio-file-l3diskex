@@ -37,14 +37,14 @@ import static l3diskex.basicfmt.type.DiskBasicTypeM68FDOS.FORMAT_TYPE_M68FDOS;
 
 
 /**
- * ディレクトリ１アイテム Sord M68 FDOS (KDOS)
+ * Directory 1 item Sord M68 FDOS (KDOS)
  */
 public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68FDos> {
 
     static final ResourceBundle rb = ResourceBundle.getBundle("messages");
 
     /**
-     * ディレクトリエントリ M68 FDOS (31bytes)
+     * Directory entry M68 FDOS (31bytes)
      */
     @Serdes
     public static class DirectoryM68FDos implements Directory {
@@ -146,7 +146,7 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
     public static final int EXT_NAME_M68_FDOS_SAV = 0;
     public static final int EXT_NAME_M68_FDOS_END = 1;
 
-    /** M68 FDOS属性名 */
+    /** M68 FDOS attribute names */
     public static final Map<String, Object> typeNameM68FDos = new HashMap<>() {{
         put("A - Attribute Protected", FILETYPE_M68_FDOS_A);
         put("P - Permanent", FILETYPE_M68_FDOS_P);
@@ -158,7 +158,7 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
         put("D - Device", FILETYPE_M68_FDOS_D);
     }};
 
-    /** M68 FDOS属性名(リスト用) */
+    /** M68 FDOS attribute names (for list) */
     public static final Map<String, Object> typeNameShortM68FDos = new HashMap<>() {{
         put("A", FILETYPE_M68_FDOS_A);
         put("P", FILETYPE_M68_FDOS_P);
@@ -170,7 +170,7 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
         put("D", FILETYPE_M68_FDOS_D);
     }};
 
-    /** M68 FDOS ファイル名マッピングテーブル */
+    /** M68 FDOS file name mapping table */
     public static final char[] m68FDosCharMap = {
             ' ', '?', '0', '1', '2', '3', '4', '5', '6', '7',
             '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
@@ -178,12 +178,12 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
             'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '+', '-',
     };
 
-    /** M68 FDOS拡張子から属性を設定 */
+    /** Set attribute from M68 FDOS extension */
     public static final Map<String, Object> extNameM68FDos = new LinkedHashMap<>() {{
         put("SAV", FILETYPE_M68_FDOS_C);
     }};
 
-    /** ディレクトリデータ */
+    /** Directory data */
     private final DiskBasicDirData<DirectoryM68FDos> data = new DiskBasicDirData<>();
 
     @Override
@@ -217,7 +217,7 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
         calcFileSize();
     }
 
-    /** ファイル名を格納する位置を返す */
+    /** Returns position where file name is stored */
     @Override
     public byte[] getFileNamePos(int num, int[] size, int[] len) {
         if (num == 0) {
@@ -229,14 +229,14 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
         }
     }
 
-    /** 拡張子を格納する位置を返す */
+    /** Returns position where extension is stored */
     @Override
     public byte[] getFileExtPos(int[] len) {
         len[0] = 3;
         return data.data().ext.b;
     }
 
-    /** ファイル名を設定 */
+    /** Set file name */
     @Override
     public void setNativeName(byte[] filename, int size, int length) {
         int[] nl = {0};
@@ -248,7 +248,7 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
         }
     }
 
-    /** 拡張子を設定 */
+    /** Set extension */
     @Override
     public void setNativeExt(byte[] fileExt, int size, int length) {
         int[] el = {0};
@@ -258,7 +258,7 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
         }
     }
 
-    /** ファイル名を得る */
+    /** Get file name */
     @Override
     public void getNativeName(byte[] filename, int size, int[] length) {
         int[] s = {0};
@@ -275,7 +275,7 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
         length[0] = l[0];
     }
 
-    /** 拡張子を得る */
+    /** Get extension */
     @Override
     public void getNativeExt(byte[] fileExt, int size, int[] length) {
         int[] l = {0};
@@ -288,49 +288,49 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
         length[0] = l[0];
     }
 
-    /** 属性１を返す */
+    /** Returns attribute 1 */
     @Override
     public int getFileType1() {
         return basic.orderUint16(data.data().attr1) & 0xffff;
     }
 
-    /** 属性２を返す */
+    /** Returns attribute 2 */
     @Override
     public int getFileType2() {
         return basic.orderUint16(data.data().attr2) & 0xffff;
     }
 
-    /** 属性３を返す */
+    /** Returns attribute 3 */
     @Override
     public int getFileType3() {
         return data.data().attr3 & 0xff;
     }
 
-    /** 属性１のセット */
+    /** Set attribute 1 */
     @Override
     public void setFileType1(int val) {
         data.data().attr1 = basic.orderUint16((short) val);
     }
 
-    /** 属性２のセット */
+    /** Set attribute 2 */
     @Override
     public void setFileType2(int val) {
         data.data().attr2 = basic.orderUint16((short) val);
     }
 
-    /** 属性３のセット */
+    /** Set attribute 3 */
     @Override
     public void setFileType3(int val) {
         data.data().attr3 = (byte) (val & 0xff);
     }
 
-    /** 使用しているアイテムか */
+    /** Whether it is a used item */
     @Override
     public boolean checkUsed(boolean unuse) {
         return !(data.data().name.getW(0) == 0 && data.data().name.getW(1) == 0 && data.data().ext.getW() == 0);
     }
 
-    /** リビジョンを返す */
+    /** Returns revision string */
     private String getRevisionStr() {
         String str = "";
         short revision = getRevision();
@@ -343,17 +343,17 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
         return str;
     }
 
-    /** リビジョンを返す */
+    /** Returns revision */
     public short getRevision() {
         return basic.orderUint16(data.data().rev.getW());
     }
 
-    /** リビジョンをセット */
+    /** Set revision */
     private void setRevision(short val) {
         data.data().rev.setW(basic.orderUint16(val));
     }
 
-    /** 属性を変換 */
+    /** Convert attribute */
     private int convToNativeType(int fileType) {
         int val = 0;
         if ((fileType & FILE_TYPE_SYSTEM_MASK.getValue()) != 0) {
@@ -371,7 +371,7 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
         return val;
     }
 
-    /** データ内にファイルサイズをセット */
+    /** Set file size in data */
     @Override
     public void setFileSizeBase(int val) {
         int sectorSize = basic.getSectorSize();
@@ -387,7 +387,7 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
         data.data().eofInSector = (byte) (eof & 0xff);
     }
 
-    /** データ内のファイルサイズを返す */
+    /** Returns file size in data */
     @Override
     public int getFileSizeBase() {
         int sectorSize = basic.getSectorSize();
@@ -402,10 +402,10 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
         return val;
     }
 
-    /** グループ取得計算中処理 */
+    /** Mid-processing for group acquisition calculation */
     private void calcAllGroups(int calcFlags, int[] groupNum, int[] remain, int[] secSize, int[] endSec, Object[] userData) {
         if (needChainInData()) {
-            // セクタ末尾にある次のセクタ番号を得る
+            // Get the next sector number at the end of the sector
             DiskImageSector sector = basic.getSectorFromGroup(groupNum[0]);
             if (sector == null) {
                 // Why?
@@ -419,12 +419,12 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
                 groupNum[0] = nextGroupNum & 0xffff;
             }
         } else {
-            // 連続している
+            // Contiguous
             groupNum[0]++;
         }
     }
 
-    /** ファイル名をデコード */
+    /** Decode file name */
     private static void decodeName(short codeVal, byte[] name, int offset, int size) {
         int code = codeVal & 0xffff;
         int sta = size > 2 ? 2 : size;
@@ -435,7 +435,7 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
         }
     }
 
-    /** ファイル名をエンコード */
+    /** Encode file name */
     private static short encodeName(byte[] name, int offset, int size) {
         short code = 0;
         int fin = size < 3 ? size : 3;
@@ -456,7 +456,7 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
         return code;
     }
 
-    /** アイテムへのポインタを設定 */
+    /** Set pointer to item */
     @Override
     public void setData(int num, DiskBasicGroupItem gIgroupItemem, DiskImageSector sector, int sectorPos,
                         byte[] data, int dataPos, SectorParam next) throws IOException {
@@ -465,7 +465,7 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
         this.data.attach(DirectoryM68FDos.class, data, dataPos);
     }
 
-    /** ディレクトリアイテムのチェック */
+    /** Check directory item */
     @Override
     public boolean check(boolean[] last) {
         if (!data.isValid()) return false;
@@ -477,20 +477,20 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
         return true;
     }
 
-    /** 削除 */
+    /** Delete */
     @Override
     public boolean delete() throws IOException {
-        // ファイル名をクリア
+        // Clear file name
         data.data().name.setW(0, (short) 0);
         data.data().name.setW(1, (short) 0);
         data.data().ext.setW((short) 0);
         used(false);
-        // 開始グループを未使用にする
+        // Set start group to unused
         type.setGroupNumber(getStartGroup(0), 0);
         return true;
     }
 
-    /** 属性を設定 */
+    /** Set attribute */
     @Override
     public void setFileAttr(DiskBasicFileType fileType) {
         int ftype = fileType.getType();
@@ -515,7 +515,7 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
         setRevision(rev);
     }
 
-    /** 属性を返す */
+    /** Returns attribute */
     @Override
     public DiskBasicFileType getFileAttr() {
         int t1 = getFileType1();
@@ -539,7 +539,7 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
         return new DiskBasicFileType(basic.getFormatTypeNumber(), val, t1, t2, (t3 << 16) | (rev & 0xffff));
     }
 
-    /** 属性の文字列を返す(ファイル一覧画面表示用) */
+    /** Returns attribute string (for file list display) */
     @Override
     public String getFileAttrStr() {
         StringBuilder attr = new StringBuilder();
@@ -554,7 +554,7 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
         return attr.toString();
     }
 
-    /** ファイルサイズを返す */
+    /** Returns file size */
     @Override
     public int getFileSize() {
         int sectorSize = basic.getSectorSize();
@@ -571,7 +571,7 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
         return val;
     }
 
-    /** ファイルサイズとグループ数を計算する */
+    /** Calculate file size and number of groups */
     @Override
     public void calcFileUnitSize(int fileUnitNum) {
         if (!isUsed()) return;
@@ -579,37 +579,37 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
         getUnitGroups(fileUnitNum, groups);
     }
 
-    /** 最初のグループ番号をセット */
+    /** Set the first group number */
     @Override
     public void setStartGroup(int fileUnitNum, int val, int size) {
         short startSector = (short) (val & 0xffff);
         data.data().startSector = basic.orderUint16(startSector);
     }
 
-    /** 最初のグループ番号を返す */
+    /** Returns the first group number */
     @Override
     public int getStartGroup(int fileUnitNum) {
         return basic.orderUint16(data.data().startSector) & 0xffff;
     }
 
-    /** 追加のグループ番号をセット */
+    /** Set extra group number */
     @Override
     public void setExtraGroup(int val) {
         short endSector = (short) (val & 0xffff);
         data.data().endSector = basic.orderUint16(endSector);
     }
 
-    /** 追加のグループ番号を返す */
+    /** Returns extra group number */
     @Override
     public int getExtraGroup() {
         return basic.orderUint16(data.data().endSector) & 0xffff;
     }
 
-    /** 追加のグループ番号を得る */
+    /** Get extra group number */
     public void getExtraGroups(int[] arr) {
     }
 
-    /** アイテムが日時を持っているか */
+    /** Whether item has date and time */
     @Override
     public boolean hasCreateDateTime() {
         return true;
@@ -625,13 +625,13 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
         return false;
     }
 
-    /** アイテムの時間設定を無視することができるか */
+    /** Whether item time setting can be ignored */
     @Override
     public int canIgnoreDateTime() {
         return DiskBasicDirItem.DATETIME_ALL;
     }
 
-    /** 日付を返す */
+    /** Returns date */
     @Override
     public LocalDate getFileCreateDate(LocalDateTime tm) {
         int date = basic.orderUint16(data.data().date) & 0xffff;
@@ -644,7 +644,7 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
                 date & 0x001f);
     }
 
-    /** 日付を返す */
+    /** Returns date */
     @Override
     public String getFileCreateDateStr() {
         LocalDateTime tm = LocalDateTime.now();
@@ -652,7 +652,7 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
         return Utils.formatYMDStr(ld);
     }
 
-    /** 日付をセット */
+    /** Set date */
     @Override
     public void setFileCreateDate(LocalDateTime tm) {
         int yy = (tm.getYear() & 0x007f);
@@ -663,61 +663,61 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
         data.data().date = basic.orderUint16(date);
     }
 
-    /** アイテムがアドレスを持っているか */
+    /** Whether item has address */
     @Override
     public boolean hasAddress() {
         return true;
     }
 
-    /** 開始アドレスを返す */
+    /** Returns start address */
     @Override
     public int getStartAddress() {
         return basic.orderUint16(data.data().loadAddress) & 0xffff;
     }
 
-    /** 終了アドレスを返す */
+    /** Returns end address */
     @Override
     public int getEndAddress() {
         return getStartAddress() + getFileSize() - 1;
     }
 
-    /** 実行アドレスを返す */
+    /** Returns execution address */
     @Override
     public int getExecuteAddress() {
         return basic.orderUint16(data.data().execAddress) & 0xffff;
     }
 
-    /** 開始アドレスをセット */
+    /** Set start address */
     @Override
     public void setStartAddress(int val) {
         data.data().loadAddress = basic.orderUint16((short) val);
     }
 
-    /** 実行アドレスをセット */
+    /** Set execution address */
     @Override
     public void setExecuteAddress(int val) {
         data.data().execAddress = basic.orderUint16((short) val);
     }
 
-    /** ディレクトリアイテムのサイズ */
+    /** Size of directory item */
     @Override
     public int getDataSize() {
         return data.getDataSize();
     }
 
-    /** アイテムを返す */
+    /** Returns item */
     @Override
     public DirectoryM68FDos getData() {
         return data.data();
     }
 
-    /** アイテムをコピー */
+    /** Copy item */
     @Override
     public boolean copyData(byte[] val) {
         return data.copy(val, getDataSize());
     }
 
-    /** ディレクトリをクリア ファイル新規作成時 */
+    /** Clear directory: during creation of a new file */
     @Override
     public void clearData() {
         if (!data.isValid()) return;
@@ -725,23 +725,23 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
         data.fill(0);
     }
 
-    /** データをチェインする必要があるか（非連続データか） */
+    /** Whether data needs to be chained (is non-contiguous data) */
     @Override
     public boolean needChainInData() {
         return ((getFileType1() & FILETYPE_M68_FDOS_C) == 0);
     }
 
-    /** データをエクスポートする前に必要な処理 */
+    /** Processing required before exporting data */
     public boolean preExportDataFile(String filename) {
         return true;
     }
 
-    /** インポート時のダイアログを出す前にファイルパスから内部ファイル名を生成する */
+    /** Generate internal file name from file path before displaying import dialog */
     public boolean preImportDataFile(String filename) {
         return true;
     }
 
-    /** ファイル名から属性を決定する */
+    /** Determine attribute from file name */
     @Override
     public int convOriginalTypeFromFileName(String filename) {
         int[] t1 = {0};
@@ -751,13 +751,13 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
         return t1[0];
     }
 
-    /** 属性値を加工する */
+    /** Process attribute values */
     @Override
     public boolean processAttr(DiskBasicDirItemAttr attr, DiskBasicError errinfo) {
         return true;
     }
 
-    /** プロパティで表示する内部データを設定 */
+    /** Set internal data displayed in properties */
     @Override
     public void setInternalDataInAttrDialog(KeyValArray vals) {
         vals.add("NAME", data.data().name.b, data.data().name.b.length);

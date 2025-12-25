@@ -34,14 +34,14 @@ import static l3diskex.basicfmt.type.DiskBasicTypeSDOS.FORMAT_TYPE_SDOS;
 
 
 /**
- * ディレクトリ１アイテム S-DOS
+ * Directory 1 item S-DOS
  */
 public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySDos> {
 
     private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
 
     /**
-     * ディレクトリエントリ S-DOS (32bytes)
+     * Directory entry S-DOS (32 bytes)
      */
     @Serdes(bigEndian = false)
     public static class DirectorySDos implements Directory {
@@ -82,7 +82,7 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySDos> {
     public static final int FILETYPE_SDOS_OBJ = 0x0e;  // include exec address
     public static final int FILETYPE_SDOS_UNKNOWN = 0xff;
 
-    /// S-DOS 属性名
+    /** S-DOS attribute names */
     public static final Map<String, Object> typeNameSdos1 = new LinkedHashMap<>() {{
         put("BASIC (N)", FILETYPE_SDOS_BAS1);
         put("BASIC (n88)", FILETYPE_SDOS_BAS2);
@@ -91,10 +91,10 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySDos> {
         put("???", FILETYPE_SDOS_UNKNOWN);
     }};
 
-    /** ディレクトリデータ */
+    /** Directory data */
     private final DiskBasicDirData<DirectorySDos> data = new DiskBasicDirData<>();
 
-    /** セクタ内部へのポインタ */
+    /** Pointer inside sector */
     private final DirItemSectorBoundary sectorData = new DirItemSectorBoundary();
 
     @Override
@@ -128,20 +128,20 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySDos> {
 
         used(checkUsed(unuse[0]));
 
-        // ファイルサイズとグループ数を計算
+        // Calculate file size and number of groups
         calcFileSize();
     }
 
     /**
-     * アイテムへのポインタを設定
+     * Set pointer to item
      *
-     * @param num    通し番号
-     * @param groupItem  トラック番号などのデータ
-     * @param sector セクタ
-     * @param sectorPos セクタ内のディレクトリエントリの位置
-     * @param data   ディレクトリアイテム
+     * @param num    Serial number
+     * @param groupItem  Data such as track number
+     * @param sector Sector
+     * @param sectorPos Position of directory entry within sector
+     * @param data   Directory item
      * @param dataPos    offset of {@code n_data}
-     * @param next   次のセクタ
+     * @param next   Next sector
      */
     @Override
     public void setData(int num, DiskBasicGroupItem groupItem, DiskImageSector sector, int sectorPos,
@@ -153,9 +153,9 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySDos> {
     }
 
     /**
-     * ディレクトリエントリを確保
+     * Allocate directory entry
      *
-     * @param next 次のセクタ
+     * @param next Next sector
      * @return true
      */
     private boolean allocateItem(SectorParam next) throws IOException {
@@ -163,24 +163,24 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySDos> {
         boolean bound = sectorData.set(basic, sector, position, data.getRawData(), getDataSize(), next);
 
         if (bound) {
-            // セクタをまたぐ場合、dataは内部で確保する
+            // If spanning across sectors, data is allocated internally
             data.alloc(DirectorySDos.class);
             data.fill(0, DirectorySDos.SIZE);
         }
 
-        // コピー
+        // Copy
         sectorData.copyTo(data.getRawData());
 
         return true;
     }
 
     /**
-     * ファイル名を格納する位置を返す
+     * Returns the position to store the file name
      *
      * @param num  num
      * @param size size
      * @param len  len
-     * @return ファイル名
+     * @return File name
      */
     @Override
     protected byte[] getFileNamePos(int num, int[] size, int[] len) {
@@ -194,9 +194,9 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySDos> {
     }
 
     /**
-     * 属性１を返す
+     * Returns attribute 1
      *
-     * @return 属性１
+     * @return Attribute 1
      */
     @Override
     protected int getFileType1() {
@@ -204,9 +204,9 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySDos> {
     }
 
     /**
-     * 属性１を設定
+     * Set attribute 1
      *
-     * @param val 属性値
+     * @param val Attribute value
      */
     @Override
     protected void setFileType1(int val) {
@@ -214,10 +214,10 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySDos> {
     }
 
     /**
-     * 使用しているアイテムか
+     * Whether it is a used item
      *
-     * @param unuse 未使用フラグ
-     * @return true: 使用している
+     * @param unuse Unused flag
+     * @return true: being used
      */
     @Override
     public boolean checkUsed(boolean unuse) {
@@ -225,11 +225,11 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySDos> {
     }
 
     /**
-     * ファイル名を設定
+     * Set file name
      *
-     * @param filename ファイル名
-     * @param size     サイズ
-     * @param length   長さ
+     * @param filename File name
+     * @param size     Size
+     * @param length   Length
      */
     @Override
     public void setNativeName(byte[] filename, int size, int length) {
@@ -237,12 +237,12 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySDos> {
     }
 
     /**
-     * ファイル名と拡張子を得る
+     * Get file name and extension
      *
-     * @param name ファイル名
-     * @param nLen ファイル名長さ
-     * @param ext  拡張子
-     * @param eLen 拡張子長さ
+     * @param name File name
+     * @param nLen File name length
+     * @param ext  Extension
+     * @param eLen Extension length
      */
     @Override
     public void getNativeFileName(byte[] name, int[] nLen, byte[] ext, int[] eLen) {
@@ -250,10 +250,10 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySDos> {
     }
 
     /**
-     * ディレクトリアイテムのチェック
+     * Check directory item
      *
-     * @param last チェックを終了するか
-     * @return チェックOK
+     * @param last Whether to terminate the check
+     * @return Check OK
      */
     @Override
     public boolean check(boolean[] last) {
@@ -268,7 +268,7 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySDos> {
     }
 
     /**
-     * 削除
+     * Delete
      *
      * @return true
      */
@@ -280,9 +280,9 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySDos> {
     }
 
     /**
-     * 属性を設定
+     * Set attribute
      *
-     * @param fileType ファイル属性
+     * @param fileType File attribute
      */
     @Override
     public void setFileAttr(DiskBasicFileType fileType) {
@@ -311,9 +311,9 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySDos> {
     }
 
     /**
-     * 属性を返す
+     * Return attribute
      *
-     * @return ファイル属性
+     * @return File attribute
      */
     @Override
     public DiskBasicFileType getFileAttr() {
@@ -342,9 +342,9 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySDos> {
     }
 
     /**
-     * 属性の文字列を返す(ファイル一覧画面表示用)
+     * Returns the attribute string (for file list screen display)
      *
-     * @return 属性文字列
+     * @return Attribute string
      */
     @Override
     public String getFileAttrStr() {
@@ -353,9 +353,9 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySDos> {
     }
 
     /**
-     * ファイルサイズをセット
+     * Set file size
      *
-     * @param val ファイルサイズ (バイト)
+     * @param val File size (bytes)
      */
     @Override
     public void setFileSize(int val) {
@@ -366,9 +366,9 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySDos> {
     }
 
     /**
-     * ファイルサイズを返す
+     * Return file size
      *
-     * @return ファイルサイズ (バイト)
+     * @return File size (bytes)
      */
     @Override
     public int getFileSize() {
@@ -385,9 +385,9 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySDos> {
     }
 
     /**
-     * グループ数を返す
+     * Return number of groups
      *
-     * @return グループ数
+     * @return Number of groups
      */
     @Override
     public int getGroupSize() {
@@ -397,9 +397,9 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySDos> {
     }
 
     /**
-     * ファイルサイズを計算
+     * Calculate file size
      *
-     * @param fileUnitNum ファイル番号
+     * @param fileUnitNum File number
      */
     @Override
     public void calcFileUnitSize(int fileUnitNum) {
@@ -409,10 +409,10 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySDos> {
     }
 
     /**
-     * 指定ディレクトリのすべてのグループを取得
+     * Get all groups of the specified directory
      *
-     * @param fileUnitNum ファイル番号
-     * @param groupItems  グループリスト
+     * @param fileUnitNum File number
+     * @param groupItems  Group list
      */
     @Override
     public void getUnitGroups(int fileUnitNum, DiskBasicGroups groupItems) {
@@ -436,11 +436,11 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySDos> {
     }
 
     /**
-     * グループを追加する
+     * Add groups
      *
-     * @param groupNum   グループ番号
-     * @param nextGroup  次のグループ番号
-     * @param groupItems グループリスト
+     * @param groupNum   Group number
+     * @param nextGroup  Next group number
+     * @param groupItems Group list
      */
     private void addGroups(int groupNum, int nextGroup, DiskBasicGroups groupItems) {
         int[] track = {-1}, side = {-1}, sector = {-1}, div = {0}, divs = {0};
@@ -449,11 +449,11 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySDos> {
     }
 
     /**
-     * 最初のグループ番号を設定
+     * Set the first group number
      *
-     * @param fileUnitNum ファイル番号
-     * @param val          グループ番号
-     * @param size         グループサイズ
+     * @param fileUnitNum File number
+     * @param val          Group number
+     * @param size         Group size
      */
     @Override
     public void setStartGroup(int fileUnitNum, int val, int size) {
@@ -464,10 +464,10 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySDos> {
     }
 
     /**
-     * 最初のグループ番号を返す
+     * Returns the first group number
      *
-     * @param fileUnitNum ファイル番号
-     * @return 最初のグループ番号
+     * @param fileUnitNum File number
+     * @return First group number
      */
     @Override
     public int getStartGroup(int fileUnitNum) {
@@ -480,9 +480,9 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySDos> {
     }
 
     /**
-     * 開始アドレスを返す
+     * Returns start address
      *
-     * @return 開始アドレス
+     * @return Start address
      */
     @Override
     public int getStartAddress() {
@@ -493,9 +493,9 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySDos> {
     }
 
     /**
-     * 実行アドレスを返す
+     * Returns the execution address
      *
-     * @return 実行アドレス
+     * @return Execution address
      */
     @Override
     public int getExecuteAddress() {
@@ -506,9 +506,9 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySDos> {
     }
 
     /**
-     * 開始アドレスをセット
+     * Set start address
      *
-     * @param val 開始アドレス
+     * @param val Start address
      */
     @Override
     public void setStartAddress(int val) {
@@ -517,9 +517,9 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySDos> {
     }
 
     /**
-     * 実行アドレスをセット
+     * Set execution address
      *
-     * @param val 実行アドレス
+     * @param val Execution address
      */
     @Override
     public void setExecuteAddress(int val) {
@@ -528,9 +528,9 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySDos> {
     }
 
     /**
-     * 次のアイテムにENDマークを入れる
+     * Insert END mark into next item
      *
-     * @param nextItem 次のディレクトリアイテム
+     * @param nextItem Next directory item
      */
     @Override
     public void setEndMark(DiskBasicDirItem<?> nextItem) throws IOException {
@@ -540,9 +540,9 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySDos> {
     }
 
     /**
-     * ファイルの終端コードをチェックする必要があるか
      *
      * @return true
+     * Whether it is necessary to check the end of file code
      */
     @Override
     public boolean needCheckEofCode() {
@@ -550,9 +550,9 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySDos> {
     }
 
     /**
-     * ディレクトリサイズを返す
+     * Returns directory size
      *
-     * @return サイズ
+     * @return Size
      */
     @Override
     public int getDataSize() {
@@ -560,9 +560,9 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySDos> {
     }
 
     /**
-     * アイテムを返す
+     * Returns item
      *
-     * @return アイテムデータ
+     * @return Item data
      */
     @Override
     public DirectorySDos getData() {
@@ -570,9 +570,9 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySDos> {
     }
 
     /**
-     * アイテムをコピー
+     * Copy item
      *
-     * @param val アイテム
+     * @param val Item
      * @return true
      */
     @Override
@@ -583,7 +583,7 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySDos> {
     }
 
     /**
-     * ディレクトリをクリア
+     * Clear directory
      */
     @Override
     public void clearData() {
@@ -591,7 +591,7 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySDos> {
     }
 
     /**
-     * 未使用領域の設定
+     * Setting of unused area
      */
     private void setUnknownData() {
         byte val = (byte) 0xff;
@@ -599,10 +599,10 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySDos> {
     }
 
     /**
-     * インポート時のダイアログを出す前にファイルパスから内部ファイル名を生成する
+     * Generate internal file name from file path before issuing dialog on import
      *
-     * @param filename ファイル名
-     * @return false このファイルは対象外とする
+     * @param filename File name
+     * @return false Exclude this file
      */
     @Override
     public boolean preImportDataFile(String[] filename) {
@@ -614,15 +614,15 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySDos> {
     }
 
     /**
-     * ファイル名から属性を決定する
+     * Determine attribute from file name
      *
-     * @param filename ファイル名
-     * @return 属性
+     * @param filename File name
+     * @return Attribute
      */
     @Override
     public int convOriginalTypeFromFileName(String filename) {
         int t1 = TYPE_NAME_SDOS_DAT;
-        // 拡張子で属性を設定する
+        // Set attributes by extension
         MyAttribute attr = findUpperCase(basic.getAttributesByExtension(), Utils.getExt(filename));
         if (attr != null) {
             int saType = attr.getType();
@@ -640,7 +640,7 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySDos> {
     }
 
     /**
-     * アイテムの属するセクタを変更済みにする
+     * Set the sector to which the item belongs as changed
      */
     @Override
     public void setModify() {
@@ -648,13 +648,13 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySDos> {
     }
 
     //
-    // ダイアログ用
+    // For dialog
     //
 
     /**
-     * 属性からリストの位置を返す(プロパティダイアログ用)
+     * Returns the position in the list from the attribute (for property dialog)
      *
-     * @return リストの位置
+     * @return Position in list
      */
     public int getFileType1Pos() {
         int t1 = getFileType1();
@@ -666,18 +666,18 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySDos> {
     }
 
     /**
-     * 属性からリストの位置を返す(プロパティダイアログ用)
+     * Returns the position in the list from the attribute (for property dialog)
      *
-     * @return リストの位置
+     * @return Position in list
      */
     public int getFileType2Pos() {
         return getFileAttr().getType();
     }
 
     /**
-     * プロパティで表示する内部データを設定
+     * Set internal data to be displayed in properties
      *
-     * @param vals 名前＆値のリスト
+     * @param vals List of names & values
      */
     @Override
     public void setInternalDataInAttrDialog(KeyValArray vals) {

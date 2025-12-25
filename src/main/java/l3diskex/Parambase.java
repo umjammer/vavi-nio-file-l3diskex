@@ -364,10 +364,10 @@ public class Parambase {
     public static class TemplatesBase {
 
         /**
-         * Descriptionエレメントをロード
+         * Load Description element
          *
-         * @param node       子ノード
-         * @param localeName ローケル名
+         * @param node       Child node
+         * @param localeName Locale name
          * @param desc       [out] description
          * @param descLocale [out] description locale
          * @return true
@@ -391,9 +391,9 @@ public class Parambase {
         }
 
         /**
-         * 独自エレメントのロード
+         * Load original element
          *
-         * @param node 子ノード
+         * @param node Child node
          * @param value  value
          * @param result [out] converted value
          * @return true
@@ -414,12 +414,12 @@ public class Parambase {
         }
 
         /**
-         * SpecialAttributes/AttributesByExtension エレメントをロード
+         * Load SpecialAttributes/AttributesByExtension element
          *
-         * @param node       子ノード
-         * @param localeName ローケル名
-         * @param type       タイプ
-         * @param attrs      [out] 値
+         * @param node       Child node
+         * @param localeName Locale name
+         * @param type       Type
+         * @param attrs      [out] Value
          * @return true
          */
         protected static boolean loadMyAttribute(Node node,
@@ -455,12 +455,12 @@ public class Parambase {
         }};
 
         /**
-         * SpecialAttributes/AttributesByExtension エレメントをロード
+         * Load SpecialAttributes/AttributesByExtension element
          *
-         * @param node       子ノード
-         * @param localeName ローケル名
-         * @param errMsgs    [out] エラーメッセージ
-         * @param attrs      [out] 値
+         * @param node       Child node
+         * @param localeName Locale name
+         * @param errMsgs    [out] Error message
+         * @param attrs      [out] Value
          * @return true
          */
         protected static boolean loadMyAttributesInTypes(Node node,
@@ -481,11 +481,11 @@ public class Parambase {
         }
 
         /**
-         * FileNameCharacters/VolumeNameCharacters エレメントをロード
+         * Load FileNameCharacters/VolumeNameCharacters element
          *
-         * @param node       子ノード
-         * @param validChars [out] 値
-         * @param errMsgs    [out] エラー時メッセージ
+         * @param node       Child node
+         * @param validChars [out] Value
+         * @param errMsgs    [out] Message on error
          * @return true
          */
         protected static boolean loadValidChars(Node node,

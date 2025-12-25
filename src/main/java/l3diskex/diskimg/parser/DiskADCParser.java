@@ -25,7 +25,7 @@ import static l3diskex.diskimg.DiskParam.diskTemplates;
 
 
 /**
- * Apple Disk Copy ディスクパーサー
+ * Apple Disk Copy disk parser
  *
  * @see "https://www.discferret.com/wiki/Apple_DiskCopy_4.2"
  */
@@ -33,7 +33,7 @@ public class DiskADCParser extends DiskPlainParser {
 
     private static final Logger logger = System.getLogger(DiskADCParser.class.getName());
 
-    /** Apple Disk Copyヘッダ 84bytes */
+    /** Apple Disk Copy header 84 bytes */
     @Serdes
     public static class AdcHeader {
 
@@ -103,13 +103,13 @@ logger.log(Level.TRACE, "streamLen: " +  streamLen);
         AdcHeader header = new AdcHeader();
         Serdes.Util.deserialize(iStream, header);
 
-        // ラベル長の末尾が0かどうか
+        // Check if the end of label length is 0
         if (header.labelLength > 63 || header.label[header.labelLength] != 0) {
             // not disk
             result.setError(DiskResult.ERRV_INVALID_DISK, 0);
             return result.getValid();
         }
-        // ファイルサイズが一致するか
+        // Whether the file size matches
         int dataSize = header.dataSize;
         int fileSize = AdcHeader.SIZE + dataSize + header.resourceSize;
         if (fileSize != streamLen) {

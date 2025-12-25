@@ -15,11 +15,11 @@ import l3diskex.diskimg.DiskImage.DiskImageSector;
 
 
 /**
- * MSX BASIC / MSX-DOSの処理
+ * MSX BASIC / MSX-DOS processing
  * <p>
  * DiskBasicParam
  *
- * <li>MediaID : メディアID</li>
+ * <li>MediaID : Media ID</li>
  */
 public class DiskBasicTypeMSX extends DiskBasicTypeMSDOS {
 
@@ -43,10 +43,10 @@ public class DiskBasicTypeMSX extends DiskBasicTypeMSDOS {
     }
 
     /**
-     * ディスクから各パラメータを取得＆必要なパラメータを計算
+     * Get each parameter from disk and calculate necessary parameters
      *
-     * @param isFormatting フォーマット中か
-     * @return 1.0: 正常, 0.0 - 1.0: 警告あり, <0.0: エラーあり
+     * @param isFormatting Whether formatting is in progress
+     * @return 1.0: Normal, 0.0 - 1.0: Warning present, <0.0: Error present
      */
     @Override
     public double parseParamOnDisk(boolean isFormatting) throws IOException {
@@ -58,13 +58,13 @@ public class DiskBasicTypeMSX extends DiskBasicTypeMSDOS {
             if (sector == null) return -1.0;
             byte[] data = sector.getSectorBuffer();
             if (data == null) return -1.0;
-            // MSXDOS という文字列があれば確実
+            // If there is a string "MSXDOS", it is certain
             if (sector.find("MSXDOS".getBytes(), 6) >= 0) {
                 validRatio += 0.8;
             } else if (sector.find("MSX".getBytes(), 3) >= 0) {
                 validRatio += 0.4;
             }
-            // 除外するキーワード
+            // Keywords to exclude
             for (String excludeKeyword : EXCLUDE_KEYWORDS) {
                 if (sector.find(excludeKeyword.getBytes(), excludeKeyword.length()) >= 0) {
                     validRatio -= 0.5;
@@ -79,7 +79,7 @@ public class DiskBasicTypeMSX extends DiskBasicTypeMSDOS {
     }
 
     /**
-     * サブディレクトリを作成できるか
+     * Whether a subdirectory can be created
      */
     @Override
     public boolean canMakeDirectory() {
@@ -87,8 +87,8 @@ public class DiskBasicTypeMSX extends DiskBasicTypeMSDOS {
     }
 
     /**
-     * セクタデータを埋めた後の個別処理
-     * フォーマット IPL の書き込み
+     * Individual processing after filling sector data
+     * Format Write IPL
      */
     @Override
     public boolean additionalProcessOnFormatted(DiskBasicIdentifiedData data) throws IOException {
@@ -97,7 +97,7 @@ public class DiskBasicTypeMSX extends DiskBasicTypeMSDOS {
             return false;
         }
 
-        // 起動時の実行コード
+        // Execution code at boot time
         if (buf[0] != null) {
             buf[0][0x1e] = (byte) 0xd0;   // RET NC
         }

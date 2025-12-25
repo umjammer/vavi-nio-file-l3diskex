@@ -23,12 +23,12 @@ import vavi.util.serdes.Serdes;
 
 
 /**
- * Amstrad CPC DSK ディスクパーサー
  *
  * @see "https://www.cpcmania.com/cpcdiskxp/cpcdiskxp.htm"
  * @see "https://github.com/muckypaws/AmstradDSKExplorer"
  * @see "https://archive.org/details/amstrad-cpc-cdt-collection"
  */
+/** Amstrad CPC DSK disk parser */
 public class DiskDskParser extends DiskImageParser {
 
     /** CPC DSK header */
@@ -105,7 +105,7 @@ public class DiskDskParser extends DiskImageParser {
     }
 
     //
-    // CPC DSK形式をD88形式にする
+    // Convert CPC DSK format to D88 format
     //
 
     /* 0 = normal, 1 = extended */
@@ -132,7 +132,7 @@ public class DiskDskParser extends DiskImageParser {
         this.isExtended = 0; // normal
     }
 
-    /** セクタデータの作成 */
+    /** Create sector data */
     public int parseSector(InputStream iStream, int numOfSectors, Object userData, DiskImageTrack track) throws IOException {
         CPCDSKSector id = (CPCDSKSector) userData;
 
@@ -142,7 +142,7 @@ public class DiskDskParser extends DiskImageParser {
         int sectorSize = id.n & 0xff;
 
         if (sectorSize > 7) {
-            // セクタサイズが大きすぎる
+            // Sector size is too large
             result.setError(DiskResult.ERRV_SECTOR_SIZE_SECTOR, 0, trackNumber, sideNumber, sectorNumber, sectorSize, id.dataLength);
             return 0;
         }
@@ -157,11 +157,11 @@ public class DiskDskParser extends DiskImageParser {
 
         int len = iStream.readNBytes(buf, 0, size);
         if (len < size) {
-            // ファイルデータが足りない
+            // Not enough file data
             result.setError(DiskResult.ERRV_INVALID_DISK, 0);
         }
         if (isExtended != 0) {
-            // バッファが大きいのでスキップ
+            // Buffer is large, so skip
             if (id.dataLength > size) {
                 int current = (int) ((SeekableDataInputStream) iStream).position();
                 ((SeekableDataInputStream) iStream).position(current + (id.dataLength - size)); // wxFromCurrent
@@ -173,7 +173,7 @@ public class DiskDskParser extends DiskImageParser {
         return sector.getSize();
     }
 
-    /** トラックデータの作成 */
+    /** Create track data */
     public int parseTrack(InputStream iStream, int trackSize, int offsetPos, int offset, DiskImageDisk disk) throws IOException {
         int len = iStream.available();
         if (len != CPCDSKTrack.SIZE) {
@@ -198,26 +198,26 @@ public class DiskDskParser extends DiskImageParser {
         }
 
         if (result.getValid() >= 0) {
-            // インターリーブの計算
+            // Calculate interleave
             track.calcInterleave();
         }
 
         if (result.getValid() >= 0) {
-            // トラックサイズ設定
+            // Set track size
             track.setSize(d88TrackSize);
-            // サイド番号は各セクタのID Hに合わせる
+            // Side number matches ID H of each sector
             track.setSideNumber(track.getMajorIDH());
 
-            // ディスクに追加
+            // Add to disk
             disk.add(track);
-            // オフセット設定
+            // Set offset
             disk.setOffset(offsetPos, offset);
         }
 
         return d88TrackSize;
     }
 
-    /** ディスクの解析 */
+    /** Analyze disk */
     public int parseDisk(InputStream iStream) throws IOException {
         DiskImageDisk disk = file.newImageDisk(0);
 
@@ -246,7 +246,7 @@ public class DiskDskParser extends DiskImageParser {
         disk.setSize(d88Offset);
 
         if (result.getValid() >= 0) {
-            // ディスクを追加
+            // Add disk
             DiskParam disk_param = disk.calcMajorNumber();
             if (disk_param != null) {
                 disk.setDensity(disk_param.getParamDensity());

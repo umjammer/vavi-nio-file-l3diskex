@@ -21,7 +21,7 @@ import static l3diskex.diskimg.FileParam.fileTypes;
 
 
 /**
- * ディスクパーサー
+ * Disk Parser
  */
 public class DiskParser {
 
@@ -34,12 +34,12 @@ public class DiskParser {
     private String imageType;
 
     /**
-     * コンストラクタ
+     * Constructor
      *
-     * @param filepath 解析するファイルのパス
-     * @param stream   上記ファイルのストリーム
-     * @param file     [in,out] 既存のディスクイメージ
-     * @param result   [out] 結果
+     * @param filepath Path of the file to analyze
+     * @param stream   Stream of the above file
+     * @param file     [in,out] Existing disk image
+     * @param result   [out] Result
      */
     public DiskParser(String filepath, InputStream stream,
                       DiskImageFile file, DiskResult result) {
@@ -51,31 +51,31 @@ public class DiskParser {
     }
 
     /**
-     * ディスクイメージを新たに解析する
+     * Newly analyze disk image
      *
-     * @param fileFormat ファイルの形式名 ("d88", "plain" など)
-     * @param paramHint  ディスクパラメータヒント ("plain" 時のみ)
+     * @param fileFormat File format name ("d88", "plain" etc.)
+     * @param paramHint  Disk parameter hint (only when "plain")
      */
     public int parse(String fileFormat, DiskParam paramHint) throws IOException {
         return parse(fileFormat, paramHint, DiskImageFile.MODIFY_NONE);
     }
 
     /**
-     * 指定ディスクを解析してこれを既存のディスクイメージに追加する
+     * Analyze specified disk and add it to existing disk image
      *
-     * @param fileFormat ファイルの形式名 ("d88", "plain" など)
-     * @param paramHint  ディスクパラメータヒント ("plain" 時のみ)
+     * @param fileFormat File format name ("d88", "plain" etc.)
+     * @param paramHint  Disk parameter hint (only when "plain")
      */
     public int parseAdd(String fileFormat, DiskParam paramHint) throws IOException {
         return parse(fileFormat, paramHint, DiskImageFile.MODIFY_ADD);
     }
 
     /**
-     * ディスクイメージをチェック
+     * Check disk image
      *
-     * @param fileFormat  [in,out] ファイルの形式名 ("d88", "plain", "", など)
-     * @param diskParams  [out] ディスクパラメータの候補
-     * @param manualParam [out] 候補がないときのパラメータヒント
+     * @param fileFormat  [in,out] File format name ("d88", "plain", "", etc.)
+     * @param diskParams  [out] Candidates for disk parameters
+     * @param manualParam [out] Parameter hint when there are no candidates
      */
     public int check(String[] fileFormat, List<DiskParam> diskParams, DiskParam manualParam) throws IOException {
         return check(fileFormat, diskParams, manualParam, DiskImageFile.MODIFY_NONE);
@@ -86,12 +86,12 @@ public class DiskParser {
     }
 
     /**
-     * ディスクイメージの解析
+     * Analysis of disk image
      *
-     * @param fileFormat ファイルの形式名 ("d88", "plain" など)
-     * @param paramHint  ディスクパラメータヒント ("plain" 時のみ)
-     * @param modFlags   オープン/追加 DiskImageFile#add()
-     * @return 0: 正常, -1: エラーあり, 1: 警告あり
+     * @param fileFormat File format name ("d88", "plain" etc.)
+     * @param paramHint  Disk parameter hint (only when "plain")
+     * @param modFlags   Open/Add DiskImageFile#add()
+     * @return 0: normal, -1: error, 1: warning
      */
     private int parse(String fileFormat, DiskParam paramHint, short modFlags) throws IOException {
         boolean[] support = {false};
@@ -99,7 +99,7 @@ public class DiskParser {
 
         imageType = "";
         if (!fileFormat.isEmpty()) {
-            // ファイル形式の指定あり
+            // File format specified
             rc = selectParser(fileFormat, paramHint, modFlags, support);
             if (rc >= 0) {
                 imageType = fileFormat;
@@ -113,13 +113,13 @@ public class DiskParser {
     }
 
     /**
-     * ディスクイメージのチェック
+     * Check disk image
      *
-     * @param fileFormat  [in,out] ファイルの形式名 ("d88", "plain", "", など)
-     * @param diskParams  [out] ディスクパラメータの候補
-     * @param manualParam [out] 候補がないときのパラメータヒント
-     * @param modFlags    オープン/追加 DiskImageFile::Add()
-     * @return 0: 正常, -1: エラーあり
+     * @param fileFormat  [in,out] File format name ("d88", "plain", "", etc.)
+     * @param diskParams  [out] Candidates for disk parameters
+     * @param manualParam [out] Parameter hint when there are no candidates
+     * @param modFlags    Open/Add DiskImageFile::Add()
+     * @return 0: normal, -1: error
      */
     private int check(String[] fileFormat, List<DiskParam> diskParams,
                       DiskParam manualParam, short modFlags) throws IOException {
@@ -127,19 +127,19 @@ public class DiskParser {
         int rc = -1;
 
         if (fileFormat[0].isEmpty()) {
-            // ファイル形式の指定がない場合
+            // Case where file format is not specified
 
-            // 拡張子で判定
+            // Judge by extension
             String ext = Utils.getExt(filepath.getFileName().toString());
 
-            // サポートしているファイルか
+            // Whether it is a supported file
             FileParam fItem = fileTypes.findExt(ext);
             if (fItem == null) {
                 result.setError(DiskResult.ERR_UNSUPPORTED);
                 return result.getValid();
             }
 
-            // 指定形式で解析する
+            // Analyze with specified format
             List<FileParamFormat> formats = fItem.getFormats();
 logger.log(Level.TRACE, "formats: %d, %s".formatted(formats.size(), formats));
             for (FileParamFormat format : formats) {
@@ -152,7 +152,7 @@ logger.log(Level.TRACE, "selectChecker: %d, %s".formatted(rc, format.getType()))
             }
 
         } else {
-            // ファイル形式の指定あり
+            // File format specified
 
             rc = selectChecker(fileFormat[0], null, null, diskParams, manualParam, modFlags, support);
         }
@@ -164,13 +164,13 @@ logger.log(Level.TRACE, "selectChecker: %d, %s".formatted(rc, format.getType()))
     }
 
     /**
-     * ファイルの解析方法を選択
+     * Select file analysis method
      *
-     * @param type      ファイルの形式名 ("d88", "plain" など)
-     * @param diskParam ディスクパラメータ ("plain" 時のみ)
-     * @param modFlags  オープン/追加 DiskImageFile#add()
-     * @param support   [out] サポートしているファイルか
-     * @return 1: 警告, 0: 正常, -1: エラー
+     * @param type      File format name ("d88", "plain" etc.)
+     * @param diskParam Disk parameter (only when "plain")
+     * @param modFlags  Open/Add DiskImageFile#add()
+     * @param support   [out] Whether it is a supported file
+     * @return 1: warning, 0: normal, -1: error
      */
     private int selectParser(String type, DiskParam diskParam,
                              short modFlags, boolean[] support) throws IOException {
@@ -197,16 +197,16 @@ logger.log(Level.TRACE, "selectChecker: %d, %s".formatted(rc, format.getType()))
     }
 
     /**
-     * ファイルのチェック方法を選択
+     * Select file check method
      *
-     * @param type        ファイルの形式名("d88","plain"など)
-     * @param diskHints   ディスクパラメータヒント("plain"時のみ)
-     * @param diskParam   ディスクパラメータ("plain"時のみ)
-     * @param diskParams  [out] ディスクパラメータの候補
-     * @param manualParam [out] 候補がないときのパラメータヒント
-     * @param modFlags    オープン/追加 DiskImageFile::Add()
-     * @param support     [out] サポートしているファイルか
-     * @return 1: 候補がないので改めてディスク種類を選択してもらう, 0: 候補あり正常, -1: エラー終了
+     * @param type        File format name ("d88", "plain" etc.)
+     * @param diskHints   Disk parameter hint (only when "plain")
+     * @param diskParam   Disk parameter (only when "plain")
+     * @param diskParams  [out] Candidates for disk parameters
+     * @param manualParam [out] Parameter hint when there are no candidates
+     * @param modFlags    Open/Add DiskImageFile::Add()
+     * @param support     [out] Whether it is a supported file
+     * @return 1: ask user to select disk type again as there are no candidates, 0: normal with candidates, -1: error end
      */
     private int selectChecker(String type, List<DiskTypeHint> diskHints,
                               DiskParam diskParam, List<DiskParam> diskParams,
@@ -228,7 +228,7 @@ logger.log(Level.WARNING, type + " is not supported");
         return -1;
     }
 
-    /** ディスクパーサー */
+    /** Disk Parser */
     public static abstract class DiskImageParser {
 
         protected DiskImageFile file;
@@ -255,24 +255,24 @@ logger.log(Level.WARNING, type + " is not supported");
         }
 
         /**
-         * チェック
+         * Check
          *
-         * @param iStream 解析対象データ
-         * @return 1: 選択ダイアログ表示, 0: 正常（候補が複数ある時はダイアログ表示）
+         * @param iStream Data to be analyzed
+         * @return 1: display selection dialog, 0: normal (display dialog when multiple candidates)
          */
         public int check(InputStream iStream) throws IOException {
             return result.getValid();
         }
 
         /**
-         * チェック
+         * Check
          *
-         * @param iStream     解析対象データ
-         * @param hints       ディスクパラメータヒント("2D"など)
-         * @param diskParam   ディスクパラメータ disk_hints指定時はNullable
-         * @param diskParams  [out] ディスクパラメータの候補
-         * @param manualParam [out] 候補がないときのパラメータヒント
-         * @return 1: 選択ダイアログ表示,  0: 正常（候補が複数ある時はダイアログ表示）
+         * @param iStream     Data to be analyzed
+         * @param hints       Disk parameter hints (e.g. "2D")
+         * @param diskParam   Disk parameter (Nullable when disk_hints specified)
+         * @param diskParams  [out] Candidates for disk parameters
+         * @param manualParam [out] Parameter hint when there are no candidates
+         * @return 1: display selection dialog, 0: normal (display dialog when multiple candidates)
          */
         public int check(InputStream iStream, List<DiskTypeHint> hints,
                          DiskParam diskParam, List<DiskParam> diskParams,
@@ -281,11 +281,11 @@ logger.log(Level.WARNING, type + " is not supported");
         }
 
         /**
-         * ファイルイメージを解析
+         * Analyze file image
          *
-         * @param iStream   解析対象データ
-         * @param diskParam ディスクパラメータ
-         * @return 0: 正常, -1: エラーあり, 1: 警告あり
+         * @param iStream   Data to be analyzed
+         * @param diskParam Disk parameter
+         * @return 0: normal, -1: error, 1: warning
          */
         public int parse(InputStream iStream, DiskParam diskParam /* = null */) throws IOException {
             return result.getValid();

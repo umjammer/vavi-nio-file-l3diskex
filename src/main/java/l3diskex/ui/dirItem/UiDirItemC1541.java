@@ -41,7 +41,7 @@ public class UiDirItemC1541 extends UiDirItem {
     DiskBasicDirItemC1541 dirItem;
 
     /**
-     * Allocation Mapの開始位置を得る（ダイアログ用）
+     * Get start position of Allocation Map (for dialog)
      */
     @Override
     public void getStartNumOnFat(int[] track_num, int[] side_num, int[] sector_num) {
@@ -51,7 +51,7 @@ public class UiDirItemC1541 extends UiDirItem {
     }
 
     /**
-     * Allocation Mapの終了位置を得る（ダイアログ用）
+     * Get end position of Allocation Map (for dialog)
      */
     @Override
     public void getEndNumOnFat(int[] track_num, int[] side_num, int[] sector_num) {
@@ -61,30 +61,30 @@ public class UiDirItemC1541 extends UiDirItem {
     }
 
     /**
-     * タイトル名（ダイアログ用）
+     * Title name (for dialog)
      */
     @Override
     public String getTitleForFat() {
         return "Allocation Map";
     }
 
-    /** インポート時ダイアログ表示前にファイルの属性を設定 */
+    /** Set file attributes before displaying dialog on import */
     public void setFileTypeForAttrDialog(int show_flags, String name, int[] file_type_1, int[] file_type_2) {
         // INTNAME_NEW_FILE is a mock constant for new file
         if ((show_flags & 0x01) != 0) { // Assuming INTNAME_NEW_FILE = 0x01
-            // 外部からインポート時
+            // When importing from external
             file_type_1[0] = dirItem.convOriginalTypeFromFileName(name);
         }
     }
 
-    /// ダイアログ内に属性を設定
-    /// @param show_flags      ダイアログ表示フラグ
-    /// @param  name           ファイル名
-    /// @param [out] file_type_1    CreateControlsForAttrDialog()に渡す
-    /// @param [out] file_type_2    CreateControlsForAttrDialog()に渡す
+    /// Set attributes in dialog
+    /// @param show_flags      Dialog display flag
+    /// @param  name           File name
+    /// @param [out] file_type_1    Passed to CreateControlsForAttrDialog()
+    /// @param [out] file_type_2    Passed to CreateControlsForAttrDialog()
     // This is the private method SetFileTypeForAttrDialog, implemented above as a helper.
 
-    /** ダイアログ内の属性部分のレイアウトを作成 */
+    /** Create layout for attribute part in dialog */
     @Override
     public void createControlsForAttrDialog(IntNameBox parent, int show_flags, String file_path, BoxLayout sizer, Object flags) {
         int[] file_type_1_arr = {dirItem.getFileType1()};
@@ -140,19 +140,19 @@ public class UiDirItemC1541 extends UiDirItem {
         // sizer->Add(staType2, flags);
     }
 
-    /** ダイアログ内の値を設定 */
+    /** Set values in dialog */
     @Override
     public void initializeForAttrDialog(IntNameBox parent, int show_flags, int[] user_data) {
         // Implementation is empty in C++, so it remains empty here.
     }
 
-    /** 属性を変更した際に呼ばれるコールバック */
+    /** Callback called when attribute is changed */
     @Override
     public void changeTypeInAttrDialog(IntNameBox parent) {
         // Implementation is empty in C++, so it remains empty here.
     }
 
-    /** 機種依存の属性を設定する */
+    /** Set machine dependent attributes */
     @Override
     public boolean setAttrInAttrDialog(IntNameBox parent, DiskBasicDirItemAttr attr, DiskBasicError errinfo) {
         JComboBox comType1 = (JComboBox) parent.getComponent(IDC_COMBO_TYPE1);
@@ -167,7 +167,7 @@ public class UiDirItemC1541 extends UiDirItem {
         int rec_siz = Integer.parseInt(txtRecSize.getText());
 
         if (type1pos == TYPE_NAME_C1541_REL) {
-            // 新規ファイルでREL形式の場合はレコードサイズをチェック
+            // Check record size for REL format on new file
             valid &= (0 < rec_siz && rec_siz < 256);
             if (!valid) {
                 // errinfo.SetError(DiskBasicError::ERRV_INVALID_VALUE_IN, _("Record Length").t_str()); // Mock call

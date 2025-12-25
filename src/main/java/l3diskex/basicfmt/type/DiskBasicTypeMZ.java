@@ -45,38 +45,38 @@ import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailabili
 
 
 /**
- * MZ S-BASICの処理
+ * MZ S-BASIC processing
  * <p>
- * DiskBasicParam 固有パラメータ
+ * DiskBasicParam Specific parameters
  *
- * <li>IPLString セクタ1のIPL</li>
- * <li>VolumeString ディレクトリ先頭のボリューム番号</li>
- * <li>SpecialAttributes 特別な属性 Volume属性にする属性値を指定</li>
+ * <li>IPLString IPL in sector 1</li>
+ * <li>VolumeString Volume number at the beginning of the directory</li>
+ * <li>SpecialAttributes Special attributes Specify attribute values to be treated as Volume attribute</li>
  * @see "https://mzakd.cool.coocan.jp/starthp/mzt.html"
  * @see "https://old.sharpmz.org/mz-700/download/2z009man.pdf"
  */
 public class DiskBasicTypeMZ extends DiskBasicTypeMZBase<DirectoryMz> {
 
-    /** MZ 使用状況セクタ */
+    /** MZ usage sector */
     @Serdes(bigEndian = false)
     private static class MzFat {
 
-        /** ボリューム番号 */
+        /** Volume number */
         @Element(sequence = 1)
         public byte volume;
-        /** オフセット データ領域開始クラスタ */
+        /** Offset Start cluster of data area */
         @Element(sequence = 2)
         public byte offset;
-        /** 使用クラスタ数 */
+        /** Number of used clusters */
         @Element(sequence = 3)
         public short used;
-        /** 全体クラスタ数 */
+        /** Total number of clusters */
         @Element(sequence = 4)
         public short all;
-        /** 使用状況 */
+        /** Usage status */
         @Element(sequence = 5)
         public byte[] bits = new byte[0xf9];
-        /** １クラスタのセクタ数-1 (251) */
+        /** Number of sectors per cluster - 1 (251) */
         @Element(sequence = 6)
         public byte magnitude;
 
@@ -95,7 +95,7 @@ public class DiskBasicTypeMZ extends DiskBasicTypeMZBase<DirectoryMz> {
         super.init(basic, fat, dir);
     }
 
-    /** FAT位置をセット */
+    /** Set FAT position */
     @Override
     public void setGroupNumber(int num, int val) throws IOException {
         if (num > basic.getFatEndGroup()) {
@@ -114,18 +114,18 @@ public class DiskBasicTypeMZ extends DiskBasicTypeMZBase<DirectoryMz> {
         if (fatBuf == null) {
             return;
         }
-        // FATには未使用使用テーブルがある
+        // FAT has an unused/used table
         fatBuf.bit(pos[0], (byte) mask[0], val != 0, basic.isDataInverted());
 
-        // FATの使用済み最終クラスタ数を更新
+        // Update the number of used final clusters in FAT
         MzFat b = new MzFat();
         Serdes.Util.deserialize(new ByteArrayInputStream(fatBuf.getBuffer()), b);
         int used_group = basic.invertAndOrderUint16(b.used);
         if (val != 0) {
-            // セットした時は最終クラスタ数を増やす
+            // Increase the number of final clusters when set
             used_group++;
         } else {
-            // クリアした時は最終クラスタ数を減らす
+            // Decrease the number of final clusters when cleared
             used_group--;
         }
         basic.invertAndOrderUint16((short) used_group); // invert
@@ -134,7 +134,7 @@ public class DiskBasicTypeMZ extends DiskBasicTypeMZBase<DirectoryMz> {
 //looger.log(Level.TRACE, "DiskBasicTypeMZ::SetGroupNumber: g:%d v:%d pos:%d msk:%d used:%d".formatted(num, val, pos, mask, used_group));
     }
 
-    /** FATオフセットを返す */
+    /** Returns FAT offset */
     @Override
     public int getGroupNumber(int num) throws IOException {
         DiskBasicFatBuffer fatbuf = fat.getDiskBasicFatBuffer(0, 0);
@@ -148,14 +148,14 @@ public class DiskBasicTypeMZ extends DiskBasicTypeMZBase<DirectoryMz> {
         return num;
     }
 
-    /** 使用しているグループの位置を得る */
+    /** Get position of used groups */
     @Override
     public void calcUsedGroupPos(int num, int[] pos, int[] mask) {
         mask[0] = 1 << (pos[0] & 7);
         pos[0] = (pos[0] >> 3) + 6;
     }
 
-    /** 次のグループ番号を得る */
+    /** Get next group number */
     @Override
     public int getNextGroupNumber(int num, int sectorPos) {
         int[] trackNum = new int[1], sideNum = new int[1], sectorNum = new int[1];
@@ -167,7 +167,7 @@ public class DiskBasicTypeMZ extends DiskBasicTypeMZBase<DirectoryMz> {
         return nextSector / basic.getSectorsPerGroup();
     }
 
-    /** 空きFAT位置を返す */
+    /** Returns a free FAT position */
     @Override
     public int getEmptyGroupNumber() throws IOException {
         int newNum = DiskBasicType.INVALID_GROUP_NUMBER;
@@ -176,7 +176,7 @@ public class DiskBasicTypeMZ extends DiskBasicTypeMZBase<DirectoryMz> {
         if (fatBuf == null) {
             return newNum;
         }
-        // FATの使用済み最終クラスタを得る
+        // Get the number of used final clusters in FAT
         MzFat b = new MzFat();
         Serdes.Util.deserialize(new ByteArrayInputStream(fatBuf.getBuffer()), b);
         int offset = basic.invertUint8(b.offset) & 0xff; // invert
@@ -192,12 +192,12 @@ public class DiskBasicTypeMZ extends DiskBasicTypeMZBase<DirectoryMz> {
         return newNum;
     }
 
-    /** FATエリアをチェック */
+    /** Check FAT area */
     @Override
     public double checkFat(boolean isFormatting) throws IOException {
         double validRatio = 1.0;
 
-        // FATエリア
+        // FAT area
         DiskBasicFatBuffer fatBuf = fat.getDiskBasicFatBuffer(0, 0);
         if (fatBuf == null) {
             return -1.0;
@@ -206,7 +206,7 @@ public class DiskBasicTypeMZ extends DiskBasicTypeMZBase<DirectoryMz> {
         Serdes.Util.deserialize(new ByteArrayInputStream(fatBuf.getBuffer()), b);
         int offset = basic.invertUint8(b.offset) & 0xff; // invert
         int mag = basic.invertUint8(b.magnitude) & 0xff; // invert
-        // オフセット(1バイト目)が16未満ならエラー
+        // Error if offset (1st byte) is less than 16
         if (offset < 16) {    // invert
             validRatio = -1.0;
         }
@@ -214,21 +214,21 @@ public class DiskBasicTypeMZ extends DiskBasicTypeMZBase<DirectoryMz> {
             dataStartGroup = offset;
         }
 
-        // クラスタ倍率(255バイト目)が16以上ならエラー
+        // Error if cluster multiplier (255th byte) is 16 or more
         if (mag >= 16) {    // invert
             validRatio = -1.0;
         }
         if (validRatio >= 0.0) {
-            // セクタ数/クラスタ
+            // Sectors per cluster
             basic.setSectorsPerGroup(mag + 1);
-            // クラスタ数
+            // Number of clusters
             basic.setFatEndGroup((basic.invertAndOrderUint16(b.all) & 0xffff) - 1); // invert
         } else {
-            // クラスタ数はトラック数から計算する
+            // Number of clusters is calculated from the number of tracks
             int tracks = basic.getTracksPerSideOnBasic();
             int sectors = 1;
             if (tracks > 44) {
-                // 2DDのとき
+                // In case of 2DD
                 sectors = 2;
                 tracks /= 2;
             }
@@ -239,12 +239,12 @@ public class DiskBasicTypeMZ extends DiskBasicTypeMZBase<DirectoryMz> {
         return validRatio;
     }
 
-    /** ルートディレクトリをアサイン */
+    /** Assign root directory */
     @Override
     public boolean assignRootDirectory(int startSector, int endSector, DiskBasicGroups groupItems, DiskBasicDirItem<DirectoryMz> dirItem) throws IOException {
         boolean sts = super.assignRootDirectory(startSector, endSector, groupItems, dirItem);
 
-        // 開始グループ
+        // Start group
         int sectorPos = basic.getManagedTrackNumber() * basic.getSectorsPerTrackOnBasic() * basic.getSidesPerDiskOnBasic() + startSector - 1;
         sectorPos /= basic.getSectorsPerGroup();
         dirItem.setStartGroup(0, sectorPos);
@@ -252,13 +252,13 @@ public class DiskBasicTypeMZ extends DiskBasicTypeMZBase<DirectoryMz> {
         return sts;
     }
 
-    /** 残りディスクサイズを計算 */
+    /** Calculate remaining disk size */
     @Override
     public void calcDiskFreeSize(boolean wrote) throws IOException {
         int used = 0;
         fatAvailability.clear();
 
-        // FATエリア
+        // FAT area
         DiskBasicFatBuffer fatBuf = fat.getDiskBasicFatBuffer(0, 0);
         if (fatBuf == null) {
             return;
@@ -267,7 +267,7 @@ public class DiskBasicTypeMZ extends DiskBasicTypeMZBase<DirectoryMz> {
         Serdes.Util.deserialize(new ByteArrayInputStream(fatBuf.getBuffer()), b);
         int usedGroups = basic.invertAndOrderUint16(b.used) & 0xffff;    // invert
 
-        // 使用済みかチェック
+        // Check if used
         int groups = 0;
         FatAvailability fatStatus;
         for (int gnum = 0; gnum <= basic.getFatEndGroup(); gnum++) {
@@ -284,13 +284,13 @@ public class DiskBasicTypeMZ extends DiskBasicTypeMZBase<DirectoryMz> {
             fatAvailability.add(fatStatus, 0, 0);
         }
 
-        // ディレクトリエントリのグループ
+        // Groups of directory entries
         List<DiskBasicDirItem<DirectoryMz>> items = dir.getCurrentItems(null);
         if (items != null) {
             for (DiskBasicDirItem<DirectoryMz> item : items) {
                 if (item == null || !item.isUsed()) continue;
 
-                // グループ番号のマップを調べる
+                // Examine map of group numbers
                 int groupCount = item.getGroupCount();
                 if (groupCount > 0) {
                     DiskBasicGroupItem groupItem = item.getGroup(groupCount - 1);
@@ -304,7 +304,7 @@ public class DiskBasicTypeMZ extends DiskBasicTypeMZBase<DirectoryMz> {
 
         int fSize = groups * basic.getSectorsPerGroup() * basic.getSectorSize();
 
-        // 使用済みクラスタ数を更新
+        // Update the number of used clusters
         if (wrote && usedGroups != used) {
             b.used = basic.invertAndOrderUint16((short) used);    // invert
         }
@@ -321,7 +321,7 @@ public class DiskBasicTypeMZ extends DiskBasicTypeMZBase<DirectoryMz> {
         return false;
     }
 
-    /** データサイズ分のグループを確保する */
+    /** Allocate groups for data size */
     @Override
     public int allocateUnitGroups(int fileUnitNum, DiskBasicDirItem<DirectoryMz> item, int dataSize, AllocateGroupFlags flags, DiskBasicGroups[] groupItems) throws IOException {
         int[] fileSize = {0};
@@ -336,30 +336,30 @@ public class DiskBasicTypeMZ extends DiskBasicTypeMZBase<DirectoryMz> {
             sectorSize -= 2;
         }
 
-        // 必要なグループ数
+        // Required number of groups
         int groupSize = ((dataSize - 1) / sectorSize / basic.getSectorsPerGroup()) + 1;
         if (isChain || isBRD) {
             groupSize = 1;
         }
 
-        // 未使用が連続している位置をさがす
+        // Find a position where unused are continuous
         int[] groupStart = new int[1];
         int count = findContinuousArea(groupSize, groupStart);
         if (count < groupSize) {
-            // 十分な空きがない
+            // Not enough free space
             rc = -1;
             return rc;
         }
 
-        // 開始グループ決定
+        // Start group decided
         item.setStartGroup(fileUnitNum, groupStart[0]);
 
         if (isBRD) {
-            // BRD ランダムアクセス
-            // マップ領域を確保
+            // BRD random access
+            // Allocate map area
             DiskImageSector sector = basic.getSectorFromGroup(groupStart[0]);
             if (sector == null) {
-                // セクタ無い？！
+                // No sector?!
                 rc = -1;
                 return rc;
             }
@@ -373,21 +373,21 @@ public class DiskBasicTypeMZ extends DiskBasicTypeMZBase<DirectoryMz> {
             int brdPos = 0;
 
             do {
-                // 連続した16セクタを確保できるかをさがす
+                // Search whether 16 contiguous sectors can be allocated
                 groupSize = 16 / basic.getSectorsPerGroup();
                 int bCount = findContinuousArea(groupSize, groupStart);
                 if (bCount < groupSize) {
-                    // 十分な空きがない
+                    // Not enough free space
                     rc = -2;
                     return rc;
                 }
 
-                // 開始セクタ
+                // Start sector
                 int sectorPos = groupStart[0] * basic.getSectorsPerGroup();
                 sectorPos = basic.invertAndOrderUint16((short) sectorPos);    // invert
                 brdMaps.put(brdPos * 2, (short) sectorPos); // TODO chaek write back
 
-                // 領域を確保する
+                // Allocate area
                 int blockRemain = 16 * basic.getSectorSize();
                 int[] blockSize = {0};
                 rc = allocateGroupsSub(item, groupStart[0], blockRemain, basic.getSectorSize(), groupItems[0], blockSize, groups);
@@ -402,15 +402,15 @@ public class DiskBasicTypeMZ extends DiskBasicTypeMZBase<DirectoryMz> {
             } while ((brdPos * 2) < basic.getSectorSize());
 
         } else {
-            // BRD 以外
+            // Other than BRD
 
-            // 領域を確保する
+            // Allocate area
             rc = allocateGroupsSub(item, groupStart[0], remain, sectorSize, groupItems[0], fileSize, groups);
         }
         return rc;
     }
 
-    /** グループを確保して使用中にする */
+    /** Allocate groups and mark as used */
     @Override
     public int allocateGroupsSub(DiskBasicDirItem<DirectoryMz> item, int groupStart, int remain, int secSize, DiskBasicGroups groupItems, int[] fileSize, int[] groups) throws IOException {
         int rc = 0;
@@ -419,11 +419,11 @@ public class DiskBasicTypeMZ extends DiskBasicTypeMZBase<DirectoryMz> {
 
         int limit = basic.getFatEndGroup() + 1;
         while (remain > 0 && limit >= 0) {
-            // 使用しているか
+            // Whether it is used
             boolean usedGroup = isUsedGroupNumber(groupNum);
             if (!usedGroup) {
                 if (prevGroup > 0 && prevGroup <= basic.getFatEndGroup()) {
-                    // 使用済みにする
+                    // Mark as used
                     basic.getNumsFromGroup(prevGroup, groupNum, secSize, remain, groupItems);
                     setGroupNumber(prevGroup, 1);
                     fileSize[0] += (basic.getSectorSize() * basic.getSectorsPerGroup());
@@ -432,56 +432,56 @@ public class DiskBasicTypeMZ extends DiskBasicTypeMZBase<DirectoryMz> {
                 remain -= (secSize * basic.getSectorsPerGroup());
                 prevGroup = groupNum;
             }
-            // 次のグループ
+            // Next group
             groupNum++;
             limit--;
         }
         if (prevGroup > 0 && prevGroup <= basic.getFatEndGroup()) {
-            // 使用済みにする
+            // Mark as used
             basic.getNumsFromGroup(prevGroup, 0, secSize, remain, groupItems);
             setGroupNumber(prevGroup, 1);
             fileSize[0] += (basic.getSectorSize() * basic.getSectorsPerGroup());
             groups[0]++;
         }
         if (prevGroup > basic.getFatEndGroup()) {
-            // ファイルがオーバフローしている
+            // File is overflowing
             rc = -2;
         } else if (limit < 0) {
-            // 無限ループ？
+            // Infinite loop?
             rc = -2;
         }
         return rc;
     }
 
-    /** ルートディレクトリか */
+    /** Whether it is the root directory */
     @Override
     public boolean isRootDirectory(int groupNum) {
-        // オフセット未満だったらルート
+        // If it is less than the offset, it is root
         return (basic.invertUint8((byte) fat.get(1)) & 0xFF) > groupNum;    // invert
     }
 
-    /** サブディレクトリを作成できるか */
+    /** Whether a subdirectory can be created */
     @Override
     public boolean canMakeDirectory() {
         return true;
     }
 
-    /** サブディレクトリを作成する前にディレクトリ名を編集する */
+    /** Edit directory name before creating subdirectory */
     @Override
     public boolean renameOnMakingDirectory(String[] dirName) {
-        // 空や"."で始まるディレクトリは作成不可
+        // Directories starting with empty or "." cannot be created
         if (dirName[0].isEmpty() || dirName[0].startsWith(".")) {
             return false;
         }
         return true;
     }
 
-    /** サブディレクトリを作成した後の個別処理 */
+    /** Individual processing after creating subdirectory */
     @Override
     public void additionalProcessOnMadeDirectory(DiskBasicDirItem<DirectoryMz> item, DiskBasicGroups groupItems, DiskBasicDirItem<DirectoryMz> parentItem) throws IOException {
         if (groupItems.size() <= 0) return;
 
-        // ボリューム番号、カレントと親ディレクトリのエントリを作成する
+        // Create entries for volume number, current, and parent directory
         DiskBasicGroupItem gItem = groupItems.get(0);
 
         DiskImageSector sector = basic.getDisk().getSector(gItem.track, gItem.side, gItem.sectorStart);
@@ -507,10 +507,10 @@ public class DiskBasicTypeMZ extends DiskBasicTypeMZBase<DirectoryMz> {
 
         // Parent directory ('..')
         if (parentItem != null) {
-            // 親がサブディレクトリ
+            // Parent is subdirectory
             newItem.copyData(parentItem.getRawData());
         } else {
-            // 親がルート
+            // Parent is root
             newItem.copyData(item.getRawData());
             newItem.setStartGroup(0, 0);
         }
@@ -518,7 +518,7 @@ public class DiskBasicTypeMZ extends DiskBasicTypeMZBase<DirectoryMz> {
         newItem.setFileAttr(FORMAT_TYPE_UNKNOWN, FILE_TYPE_DIRECTORY_MASK.getValue() | FILE_TYPE_READONLY_MASK.getValue(), 0);
     }
 
-    /** セクタデータを埋めた後の個別処理 */
+    /** Individual processing after filling sector data */
     @Override
     public boolean additionalProcessOnFormatted(DiskBasicIdentifiedData data) throws IOException {
         // IPL
@@ -544,7 +544,7 @@ public class DiskBasicTypeMZ extends DiskBasicTypeMZBase<DirectoryMz> {
             volumeNumber = (byte) volumeString.charAt(0);
         }
 
-        // FATエリア
+        // FAT area
         DiskBasicFatArea fats = fat.getDiskBasicFatArea();
         for (int n = 0; n < fats.size(); n++) {
             DiskBasicFatBuffer fatBuf = fat.getDiskBasicFatBuffer(n, 0);
@@ -557,14 +557,14 @@ public class DiskBasicTypeMZ extends DiskBasicTypeMZBase<DirectoryMz> {
             Serdes.Util.deserialize(new ByteArrayInputStream(buf), fDat);
 
             fDat.volume = volumeNumber;
-            // トラック1 サイド1 から
+            // From track 1 side 1
             fDat.offset = (byte) (getSectorPosFromNum(1, 1, 1) / basic.getSectorsPerGroup());
-            // 使用クラスタ数
+            // Number of used clusters
             fDat.used = fDat.offset;
-            // 最大クラスタ数
+            // Maximum number of clusters
             //fDat.all = basic.getFatEndGroup() + 1;
             fDat.all = (short) (basic.getTracksPerSide() * basic.getSidesPerDiskOnBasic() * basic.getSectorsPerTrackOnBasic() / basic.getSectorsPerGroup());
-            // セクタ数/グループ
+            // Number of sectors per group
             fDat.magnitude = (byte) (basic.getSectorsPerGroup() - 1);
 
             // invert
@@ -573,7 +573,7 @@ public class DiskBasicTypeMZ extends DiskBasicTypeMZBase<DirectoryMz> {
             // TODO write back fDat
         }
 
-        // DIRエリア
+        // DIR area
         DirectoryMz ditV = new DirectoryMz(), ditM = new DirectoryMz();
         ditV.type = (byte) 0x80;    // VOL
         Arrays.fill(ditV.name, (byte) 0x0d);
@@ -593,7 +593,7 @@ public class DiskBasicTypeMZ extends DiskBasicTypeMZBase<DirectoryMz> {
                 while (pos < sector.getSectorBufferSize()) {
                     ByteArrayOutputStream baos = new ByteArrayOutputStream();
                     if (index == 0) {
-                        // 先頭にはボリューム番号を設定
+                        // Set volume number at the beginning
                         Serdes.Util.serialize(ditV, baos);
                         System.arraycopy(baos.toByteArray(), 0, buf, pos, DirectoryMz.SIZE); // TODO this may not write back, we need setSectorBuffer method
                     } else {
@@ -611,7 +611,7 @@ public class DiskBasicTypeMZ extends DiskBasicTypeMZBase<DirectoryMz> {
         return true;
     }
 
-    /** データの読み込み/比較処理 */
+    /** Data read/comparison processing */
     @Override
     public int accessFile(int fileUnitNum, DiskBasicDirItem<DirectoryMz> item, InputStream iStream, OutputStream oStream,
                           byte[] sectorBuffer, int originalSectorSize, int remainSize, int sectorNum, int sectorEnd) throws IOException {
@@ -619,7 +619,7 @@ public class DiskBasicTypeMZ extends DiskBasicTypeMZBase<DirectoryMz> {
 
         int sectorSize = originalSectorSize;
         if (needChain) {
-            // セクタの最終バイトはチェイン用セクタ番号がある
+            // The final byte of the sector has the sector number for chaining
             sectorSize -= 2;
         }
 
@@ -627,27 +627,27 @@ public class DiskBasicTypeMZ extends DiskBasicTypeMZBase<DirectoryMz> {
 
         byte[] temp;
         if (oStream != null) {
-            // 書き出し
+            // Writing out
             temp = Arrays.copyOfRange(sectorBuffer, 0, size);
             if (basic.isDataInverted()) Common.invertMemory(temp, temp.length);
 
             oStream.write(temp, 0, temp.length);
         }
         if (iStream != null) {
-            // 読み込んで比較
+            // Read and compare
             temp = new byte[size];
             int bytesRead = iStream.read(temp, 0, temp.length);
             if (basic.isDataInverted()) Common.invertMemory(temp, temp.length);
 
             if (!Arrays.equals(temp, 0, temp.length, sectorBuffer, 0, size)) {
-                // データが異なる
+                // Data is different
                 return -1;
             }
         }
         return size;
     }
 
-    /** データの書き込み処理 */
+    /** Data write process */
     @Override
     public int writeFile(DiskBasicDirItem<DirectoryMz> item, InputStream iStream, byte[] buffer, int originalSize,
                          int remain, int sectorNum, int groupNum, int nextGroup, int sectorEnd, int seqNum) throws IOException {
@@ -660,26 +660,26 @@ public class DiskBasicTypeMZ extends DiskBasicTypeMZBase<DirectoryMz> {
         }
 
         if (remain <= size) {
-            // 残り少ない
+            // Few left
             if (remain < 0) remain = 0;
             if (remain > 0) {
                 iStream.readNBytes(buffer, 0, remain);
             }
             if (size > remain) {
-                // バッファの余りは0サプレス
+                // Remaining buffer is zero-suppressed
                 Arrays.fill(buffer, remain, size, (byte) 0);
             }
             len = remain;
         } else {
-            // 継続
+            // Continuous
             iStream.readNBytes(buffer, 0, size);
             len = size;
         }
 
-        // チェーン用のセクタ番号を書く
+        // Write sector number for chain
         if (needChain) {
             int nextSector = groupNum * basic.getSectorsPerGroup();
-            // 次のデータがあるセクタ番号を入れる
+            // Put the sector number where the next data exists
             if (sectorNum < sectorEnd) {
                 nextSector++;
             } else {
@@ -689,40 +689,40 @@ public class DiskBasicTypeMZ extends DiskBasicTypeMZBase<DirectoryMz> {
             ByteBuffer.wrap(buffer, size, 2).order(ByteOrder.LITTLE_ENDIAN).putShort(0, (short) nextSector);
         }
 
-        // 反転
+        // Invert
         basic.invertMemory(buffer, originalSize);
 
         return len;
     }
 
-    /** データの書き込み終了後の処理 */
+    /** Processing after data write completion */
     @Override
     public void additionalProcessOnSavedFile(DiskBasicDirItem<DirectoryMz> item) throws IOException {
         if (item == null || !item.getFileAttr().isDirectory()) return;
 
-        // ディレクトリの場合は、下位にあるボリューム名も変更する
+        // In case of directory, also change the volume name below
         DiskImageSector sector = basic.getSectorFromGroup(item.getStartGroup(0));
         if (sector == null) return;
 
         byte[] buf = sector.getSectorBuffer();
         DiskBasicDirItem<DirectoryMz> newitem = basic.createDirItem(sector, 0, buf, 0);
 
-        // ボリューム名をコピー
+        // Copy volume name
         if (!newitem.isSameFileName(item, basic.isCompareCaseInsensitive())) {
             newitem.copyFileName(item);
         }
     }
 
-    /** ファイル名変更後の処理 */
+    /** Processing after file rename */
     @Override
     public void additionalProcessOnRenamedFile(DiskBasicDirItem<DirectoryMz> item) throws IOException {
         additionalProcessOnSavedFile(item);
     }
 
-    /** IPLや管理エリアの属性を得る */
+    /** Get attributes of IPL and managed area */
     @Override
     public void getIdentifiedData(DiskBasicIdentifiedData data) {
-        // ルートディレクトリのボリューム番号
+        // Volume number of root directory
         DiskBasicDirItem<DirectoryMz> dItem = dir.findFileByAttrOnRoot(FILE_TYPE_VOLUME_MASK.getValue(), FILE_TYPE_VOLUME_MASK.getValue() | FILE_TYPE_DIRECTORY_MASK.getValue(), null);
         if (dItem != null) {
             byte[] buf = new byte[8];
@@ -732,7 +732,7 @@ public class DiskBasicTypeMZ extends DiskBasicTypeMZBase<DirectoryMz> {
         }
     }
 
-    /** IPLや管理エリアの属性をセット */
+    /** Set attributes of IPL and managed area */
     @Override
     public void setIdentifiedData(DiskBasicIdentifiedData data) {
     }

@@ -62,7 +62,7 @@ public class UiDirItemX1HU extends UiDirItem {
         int t1 = (dirItem.getFileType1() | (dirItem.externalAttr << 16));
 
         if ((show_flags & INTNAME_NEW_FILE) != 0) {
-            // 外部からインポート時 (When importing from outside)
+            // When importing from external
             t1 = dirItem.convOriginalTypeFromFileName(file_path);
         }
 
@@ -98,7 +98,7 @@ public class UiDirItemX1HU extends UiDirItem {
             }
         }
 
-        // ユーザ定義データ X1ではファイルパスワード (User defined data: file password in X1)
+        // User defined data: file password in X1
         int passwd;
         if ((show_flags & INTNAME_NEW_FILE) != 0) {
             passwd = DATATYPE_X1HU_PASSWORD_NONE;
@@ -121,7 +121,7 @@ public class UiDirItemX1HU extends UiDirItem {
     // Initialize for attribute dialog
     @Override
     public void initializeForAttrDialog(IntNameBox parent, int show_flags, int[] user_data) {
-        // 日付が０なら日付を無視するにチェック (Check ignore date if date is 0)
+        // Check ignore date if date is 0
         if ((show_flags & INTNAME_NEW_FILE) == 0) {
             LocalDateTime tm = LocalDateTime.now();
             dirItem.getFileCreateDateTime(tm); // Assumed method call
@@ -190,7 +190,7 @@ public class UiDirItemX1HU extends UiDirItem {
         int t1 = calcFileTypeFromPos(getFileType1InAttrDialog(parent));
         t1 |= getFileType2InAttrDialog(parent);
 
-        // ユーザ定義データ X1ではファイルパスワード (User defined data: file password in X1)
+        // User defined data: file password in X1
         JCheckBox chkEncrypt = (JCheckBox) parent.getComponent(IDC_CHECK_ATTR1 + TYPE_NAME_X1HU_PASSWORD);
         int passwd = DATATYPE_X1HU_PASSWORD_NONE;
         if (chkEncrypt.getValue()) {

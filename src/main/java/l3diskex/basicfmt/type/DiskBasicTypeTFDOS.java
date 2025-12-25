@@ -30,51 +30,51 @@ import static l3diskex.Utils.TEMP_DATA_SIZE;
 
 
 /**
- * TF-DOSの処理
+ * TF-DOS processing
  * <p>
- * DiskBasicParam 固有のパラメータ
+ * DiskBasicParam Specific parameters
  *
- * <li>IDString  セクタ1のIPL</li>
- * <li>VolumeString FAT領域にあるボリューム名</li>
- * <li>ReservedGroups 使用済みにするトラック</li>
+ * <li>IDString  IPL in sector 1</li>
+ * <li>VolumeString volume name in FAT area</li>
+ * <li>ReservedGroups tracks to be marked as used</li>
  *
  * @see "http://fukui.s17.xrea.com/retro/tfdos/index.html"
  */
 public class DiskBasicTypeTFDOS extends DiskBasicTypeMZBase<DirectoryTfDos> {
 
-    /** TF-DOS IPLセクタ */
+    /** TF-DOS IPL sector */
     @Serdes
     static class TfDosIpl {
 
         @Element(sequence = 1)
         public byte[] ipl = new byte[0xf0];
-        // 起動時の自動実行コマンド
-        // 0D以外の時、TF-DOSは+$00F0に格納された0D終端の文字列をコマンド
-        // とみて自動実行します。
+        // Automatic execution command at boot
+        // When it is other than 0D, TF-DOS treats the 0D-terminated string stored at +$00F0 as a command
+        // and executes it automatically.
         @Element(sequence = 2)
         public byte[] autoStart = new byte[0x10];
 
         public static int SIZE = 0xf0 + 0x10;
     }
 
-    /** TF-DOS FATセクタ */
+    /** TF-DOS FAT sector */
     @Serdes
     static class TfDosFat {
 
         @Element(sequence = 1)
         public byte[] fat = new byte[0xc0];
-        // ボリューム番号 (0の時、Master)
+        // Volume number (when 0, Master)
         @Element(sequence = 2)
         public byte volumeNum;
         @Element(sequence = 3)
         public byte reserved1;
-        // ファイル管理番号 (TF-DOS V2.xでは必ず1)
+        // File management number (always 1 in TF-DOS V2.x)
         @Element(sequence = 4)
         public byte identNumber;
-        // ディスク中のDOSシステムのVersion (TF-DOS V2.xでは必ず2)
+        // DOS system version in the disk (always 2 in TF-DOS V2.x)
         @Element(sequence = 5)
         public byte versionNumber;
-        // マスターディスクには"TF-DOS MASTER"と記述されている。
+        // The master disk is described as "TF-DOS MASTER".
         @Element(sequence = 6)
         public byte[] volumeName = new byte[12];
         @Element(sequence = 7)
@@ -85,7 +85,7 @@ public class DiskBasicTypeTFDOS extends DiskBasicTypeMZBase<DirectoryTfDos> {
         public byte[] reserved3 = new byte[4];
     }
 
-    /** BASEコンパチファイルかどうか */
+    /** Whether it is a BASE compatible file */
     private boolean isBaseCompatible;
 
     public static final int FORMAT_TYPE_TFDOS = 71;
@@ -103,40 +103,40 @@ public class DiskBasicTypeTFDOS extends DiskBasicTypeMZBase<DirectoryTfDos> {
     }
 
     /**
-     * FATエリアをチェック
+     * Check FAT area
      */
     @Override
     public double checkFat(boolean isFormatting) throws IOException {
         double validRatio = 1.0;
 
-        // グループサイズをトラックごとに調整
+        // Adjust group size per track
         basic.setSectorsPerGroup(basic.getSectorsPerTrack());
 
-        // 最終グループ番号
+        // Final group number
         int maxGroup = basic.getTracksPerSide() * basic.getSidesPerDiskOnBasic() - 1;
         basic.setFatEndGroup(maxGroup);
 
-        // FATエリア
+        // FAT area
         DiskBasicFatBuffer fatBuf = fat.getDiskBasicFatBuffer(0, 0);
         if (fatBuf == null) {
             return -1.0;
         }
 
-        // ファイル管理番号
+        // File management number
         TfDosFat f = new TfDosFat();
         byte[] b = fatBuf.getBuffer();
         Serdes.Util.deserialize(new ByteArrayInputStream(b), f);
         if (basic.invertUint8((byte) (f.identNumber & 0xff)) != 1) {
             return -1.0;
         }
-        // ボリューム名
+        // Volume name
         byte[] volumeName = new byte[12];
         basic.invertMemory(f.volumeName, f.volumeName.length, volumeName);
         if (!new String(volumeName, 0, 6).equals("TF-DOS")) {
             return -1.0;
         }
 
-        // 0 か 0xff 以外は無効
+        // Values other than 0 or 0xff are invalid
         for (int groupNum = 0; groupNum <= basic.getFatEndGroup() && groupNum < fatBuf.getSize(); groupNum++) {
             int value = basic.invertUint8((byte) fatBuf.get(groupNum));
             if (value != basic.getGroupUnusedCode() && value != basic.getGroupSystemCode()) {
@@ -149,7 +149,7 @@ public class DiskBasicTypeTFDOS extends DiskBasicTypeMZBase<DirectoryTfDos> {
     }
 
     /**
-     * FAT位置をセット
+     * Set FAT position
      */
     @Override
     public void setGroupNumber(int num, int val) {
@@ -174,7 +174,7 @@ public class DiskBasicTypeTFDOS extends DiskBasicTypeMZBase<DirectoryTfDos> {
     }
 
     /**
-     * FAT位置が使用されているか
+     * Whether FAT position is used
      */
     @Override
     public boolean isUsedGroupNumber(int num) {
@@ -189,7 +189,7 @@ public class DiskBasicTypeTFDOS extends DiskBasicTypeMZBase<DirectoryTfDos> {
             return true;
         }
 
-        // FATには未使用使用テーブルがある
+        // FAT has an unused/used table
         if (num < fatBuf.getSize()) {
             if (basic.invertUint8((byte) fatBuf.get(num)) != basic.getGroupUnusedCode()) {
                 exist = true;
@@ -199,7 +199,7 @@ public class DiskBasicTypeTFDOS extends DiskBasicTypeMZBase<DirectoryTfDos> {
     }
 
     /**
-     * 次のグループ番号を得る
+     * Get next group number
      */
     @Override
     public int getNextGroupNumber(int num, int sector_pos) {
@@ -207,7 +207,7 @@ public class DiskBasicTypeTFDOS extends DiskBasicTypeMZBase<DirectoryTfDos> {
     }
 
     /**
-     * 空き位置を返す
+     * Returns a free position
      */
     @Override
     public int getEmptyGroupNumber() {
@@ -215,7 +215,7 @@ public class DiskBasicTypeTFDOS extends DiskBasicTypeMZBase<DirectoryTfDos> {
     }
 
     /**
-     * データサイズ分のグループを確保する
+     * Allocate groups for data size
      */
     @Override
     public int allocateUnitGroups(int fileUnitNum, DiskBasicDirItem<DirectoryTfDos> item, int dataSize, AllocateGroupFlags flags, DiskBasicGroups[] groupItems) throws IOException {
@@ -226,29 +226,29 @@ public class DiskBasicTypeTFDOS extends DiskBasicTypeMZBase<DirectoryTfDos> {
         int remain = dataSize;
         int sectorSize = basic.getSectorSize();
 
-        // 必要なグループ数
+        // Required number of groups
         int groupSize = ((dataSize - 1) / sectorSize / basic.getSectorsPerGroup()) + 1;
 
-        // 未使用が連続している位置をさがす
+        // Find a position where unused are continuous
         int[] groupStart = new int[1]; // Simulate pass-by-reference
         int count = findContinuousArea(groupSize, groupStart);
         if (count < groupSize) {
-            // 十分な空きがない
+            // Not enough free space
             rc = -1;
             return rc;
         }
 
-        // 開始グループ決定
+        // Start group decided
         item.setStartGroup(fileUnitNum, groupStart[0]);
 
-        // 領域を確保する
+        // Allocate area
         rc = allocateGroupsSub(item, groupStart[0], remain, sectorSize, groupItems[0], fileSize, groups);
 
         return rc;
     }
 
     /**
-     * データの読み込み/比較処理
+     * Data read/comparison processing
      */
     @Override
     public int accessFile(int fileUnitNum, DiskBasicDirItem<DirectoryTfDos> item, InputStream iStream, OutputStream oStream,
@@ -257,20 +257,20 @@ public class DiskBasicTypeTFDOS extends DiskBasicTypeMZBase<DirectoryTfDos> {
 
         byte[] temp;
         if (oStream != null) {
-            // 書き出し
+            // Writing out
             temp = Arrays.copyOfRange(sectorBuffer, 0, size);
             if (basic.isDataInverted()) Common.invertMemory(temp, temp.length);
 
             oStream.write(temp, 0, temp.length);
         }
         if (iStream != null) {
-            // 読み込んで比較
+            // Read and compare
             temp = new byte[size];
             iStream.readNBytes(temp, 0, temp.length);
             if (basic.isDataInverted()) Common.invertMemory(temp, temp.length);
 
             if (!Arrays.equals(temp, 0, temp.length, sectorBuffer, 0, size)) {
-                // データが異なる
+                // Data is different
                 return -1;
             }
         }
@@ -278,31 +278,31 @@ public class DiskBasicTypeTFDOS extends DiskBasicTypeMZBase<DirectoryTfDos> {
     }
 
     /**
-     * 内部ファイルをエクスポートする際に内容を変換
+     * Convert contents when exporting an internal file
      */
     @Override
     public boolean convertDataForLoad(DiskBasicDirItem<DirectoryTfDos> item, InputStream iStream, OutputStream oStream) throws IOException {
-        // BASEコンパチファイル
+        // BASE compatible file
         isBaseCompatible = (item.getFileAttr().isAscii() && item.getExternalAttr() == 1);
 
         int oSize = iStream.available();
 
         if (item.getFileAttr().isAscii() && item.getExternalAttr() > 0) {
-            // BASEコンパチファイル 最終バイトが0かどうかチェック
+            // BASE compatible file. Check if the final byte is 0.
             ((SeekableDataInputStream) iStream).position(oSize - 1);
             if (iStream.read() == 0) {
                 isBaseCompatible = true;
-                oSize--;	// 最終データは出力しない
+                oSize--;	// Do not output the last data
             }
             ((SeekableDataInputStream) iStream).position(0);
         }
         if (isBaseCompatible) {
-            // BASEコンパチの場合、TABコード($14 -> $09)変換
+            // In case of BASE compatible, convert TAB code ($14 -> $09)
             byte[] temp = new byte[TEMP_DATA_SIZE];
             while (oSize > 0) {
                 int len = iStream.readNBytes(temp, 0, temp.length);
                 if (len <= 0) break;
-                // TABコード($14 -> $09)変換
+                // TAB code ($14 -> $09) conversion
                 for (int pos = 0; pos < temp.length; pos++) {
                     if (temp[pos] == 0x14) temp[pos] = 0x09;
                 }
@@ -310,7 +310,7 @@ public class DiskBasicTypeTFDOS extends DiskBasicTypeMZBase<DirectoryTfDos> {
                 oSize -= len;
             }
         } else {
-            // 変換しない
+            // Do not convert
             byte[] buffer = new byte[4096];
             int len;
             while ((len = iStream.read(buffer)) > 0) {
@@ -321,29 +321,29 @@ public class DiskBasicTypeTFDOS extends DiskBasicTypeMZBase<DirectoryTfDos> {
     }
 
     /**
-     * エクスポートしたファイルをベリファイする際に内容を変換
+     * Convert contents when verifying an exported file
      */
     @Override
     public boolean convertDataForVerify(DiskBasicDirItem<DirectoryTfDos> item, InputStream iStream, OutputStream oStream) throws IOException {
         int oSize = iStream.available();
 
         if (isBaseCompatible) {
-            // BASEコンパチの場合、TABコード($09 -> $14)変換
+            // In case of BASE compatible, convert TAB code ($09 -> $14)
             byte[] temp = new byte[TEMP_DATA_SIZE];
             while (oSize > 0) {
                 int len = iStream.read(temp, 0, temp.length);
                 if (len <= 0) break;
-                // TABコード($09 -> $14)変換
+                // TAB code ($09 -> $14) conversion
                 for (int pos = 0; pos < temp.length; pos++) {
                     if (temp[pos] == 0x09) temp[pos] = 0x14;
                 }
                 oStream.write(temp, 0,  len > oSize ? oSize : len);
                 oSize -= len;
             }
-            // 最後に$00を出力
+            // Finally output $00
             oStream.write(0);
         } else {
-            // 変換しない
+            // Do not convert
             byte[] buffer = new byte[4096];
             int len;
             while ((len = iStream.read(buffer)) > 0) {
@@ -354,7 +354,7 @@ public class DiskBasicTypeTFDOS extends DiskBasicTypeMZBase<DirectoryTfDos> {
     }
 
     /**
-     * グループ番号から最終セクタ番号を得る
+     * Get final sector number from group number
      */
     @Override
     public int getEndSectorFromGroup(int groupNum, int nextGroup, int sectorStart, int sectorSize, int remainSize) {
@@ -369,16 +369,16 @@ public class DiskBasicTypeTFDOS extends DiskBasicTypeMZBase<DirectoryTfDos> {
     }
 
     /**
-     * ルートディレクトリか
+     * Whether it is the root directory
      */
     @Override
     public boolean isRootDirectory(int groupNum) {
-        // オフセット未満だったらルート
+        // If it is less than the offset, it is root
         return (basic.invertUint8((byte) fat.get(1)) & 0xff) > groupNum;	// invert
     }
 
     /**
-     * セクタデータを埋めた後の個別処理
+     * Individual processing after filling sector data
      */
     @Override
     public boolean additionalProcessOnFormatted(DiskBasicIdentifiedData data) throws IOException {
@@ -391,21 +391,21 @@ public class DiskBasicTypeTFDOS extends DiskBasicTypeMZBase<DirectoryTfDos> {
             byte[] b = sector.getSectorBuffer();
             Serdes.Util.deserialize(new ByteArrayInputStream(b), ipl);
             if (TfDosIpl.SIZE >= 0x100) {
-                // IPL文字列を設定
+                // Set IPL string
                 byte[] iplBytes = basic.getVariousStringParam("IDString").getBytes();
                 int len = iplBytes.length;
                 if (len > 0) {
                     if (len > TfDosIpl.SIZE) len = TfDosIpl.SIZE;
                     basic.invertMemory(iplBytes, len, ipl.ipl); // Copy to 0x00
                 }
-                // 自動実行はなし (autoStart starts at 0xf0)
+                // No automatic execution (autoStart starts at 0xf0)
                 for (int i = 0; i < 0x10; i++) {
                     ipl.autoStart[0xf0 + i] = basic.invertUint8((byte) 0x0d);
                 }
             }
         }
 
-        // FATエリア
+        // FAT area
         DiskBasicFatBuffer fatBuf = fat.getDiskBasicFatBuffer(0, 0);
         fatBuf.fill(basic.invertUint8(basic.getFillCodeOnFAT()));
 
@@ -413,25 +413,25 @@ public class DiskBasicTypeTFDOS extends DiskBasicTypeMZBase<DirectoryTfDos> {
         byte[] b = fatBuf.getBuffer();
         Serdes.Util.deserialize(new ByteArrayInputStream(b), f);
 
-        // システムエリアは使用済みにする
+        // Mark system area as used
         List<Integer> groups = basic.getReservedGroups();
         for (int group : groups) {
             if (group >= 0 && group < 0xc0) {
                 f.fat[group] = basic.invertUint8((byte) basic.getGroupSystemCode());
             }
         }
-        // オーバートラック部分は使用済みにする
+        // Mark overtrack portions as used
         for (int pos = basic.getFatEndGroup() + 1; pos < 0xc0; pos++) {
             f.fat[pos] = basic.invertUint8((byte) basic.getGroupSystemCode());
         }
 
-        // ボリューム番号を設定
+        // Set volume number
         int volumeNumber = data.getVolumeNumber();
         f.volumeNum = basic.invertUint8((byte) volumeNumber);
-        // バージョン番号を設定
+        // Set version number
         f.identNumber = basic.invertUint8((byte) 1);
         f.versionNumber = basic.invertUint8((byte) 2);
-        // ボリューム名を設定
+        // Set volume name
         byte[] volumeName;
         if (!data.getVolumeName().isEmpty()) {
             volumeName = data.getVolumeName().getBytes();
@@ -441,7 +441,7 @@ public class DiskBasicTypeTFDOS extends DiskBasicTypeMZBase<DirectoryTfDos> {
         System.arraycopy(volumeName, 0, f.volumeName, 0, f.volumeName.length);
         basic.invertMemory(f.volumeName, f.volumeName.length);
 
-        // DIRエリア
+        // DIR area
         int[] trackNum = new int[1], sideNum = new int[1], sectorNum = new int[1];
         for (int sectorPos = basic.getDirStartSector(); sectorPos <= basic.getDirEndSector(); sectorPos++) {
             getNumFromSectorPos(sectorPos - 1, trackNum, sideNum, sectorNum);
@@ -455,19 +455,19 @@ public class DiskBasicTypeTFDOS extends DiskBasicTypeMZBase<DirectoryTfDos> {
     }
 
     /**
-     * ファイルをセーブする前にデータを変換
+     * Convert data before saving file
      */
     @Override
     public boolean convertDataForSave(DiskBasicDirItem<DirectoryTfDos> item, InputStream iStream, OutputStream oStream) throws IOException {
-        // BASEコンパチファイル
+        // BASE compatible file
         isBaseCompatible = item.getFileAttr().isAscii() && item.getExternalAttr() == 1;
 
-        // 処理はベリファイと同じ
+        // Processing is same as verify
         return convertDataForVerify(item, iStream, oStream);
     }
 
     /**
-     * データの書き込み処理
+     * Data write process
      */
     @Override
     public int writeFile(DiskBasicDirItem<DirectoryTfDos> item, InputStream iStream, byte[] buffer, int size, int remain,
@@ -475,7 +475,7 @@ public class DiskBasicTypeTFDOS extends DiskBasicTypeMZBase<DirectoryTfDos> {
         int len = 0;
 
         if (remain <= size) {
-            // 残り少ない
+            // Few left
             if (remain < 0) remain = 0;
             if (remain > 0) {
                 byte[] temp = new byte[remain];
@@ -484,12 +484,12 @@ public class DiskBasicTypeTFDOS extends DiskBasicTypeMZBase<DirectoryTfDos> {
                 System.arraycopy(temp, 0, buffer, 0, temp.length);
             }
             if (size > remain) {
-                // バッファの余りは0サプレス
+                // Remaining buffer is zero-suppressed
                 Arrays.fill(buffer, remain, size, (byte) 0);
             }
             len = remain;
         } else {
-            // 継続
+            // Continuous
             byte[] temp = new byte[size];
             iStream.readNBytes(temp, 0, temp.length);
 
@@ -498,18 +498,18 @@ public class DiskBasicTypeTFDOS extends DiskBasicTypeMZBase<DirectoryTfDos> {
             len = size;
         }
 
-        // 反転
+        // Invert
         basic.invertMemory(buffer, size);
 
         return len;
     }
 
     /**
-     * IPLや管理エリアの属性を得る
+     * Get attributes of IPL and managed area
      */
     @Override
     public void getIdentifiedData(DiskBasicIdentifiedData data) throws IOException {
-        // FATエリア
+        // FAT area
         DiskBasicFatBuffer fatBuf = fat.getDiskBasicFatBuffer(0, 0);
         DiskBasicTypeTFDOS.TfDosFat f = new TfDosFat();
         Serdes.Util.deserialize(new ByteArrayInputStream(fatBuf.getBuffer()), f);
@@ -525,11 +525,11 @@ public class DiskBasicTypeTFDOS extends DiskBasicTypeMZBase<DirectoryTfDos> {
     }
 
     /**
-     * IPLや管理エリアの属性をセット
+     * Set attributes of IPL and managed area
      */
     @Override
     public void setIdentifiedData(DiskBasicIdentifiedData data) throws IOException {
-        // FATエリア
+        // FAT area
         DiskBasicFatBuffer fatBuf = fat.getDiskBasicFatBuffer(0, 0);
         TfDosFat f = new TfDosFat();
         Serdes.Util.deserialize(new ByteArrayInputStream(fatBuf.getBuffer()), f);

@@ -30,14 +30,14 @@ import static java.lang.System.getLogger;
 
 
 /**
- * X68000/PC9801用 DSK STR ディスクパーサ
+ * DSK STR disk parser for X68000/PC9801
  */
 public class DiskSTRParser extends DiskImageParser {
 
     private static final Logger logger = getLogger(DiskSTRParser.class.getName());
 
     /**
-     * DSKSTR 2次圧縮展開後バッファ
+     * DSKSTR secondary compression expanded buffer
      */
     public static class Expand2FIFOBuffer extends Utils.FIFOBuffer {
 
@@ -84,10 +84,10 @@ public class DiskSTRParser extends DiskImageParser {
     }
 
     private int compressType;
-    /** 入力データの圧縮形式 0:非圧縮 bit0:1次圧縮 bit1:2次圧縮 */
+    /** Compression format of input data 0: uncompressed bit0: primary compression bit1: secondary compression */
     private Expand2FIFOBuffer eStream = new Expand2FIFOBuffer();
 
-    /** DSKSTRヘッダ */
+    /** DSKSTR header */
     private static class StrHeader {
 
         int dataSize; // BE
@@ -106,7 +106,7 @@ public class DiskSTRParser extends DiskImageParser {
         }
     }
 
-    /** DSKSTRトラックヘッダ */
+    /** DSKSTR track header */
     private static class StrTrackHeader {
 
         byte attr;
@@ -150,7 +150,7 @@ public class DiskSTRParser extends DiskImageParser {
         }
     }
 
-    /** セクタID */
+    /** Sector ID */
     private static class StrSectorId {
 
         byte c;
@@ -186,22 +186,22 @@ public class DiskSTRParser extends DiskImageParser {
     }
 
     /**
-     * セクタデータの作成
+     * Create sector data
      *
-     * @param iStream       ディスクイメージ
-     * @param diskNumber    ディスク番号
-     * @param trackNumber   トラック番号
-     * @param sideNumber    サイド番号
-     * @param numOfSectors  セクタ数
-     * @param sectorNumber  セクタ番号
-     * @param sectorSize    セクタサイズ
-     * @param singleDensity 単密度か
-     * @param track         トラック
-     * @return ヘッダ込みのセクタサイズ
+     * @param iStream       Disk image
+     * @param diskNumber    Disk number
+     * @param trackNumber   Track number
+     * @param sideNumber    Side number
+     * @param numOfSectors  Number of sectors
+     * @param sectorNumber  Sector number
+     * @param sectorSize    Sector size
+     * @param singleDensity Whether single density
+     * @param track         Track
+     * @return Sector size including header
      */
     private static int parseSector(InputStream iStream, int diskNumber, int trackNumber, int sideNumber, int numOfSectors,
                                    int sectorNumber, int sectorSize, boolean singleDensity, DiskImageTrack track) throws IOException {
-        // セクタ作成
+        // Sector creation
         DiskImageSector sector = track.newImageSector(trackNumber, sideNumber, sectorNumber, sectorSize, numOfSectors, false, 0);
         track.add(sector);
 
@@ -213,31 +213,31 @@ public class DiskSTRParser extends DiskImageParser {
         sector.setSingleDensity(singleDensity);
         sector.clearModify();
 
-        // このセクタデータのサイズを返す
+        // Return size of this sector data
         return sector.getSize();
     }
 
     /**
-     * トラックデータの作成
+     * Create track data
      *
      * TODO check seekable
      *
-     * @param iStream    ディスクイメージ
-     * @param diskNumber ディスク番号
-     * @param offsetPos  オフセット番号
-     * @param offset     オフセット位置
-     * @param disk       ディスク
-     * @return -1: エラー or 終り, >0: トラックサイズ
+     * @param iStream    Disk image
+     * @param diskNumber Disk number
+     * @param offsetPos  Offset number
+     * @param offset     Offset position
+     * @param disk       Disk
+     * @return -1: Error or end, >0: Track size
      */
     private int parseTrack(InputStream iStream, int diskNumber, int offsetPos, int offset, DiskImageDisk disk) throws IOException {
         StrTrackHeader trackHeader = new DiskSTRParser.StrTrackHeader();
 
-        // 圧縮データを展開
+        // Expand compressed data
         ByteArrayOutputStream oestream = new ByteArrayOutputStream();
         int oeLimit = StrTrackHeader.SIZE;
         int rc = expandFirst(iStream, oestream, oeLimit);
 
-        // ヘッダをチェック
+        // Check header
         byte[] trackHeaderBytes = oestream.toByteArray();
         ByteArrayInputStream ieStreamHeader = new ByteArrayInputStream(trackHeaderBytes);
         trackHeader.read(ieStreamHeader);
@@ -254,9 +254,9 @@ public class DiskSTRParser extends DiskImageParser {
             return -1;
         }
 
-        // データ開始位置
+        // Data start position
         oeLimit = trackHeader.getOffdLE() & 0xffff;
-        // 圧縮データを展開つづき
+        // Continue expanding compressed data
         rc = expandNext(iStream, oestream, oeLimit);
 
         byte[] attr = new byte[256];
@@ -268,11 +268,11 @@ public class DiskSTRParser extends DiskImageParser {
         trackHeaderBytes = oestream.toByteArray();
         ByteArrayInputStream ieStream = new ByteArrayInputStream(trackHeaderBytes);
 
-        // セクタ属性を得る
+        // Get sector attribute
         ieStream.skipNBytes(trackHeader.getOff1LE() & 0xffff);
 
         for (int sec = 0; sec < sectorsPerTrack; sec += 4) {
-            // 4バイト境界
+            // 4-byte boundary
             int readLen = ieStream.read(attr, sec, 4);
             if (readLen < 4) {
                 result.setError(DiskResult.ERRV_DISK_HEADER, diskNumber);
@@ -280,7 +280,7 @@ public class DiskSTRParser extends DiskImageParser {
             }
         }
 
-        // セクタIDを得る
+        // Get sector ID
         ieStream.skipNBytes(trackHeader.getOff2LE() & 0xffff);
 
         for (int sec = 0; sec < sectorsPerTrack; sec++) {
@@ -305,7 +305,7 @@ public class DiskSTRParser extends DiskImageParser {
             oeLimit += sectorSize;
         }
 
-        // 圧縮データを展開つづき
+        // Continue expanding compressed data
         rc = expandNext(iStream, oestream, oeLimit);
         trackHeaderBytes = oestream.toByteArray();
 
@@ -314,7 +314,7 @@ public class DiskSTRParser extends DiskImageParser {
         ieStream = new ByteArrayInputStream(trackHeaderBytes);
         ieStream.skipNBytes(trackHeader.getOffdLE() & 0xffff);
 
-        // トラックの作成
+        // Create track
         track = disk.newImageTrack(id[0].c & 0xff, id[0].h & 0xff, offsetPos, 1);
         disk.setMaxTrackNumber(id[0].c & 0xff);
 
@@ -324,23 +324,23 @@ public class DiskSTRParser extends DiskImageParser {
                     sectorsPerTrack, id[pos].r & 0xff, sectorSize, (attr[pos] & 0x40) == 0, track);
         }
 
-        // 入力データの位置を補正
+        // Adjust position of input data
         adjustIStream(iStream);
 
         if (result.getValid() >= 0) {
-            // インターリーブの計算
+            // Calculate interleave
             track.calcInterleave();
         }
 
         if (result.getValid() >= 0) {
-            // トラックサイズ設定
+            // Set track size
             track.setSize(trackSize);
-            // サイド番号は各セクタのID Hに合わせる
+            // Side number matches ID H of each sector
             track.setSideNumber(track.getMajorIDH());
 
-            // ディスクに追加
+            // Add to disk
             disk.add(track);
-            // オフセット設定
+            // Set offset
             disk.setOffset(offsetPos, offset);
         }
 
@@ -348,10 +348,10 @@ public class DiskSTRParser extends DiskImageParser {
     }
 
     /**
-     * ファイルを解析
+     * Analyze file
      *
-     * @param iStream    解析対象データ
-     * @param diskNumber ディスク番号
+     * @param iStream    Data to be analyzed
+     * @param diskNumber Disk number
      * @return -1: finish parsing, 0: parse next disk
      */
     private int parseDisk(InputStream iStream, int diskNumber) throws IOException {
@@ -360,10 +360,10 @@ public class DiskSTRParser extends DiskImageParser {
             return -1;
         }
 
-        // ディスク作成
+        // Create disk
         DiskImageDisk disk = file.newImageDisk(diskNumber);
 
-        // トラック解析
+        // Track analysis
         int d88Offset = disk.getOffsetStart(); // header size
         int d88OffsetPos = 0;
         for (int pos = 0; pos < 204; pos++) {
@@ -381,7 +381,7 @@ public class DiskSTRParser extends DiskImageParser {
         disk.setSize(d88Offset);
 
         if (result.getValid() >= 0) {
-            // ディスクを追加
+            // Add disk
             DiskParam diskParam = disk.calcMajorNumber();
             if (diskParam != null) {
                 disk.setDensity(diskParam.getParamDensity());
@@ -393,11 +393,11 @@ public class DiskSTRParser extends DiskImageParser {
     }
 
     /**
-     * ヘッダ解析
+     * Header analysis
      *
-     * @param iStream    解析対象データ
-     * @param diskNumber ディスク番号
-     * @return -1: エラー, 0:
+     * @param iStream    Data to be analyzed
+     * @param diskNumber Disk number
+     * @return -1: Error, 0:
      */
     private int parseHeader(InputStream iStream, int diskNumber) throws IOException {
         byte[] buf = new byte[16];
@@ -444,13 +444,13 @@ public class DiskSTRParser extends DiskImageParser {
     }
 
     /**
-     * 入力ストリームの位置を補正する
+     * Correct position of input stream
      *
-     * @param iStream 元データ
+     * @param iStream Original data
      */
     private void adjustIStream(InputStream iStream) throws IOException {
         if ((compressType & 2) != 0) {
-            // 2次圧縮の場合、入力データを読み過ぎている場合があるので位置を補正する
+            // In the case of secondary compression, the input data may have been read too much, so correct the position
             int match = -1;
             long readPos = eStream.getReadPos();
             for (int i = 0; i < 8; i++) {
@@ -468,20 +468,20 @@ public class DiskSTRParser extends DiskImageParser {
     }
 
     /**
-     * 圧縮データを判定して展開
+     * Determine and expand compressed data
      *
-     * @param iStream 元データ
-     * @param oStream 展開後データ
-     * @param oLimit  出力バッファサイズ
+     * @param iStream Original data
+     * @param oStream Data after expansion
+     * @param oLimit  Output buffer size
      * @return -1: no data
      */
     private int expandFirst(InputStream iStream, OutputStream oStream, int oLimit) throws IOException {
-        // データなし？
+        // No data?
         if (iStream.available() == 0) {
             return -1;
         }
 
-        // 最初のデータ
+        // First data
         compressType = 0;
         int pos = (int) ((SeekableDataInputStream) iStream).position();
         int ch = iStream.read();
@@ -495,53 +495,53 @@ public class DiskSTRParser extends DiskImageParser {
 
         eStream.clear();
         if ((compressType & 2) != 0) {
-            // 2次圧縮データを展開
+            // Expand secondary compressed data
             expand2(iStream, oStream, oLimit, true);
         } else if ((compressType & 1) != 0) {
-            // 1次圧縮データを展開
+            // Expand primary compressed data
             expand1(iStream, oStream, oLimit);
         } else {
-            // 非圧縮データ
+            // Uncompressed data
             expand0(iStream, oStream, oLimit);
         }
         return 0;
     }
 
     /**
-     * 圧縮データを展開つづき
+     * Continue expanding compressed data
      *
-     * @param iStream 元データ
-     * @param oStream 展開後データ
-     * @param oLimit  出力バッファサイズ
+     * @param iStream Original data
+     * @param oStream Data after expansion
+     * @param oLimit  Output buffer size
      */
     private int expandNext(InputStream iStream, OutputStream oStream, int oLimit) throws IOException {
         if ((compressType & 2) != 0) {
-            // 2次圧縮データを展開
+            // Expand secondary compressed data
             expand2(iStream, oStream, oLimit, false);
         } else if ((compressType & 1) != 0) {
-            // 1次圧縮データとみなす
+            // Regard as primary compressed data
             expand1(iStream, oStream, oLimit);
         } else {
-            // 非圧縮データ
+            // Uncompressed data
             expand0(iStream, oStream, oLimit);
         }
         return 0;
     }
 
     /**
-     * 2次圧縮データを展開
+     * Expand secondary compressed data
      *
-     * @param iStream 元データ
-     * @param oStream 展開後データ
-     * @param oLimit  出力バッファサイズ
-     * @param first   最初か
+     * @param iStream Original data
+     * @param oStream Data after expansion
+     * @param oLimit  Output buffer size
+     * @param first   Whether it's the first time
      */
     private void expand2(InputStream iStream, OutputStream oStream, int oLimit, boolean first) throws IOException {
         boolean cont;
         do {
             expand2Element(iStream);
             if (first) {
-                // 1次圧縮しているか
+                // Whether primary compression is used
                 int ch = eStream.peekByte();
                 if (ch == 0x08 || ch == 0x0c) {
                     compressType |= 1;
@@ -549,20 +549,20 @@ public class DiskSTRParser extends DiskImageParser {
                 first = false;
             }
             if ((compressType & 1) != 0) {
-                // 1次圧縮データを展開
+                // Expand primary compressed data
                 cont = expand1Element(oStream, oLimit);
             } else {
-                // 非圧縮データ
+                // Uncompressed data
                 cont = expand0Element(oStream, oLimit);
             }
         } while (cont);
     }
 
     /**
-     * 2次圧縮データを展開
+     * Expand secondary compressed data
      *
-     * @param iStream 元データ
-     * estreamを入力ストリームとする
+     * @param iStream Original data
+     * Use eStream as input stream
      */
     private void expand2Element(InputStream iStream) throws IOException {
         byte[] iBuf = new byte[16];
@@ -598,7 +598,7 @@ public class DiskSTRParser extends DiskImageParser {
         iBufLen = 0;
         for (int i = 0; i < 8; i++) {
             if ((tempCmd & 1) != 0) {
-                // そのまま出力
+                // Output as is
                 eStream.appendByte(iBuf[iBufLen++]);
                 eStream.setEStreamPos(i + 1, eStream.getWritePos());
             } else {
@@ -609,7 +609,7 @@ public class DiskSTRParser extends DiskImageParser {
                 int index = ((d2 & 0xf0) << 4) | d1;
                 index += 18;
 
-                // コピー元となるデータ位置を計算
+                // Calculate data position to be the source of copy
                 int eLen = eStream.getWritePos();
                 if (eLen >= 0x2000) {
                     index += (eLen & ~0xfff) - 0x1000;
@@ -617,14 +617,14 @@ public class DiskSTRParser extends DiskImageParser {
                     index -= 0x1000;
                 }
 
-                // index: 展開後データの絶対位置となる
+                // index: Absolute position of expanded data
                 if (index >= 0) {
-                    // ポジション補正
+                    // Position correction
                     if (!(eLen <= index + 0x1000 && index < eLen)) {
                         index += 0x1000;
                     }
 
-                    // 元データを取得
+                    // Get original data
                     byte[] data = eStream.getData();
 
                     int bLen = Math.min(len, eLen - index);
@@ -632,13 +632,13 @@ public class DiskSTRParser extends DiskImageParser {
 
                     int bpos = bLen;
                     while (bpos < len) {
-                        // データを埋め合わせる
+                        // Make up data
                         int copyLen = Math.min(len - bpos, bLen);
                         System.arraycopy(buf, 0, buf, bpos, copyLen);
                         bpos += copyLen;
                     }
                 } else {
-                    // 負になる場合は仮想的な位置で計算
+                    // If negative, calculate at a virtual position
                     int nLen = -index;
                     if (nLen > len) nLen = len;
                     if (nLen > 0) {
@@ -651,7 +651,7 @@ public class DiskSTRParser extends DiskImageParser {
                     }
                 }
 
-                // 展開データに追記
+                // Append to expanded data
                 eStream.appendData(buf, len);
                 eStream.setEStreamPos(i + 1, eStream.getWritePos());
             }
@@ -660,11 +660,11 @@ public class DiskSTRParser extends DiskImageParser {
     }
 
     /**
-     * 1次圧縮データを展開
+     * Expand primary compressed data
      *
-     * @param iStream 元データ
-     * @param oStream 展開後データ
-     * @param oLimit  出力バッファサイズ
+     * @param iStream Original data
+     * @param oStream Data after expansion
+     * @param oLimit  Output buffer size
      */
     private void expand1(InputStream iStream, OutputStream oStream, int oLimit) throws IOException {
         byte[] buf = new byte[16];
@@ -688,13 +688,13 @@ public class DiskSTRParser extends DiskImageParser {
     }
 
     /**
-     * 1次圧縮データを展開
+     * Expand primary compressed data
      *
-     * eStream を入力ストリームとする
+     * Use eStream as input stream
      *
-     * @param oStream 展開後データ
-     * @param oLimit  出力バッファサイズ
-     * @return 出力データサイズが oLimit に達したら false
+     * @param oStream Data after expansion
+     * @param oLimit  Output buffer size
+     * @return false if output data size reaches oLimit
      */
     private boolean expand1Element(OutputStream oStream, int oLimit) throws IOException {
         int size;
@@ -705,7 +705,7 @@ public class DiskSTRParser extends DiskImageParser {
         byte[] buf = new byte[128];
 
         do {
-            // 先頭文字チェック
+            // Check first character
             int ch = eStream.peekByte();
             if (ch == -1) {
                 break;
@@ -720,7 +720,7 @@ public class DiskSTRParser extends DiskImageParser {
                 break;
             }
 
-            // 展開
+            // Expansion
             ch = eStream.getByte();
             size = (ch & 0xff);
             if (ch < 0x80) {
@@ -742,11 +742,11 @@ public class DiskSTRParser extends DiskImageParser {
     }
 
     /**
-     * 非圧縮データをそのまま展開
+     * Expand uncompressed data as is
      *
-     * @param iStream 元データ
-     * @param oStream 展開後データ
-     * @param oLimit  出力バッファサイズ
+     * @param iStream Original data
+     * @param oStream Data after expansion
+     * @param oLimit  Output buffer size
      */
     private static void expand0(InputStream iStream, OutputStream oStream, int oLimit) throws IOException {
         int size;
@@ -769,13 +769,13 @@ public class DiskSTRParser extends DiskImageParser {
     }
 
     /**
-     * 非圧縮データをそのまま展開
+     * Expand uncompressed data as is
      *
-     * eStream を入力ストリームとする
+     * Use eStream as input stream
      *
-     * @param oStream 展開後データ
-     * @param oLimit  出力バッファサイズ
-     * @return 出力データサイズが oLimit に達したら false
+     * @param oStream Data after expansion
+     * @param oLimit  Output buffer size
+     * @return false if output data size reaches oLimit
      */
     private boolean expand0Element(OutputStream oStream, int oLimit) throws IOException {
         int siz;
@@ -804,10 +804,10 @@ public class DiskSTRParser extends DiskImageParser {
     }
 
     /**
-     * チェック
+     * Check
      *
-     * @param iStream 解析対象データ
-     * @return 1: 選択ダイアログ表示, 0: 正常（候補が複数ある時はダイアログ表示）
+     * @param iStream Data to be analyzed
+     * @return 1: Display selection dialog, 0: Normal (display selection dialog when there are multiple candidates)
      */
     @Override
     public int check(InputStream iStream) throws IOException {
@@ -821,11 +821,11 @@ public class DiskSTRParser extends DiskImageParser {
     }
 
     /**
-     * ファイルを解析
+     * Analyze file
      *
-     * @param iStream   解析対象データ
-     * @param diskParam パラメータ通常不要
-     * @return 0: 正常, -1: エラーあり, 1: 警告あり
+     * @param iStream   Data to be analyzed
+     * @param diskParam Parameters usually unnecessary
+     * @return 0: normal, -1: error, 1: warning
      */
     @Override
     public int parse(InputStream iStream, DiskParam diskParam) throws IOException {

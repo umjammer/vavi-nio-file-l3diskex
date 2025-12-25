@@ -36,7 +36,7 @@ import static l3diskex.basicfmt.type.DiskBasicTypeTRSDOS.DiskBasicTypeTRSD23.FOR
 
 
 /**
- * ディレクトリ１アイテム TRSDOS Base
+ * Directory 1 item TRSDOS Base
  *
  * @see DiskBasicTypeTRSDOS
  */
@@ -56,32 +56,32 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
         public byte granules;
     }
 
-    // TRSDOS属性位置
+    // TRSDOS attribute position
     public static final int FILETYPE_MASK_TRSDOS_ACCESS = 0x07;
     public static final int FILETYPE_MASK_TRSDOS_INVISIBLE = 0x08;
     public static final int FILETYPE_MASK_TRSDOS_INUSE = 0x10;
     public static final int FILETYPE_MASK_TRSDOS_SYSTEM = 0x40;
     public static final int FILETYPE_MASK_TRSDOS_OVERFLOW = 0x80;
 
-    /** TRSDOS属性値 */
+    /** TRSDOS attribute values */
     static final Map<String, Object> typeNameTrsDos = new LinkedHashMap<>() {{
         put("Invisible", FILETYPE_MASK_TRSDOS_INVISIBLE);
         put("System", FILETYPE_MASK_TRSDOS_SYSTEM);
         put("Overflow", FILETYPE_MASK_TRSDOS_OVERFLOW);
     }};
 
-    /** TRSDOS属性名 */
+    /** TRSDOS attribute names */
     static final Map<String, Object> typeNameTrsDos2 = new LinkedHashMap<>() {{
         put("SYS", FILETYPE_MASK_TRSDOS_SYSTEM);
     }};
 
-    /** TRSDOS属性位置 */
+    /** TRSDOS attribute position */
     static final int TYPE_NAME_2_TRSDOS_SYS = 0;
 
-    /** 次のエントリ(overflowアリの場合) */
+    /** Next entry (if overflow exists) */
     protected DiskBasicDirItemTRSDOS<T> nextItem;
 
-    /** HITの位置 */
+    /** Position of HIT */
     protected int positionInHit;
 
     @Override
@@ -110,7 +110,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
     }
 
     /**
-     * アイテムへのポインタを設定
+     * Set pointer to item
      */
     @Override
     public void setData(int num, DiskBasicGroupItem groupItem, DiskImageSector sector, int sectorPos,
@@ -120,7 +120,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
     }
 
     /**
-     * 使用しているアイテムか
+     * Whether it is a used item
      */
     @Override
     public boolean checkUsed(boolean unuse) {
@@ -133,7 +133,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
     }
 
     /**
-     * ファイル内部のアドレスを取り出す
+     * Extract addresses inside file
      */
     protected void takeAddressesInFile(DiskBasicGroups groupItems) {
         if (groupItems.size() == 0) {
@@ -143,32 +143,32 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
         //DiskImageSector sector = basic.getSector(item.track, item.side, item.sectorStart);
         //if (sector == null) return;
 
-        // 開始アドレス
+        // Start address
         //startAddress = (int) sector.get16(0);
     }
 
     /**
-     * 属性からリストの位置を返す
+     * Returns position in list from attribute
      */
     protected int convFileType1Pos(int type1) {
         return 0;
     }
 
     /**
-     * 削除
+     * Delete
      */
     @Override
     public boolean delete() throws IOException {
-        // 削除
+        // Delete
         used(false);
         setFileType1(0);
-        // GATのエントリを削除
+        // Delete GAT entry
         type.deleteGroups(groups);
-        // HITのエントリも削除
+        // Also delete HIT entry
         if (positionInHit >= 0) {
             ((DiskBasicTypeTRSDOS<T>) type).hit.deleteHI(positionInHit);
         }
-        // Overflowがあるとき
+        // When overflow exists
         if (nextItem != null) {
             nextItem.delete();
             nextItem = null;
@@ -177,7 +177,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
     }
 
     /**
-     * 属性を設定
+     * Set attribute
      */
     @Override
     public void setFileAttr(DiskBasicFileType fileType) {
@@ -185,12 +185,12 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
         if (fType == -1) return;
 
         if (fileType.getFormat() == basic.getFormatTypeNumber()) {
-            // 同じOSから
+            // From same OS
             int t1 = fileType.getOrigin(0);
 
             setFileType1(t1);
         } else {
-            // 違うOSから
+            // From different OS
             int t1 = FILETYPE_MASK_TRSDOS_INUSE;
 
             if ((fType & FILE_TYPE_HIDDEN_MASK.getValue()) != 0) {
@@ -205,7 +205,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
     }
 
     /**
-     * 属性を返す
+     * Returns attribute
      */
     @Override
     public DiskBasicFileType getFileAttr() {
@@ -223,35 +223,35 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
     }
 
     /**
-     * HITの位置をセット
+     * Set position in HIT
      */
     public void setPositionInHIT(byte val) {
         positionInHit = val;
     }
 
     /**
-     * HITの位置を返す
+     * Returns position in HIT
      */
     public byte getPositionInHIT() {
         return (byte) positionInHit;
     }
 
     /**
-     * 次のアイテムをセット
+     * Set next item
      */
     public void setNextItem(DiskBasicDirItem<T> val) {
         nextItem = (DiskBasicDirItemTRSDOS<T>) val;
     }
 
     /**
-     * 次のアイテムを返す
+     * Returns next item
      */
     public DiskBasicDirItemTRSDOS<T> getNextItem() {
         return nextItem;
     }
 
     /**
-     * 属性の文字列を返す(ファイル一覧画面表示用)
+     * Returns attribute string (for file list display)
      */
     @Override
     public String getFileAttrStr() {
@@ -267,7 +267,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
     }
 
     /**
-     * 最終セクタのサイズを計算してファイルサイズを返す
+     * Calculate size of the last sector and return file size
      */
     @Override
     public int recalcFileSize(DiskBasicGroups groupItems, int occupiedSize) {
@@ -275,7 +275,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
     }
 
     /**
-     * 最初のグループ番号をセット
+     * Set the first group number
      */
     @Override
     public void setStartGroup(int fileUnitNum, int val, int size) {
@@ -283,7 +283,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
     }
 
     /**
-     * 最初のグループ番号を返す
+     * Returns the first group number
      */
     @Override
     public int getStartGroup(int fileUnitNum) {
@@ -291,63 +291,63 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
     }
 
     /**
-     * Overflowをセット
+     * Set Overflow
      */
     public void setOverflow(byte val) {
     }
 
     /**
-     * Overflowを返す
+     * Returns Overflow
      */
     public int getOverflow() {
         return 0;
     }
 
     /**
-     * GAPのGranule番号をセット
+     * Set Granule number of GAP
      */
     public void setGranulesOnGap(int pos, int val, int cnt) {
     }
 
     /**
-     * GAPのGranule番号をクリア
+     * Clear Granule number of GAP
      */
     public void clearGranulesOnGap(int pos, int track, int granule) {
     }
 
     /**
-     * GAPのGranule番号を返す
+     * Returns Granule number of GAP
      */
     public int getGranulesOnGap(int pos, int[] cnt /* = {0} */) {
         return 0;
     }
 
     /**
-     * 新規ファイルとして設定
+     * Set as new file
      */
     public void setAsNewFile() {
     }
 
     /**
-     * Overflowファイルとして設定
+     * Set as Overflow file
      */
     public void setAsOverflowFile(byte positionInHit, byte hashCode) {
     }
 
     /**
-     * "BOOT/SYS"として設定
+     * Set as "BOOT/SYS"
      */
     public void setAsBootSysEntry() {
     }
 
     /**
-     * "DIR/SYS"として設定
+     * Set as "DIR/SYS"
      */
     public void setAsDirSysEntry() {
     }
 
     /**
-     * ファイルの終端コードをチェックする必要があるか
+     * Whether EOF code needs to be checked
      */
     @Override
     public boolean needCheckEofCode() {
@@ -355,11 +355,11 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
     }
 
     /**
-     * データをインポートする前に必要な処理
+     * Processing required before importing data
      */
     @Override
     public boolean preImportDataFile(String[] filename) {
-        // 拡張子前の'.'を'/'に置き換える
+        // Replace '.' before extension with '/'
         int pos = filename[0].indexOf('.');
         if (pos != -1) {
             filename[0] = filename[0].substring(0, pos) + basic.getExtensionPreCode() + filename[0].substring(pos + 1);
@@ -368,18 +368,18 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
     }
 
     /**
-     * ファイル名から属性を決定する
+     * Determine attribute from file name
      */
     @Override
     public int convOriginalTypeFromFileName(String filename) {
         int[] t1 = {0};
-        // 拡張子で属性を設定する
+        // Set attribute by extension
         isContainAttrByExtension(filename, typeNameTrsDos2, 0, TYPE_NAME_2_TRSDOS_SYS, null, t1, null);
         return t1[0];
     }
 
     /**
-     * アイテムを削除できるか
+     * Whether item can be deleted
      */
     @Override
     public boolean isDeletable() {
@@ -388,7 +388,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
     }
 
     /**
-     * アイテムの属するセクタを変更済みにする
+     * Set sector to which item belongs as modified
      */
     @Override
     public void setModify() {
@@ -396,26 +396,26 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
     }
 
     /**
-     * 属性１を返す
+     * Returns attribute 1
      */
     @Override
     public abstract int getFileType1();
 
     /**
-     * 属性１を設定
+     * Set attribute 1
      */
     @Override
     protected abstract void setFileType1(int val);
 
     /**
-     * ディレクトリ１アイテム TRSDOS 2.x
+     * Directory 1 item TRSDOS 2.x
      *
      * @see DiskBasicTypeTRSD23
      */
     public static class DiskBasicDirItemTRSD23 extends DiskBasicDirItemTRSDOS<DirectoryTrsD23> {
 
         /**
-         * ディレクトリエントリ TRSDOS 2.x (32bytes)
+         * Directory entry TRSDOS 2.x (32bytes)
          */
         @Serdes
         public static class DirectoryTrsD23 implements Directory {
@@ -452,7 +452,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
             public static final int SIZE = 32;
         }
 
-        /** ディレクトリデータ */
+        /** Directory data */
         protected DiskBasicDirData<DirectoryTrsD23> data = new DiskBasicDirData<>();
 
         @Override
@@ -489,7 +489,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
         }
 
         /**
-         * アイテムへのポインタを設定
+         * Set pointer to item
          */
         @Override
         public void setData(int num, DiskBasicGroupItem groupItem, DiskImageSector sector, int sectorPos, byte[] data, int dataPos, SectorParam next) throws IOException {
@@ -500,7 +500,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
         }
 
         /**
-         * ディレクトリアイテムのチェック
+         * Check directory item
          */
         @Override
         public boolean check(boolean[] last) {
@@ -508,11 +508,11 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
 
             int overflow = getOverflow() & 0xff;
             if (overflow > 0 && overflow < 254) {
-                // 参照元アイテムと関連付ける
+                // Associate with reference item
                 int[] overflowSectorNum = {0};
                 int[] overflowSectorPos = {0};
                 ((DiskBasicTypeTRSD23) type).getFromHIPosition(overflow, overflowSectorNum, overflowSectorPos);
-                // 通し番号を計算
+                // Calculate serial number
                 int num = (overflowSectorNum[0] - 2) * basic.getSectorSize() / getDataSize() + overflowSectorPos[0];
                 int maxNum = (basic.getDirEndSector() - basic.getDirStartSector() + 1) * basic.getSectorSize() / getDataSize();
                 if (num >= maxNum) {
@@ -524,7 +524,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
         }
 
         /**
-         * 属性１を返す
+         * Returns attribute 1
          */
         @Override
         public int getFileType1() {
@@ -532,7 +532,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
         }
 
         /**
-         * 属性１を設定
+         * Set attribute 1
          */
         @Override
         protected void setFileType1(int val) {
@@ -540,7 +540,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
         }
 
         /**
-         * Overflowをセット
+         * Set Overflow
          */
         @Override
         public void setOverflow(byte val) {
@@ -548,7 +548,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
         }
 
         /**
-         * Overflowを返す
+         * Returns Overflow
          */
         @Override
         public int getOverflow() {
@@ -556,7 +556,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
         }
 
         /**
-         * ファイル名を格納する位置を返す
+         * Returns position where file name is stored
          */
         @Override
         public byte[] getFileNamePos(int num, int[] size, int[] len) {
@@ -570,7 +570,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
         }
 
         /**
-         * 拡張子を格納する位置を返す
+         * Returns position where extension is stored
          */
         @Override
         public byte[] getFileExtPos(int[] len) {
@@ -579,28 +579,28 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
         }
 
         /**
-         * 新規ファイルとして設定
+         * Set as new file
          */
         @Override
         public void setAsNewFile() {
             used(true);
             setFileType1(getFileType1() | FILETYPE_MASK_TRSDOS_INUSE);
-            // HITエントリに登録
+            // Register in HIT entry
             byte h = DiskBasicTypeTRSD23.computeHI(data.data().name);
             if (positionInHit >= 0) {
                 ((DiskBasicTypeTRSDOS<DirectoryTrsD23>) type).hit.setHI(positionInHit, h);
             }
-            // パスワード
+            // Password
             data.data().accessPassword = data.data().updatePassword = (short) 0x4296;
 
-            // エントリのクリア
+            // Clear entry
             for (int pos = 0; pos < data.data().gap.length; pos++) {
                 clearGranulesOnGap(pos, 0xff, 0xff);
             }
         }
 
         /**
-         * Overflowファイルとして設定
+         * Set as Overflow file
          */
         @Override
         public void setAsOverflowFile(byte positionInHit, byte hashCode) {
@@ -610,22 +610,22 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
             visible(false);
 
             setFileType1(FILETYPE_MASK_TRSDOS_OVERFLOW | FILETYPE_MASK_TRSDOS_INUSE);
-            // HITエントリに登録
+            // Register in HIT entry
             if (this.positionInHit >= 0) {
                 ((DiskBasicTypeTRSDOS<DirectoryTrsD23>) type).hit.setHI(this.positionInHit, hashCode);
             }
             setOverflow(positionInHit);
-            // パスワード
+            // Password
             //data.data().accessPassword = data.data().updatePassword = 0x4296;
 
-            // エントリのクリア
+            // Clear entry
             for (int pos = 0; pos < data.data().gap.length; pos++) {
                 clearGranulesOnGap(pos, 0xff, 0xff);
             }
         }
 
         /**
-         * "BOOT/SYS"として設定
+         * Set as "BOOT/SYS"
          */
         @Override
         public void setAsBootSysEntry() {
@@ -637,7 +637,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
         }
 
         /**
-         * "DIR/SYS"として設定
+         * Set as "DIR/SYS"
          */
         @Override
         public void setAsDirSysEntry() {
@@ -649,7 +649,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
         }
 
         /**
-         * ファイルサイズとグループ数を計算する
+         * Calculate file size and number of groups
          */
         @Override
         public void calcFileUnitSize(int fileUnitNum) throws IOException {
@@ -659,7 +659,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
         }
 
         /**
-         * 指定ディレクトリのすべてのグループを取得
+         * Get all groups of specified directory
          */
         @Override
         public void getUnitGroups(int fileUnitNum, DiskBasicGroups groupItems) throws IOException {
@@ -685,7 +685,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
                     remainSize -= block_size;
                 }
             }
-            // overflowがあるとき
+            // When overflow exists
             if (nextItem != null) {
                 nextItem.getUnitGroups(fileUnitNum, groupItems);
             }
@@ -694,12 +694,12 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
             groupItems.addSize(calcFileSize);
             groupItems.setSizePerGroup(block_size);
 
-            // ファイル内部のアドレスを得る
+            // Get addresses inside file
             takeAddressesInFile(groupItems);
         }
 
         /**
-         * ファイルサイズをセット
+         * Set file size
          */
         @Override
         public void setFileSize(int val) {
@@ -713,7 +713,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
         }
 
         /**
-         * ファイルサイズを返す
+         * Returns file size
          */
         @Override
         public int getFileSize() {
@@ -726,7 +726,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
         }
 
         /**
-         * GAPのGranule番号をセット
+         * Set Granule number of GAP
          */
         @Override
         public void setGranulesOnGap(int pos, int val, int cnt) {
@@ -738,7 +738,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
         }
 
         /**
-         * GAPのGranule番号をクリア
+         * Clear Granule number of GAP
          */
         @Override
         public void clearGranulesOnGap(int pos, int track, int granule) {
@@ -747,7 +747,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
         }
 
         /**
-         * GAPのGranule番号を返す
+         * Returns Granule number of GAP
          */
         @Override
         public int getGranulesOnGap(int pos, int[] cnt) {
@@ -761,7 +761,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
         }
 
         /**
-         * ディレクトリアイテムのサイズ
+         * Size of directory item
          */
         @Override
         public int getDataSize() {
@@ -769,7 +769,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
         }
 
         /**
-         * アイテムを返す
+         * Returns item
          */
         @Override
         public DirectoryTrsD23 getData() {
@@ -777,7 +777,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
         }
 
         /**
-         * アイテムをコピー
+         * Copy item
          */
         @Override
         public boolean copyData(byte[] val) {
@@ -785,7 +785,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
         }
 
         /**
-         * ディレクトリをクリア
+         * Clear directory
          */
         @Override
         public void clearData() {
@@ -793,7 +793,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
         }
 
         /**
-         * プロパティで表示する内部データを設定
+         * Set internal data displayed in properties
          */
         @Override
         public void setInternalDataInAttrDialog(KeyValArray vals) {
@@ -814,14 +814,14 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
     }
 
     /**
-     * ディレクトリ１アイテム TRSDOS 1.3
+     * Directory 1 item TRSDOS 1.3
      *
      * @see DiskBasicTypeTRSD13
      */
     public static class DiskBasicDirItemTRSD13 extends DiskBasicDirItemTRSDOS<DirectoryTrsD13> {
 
         /**
-         * ディレクトリエントリ TRSDOS 1.3 (48bytes)
+         * Directory entry TRSDOS 1.3 (48bytes)
          */
         public static class DirectoryTrsD13 implements Directory {
 
@@ -846,7 +846,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
             public static final int SIZE = 48;
         }
 
-        /** ディレクトリデータ */
+        /** Directory data */
         protected DiskBasicDirData<DirectoryTrsD13> data = new DiskBasicDirData<>();
 
         public int getHIPosition(int pos) {
@@ -886,7 +886,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
         }
 
         /**
-         * アイテムへのポインタを設定
+         * Set pointer to item
          */
         @Override
         public void setData(int num, DiskBasicGroupItem groupItem, DiskImageSector sector, int sectorPos,
@@ -898,7 +898,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
         }
 
         /**
-         * ディレクトリアイテムのチェック
+         * Check directory item
          */
         @Override
         public boolean check(boolean[] last) {
@@ -908,7 +908,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
         }
 
         /**
-         * アイテムが作成日時を持っているか
+         * Whether item has creation date and time
          */
         @Override
         public boolean hasCreateDateTime() {
@@ -916,7 +916,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
         }
 
         /**
-         * アイテムが作成日付を持っているか
+         * Whether item has creation date
          */
         @Override
         public boolean hasCreateDate() {
@@ -924,7 +924,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
         }
 
         /**
-         * 作成日付を得る
+         * Get creation date
          *
          * @return
          */
@@ -941,7 +941,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
         }
 
         /**
-         * 作成日付を返す
+         * Returns creation date
          */
         @Override
         public String getFileCreateDateStr() {
@@ -951,7 +951,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
         }
 
         /**
-         * 作成日付をセット
+         * Set creation date
          */
         @Override
         public void setFileCreateDate(LocalDateTime tm) {
@@ -960,7 +960,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
         }
 
         /**
-         * ファイル名を格納する位置を返す
+         * Returns position where file name is stored
          */
         @Override
         public byte[] getFileNamePos(int num, int[] size, int[] len) {
@@ -974,7 +974,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
         }
 
         /**
-         * 拡張子を格納する位置を返す
+         * Returns position where extension is stored
          */
         @Override
         public byte[] getFileExtPos(int[] len) {
@@ -983,7 +983,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
         }
 
         /**
-         * 属性１を返す
+         * Returns attribute 1
          */
         @Override
         public int getFileType1() {
@@ -991,7 +991,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
         }
 
         /**
-         * 属性１を設定
+         * Set attribute 1
          */
         @Override
         protected void setFileType1(int val) {
@@ -999,28 +999,28 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
         }
 
         /**
-         * 新規ファイルとして設定
+         * Set as new file
          */
         @Override
         public void setAsNewFile() {
             used(true);
             setFileType1(getFileType1() | FILETYPE_MASK_TRSDOS_INUSE);
-            // HITエントリに登録
+            // Register in HIT entry
             byte h = DiskBasicTypeTRSD23.computeHI(data.data().name);
             if (positionInHit >= 0) {
                 ((DiskBasicTypeTRSDOS<DirectoryTrsD13>) type).hit.setHI(positionInHit, h);
             }
-            // パスワード
+            // Password
             data.data().accessPassword = data.data().updatePassword = (short) 0x5cef;
 
-            // エントリのクリア
+            // Clear entry
             for (int pos = 0; pos < data.data().gap.length; pos++) {
                 clearGranulesOnGap(pos, 0xff, 0xff);
             }
         }
 
         /**
-         * ファイルサイズとグループ数を計算する
+         * Calculate file size and number of groups
          */
         @Override
         public void calcFileUnitSize(int fileUnitNum) throws IOException {
@@ -1030,7 +1030,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
         }
 
         /**
-         * 指定ディレクトリのすべてのグループを取得
+         * Get all groups of specified directory
          */
         @Override
         public void getUnitGroups(int fileUnitNum, DiskBasicGroups groupItems) throws IOException {
@@ -1056,7 +1056,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
                     remainSize -= blockSize;
                 }
             }
-            // overflowがあるとき
+            // When overflow exists
             if (nextItem != null) {
                 nextItem.getUnitGroups(fileUnitNum, groupItems);
             }
@@ -1065,12 +1065,12 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
             groupItems.addSize(calcFileSize);
             groupItems.setSizePerGroup(blockSize);
 
-            // ファイル内部のアドレスを得る
+            // Get addresses inside file
             takeAddressesInFile(groupItems);
         }
 
         /**
-         * ファイルサイズをセット
+         * Set file size
          */
         @Override
         public void setFileSize(int val) {
@@ -1080,7 +1080,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
         }
 
         /**
-         * ファイルサイズを返す
+         * Returns file size
          */
         @Override
         public int getFileSize() {
@@ -1091,7 +1091,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
         }
 
         /**
-         * GAPのGranule番号をセット
+         * Set Granule number of GAP
          */
         @Override
         public void setGranulesOnGap(int pos, int val, int cnt) {
@@ -1103,7 +1103,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
         }
 
         /**
-         * GAPのGranule番号をクリア
+         * Clear Granule number of GAP
          */
         @Override
         public void clearGranulesOnGap(int pos, int track, int granule) {
@@ -1112,7 +1112,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
         }
 
         /**
-         * GAPのGranule番号を返す
+         * Returns Granule number of GAP
          */
         @Override
         public int getGranulesOnGap(int pos, int[] cnt) {
@@ -1126,7 +1126,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
         }
 
         /**
-         * ディレクトリアイテムのサイズ
+         * Size of directory item
          */
         @Override
         public int getDataSize() {
@@ -1134,7 +1134,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
         }
 
         /**
-         * アイテムを返す
+         * Returns item
          */
         @Override
         public DirectoryTrsD13 getData() {
@@ -1142,7 +1142,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
         }
 
         /**
-         * アイテムをコピー
+         * Copy item
          */
         @Override
         public boolean copyData(byte[] val) {
@@ -1150,7 +1150,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
         }
 
         /**
-         * ディレクトリをクリア
+         * Clear directory
          */
         @Override
         public void clearData() {
@@ -1158,7 +1158,7 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
         }
 
         /**
-         * プロパティで表示する内部データを設定
+         * Set internal data displayed in properties
          */
         @Override
         public void setInternalDataInAttrDialog(KeyValArray vals) {

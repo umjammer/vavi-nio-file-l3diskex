@@ -228,7 +228,7 @@ public class UiDiskFrame extends UiDiskProcess {
         p_image = null; // delete p_image;
     }
 
-    /** フレーム部の初期処理 */
+    /** Initial processing of the frame part */
     public boolean Init(String in_file) {
         boolean valid = false;
 
@@ -250,7 +250,7 @@ public class UiDiskFrame extends UiDiskProcess {
 
     // --- event procedures ---
 
-    /** ウィンドウを閉じたとき */
+    /** When the window is closed */
     public void OnClose(WindowEvent event) {
         if (!CloseDataFile(!event.CanVeto())) {
             event.Veto();
@@ -259,27 +259,27 @@ public class UiDiskFrame extends UiDiskProcess {
         event.Skip();
     }
 
-    /** メニュー 終了選択 */
+    /** Menu: Quit selection */
     public void OnQuit(ActionEvent event) {
         Close(false); // Mocked
     }
 
-    /// メニュー Aboutダイアログ表示選択
+    /// Menu: About dialog display selection
     public void OnAbout(ActionEvent event) {
         new UiDiskAbout(this, 0).setVisible(true);
     }
 
-    /** メニュー 新規作成選択 */
+    /** Menu: Create new selection */
     public void OnCreateFile(ActionEvent event) {
         ShowCreateFileDialog(); // Mocked
     }
 
-    /** メニュー 開く選択 */
+    /** Menu: Open selection */
     public void OnOpenFile(ActionEvent event) {
         ShowOpenFileDialog(); // Mocked
     }
 
-    /** メニュー 最近使用したファイル開く選択 */
+    /** Menu: Open recently used file selection */
     public void OnOpenRecentFile(ActionEvent event) {
         MenuItem item = menuRecentFiles.FindItem(event.GetId());
         if (item == null) return;
@@ -288,134 +288,134 @@ public class UiDiskFrame extends UiDiskProcess {
         PreOpenDataFile(path.toAbsolutePath().toString());
     }
 
-    /** メニュー 閉じる選択 */
+    /** Menu: Close selection */
     public void OnCloseFile(ActionEvent event) {
         CloseDataFile();
     }
 
-    /** メニュー 名前を付けて保存選択 */
+    /** Menu: Save as selection */
     public void OnSaveAsFile(ActionEvent event) {
         ShowSaveFileDialog(); // Mocked
     }
 
-    /// メニュー ディスク1枚を保存選択
+    /// Menu: Save one disk selection
     public void OnSaveDisk(ActionEvent event) {
         UiDiskList list = GetDiskListPanel();
         if (list == null) return;
         list.showSaveDiskDialog();
     }
 
-    /** メニュー ディスクを新規に追加選択 */
+    /** Menu: Add new disk selection */
     public void OnAddNewDisk(ActionEvent event) {
         ShowAddNewDiskDialog(); // Mocked
     }
 
-    /** メニュー ディスクをファイルから追加選択 */
+    /** Menu: Add disk from file selection */
     public void OnAddDiskFromFile(ActionEvent event) {
         ShowAddFileDialog(); // Mocked
     }
 
-    /** メニュー ディスクを置換選択 */
+    /** Menu: Replace disk selection */
     public void OnReplaceDisk(ActionEvent event) {
         UiDiskList list = GetDiskListPanel();
         if (list == null) return;
         list.replaceDisk();
     }
 
-    /** メニュー ファイルからディスクを削除選択 */
+    /** Menu: Delete disk from file selection */
     public void OnDeleteDiskFromFile(ActionEvent event) {
         DeleteDisk(); // Mocked
     }
 
-    /** メニュー ディスク名を変更選択 */
+    /** Menu: Rename disk selection */
     public void OnRenameDisk(ActionEvent event) {
         RenameDisk(); // Mocked
     }
 
-    /** メニュー 初期化選択 */
+    /** Menu: Initialize selection */
     public void OnInitializeDisk(ActionEvent event) {
         InitializeDisk(); // Mocked
     }
 
-    /** メニュー フォーマット選択 */
+    /** Menu: Format selection */
     public void OnFormatDisk(ActionEvent event) {
         FormatDisk(); // Mocked
     }
 
-    /** メニュー エクスポート選択 */
+    /** Menu: Export selection */
     public void OnExportDataFromDisk(ActionEvent event) {
         ExportDataFromDisk(); // Mocked
     }
 
-    /** メニュー インポート選択 */
+    /** Menu: Import selection */
     public void OnImportDataToDisk(ActionEvent event) {
         ImportDataToDisk(); // Mocked
     }
 
-    /** メニュー 削除選択 */
+    /** Menu: Delete selection */
     public void OnDeleteDataFromDisk(ActionEvent event) {
         DeleteDataFromDisk(); // Mocked
     }
 
-    /** メニュー リネーム選択 */
+    /** Menu: Rename selection */
     public void OnRenameDataOnDisk(ActionEvent event) {
         RenameDataOnDisk(); // Mocked
     }
 
-    /** メニュー コピー選択 */
+    /** Menu: Copy selection */
     public void OnCopyDataFromDisk(ActionEvent event) {
         CopyDataFromDisk(); // Mocked
     }
 
-    /** メニュー ペースト選択 */
+    /** Menu: Paste selection */
     public void OnPasteDataToDisk(ActionEvent event) {
         PasteDataToDisk(); // Mocked
     }
 
-    /** メニュー ディレクトリ作成選択 */
+    /** Menu: Create directory selection */
     public void OnMakeDirectoryOnDisk(ActionEvent event) {
         MakeDirectoryOnDisk(); // Mocked
     }
 
-    /** メニュー ファイル編集選択 */
+    /** Menu: Edit file selection */
     public void OnEditFileOnDisk(ActionEvent event) {
         EditFileOnDisk(event.getActionCommand() == Global.IDM_EDIT_FILE_BINARY ? enEditorTypes.EDITOR_TYPE_BINARY : enEditorTypes.EDITOR_TYPE_TEXT);
     }
 
-    /** メニュー プロパティ選択 */
+    /** Menu: Property selection */
     public void OnPropertyOnDisk(ActionEvent event) {
         PropertyOnDisk(); // Mocked
     }
 
-    /** ファイルモード選択 */
+    /** File mode selection */
     public void OnBasicMode(ActionEvent event) {
         ChangeRPanel(0, null); // Mocked
     }
 
-    /// Rawディスクモード選択
+    /// Raw disk mode selection
     public void OnRawDiskMode(ActionEvent event) {
         ChangeRPanel(1, null); // Mocked
     }
 
-    /** キャラクターコード選択 */
+    /** Character code selection */
     public void OnChangeCharCode(ActionEvent event) {
         int sel = event.GetId() - Global.IDM_CHAR_0;
         String name = Global.gCharCodeChoices.GetItemName("main", sel);
         ChangeCharCode(name); // Mocked
     }
 
-    /** 未使用データを切り落とすか */
+    /** Whether to trim unused data */
     public void OnTrimData(ActionEvent event) {
         Global.gConfig.TrimUnusedData(event.IsChecked());
     }
 
-    /** 削除ファイルを表示するか */
+    /** Whether to show deleted files */
     public void OnShowDeletedFile(ActionEvent event) {
         Global.gConfig.ShowDeletedFile(event.IsChecked());
         SetFileListData(); // Mocked
     }
 
-    /** ダンプウィンドウ選択 */
+    /** Dump window selection */
     public void OnOpenBinDump(ActionEvent event) {
         if (bindump_frame == null) {
             OpenBinDumpWindow(); // Mocked
@@ -424,7 +424,7 @@ public class UiDiskFrame extends UiDiskProcess {
         }
     }
 
-    /** 使用状況ウィンドウ選択 */
+    /** Availability window selection */
     public void OnOpenFatArea(ActionEvent event) {
         if (fatarea_frame == null) {
             OpenFatAreaWindow(); // Mocked
@@ -433,34 +433,34 @@ public class UiDiskFrame extends UiDiskProcess {
         }
     }
 
-    /** ファイルリストの列選択 */
+    /** Column selection for file list */
     public void OnChangeColumnsOfFileList(ActionEvent event) {
         ChangeColumnsOfFileList(); // Mocked
     }
 
-    /** フォント変更選択 */
+    /** Change font selection */
     public void OnChangeFont(ActionEvent event) {
         ShowListFontDialog(); // Mocked
     }
 
-    /** メニュー 設定ダイアログ選択 */
+    /** Menu: Settings dialog selection */
     public void OnConfigure(ActionEvent event) {
         ShowConfigureDialog(); // Mocked
     }
 
-    /** ステータスカウンター終了タイマー */
+    /** Status counter finish timer */
     public void OnTimerStatusCounter() {
         ClearStatusCounter(); // Mocked
     }
 
-    // --- ウィンドウ操作 ---
+    // --- Window operations ---
 
-    /** パネル全体を返す */
+    /** Return the entire panel */
     private UiDiskPanel GetPanel() {
         return panel;
     }
 
-    /** メニューの作成 */
+    /** Create menu */
     private void MakeMenu() {
         menuFile = new MyMenu();
         menuData = new MyMenu();
@@ -552,7 +552,7 @@ public class UiDiskFrame extends UiDiskProcess {
         // SetMenuBar(menuBar); // Mocked
     }
 
-    /** ツールバーの再生成 */
+    /** Recreate toolbar */
     private void RecreateToolbar() {
         JToolBar toolBar = GetToolBar();
         int style = toolBar != null ? toolBar.GetWindowStyle() : TOOLBAR_STYLE;
@@ -567,7 +567,7 @@ public class UiDiskFrame extends UiDiskProcess {
         PopulateToolbar(toolBar);
     }
 
-    /** ツールバーの構築 */
+    /** Construct toolbar */
     private void PopulateToolbar(JToolBar toolBar) {
         final int fd_5inch_16_new = 0;
         final int fd_5inch_16_open = 1;
@@ -621,7 +621,7 @@ public class UiDiskFrame extends UiDiskProcess {
         // toolBar.SetRows(...); // Mocked
     }
 
-    /** ステータスバーの再生成 */
+    /** Recreate status bar */
     private void RecreateStatusbar() {
         // delete statBar;
         SetStatusBar(null);
@@ -638,16 +638,16 @@ public class UiDiskFrame extends UiDiskProcess {
 
     // #ifdef USE_MENU_OPEN // void OnMenuOpen(JMenuEvent& event) { ... } #endif
 
-    /// ドロップされたファイルを開く (Not in .h, but useful context)
+    /// Open dropped file (Not in .h, but useful context)
     public void OpenDroppedFile(String path) {
         if (!CloseDataFile()) return;
         PreOpenDataFile(path);
     }
 
-    // --- ウィンドウ操作 (続き) ---
+    // --- Window operations (continued) ---
 
-    /** メニューのファイル項目を更新 */
     public void UpdateMenuFile() {
+    /** Update file items in menu */
         boolean opened = (p_image.GetFile() != null);
         menuFile.enable(Global.IDM_CLOSE_FILE, opened);
         menuFile.enable(Global.IDM_ADD_DISK_NEW, opened);
@@ -662,8 +662,8 @@ public class UiDiskFrame extends UiDiskProcess {
         }
     }
 
-    /** メニューのディスク項目を更新 */
     public void UpdateMenuDisk() {
+    /** Update disk items in menu */
         UiDiskFileList list = GetFileListPanel();
         if (list != null) {
             UpdateMenuFileList(list);
@@ -677,7 +677,7 @@ public class UiDiskFrame extends UiDiskProcess {
         }
     }
 
-    /** メニューのディスク項目を更新 */
+    /** Update disk items in menu */
     public void UpdateMenuDiskList(UiDiskList list) {
         boolean opened = (list != null && list.IsSelectedDiskImage());
         menuFile.enable(Global.IDM_REPLACE_DISK_FROM_FILE, opened);
@@ -688,7 +688,7 @@ public class UiDiskFrame extends UiDiskProcess {
         menuFile.enable(Global.IDM_FORMAT_DISK, opened && IsFormattableDisk());
     }
 
-    /** メニューのファイル項目を更新 */
+    /** Update file items in menu */
     public void UpdateMenuFileList(UiDiskFileList list) {
         UiDiskList lpanel = GetLPanel();
         menuData.enable(Global.IDM_PROPERTY_DATA, (lpanel.IsSelectedDiskImage()));
@@ -709,12 +709,12 @@ public class UiDiskFrame extends UiDiskProcess {
         menuData.enable(Global.IDM_EDIT_FILE_TEXT, opened);
     }
 
-    /** メニューの生ディスク項目を更新 */
+    /** Update raw disk items in menu */
     public void UpdateMenuRawDisk(UiDiskRawPanel rawpanel) {
         // Implementation logic needed here, stubbing as it was not in .cpp snippet
     }
 
-    /** メニューのモード項目を更新 */
+    /** Update mode items in menu */
     public void UpdateMenuMode() {
         int sel = Global.gCharCodeChoices.IndexOf("main", Global.gConfig.GetCharCode());
         MenuItem mitem = menuMode.FindItem(Global.IDM_CHAR_0 + sel);
@@ -724,7 +724,7 @@ public class UiDiskFrame extends UiDiskProcess {
         menuMode.Check(Global.IDM_SHOW_DELFILE, Global.gConfig.IsShownDeletedFile());
     }
 
-    /** 最近使用したファイル一覧を更新 */
+    /** Update recently used file list */
     public void UpdateMenuRecentFiles() {
         String[] names = Global.gConfig.GetRecentFiles();
         for (int i = 0; i < Global.MAX_RECENT_FILES && i < names.length; i++) {
@@ -733,7 +733,7 @@ public class UiDiskFrame extends UiDiskProcess {
         }
     }
 
-    /** ツールバーを更新 */
+    /** Update toolbar */
     public void UpdateToolBar() {
         JToolBar toolBar = GetToolBar();
         if (toolBar == null) return;
@@ -761,7 +761,7 @@ public class UiDiskFrame extends UiDiskProcess {
         }
     }
 
-    /** ツールバーのディスクリスト項目を更新 */
+    /** Update disk list items in toolbar */
     public void UpdateToolBarDiskList(UiDiskList list) {
         JToolBar toolBar = GetToolBar();
         if (toolBar == null) return;
@@ -770,13 +770,13 @@ public class UiDiskFrame extends UiDiskProcess {
         toolBar.EnableTool(Global.IDM_DELETE_DISK_FROM_FILE, opened);
     }
 
-    /** メニューとツールバーのディスクリスト項目を更新 */
+    /** Update disk list items in menu and toolbar */
     public void UpdateMenuAndToolBarDiskList(UiDiskList list) {
         UpdateMenuDiskList(list);
         UpdateToolBarDiskList(list);
     }
 
-    /** ツールバーのファイルリスト項目を更新 */
+    /** Update file list items in toolbar */
     public void UpdateToolBarFileList(UiDiskFileList list) {
         JToolBar toolBar = GetToolBar();
         if (toolBar == null) return;
@@ -788,79 +788,79 @@ public class UiDiskFrame extends UiDiskProcess {
         toolBar.EnableTool(Global.IDM_DELETE_DATA, opened);
     }
 
-    /** ツールバーの生ディスク項目を更新 */
+    /** Update raw disk items in toolbar */
     public void UpdateToolBarRawDisk(UiDiskRawPanel rawpanel) {
         // Implementation logic needed here, stubbing as it was not in .cpp snippet
     }
 
-    /** メニューとツールバーのファイルリスト項目を更新 */
+    /** Update file list items in menu and toolbar */
     public void UpdateMenuAndToolBarFileList(UiDiskFileList list) {
         UpdateMenuFileList(list);
         UpdateToolBarFileList(list);
     }
 
-    /** メニューとツールバーの生ディスク項目を更新 */
+    /** Update raw disk items in menu and toolbar */
     public void UpdateMenuAndToolBarRawDisk(UiDiskRawPanel rawpanel) {
         UpdateMenuRawDisk(rawpanel);
         UpdateToolBarRawDisk(rawpanel);
     }
 
-    /** ウィンドウ上のデータを更新 */
+    /** Update data on window */
     public void UpdateDataOnWindow(boolean keep) {
         // Stub
     }
 
-    /** ウィンドウ上のデータを更新 タイトルバーにファイルパスを表示 */
+    /** Update data on window. Display file path in title bar */
     public void UpdateDataOnWindow(String path, boolean keep) {
         // Stub
     }
 
-    /** 保存後のウィンドウ上のデータを更新 */
+    /** Update data on window after saving */
     public void UpdateSavedDataOnWindow(String path) {
         // Stub
     }
 
-    /** ウィンドウ上のファイルパスを更新 */
+    /** Update file path on window */
     public void UpdateFilePathOnWindow(String path) {
         // Stub
     }
 
-    /** キャラクターコード選択 */
+    /** Character code selection */
     public void ChangeCharCode(String name) {
         // Stub
     }
 
-    /** キャラクターコードを返す */
+    /** Return character code */
     public final String GetCharCode() {
         return ""; // Stub
     }
 
-    /** キャラクターコード設定 */
+    /** Character code setting */
     public void SetDefaultCharCode() {
         // Stub
     }
 
-    /** フォント変更ダイアログ */
+    /** Font change dialog */
     public void ShowListFontDialog() {
         // Stub
     }
 
-    /** リストウィンドウのフォント変更 */
+    /** Font change for list window */
     public void SetListFont(Font font) {
         // Stub
     }
 
-    /** リストウィンドウのデフォルトフォントを得る */
+    /** Get default font for list window */
     public void GetDefaultListFont(Font font) {
         // Stub
     }
 
-    /** ファイルリストの列を変更 */
+    /** Change columns of file list */
     public void ChangeColumnsOfFileList() {
         // Stub
     }
 
-    // --- カウンター操作ヘルパー (mocked/internal) ---
+    // --- Counter operation helpers (mocked/internal) ---
 
     // These methods were not explicitly defined in the C++ but are used in the counter logic.
     private int StartStatusCounter(int count, String message) {
@@ -879,26 +879,26 @@ public class UiDiskFrame extends UiDiskProcess {
         stat_counters.Finish(id, message, null);
     } // Mocked EvtHandler is null
 
-    /** エクスポート用カウンタを開始 */
+    /** Start counter for export */
     @Override
     public void StartExportCounter(int count, String message) {
         m_sw_export.Start();
         m_sw_export.setID(StartStatusCounter(count, message));
     }
 
-    /** エクスポート用カウンタの母数を追加 */
+    /** Append denominator for export counter */
     @Override
     public void AppendExportCounter(int count) {
         AppendStatusCounter(m_sw_export.getID(), count);
     }
 
-    /** エクスポート用カウンタの数を＋１ */
+    /** Increment export counter by 1 */
     @Override
     public void IncreaseExportCounter() {
         IncreaseStatusCounter(m_sw_export.getID());
     }
 
-    /** エクスポート用カウンタのアイコンを時計にする */
+    /** Set export counter icon to clock */
     @Override
     public void BeginBusyCursorExportCounterIfNeed() {
         if (m_sw_export.Time() > 3000) {
@@ -906,38 +906,38 @@ public class UiDiskFrame extends UiDiskProcess {
         }
     }
 
-    /** エクスポート用カウンタを終了 */
+    /** Finish export counter */
     @Override
     public void FinishExportCounter(String message) {
         FinishStatusCounter(m_sw_export.getID(), message);
         m_sw_export.finish();
     }
 
-    /** エクスポート用カウンタを再スタート */
+    /** Restart export counter */
     public void RestartExportCounter() {
         m_sw_export.restart();
     }
 
-    /** インポート用カウンタを開始 */
+    /** Start counter for import */
     @Override
     public void StartImportCounter(int count, String message) {
         m_sw_import.Start();
         m_sw_import.setID(StartStatusCounter(count, message));
     }
 
-    /** インポート用カウンタの母数を追加 */
+    /** Append denominator for import counter */
     @Override
     public void AppendImportCounter(int count) {
         AppendStatusCounter(m_sw_import.getID(), count);
     }
 
-    /** インポート用カウンタの数を＋１ */
+    /** Increment import counter by 1 */
     @Override
     public void IncreaseImportCounter() {
         IncreaseStatusCounter(m_sw_import.getID());
     }
 
-    /** インポート用カウンタのアイコンを時計にする */
+    /** Set import counter icon to clock */
     @Override
     public void BeginBusyCursorImportCounterIfNeed() {
         if (m_sw_import.Time() > 3000) {
@@ -945,22 +945,22 @@ public class UiDiskFrame extends UiDiskProcess {
         }
     }
 
-    /** インポート用カウンタを終了 */
+    /** Finish import counter */
     @Override
     public void FinishImportCounter(String message) {
         FinishStatusCounter(m_sw_import.getID(), message);
         m_sw_import.finish();
     }
 
-    /** インポート用カウンタを再スタート */
+    /** Restart import counter */
     @Override
     public void RestartImportCounter() {
         m_sw_import.restart();
     }
 
-    // --- その他のUI ---
+    // --- Other UI ---
 
-    /** 指定ファイルを引数にして外部エディタを起動する */
+    /** Start external editor with the specified file as an argument */
     public static boolean OpenFileWithEditor(enEditorTypes editor_type, Path file) {
         // Logic mocked
         return false;
@@ -968,7 +968,7 @@ public class UiDiskFrame extends UiDiskProcess {
 
     // --- property ---
 
-    /** ディスク操作用のインスタンス */
+    /** Instance for disk operations */
     public DiskImage GetDiskImage() {
         return p_image;
     }

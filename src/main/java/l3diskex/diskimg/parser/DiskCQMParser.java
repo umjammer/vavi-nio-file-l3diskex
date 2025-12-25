@@ -24,13 +24,13 @@ import static l3diskex.diskimg.DiskParam.diskTemplates;
 
 
 /**
- * CopyQMディスクパーサ
+ * CopyQM disk parser
  *
  * @see "http://www.bitsavers.org/pdf/sydex/CopyQM_Oct94.pdf"
  */
 public class DiskCQMParser extends DiskPlainParser {
 
-    /** Copy QM形式ヘッダ */
+    /** Copy QM format header */
     @Serdes(bigEndian = false)
     public static class CqmDskHeader {
 
@@ -108,7 +108,7 @@ public class DiskCQMParser extends DiskPlainParser {
         super.init(file, modFlags, result);
     }
 
-    /** データを展開 */
+    /** Expand data */
     private static int expandData(InputStream iStream, OutputStream oStream) throws IOException {
         int size = 0;
 

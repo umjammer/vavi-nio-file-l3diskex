@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.prefs.Preferences;
 
 
-/** 設定ファイル入出力 */
+/** Configuration file I/O */
 public class Config extends Params {
 
     private String iniFile;
@@ -31,13 +31,13 @@ public class Config extends Params {
         // load ini file
         Preferences ini = Preferences.userNodeForPackage(Config.class);
 
-        // ファイルパス
+        // File path
         filePath = ini.get("Path", "");
 
-        // エクスポート先パス
+        // Export destination path
         exportFilePath = ini.get("ExportPath", "");
 
-        // 最近使用したファイル
+        // Recently used files
         for (int i = 0; i < MAX_RECENT_FILES; i++) {
             sVal = ini.get("Recent%d".formatted(i), "");
             if (!sVal.isEmpty()) {
@@ -45,74 +45,74 @@ public class Config extends Params {
             }
         }
 
-        // キャラクターコードマップ名
+        // Character code map name
         charCode = ini.get("CharCode", "");
 
-        // リストウィンドウのフォント名
+        // List window font name
         listFontName = ini.get("ListFontName", "");
 
-        // リストウィンドウのフォントサイズ
+        // List window font size
         listFontSize = ini.getInt("ListFontSize", 12);
 
-        // ダンプウィンドウのフォント名
+        // Dump window font name
         dumpFontName = ini.get("DumpFontName", "");
 
-        // ダンプウィンドウのフォントサイズ
+        // Dump window font size
         dumpFontSize = ini.getInt("DumpFontSize", 12);
 
-        // 未使用データを切り落とすか
+        // Whether to trim unused data
         trimUnusedData = ini.getBoolean("TrimUnusedData", false);
 
-        // 削除したファイルを表示するか
+        // Whether to show deleted files
         showDeletedFile = ini.getBoolean("ShowDeletedFile", false);
 
-        // エクスポート時に属性から拡張子を追加するか
+        // Whether to add extension from attribute during export
         addExtExport = ini.getBoolean("AddExtensionWhenExport", false);
 
-        // エクスポート時に現在日時を設定するか
+        // Whether to set current date and time during export
         currentDateExport = ini.getBoolean("SetCurrentDateTimeWhenExport", false);
 
-        // インポート時に拡張子で属性を決定したら拡張子を削除するか
+        // Whether to delete extension if attribute is determined by extension during import
         decideAttrImport = ini.getBoolean("DeleteExtensionWhenImport", false);
 
-        // インポートやプロパティ変更時に日時を無視するか
+        // Whether to ignore date and time during import or property change
         ignoreDateTime = ini.getBoolean("IgnoreDateTime", false);
 
-        // インポート時に現在日時を設定するか
+        // Whether to set current date and time during import
         currentDateImport = ini.getBoolean("SetCurrentDateTimeWhenImport", false);
 
-        // プロパティで内部データをリストで表示するか
+        // Whether to display internal data as a list in properties
         showInterDirItem = ini.getBoolean("ShowInterDirItem", false);
 
-        // 一度に処理できるディレクトリの深さ
+        // Directory depth that can be processed at once
         iVal = ini.getInt("DirectoriesDepth", 0);
         if (iVal >= 1 && iVal <= 100) dirDepth = iVal;
 
-        // ウィンドウ幅
+        // Window width
         windowWidth = ini.getInt("WindowWidth", windowWidth);
 
-        // ウィンドウ高さ
+        // Window height
         windowHeight = ini.getInt("WindowHeight", windowHeight);
 
-        // テンポラリフォルダのパス
+        // Path to temporary folder
         temporaryFolder = ini.get("TemporaryFolder", "");
 
-        // バイナリエディタのパス
+        // Path to binary editor
         binaryEditor = ini.get("BinaryEditor", "");
 
-        // テキストエディタのパス
+        // Path to text editor
         textEditor = ini.get("TextEditor", "");
 
-        // 言語
+        // Language
         language = ini.get("Language", "");
 
-        // リストのカラム幅
+        // Column width of list
         for (int id = LISTCOL_NAME; id < LISTCOL_END; id++) {
             String key = "ListColumn" + uiDiskFileListColumnDefs[id] + "Width";
             listColumnWidth[id] = ini.getInt(key, 0);
         }
 
-        // リストのカラム位置
+        // List column position
         for (int id = LISTCOL_NAME; id < LISTCOL_END; id++) {
             String key = "ListColumn" + uiDiskFileListColumnDefs[id] + "Pos";
             listColumnPos[id] = ini.getInt(key, 0);
@@ -130,13 +130,13 @@ public class Config extends Params {
         // save ini file
         Preferences ini = Preferences.userNodeForPackage(Config.class);
 
-        // ファイルパス
+        // File path
         ini.put("Path", filePath);
 
-        // エクスポート先パス
+        // Export destination path
         ini.put("ExportPath", exportFilePath);
 
-        // 最近使用したファイル
+        // Recently used files
         for (int i = 0, row = 0; row < MAX_RECENT_FILES && i < recentFiles.size(); i++) {
             String sval = recentFiles.get(i);
             if (sval.isEmpty()) continue;
@@ -144,73 +144,73 @@ public class Config extends Params {
             row++;
         }
 
-        // キャラクターコードマップ名
+        // Character code map name
         ini.put("CharCode", charCode);
 
-        // リストウィンドウのフォント名
+        // List window font name
         ini.put("ListFontName", listFontName);
 
-        // リストウィンドウのフォントサイズ
+        // List window font size
         ini.putInt("ListFontSize", listFontSize);
 
-        // ダンプウィンドウのフォント名
+        // Dump window font name
         ini.put("DumpFontName", dumpFontName);
 
-        // ダンプウィンドウのフォントサイズ
+        // Dump window font size
         ini.putInt("DumpFontSize", dumpFontSize);
 
-        // 未使用データを切り落とすか
+        // Whether to trim unused data
         ini.putBoolean("TrimUnusedData", trimUnusedData);
 
-        // 削除したファイルを表示するか
+        // Whether to display deleted files
         ini.putBoolean("ShowDeletedFile", showDeletedFile);
 
-        // エクスポート時に属性から拡張子を追加するか
+        // Whether to add extension from attribute during export
         ini.putBoolean("AddExtensionWhenExport", addExtExport);
 
-        // エクスポート時に現在日時を設定するか
+        // Whether to set current date and time during export
         ini.putBoolean("SetCurrentDateTimeWhenExport", currentDateExport);
 
-        // インポート時に拡張子で属性を決定したら拡張子を削除するか
+        // Whether to delete extension if attribute is determined by extension during import
         ini.putBoolean("DeleteExtensionWhenImport", decideAttrImport);
 
-        // インポートやプロパティ変更時に日時を無視するか
+        // Whether to ignore date and time during import or property change
         ini.putBoolean("IgnoreDateTime", ignoreDateTime);
 
-        // インポート時に現在日時を設定するか
+        // Whether to set current date and time during import
         ini.putBoolean("SetCurrentDateTimeWhenImport", currentDateImport);
 
-        // プロパティで内部データをリストで表示するか
+        // Whether to display internal data as a list in properties
         ini.putBoolean("ShowInterDirItem", showInterDirItem);
 
-        // 一度に処理できるディレクトリの深さ
+        // Directory depth that can be processed at once
         ini.putInt("DirectoriesDepth", dirDepth);
 
-        // ウィンドウ幅
+        // Window width
         ini.putInt("WindowWidth", windowWidth);
 
-        // ウィンドウ高さ
+        // Window height
         ini.putInt("WindowHeight", windowHeight);
 
-        // テンポラリフォルダのパス
+        // Path to temporary folder
         ini.put("TemporaryFolder", temporaryFolder);
 
-        // バイナリエディタのパス
+        // Path to binary editor
         ini.put("BinaryEditor", binaryEditor);
 
-        // テキストエディタのパス
+        // Path to text editor
         ini.put("TextEditor", textEditor);
 
-        // 言語
+        // Language
         ini.put("Language", language);
 
-        // リストのカラム幅
+        // Column width of list
         for (int id = LISTCOL_NAME; id < LISTCOL_END; id++) {
             String key = "ListColumn" + uiDiskFileListColumnDefs[id] + "Width";
             ini.putInt(key, listColumnWidth[id]);
         }
 
-        // リストのカラム位置
+        // List column position
         for (int id = LISTCOL_NAME; id < LISTCOL_END; id++) {
             String key = "ListColumn" + uiDiskFileListColumnDefs[id] + "Pos";
             ini.putInt(key, listColumnPos[id]);
@@ -220,7 +220,7 @@ public class Config extends Params {
     public static final Config config = new Config();
 }
 
-/** 設定ファイルパラメータ */
+/** Configuration file parameters */
 class Params {
 
     // Placeholder for unreferenced C++ types and constants

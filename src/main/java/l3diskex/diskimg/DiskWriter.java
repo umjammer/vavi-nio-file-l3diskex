@@ -21,7 +21,7 @@ import static l3diskex.diskimg.FileParam.fileTypes;
 
 
 /**
- * ディスクライター
+ * Disk writer
  */
 public class DiskWriter extends DiskWriteOptions {
 
@@ -36,27 +36,27 @@ public class DiskWriter extends DiskWriteOptions {
     private final DiskResult result;
 
     /**
-     * 拡張子をさがす
-     * @param diskNumber ディスク番号
-     * @param sideNumber サイド番号
+     * Search for extension
+     * @param diskNumber Disk number
+     * @param sideNumber Side number
      */
     private int canSaveDiskByExt(int diskNumber, int sideNumber) {
         int rc = 0;
 
-        // ファイル形式の指定がない場合
+        // If no file format is specified
         String fpath = filePath;
 
-        // 拡張子で判定
+        // Judge by extension
         String ext = Utils.getExt(fpath);
 
-        // サポートしているファイルか
+        // Whether it is a supported file
         FileParam fItem = fileTypes.findExt(ext);
         if (fItem == null) {
             result.setError(DiskResult.ERR_UNSUPPORTED);
             return result.getValid();
         }
 
-        // 指定した形式でファイル出力
+        // Output file in specified format
         List<FileParamFormat> formats = fItem.getFormats();
         for (FileParamFormat format : formats) {
             rc = selectCanSaveDisk(format.getType(), diskNumber, sideNumber);
@@ -69,10 +69,10 @@ public class DiskWriter extends DiskWriteOptions {
     }
 
     /**
-     * 拡張子で保存形式を判定＆保存できるか
-     * @param fileFormat ファイルフォーマット
-     * @param diskNumber ディスク番号
-     * @param sideNumber サイド番号
+     * Determine saving format by extension and whether it can be saved
+     * @param fileFormat File format
+     * @param diskNumber Disk number
+     * @param sideNumber Side number
      */
     private int selectCanSaveDisk(String fileFormat, int diskNumber, int sideNumber) {
         ServiceLoader<DiskImageWriter> serviceLoader = ServiceLoader.load(DiskImageWriter.class);
@@ -88,29 +88,29 @@ public class DiskWriter extends DiskWriteOptions {
     }
 
     /**
-     * 拡張子をさがす
+     * Search for extension
      *
-     * @param diskNumber ディスク番号
-     * @param sideNumber サイド番号
-     * @param support    [out] 対応しているフォーマットならtrue
+     * @param diskNumber Disk number
+     * @param sideNumber Side number
+     * @param support    [out] true if supported format
      */
     private int saveDiskByExt(int diskNumber, int sideNumber, boolean[] support) throws IOException {
         int rc = 0;
 
-        // ファイル形式の指定がない場合
+        // If no file format is specified
         String fpath = filePath;
 
-        // 拡張子で判定
+        // Judge by extension
         String ext = Utils.getExt(fpath);
 
-        // サポートしているファイルか
+        // Whether it is a supported file
         FileParam fitem = fileTypes.findExt(ext);
         if (fitem == null) {
             result.setError(DiskResult.ERR_UNSUPPORTED);
             return result.getValid();
         }
 
-        // 指定した形式でファイル出力
+        // Output file in specified format
         List<FileParamFormat> formats = fitem.getFormats();
         for (FileParamFormat format : formats) {
             rc = selectSaveDisk(format.getType(), diskNumber, sideNumber, support);
@@ -122,7 +122,7 @@ public class DiskWriter extends DiskWriteOptions {
         return rc;
     }
 
-    /** 拡張子で保存形式を判定 */
+    /** Determine saving format by extension */
     private int selectSaveDisk(String fileFormat, int diskNumber, int sideNumber, boolean[] support) throws IOException {
         ServiceLoader<DiskImageWriter> serviceLoader = ServiceLoader.load(DiskImageWriter.class);
         for (DiskImageWriter writer : serviceLoader) {
@@ -131,7 +131,7 @@ public class DiskWriter extends DiskWriteOptions {
                 int rc = writer.saveDisk(image, diskNumber, sideNumber, oStream);
                 support[0] = true;
                 if (rc >= 0) {
-                    // 保存したファイル名を持っておく
+                    // Keep the saved file name
                     image.setFileName(filePath);
                 }
                 return rc;
@@ -142,14 +142,14 @@ public class DiskWriter extends DiskWriteOptions {
     }
 
     //
-    // 形式ごとの保存
+    // Save by each format
     //
 
     /**
-     * @param image   ディスクイメージ
-     * @param path    ファイルパス
-     * @param options 出力時のオプション
-     * @param result  結果
+     * @param image   Disk image
+     * @param path    File path
+     * @param options Options when outputting
+     * @param result  Result
      */
     public DiskWriter(DiskImage image, String path, DiskWriteOptions options, DiskResult result) throws IOException {
         super(options.trimUnusedData);
@@ -161,8 +161,8 @@ public class DiskWriter extends DiskWriteOptions {
     }
 
     /**
-     * @param image  ディスクイメージ
-     * @param result 結果
+     * @param image  Disk image
+     * @param result Result
      */
     public DiskWriter(DiskImage image, DiskResult result) {
         this.image = image;
@@ -173,10 +173,10 @@ public class DiskWriter extends DiskWriteOptions {
     }
 
     /**
-     * 出力先を開く
+     * Open destination
      *
-     * @param path 出力先ファイルパス
-     * @return 結果
+     * @param path Destination file path
+     * @return Result
      */
     public int open(String path) throws IOException {
         OutputStream fStream = new SeekableDataOutputStream(Files.newByteChannel(Path.of(path)));
@@ -186,7 +186,7 @@ public class DiskWriter extends DiskWriteOptions {
     }
 
     /**
-     * 出力先がオープンしているか
+     * Whether the output destination is open
      *
      * @return true if open and ready, false otherwise
      */
@@ -195,9 +195,9 @@ public class DiskWriter extends DiskWriteOptions {
     }
 
     /**
-     * 対応しているディスクイメージか
+     * Whether it is a supported disk image
      *
-     * @param fileFormat ファイルフォーマット
+     * @param fileFormat File format
      * @return true if supported, false otherwise
      */
     public static boolean supportedFormat(String fileFormat) {
@@ -212,52 +212,52 @@ public class DiskWriter extends DiskWriteOptions {
     }
 
     /**
-     * ディスクイメージを保存できるか
+     * Whether disk image can be saved
      *
-     * @param fileFormat ファイルフォーマット
-     * @return 0: できる, 1: 警告あり (>=0: success, <0: error)
+     * @param fileFormat File format
+     * @return 0: possible, 1: warning exists (>=0: success, <0: error)
      */
     public int canSave(String fileFormat) {
         return canSaveDisk(-1, -1, fileFormat);
     }
 
     /**
-     * ストリームの内容をファイルに保存できるか
+     * Whether content of stream can be saved to file
      *
-     * @param diskNumber ディスク番号
-     * @param sideNumber サイド番号
-     * @param fileFormat ファイルフォーマット
-     * @return 0: できる, 1: 警告あり (>=0: success, <0: error)
+     * @param diskNumber Disk number
+     * @param sideNumber Side number
+     * @param fileFormat File format
+     * @return 0: possible, 1: warning exists (>=0: success, <0: error)
      */
     public int canSaveDisk(int diskNumber, int sideNumber, String fileFormat) {
         int rc = 0;
         if (fileFormat.isEmpty()) {
-            // ファイル形式の指定がない場合
+            // If no file format is specified
             rc = canSaveDiskByExt(diskNumber, sideNumber);
         } else {
-            // ファイル形式の指定あり
+            // With file format specified
             rc = selectCanSaveDisk(fileFormat, diskNumber, sideNumber);
         }
         return rc;
     }
 
     /**
-     * ディスクイメージの保存
+     * Saving of disk image
      *
-     * @param fileFormat ファイルフォーマット
-     * @return 結果
+     * @param fileFormat File format
+     * @return Result
      */
     public int save(String fileFormat) throws IOException {
         return saveDisk(-1, -1, fileFormat);
     }
 
     /**
-     * ストリームの内容をファイルに保存
+     * Save content of stream to file
      *
-     * @param diskNumber ディスク番号
-     * @param sideNumber サイド番号
-     * @param fileFormat ファイルフォーマット
-     * @return 結果
+     * @param diskNumber Disk number
+     * @param sideNumber Side number
+     * @param fileFormat File format
+     * @return Result
      */
     public int saveDisk(int diskNumber, int sideNumber, String fileFormat) throws IOException {
         int rc = 0;
@@ -269,10 +269,10 @@ public class DiskWriter extends DiskWriteOptions {
         }
 
         if (fileFormat.isEmpty()) {
-            // ファイル形式の指定がない場合
+            // If no file format is specified
             rc = saveDiskByExt(diskNumber, sideNumber, support);
         } else {
-            // ファイル形式の指定あり
+            // With file format specified
             rc = selectSaveDisk(fileFormat, diskNumber, sideNumber, support);
         }
         if (!support[0]) {
@@ -282,7 +282,7 @@ public class DiskWriter extends DiskWriteOptions {
         return rc;
     }
 
-    /** 形式ごとのディスクライター */
+    /** Disk writer for each format */
     public abstract static class DiskImageWriter {
 
         protected DiskWriter writer;
@@ -297,12 +297,12 @@ public class DiskWriter extends DiskWriteOptions {
         }
 
         /**
-         * ストリームの内容をファイルに保存できるか
+         * Whether content of stream can be saved to file
          *
-         * @param image       ディスクイメージ
-         * @param diskNumber 0~: ディスク番号, -1: のときは全体
-         * @param sideNumber 0~: サイド番号, -1: のときは両面
-         * @return 0: 正常
+         * @param image       Disk image
+         * @param diskNumber 0~: Disk number, -1: all
+         * @param sideNumber 0~: Side number, -1: both sides
+         * @return 0: Normal
          */
         public int validateDisk(DiskImage image, int diskNumber, int sideNumber) {
             result.clear();
@@ -311,13 +311,13 @@ public class DiskWriter extends DiskWriteOptions {
         }
 
         /**
-         * ストリームの内容をファイルに保存
+         * Save content of stream to file
          *
-         * @param image       ディスクイメージ
-         * @param diskNumber 0~: ディスク番号, -1: のときは全体
-         * @param sideNumber 0~: サイド番号, -1: のときは両面
-         * @param oStream     出力先
-         * @return 0: 正常
+         * @param image       Disk image
+         * @param diskNumber 0~: Disk number, -1: all
+         * @param sideNumber 0~: Side number, -1: both sides
+         * @param oStream     Output destination
+         * @return 0: Normal
          */
         public int saveDisk(DiskImage image, int diskNumber, int sideNumber, OutputStream oStream) throws IOException {
             result.clear();
@@ -328,7 +328,7 @@ public class DiskWriter extends DiskWriteOptions {
 }
 
 /**
- * ディスクライト時のオプション
+ * Options when writing disk
  */
 class DiskWriteOptions {
 

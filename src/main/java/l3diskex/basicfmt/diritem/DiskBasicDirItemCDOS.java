@@ -37,12 +37,12 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_SYSTEM_MASK;
 import static l3diskex.basicfmt.type.DiskBasicTypeCDOS.FORMAT_TYPE_CDOS;
 
 
-/** ディレクトリ１アイテム C-DOS */
+/** Directory 1 item C-DOS */
 public class DiskBasicDirItemCDOS extends DiskBasicDirItemMZBase<DirectoryCDos> {
 
     private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
 
-    /** ディレクトリエントリ C-DOS (32bytes) */
+    /** Directory entry C-DOS (32bytes) */
     @Serdes(bigEndian = false)
     public static class DirectoryCDos implements Directory {
 
@@ -84,7 +84,7 @@ public class DiskBasicDirItemCDOS extends DiskBasicDirItemMZBase<DirectoryCDos> 
     public static final int TYPE_NAME_CDOS_SYS = 4;
     public static final int TYPE_NAME_CDOS_END = 5;
 
-    /** 属性名 */
+    /** Attribute name */
     public static final Map<String, Object> typeNameCDOS = new LinkedHashMap<>() {{
         put("???", TYPE_NAME_CDOS_UNKNOWN);
         put("OBJECT", TYPE_NAME_CDOS_OBJ);
@@ -101,7 +101,7 @@ public class DiskBasicDirItemCDOS extends DiskBasicDirItemMZBase<DirectoryCDos> 
     /** type name 2 enum constant */
     public static final int TYPE_NAME_CDOS2_READ_ONLY = 0;
 
-    /// C-DOS 属性
+    /// C-DOS attributes
     public static final int FILETYPE_CDOS_OBJ = 1;
     public static final int FILETYPE_CDOS_TEX = 2;
     public static final int FILETYPE_CDOS_CMD = 3;
@@ -148,7 +148,7 @@ public class DiskBasicDirItemCDOS extends DiskBasicDirItemMZBase<DirectoryCDos> 
 
         used(checkUsed(unuse[0]));
         if (getFileType1() == 0xfe) {
-            // IPL部分は表示しない
+            // Do not display IPL part
             visible(false);
         }
 
@@ -156,14 +156,14 @@ public class DiskBasicDirItemCDOS extends DiskBasicDirItemMZBase<DirectoryCDos> 
     }
 
     /**
-     * アイテムへのポインタを設定
+     * Set pointer to item
      *
-     * @param num       通し番号
-     * @param groupItem トラック番号などのデータ
-     * @param sector    セクタ
-     * @param sectorPos セクタ内のディレクトリエントリの位置
-     * @param data      ディレクトリアイテム
-     * @param next      [out] 次のセクタ
+     * @param num       Serial number
+     * @param groupItem Data such as track number
+     * @param sector    Sector
+     * @param sectorPos Position of directory entry within sector
+     * @param data      Directory item
+     * @param next      [out] Next sector
      */
     @Override
     public void setData(int num, DiskBasicGroupItem groupItem,
@@ -176,10 +176,10 @@ public class DiskBasicDirItemCDOS extends DiskBasicDirItemMZBase<DirectoryCDos> 
     }
 
     /**
-     * ディレクトリアイテムのチェック
+     * Check directory item
      *
-     * @param last [in,out] チェックを終了するか
-     * @return チェックOK
+     * @param last [in,out] Whether to end the check
+     * @return Check OK
      */
     @Override
     public boolean check(boolean[] last) {
@@ -193,7 +193,7 @@ public class DiskBasicDirItemCDOS extends DiskBasicDirItemMZBase<DirectoryCDos> 
         return valid;
     }
 
-    /** ファイル名を格納する位置を返す */
+    /** Returns position where file name is stored */
     @Override
     protected byte[] getFileNamePos(int num, int[] size, int[] len) {
         if (num == 0) {
@@ -206,49 +206,49 @@ public class DiskBasicDirItemCDOS extends DiskBasicDirItemMZBase<DirectoryCDos> 
         }
     }
 
-    /** 属性１を返す */
+    /** Returns attribute 1 */
     @Override
     protected int getFileType1() {
         return basic.invertUint8(data.data().type) & 0xff;
     }
 
-    /** 属性２を返す */
+    /** Returns attribute 2 */
     @Override
     public int getFileType2() {
         return basic.invertUint8(data.data().type2) & 0xff;
     }
 
-    /** 属性３を返す */
+    /** Returns attribute 3 */
     @Override
     protected int getFileType3() {
         return basic.invertUint8(data.data().byteOrder) & 0xff;
     }
 
-    /** 属性１のセット */
+    /** Set attribute 1 */
     @Override
     protected void setFileType1(int val) {
         data.data().type = basic.invertUint8((byte) val);
     }
 
-    /** 属性２のセット */
+    /** Set attribute 2 */
     @Override
     protected void setFileType2(int val) {
         data.data().type2 = basic.invertUint8((byte) val);
     }
 
-    /** 属性３のセット */
+    /** Set attribute 3 */
     @Override
     protected void setFileType3(int val) {
         data.data().byteOrder = basic.invertUint8((byte) val);
     }
 
-    /** 使用しているアイテムか */
+    /** Whether it is a used item */
     @Override
     public boolean checkUsed(boolean unuse) {
         return true;
     }
 
-    /** 属性を変換 */
+    /** Convert attribute */
     private int convToNativeType(int fileType) {
         int val = 0;
         if ((fileType & FILE_TYPE_SYSTEM_MASK.getValue()) != 0) {
@@ -263,7 +263,7 @@ public class DiskBasicDirItemCDOS extends DiskBasicDirItemMZBase<DirectoryCDos> 
         return val;
     }
 
-    /** 属性からリストの位置を返す(プロパティダイアログ用) */
+    /** Returns position in list from attribute (for property dialog) */
     private int convFileType1Pos(int nativeType) {
         return switch (nativeType) {
             case FILETYPE_CDOS_OBJ -> TYPE_NAME_CDOS_OBJ;
@@ -274,7 +274,7 @@ public class DiskBasicDirItemCDOS extends DiskBasicDirItemMZBase<DirectoryCDos> 
         };
     }
 
-    /** 属性からリストの位置を返す(プロパティダイアログ用) */
+    /** Returns position in list from attribute (for property dialog) */
     private int convFileType2Pos(int nativeType) {
         int val = 0;
         if ((nativeType & DATATYPE_CDOS_READ_ONLY) != 0) {
@@ -284,7 +284,7 @@ public class DiskBasicDirItemCDOS extends DiskBasicDirItemMZBase<DirectoryCDos> 
         return val;
     }
 
-    /** リストの位置から属性を返す(プロパティダイアログ用) */
+    /** Returns attribute from list position (for property dialog) */
     private int calcFileTypeFromPos(int pos) {
         return switch (pos) {
             case TYPE_NAME_CDOS_OBJ -> FILETYPE_CDOS_OBJ;
@@ -295,26 +295,26 @@ public class DiskBasicDirItemCDOS extends DiskBasicDirItemMZBase<DirectoryCDos> 
         };
     }
 
-    /** データ内にファイルサイズをセット */
+    /** Set file size in data */
     @Override
     public void setFileSizeBase(int val) {
         data.data().fileSize = basic.invertUint16((short) val);
     }
 
-    /** データ内のファイルサイズを返す */
+    /** Returns file size in data */
     @Override
     public int getFileSizeBase() {
         return basic.invertUint16(data.data().fileSize) & 0xffff;
     }
 
     /**
-     * 削除
+     * Delete
      *
      * @return true: OK
      */
     @Override
     public boolean delete() {
-        // 削除はエントリの先頭にコードを入れるだけ
+        // Deletion is simply putting a code at the beginning of the entry
         data.fill(basic.invertUint8(basic.getDeleteCode()), 1);
         used(false);
         return true;
@@ -328,11 +328,11 @@ public class DiskBasicDirItemCDOS extends DiskBasicDirItemMZBase<DirectoryCDos> 
         int t1 = 0;
         int t2 = 0;
         if (fileType.getFormat() == basic.getFormatTypeNumber()) {
-            // 同じフォーマット
+            // Same format
             t1 = fileType.getOrigin() & 0xff;
             t2 = (fileType.getOrigin() >> 8) & 0xff;
         } else {
-            // 異なるフォーマット
+            // Different format
             t1 = convToNativeType(fType);
             if ((fType & FILE_TYPE_READONLY_MASK.getValue()) != 0) {
                 t2 |= DATATYPE_CDOS_READ_ONLY;
@@ -520,7 +520,7 @@ public class DiskBasicDirItemCDOS extends DiskBasicDirItemMZBase<DirectoryCDos> 
 
     @Override
     public int convOriginalTypeFromFileName(String filename) {
-        // 拡張子で属性を設定する
+        // Set attribute by extension
         int[] t1 = {0};
         if (!isContainAttrByExtension(filename, typeNameCDOS, TYPE_NAME_CDOS_OBJ, TYPE_NAME_CDOS_SYS, null, t1, null)) {
             t1[0] = TYPE_NAME_CDOS_TEX;

@@ -20,13 +20,13 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_VOLUME_MASK;
 
 
 /**
- Human68kの処理
+ Human68k processing
 
- DiskBasicParam 固有のパラメータ
- <li>IPLString : IPL文字列</li>
- <li>IPLCompareString : OS判定時に使用する</li>
- <li>IgnoreParameter : セクタ１にあるパラメータを無視するか</li>
- <li>MediaID : メディアID</li>
+ DiskBasicParam Specific parameters
+ <li>IPLString: IPL string</li>
+ <li>IPLCompareString: Used for OS judgment</li>
+ <li>IgnoreParameter: Whether to ignore the parameters in sector 1</li>
+ <li>MediaID: Media ID</li>
  */
 public class DiskBasicTypeHU68K extends DiskBasicTypeMSDOS {
 
@@ -43,10 +43,10 @@ public class DiskBasicTypeHU68K extends DiskBasicTypeMSDOS {
     }
 
     /**
-     * ディスクから各パラメータを取得＆必要なパラメータを計算
+     * Get each parameter from disk and calculate necessary parameters
      *
-     * @param isFormatting フォーマット中か
-     * @return 1.0 正常, <1.0 警告あり, <0.0 エラーあり
+     * @param isFormatting Whether formatting is in progress
+     * @return 1.0 Normal, <1.0 Warning present, <0.0 Error present
      */
     @Override
     public double parseParamOnDisk(boolean isFormatting) throws IOException {
@@ -57,14 +57,14 @@ public class DiskBasicTypeHU68K extends DiskBasicTypeMSDOS {
             validRatio = parseMSDOSParamOnDisk(basic.getDisk(), isFormatting);
         }
         if (validRatio >= 0.0) {
-            // セクタ0
+            // Sector 0
             DiskImageSector sector = basic.getSector(0, basic.getSideNumberBaseOnDisk(), 1);
             if (sector == null) {
                 return -1.0;
             }
 
-            // IPLに"X68IPL"が含まれるか
-            // "Human"が含まれるか
+            // Whether "X68IPL" is included in IPL
+            // Whether "Human" is included
             int found = -1;
             String istr = null;
             for (int i = 0; i < 3; i++) {
@@ -92,10 +92,10 @@ public class DiskBasicTypeHU68K extends DiskBasicTypeMSDOS {
     }
 
     /**
-     * セクタデータを埋めた後の個別処理
+     * Individual processing after filling sector data
      *
-     * フォーマット IPLの書き込み
-     * @param data 形式判定で取得したデータ
+     * Format Writing IPL
+     * @param data Data obtained during format judgment
      * @return true/false
      */
     @Override
@@ -104,7 +104,7 @@ public class DiskBasicTypeHU68K extends DiskBasicTypeMSDOS {
             return false;
         }
 
-        // ボリュームラベルを設定
+        // Set volume label
         int dirStart = basic.getReservedSectors() + basic.getNumberOfFats() * basic.getSectorsPerFat();
         DiskImageSector sector = basic.getSectorFromSectorPos(dirStart);
         DiskBasicDirItem<DirectoryMsDos> dItem = dir.newItem(sector, 0, sector.getSectorBuffer(), 0);

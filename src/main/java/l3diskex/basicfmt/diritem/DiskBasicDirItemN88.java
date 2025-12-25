@@ -39,14 +39,14 @@ import static l3diskex.basicfmt.type.DiskBasicTypePA.FORMAT_TYPE_PA;
 
 
 /**
- ディレクトリ１アイテム N88-BASIC
+ Directory 1 item N88-BASIC
 
- {@link #externalAttr} ランダムアクセスファイルの時 1
+ {@link #externalAttr} 1 when it is a random access file
  */
 public class DiskBasicDirItemN88 extends DiskBasicDirItemFAT8<DirectoryN88> {
 
     /**
-     * ディレクトリエントリ n88 BASIC
+     * Directory entry n88 BASIC
      */
     @Serdes(bigEndian = false)
     public static class DirectoryN88 implements Directory {
@@ -75,7 +75,7 @@ public class DiskBasicDirItemN88 extends DiskBasicDirItemFAT8<DirectoryN88> {
         }
     }
 
-    // N88-BASIC attribute names
+    /** N88-BASIC attribute names */
     public static final String[] TYPE_NAME_N88_1 = {
             "Ascii",
             "Binary",
@@ -94,7 +94,7 @@ public class DiskBasicDirItemN88 extends DiskBasicDirItemFAT8<DirectoryN88> {
     public static final int FILETYPE_N88_BINARY = 0x80;
     public static final int FILETYPE_N88_MACHINE = 0x01;
 
-    // N88-BASIC attribute names 2
+    /** N88-BASIC attribute names 2 */
     public static final String[] TYPE_NAME_N88_2 = {
             "Write Protected",
             "Read After Write",
@@ -109,7 +109,7 @@ public class DiskBasicDirItemN88 extends DiskBasicDirItemFAT8<DirectoryN88> {
     public static final int DATATYPE_MASK_N88_READ_WRITE = 0x40;
     public static final int DATATYPE_MASK_N88_ENCRYPTED = 0x20;
 
-    /** ディレクトリデータ */
+    /** Directory data */
     protected DiskBasicDirData<DirectoryN88> data = new DiskBasicDirData<>();
 
     @Override
@@ -145,19 +145,19 @@ public class DiskBasicDirItemN88 extends DiskBasicDirItemFAT8<DirectoryN88> {
         unuse[0] = (unuse[0] || (this.data.data().name[0] == (byte) 0xff));
 //Debug.println("1): " + isUsed() + "\n" + StringUtil.getDump(data.getRawData(), DirectoryN88.SIZE));
 
-        // ファイルサイズとグループ数を計算
+        // Calculate file size and number of groups
         calcFileSize();
     }
 
     /**
-     * アイテムへのポインタを設定
+     * Set pointer to item
      *
-     * @param num       通し番号
-     * @param groupItem トラック番号などのデータ
-     * @param sector    セクタ
-     * @param sectorPos セクタ内のディレクトリエントリの位置
-     * @param data      ディレクトリアイテム
-     * @param next      [out] 次のセクタ
+     * @param num       Serial number
+     * @param groupItem Data such as track number
+     * @param sector    Sector
+     * @param sectorPos Position of directory entry within sector
+     * @param data      Directory item
+     * @param next      [out] Next sector
      * @see DiskBasicType#checkDirectory
      */
     @Override
@@ -169,7 +169,7 @@ public class DiskBasicDirItemN88 extends DiskBasicDirItemFAT8<DirectoryN88> {
 //Debug.println("2)\n" + StringUtil.getDump(data.getRawData(), DirectoryN88.SIZE));
     }
 
-    /** ファイル名を格納する位置を返す */
+    /** Returns position where file name is stored */
     @Override
     protected byte[] getFileNamePos(int num, int[] size, int[] len) {
         // N88
@@ -182,7 +182,7 @@ public class DiskBasicDirItemN88 extends DiskBasicDirItemFAT8<DirectoryN88> {
         }
     }
 
-    /** 拡張子を格納する位置を返す */
+    /** Returns position where extension is stored */
     @Override
     protected byte[] getFileExtPos(int[] len) {
         len[0] = data.data().ext.length;
@@ -213,7 +213,7 @@ public class DiskBasicDirItemN88 extends DiskBasicDirItemFAT8<DirectoryN88> {
             last[0] = true;
             return valid;
         }
-        // 属性に不正な値がある (0x0c = 00001100b, i.e., bits 2 and 3)
+        // There is an invalid value in the attributes (0x0c = 00001100b, i.e., bits 2 and 3)
         if ((getFileType1() & 0x0c) != 0) {
             valid = false;
         }
@@ -222,7 +222,7 @@ public class DiskBasicDirItemN88 extends DiskBasicDirItemFAT8<DirectoryN88> {
 
     @Override
     public boolean delete() {
-        // 削除はエントリの先頭にコードを入れるだけ
+        // Deletion is simply putting a code at the beginning of the entry
         data.fill(basic.getDeleteCode(), 1);
         used(false);
         return true;
@@ -318,7 +318,7 @@ public class DiskBasicDirItemN88 extends DiskBasicDirItemFAT8<DirectoryN88> {
 
     @Override
     public void setFileSize(int val) {
-        // ファイルサイズはセクタサイズ境界で丸める
+        // Round file size to sector size boundary
         int sectorSize = basic.getSectorSize();
         groups.setSize((((val - 1) / sectorSize) + 1) * sectorSize);
     }
@@ -339,9 +339,9 @@ public class DiskBasicDirItemN88 extends DiskBasicDirItemFAT8<DirectoryN88> {
 
         boolean isBigEndian = basic.isBigEndian();
 
-        // 開始アドレス
+        // Start address
         startAddress = sector.get16(0, isBigEndian);
-        // 終了アドレス
+        // End address
         endAddress = sector.get16(2, isBigEndian);
     }
 
@@ -374,18 +374,18 @@ public class DiskBasicDirItemN88 extends DiskBasicDirItemFAT8<DirectoryN88> {
 
     @Override
     public boolean needCheckEofCode() {
-        // Asc形式のときはEOFコードが必要
+        // EOF code is needed when Asc format
         return (((getFileType1() & (FILETYPE_N88_MACHINE | FILETYPE_N88_BINARY)) == 0) && (externalAttr == 0));
     }
 
     @Override
     public int recalcFileSizeOnSave(InputStream iStream, int fileSize) throws IOException {
         if (needCheckEofCode()) {
-            // ファイルの最終が終端記号で終わっているかを調べる
+            // Check if the end of the file ends with a termination symbol
             fileSize = checkEofCode(iStream, fileSize);
-            // ただし、ファイルサイズがセクタサイズと合うなら終端記号は不要
+            // However, if the file size matches the sector size, the termination symbol is not required
             if ((fileSize % basic.getSectorSize()) == 1) {
-                // 残り１バイトは終端コードのみなので不要
+                // The remaining 1 byte is only for the termination code, so it is unnecessary
                 fileSize--;
             }
         }
@@ -427,7 +427,7 @@ public class DiskBasicDirItemN88 extends DiskBasicDirItemFAT8<DirectoryN88> {
     @Override
     public int convFileTypeFromFileName(String filename) {
         int ftype = 0;
-        // 拡張子で属性を設定する
+        // Set attribute by extension
         MyAttribute sa = findUpperCase(basic.getAttributesByExtension(), Utils.getExt(filename));
         if (sa != null) {
             ftype = sa.getType();
@@ -440,7 +440,7 @@ public class DiskBasicDirItemN88 extends DiskBasicDirItemFAT8<DirectoryN88> {
     @Override
     public int convOriginalTypeFromFileName(String filename) {
         int t1 = 0;
-        // 拡張子で属性を設定する
+        // Set attribute by extension
         MyAttribute sa = findUpperCase(basic.getAttributesByExtension(), Utils.getExt(filename));
         if (sa != null) {
             t1 = convFileType1(sa.getType());
@@ -450,7 +450,7 @@ public class DiskBasicDirItemN88 extends DiskBasicDirItemFAT8<DirectoryN88> {
         return t1;
     }
 
-    // 属性からリストの位置を返す(プロパティダイアログ用)
+    // Returns position in list from attribute (for property dialog)
     public int convFileType1Pos(int t1) {
         int val = 0;
         if ((t1 & FILETYPE_N88_MACHINE) != 0) {

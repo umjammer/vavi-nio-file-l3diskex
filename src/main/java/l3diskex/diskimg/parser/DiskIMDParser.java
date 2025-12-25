@@ -52,18 +52,18 @@ public class DiskIMDParser extends DiskImageParser {
     }
 
     /**
-     * セクタデータの作成
+     * Create sector data
      *
-     * @param istream       ディスクイメージ
-     * @param diskNumber    ディスク番号
-     * @param trackNumber   トラック番号
-     * @param sideNumber    サイド番号
-     * @param numOfSectors  セクタ数
-     * @param sectorNumber  セクタ番号
-     * @param sectorSize    セクタサイズ
-     * @param singleDensity 単密度か
-     * @param track         [in,out] トラック
-     * @return ヘッダ込みのセクタサイズ
+     * @param istream       Disk image
+     * @param diskNumber    Disk number
+     * @param trackNumber   Track number
+     * @param sideNumber    Side number
+     * @param numOfSectors  Number of sectors
+     * @param sectorNumber  Sector number
+     * @param sectorSize    Sector size
+     * @param singleDensity Whether single density
+     * @param track         [in,out] Track
+     * @return Sector size including header
      */
     private int parseSector(InputStream istream,
                             int diskNumber,
@@ -118,14 +118,14 @@ public class DiskIMDParser extends DiskImageParser {
     }
 
     /**
-     * トラックデータの作成
+     * Create track data
      *
-     * @param istream    ディスクイメージ
-     * @param diskNumber ディスク番号
-     * @param offsetPos  オフセット番号
-     * @param offset     オフセット位置
-     * @param disk       [in,out] ディスク
-     * @return -1:エラー or 終り >0:トラックサイズ
+     * @param istream    Disk image
+     * @param diskNumber Disk number
+     * @param offsetPos  Offset number
+     * @param offset     Offset position
+     * @param disk       [in,out] Disk
+     * @return -1: Error or end, >0: Track size
      */
     private int parseTrack(InputStream istream,
                            int diskNumber,
@@ -202,19 +202,19 @@ public class DiskIMDParser extends DiskImageParser {
         }
 
         if (result.getValid() >= 0) {
-            // インターリーブの計算
+            // Calculate interleave
             track.calcInterleave();
         }
 
         if (result.getValid() >= 0) {
-            // トラックサイズ設定
+            // Set track size
             track.setSize(d88TrackSize);
-            // サイド番号は各セクタのID Hに合わせる
+            // Side number matches ID H of each sector
             track.setSideNumber(track.getMajorIDH());
 
-            // ディスクに追加
+            // Add to disk
             disk.add(track);
-            // オフセット設定
+            // Set offset
             disk.setOffset(offsetPos, offset);
         }
 
@@ -222,10 +222,10 @@ public class DiskIMDParser extends DiskImageParser {
     }
 
     /**
-     * IMDファイルを解析
+     * Analyze IMD file
      *
-     * @param iStream    解析対象データ
-     * @param diskNumber ディスク番号
+     * @param iStream    Data to be analyzed
+     * @param diskNumber Disk number
      * @retval -1: finish parsing
      * @retval 0: parse next disk
      */
@@ -237,10 +237,10 @@ public class DiskIMDParser extends DiskImageParser {
         }
         if (ch == -1) return -1;
 
-        // ディスク作成
+        // Create disk
         DiskImageDisk disk = file.newImageDisk(diskNumber);
 
-        // トラック解析
+        // Track analysis
         int d88Offset = disk.getOffsetStart();   // header size
         int d88OffsetPos = 0;
         int limitOffsetPos = disk.getCreatableTracks();
@@ -261,7 +261,7 @@ public class DiskIMDParser extends DiskImageParser {
 
         if (result.getValid() >= 0) {
             DiskParam diskParam = disk.calcMajorNumber();
-            // ディスクを追加
+            // Add disk
             if (diskParam != null) {
                 disk.setDensity(diskParam.getParamDensity());
             }
@@ -277,10 +277,10 @@ public class DiskIMDParser extends DiskImageParser {
     }
 
     /**
-     * チェック
+     * Check
      *
-     * @param iStream 解析対象データ
-     * @return 1: 選択ダイアログ表示, 0: 正常（候補が複数ある時はダイアログ表示）
+     * @param iStream Data to be analyzed
+     * @return 1: show selection dialog, 0: normal (show dialog if multiple candidates)
      */
     @Override
     public int check(InputStream iStream) throws IOException {
@@ -312,11 +312,11 @@ public class DiskIMDParser extends DiskImageParser {
     }
 
     /**
-     * IMDファイルを解析
+     * Analyze IMD file
      *
-     * @param iStream   解析対象データ
-     * @param diskParam パラメータ通常不要
-     * @return 0: 正常m -1: エラーあり, 1: 警告あり
+     * @param iStream   Data to be analyzed
+     * @param diskParam Parameters usually unnecessary
+     * @return 0: normal, -1: error exists, 1: warning exists
      */
     @Override
     public int parse(InputStream iStream, DiskParam diskParam) throws IOException {

@@ -39,7 +39,7 @@ public class UiDirItemPRODOS extends UiDirItem {
 
     DiskBasicDirItemProDOS dirItem;
 
-    // @name プロパティダイアログ用
+    // @name For property dialog
 
     // Private helper from CPP
     private void setFileTypeForAttrDialog(int showFlags, String name, int[] fileType1, int[] fileType2) {

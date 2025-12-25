@@ -23,14 +23,14 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_BINARY_MASK;
 import static l3diskex.basicfmt.type.DiskBasicTypeFalcom.FORMAT_TYPE_FALCOM;
 
 
-/** ディレクトリ１アイテム Falcom DOS */
+/** Directory 1 item Falcom DOS */
 public class DiskBasicDirItemFalcom extends DiskBasicDirItem<DirectoryFalcom> {
 
     /** Directory data. */
     private final DiskBasicDirData<DirectoryFalcom> data = new DiskBasicDirData<>();
 
     /**
-     * ディレクトリエントリ Falcom (16bytes)
+     * Directory entry Falcom (16bytes)
      */
     @Serdes
     public static class DirectoryFalcom implements Directory {
@@ -104,7 +104,7 @@ public class DiskBasicDirItemFalcom extends DiskBasicDirItem<DirectoryFalcom> {
         used(checkUsed(unuse[0]));
         unuse[0] = (unuse[0] || (this.data.data().name[0] == (byte) 0xff));
 
-        // ファイルサイズとグループ数を計算
+        // Calculate file size and number of groups
         calcFileSize();
     }
 

@@ -28,15 +28,15 @@ import static l3diskex.basicfmt.diritem.DiskBasicDirItemCPM.SECTOR_UNIT_CPM;
 
 
 /**
- * CP/Mの処理
+ * CP/M processing
  *
- * <li>AttributesByExtension バイナリとして扱う拡張子</li>
+ * <li>AttributesByExtension Extensions to be treated as binary</li>
  */
 public class DiskBasicTypeCPM extends DiskBasicType<DirectoryCpm> {
 
     public static final int FORMAT_TYPE_CPM = 10;
 
-    /** ソフトセクタスキュー */
+    /** Soft sector skew */
     protected DiskBasicSectorSkew sectorSkew = new DiskBasicSectorSkew();
 
     @Override
@@ -53,14 +53,14 @@ public class DiskBasicTypeCPM extends DiskBasicType<DirectoryCpm> {
     }
 
     /**
-     * ディスクから各パラメータを取得＆必要なパラメータを計算
+     * Get each parameter from disk and calculate necessary parameters
      *
-     * @param isFormatting フォーマット中か
-     * @return 1.0: 正常, 0.0 ~ 1.0: 警告あり, <0.0: エラーあり
+     * @param isFormatting Whether formatting is in progress
+     * @return 1.0: Normal, 0.0 ~ 1.0: Warning present, <0.0: Error present
      */
     @Override
     public double parseParamOnDisk(boolean isFormatting) {
-        // 最終グループ番号
+        // Final group number
         if (basic.getFatEndGroup() == 0) {
             int maxGroup = (basic.getTracksPerSide() - basic.getManagedTrackNumber()) * basic.getSidesPerDiskOnBasic() * basic.getSectorsPerTrackOnBasic() / basic.getSectorsPerGroup() - 1;
             basic.setFatEndGroup(maxGroup);
@@ -68,18 +68,18 @@ public class DiskBasicTypeCPM extends DiskBasicType<DirectoryCpm> {
 
         if (isFormatting) return 1.0;
 
-        // 最終グループ番号が最大値を超えていないか？
+        // Does the final group number not exceed the maximum value?
         if ((1L << (basic.getGroupWidth() * 8)) <= basic.getFatEndGroup()) {
             return -1.0;
         }
 
-        // セクタ０
+        // Sector 0
         DiskImageSector sector = basic.getSector(0, 0, 1);
         if (sector == null) {
             return -1.0;
         }
 
-        // 最初のセクタに識別文字がある場合はその文字列が含まれるかで判断
+        // If there is an identification character in the first sector, judge whether that string is included
         double validRatio = 0.5;
         int found = -1;
         byte[] iStr = null;
@@ -106,7 +106,7 @@ public class DiskBasicTypeCPM extends DiskBasicType<DirectoryCpm> {
     }
 
     /**
-     * エリアをチェック
+     * Check area
      */
     @Override
     public double checkFat(boolean is_formatting) {
@@ -114,13 +114,13 @@ public class DiskBasicTypeCPM extends DiskBasicType<DirectoryCpm> {
     }
 
     /**
-     * ルートディレクトリをアサイン
+     * Assign root directory
      */
     @Override
     public boolean assignRootDirectory(int startSector, int endSector, DiskBasicGroups groupItems, DiskBasicDirItem<DirectoryCpm> dirItem) throws IOException {
         boolean sts = super.assignRootDirectory(startSector, endSector, groupItems, dirItem);
 
-        // エクステント 同じファイル名 を関連付ける
+        // Associate extents with the same file name
         List<DiskBasicDirItem<DirectoryCpm>> sortItems = dirItem.getChildren();
         sortItems.sort(DiskBasicDirItemCPM::compare);
         DiskBasicDirItem<DirectoryCpm> prevItem = null;
@@ -129,16 +129,16 @@ public class DiskBasicTypeCPM extends DiskBasicType<DirectoryCpm> {
             if (prevItem != null) {
                 int cmparison = DiskBasicDirItemCPM.compareName(item, prevItem);
                 if (cmparison == 0) {
-                    // 一つ前と同じ名前なら、ポインタをセット
+                    // If same name as the previous one, set pointer
                     ((DiskBasicDirItemCPM) prevItem).setNextItem(item);
-                    // このアイテムはリストに表示しない
+                    // Do not show this item in the list
                     item.visible(false);
                 }
             }
             prevItem = item;
         }
 
-        // ファイルサイズを計算
+        // Calculate file size
         for (DiskBasicDirItem<DirectoryCpm> sortItem : sortItems) {
             DiskBasicDirItemCPM cItem = (DiskBasicDirItemCPM) sortItem;
             if (cItem.isUsedAndVisible()) {
@@ -150,7 +150,7 @@ public class DiskBasicTypeCPM extends DiskBasicType<DirectoryCpm> {
     }
 
     /**
-     * 使用可能なディスクサイズを得る
+     * Get usable disk size
      */
     @Override
     public void getUsableDiskSize(int[] diskSize, int[] groupSize) {
@@ -159,7 +159,7 @@ public class DiskBasicTypeCPM extends DiskBasicType<DirectoryCpm> {
     }
 
     /**
-     * 残りディスクサイズを計算
+     * Calculate remaining disk size
      */
     @Override
     public void calcDiskFreeSize(boolean wrote) {
@@ -170,7 +170,7 @@ public class DiskBasicTypeCPM extends DiskBasicType<DirectoryCpm> {
         for (DiskBasicDirItem<DirectoryCpm> item : items) {
             if (item == null || !item.isUsed()) continue;
 
-            // グループ番号のマップを調べる
+            // Examine map of group numbers
             DiskBasicGroups groups = item.getGroups();
             int count = groups.size();
             for (int n = 0; n < count; n++) {
@@ -186,12 +186,12 @@ public class DiskBasicTypeCPM extends DiskBasicType<DirectoryCpm> {
             }
         }
 
-        // 空きをチェック
+        // Check free space
         int groups = 0;
         long dirArea = ((basic.getDirEndSector() - basic.getDirStartSector() + 1L) / basic.getSectorsPerGroup());
         for (int pos = 0; pos <= basic.getFatEndGroup(); pos++) {
             if (pos < dirArea) {
-                // ディレクトリエリアは使用済み
+                // Directory area is in use
                 fatAvailability.set(pos, FAT_AVAIL_SYSTEM);
             } else if (fatAvailability.get(pos) == FAT_AVAIL_FREE) {
                 groups++;
@@ -205,7 +205,7 @@ public class DiskBasicTypeCPM extends DiskBasicType<DirectoryCpm> {
     }
 
     /**
-     * FAT位置をセット
+     * Set FAT position
      */
     @Override
     public void setGroupNumber(int num, int val) {
@@ -213,7 +213,7 @@ public class DiskBasicTypeCPM extends DiskBasicType<DirectoryCpm> {
     }
 
     /**
-     * グループ番号を得る
+     * Get group number
      */
     @Override
     public int getGroupNumber(int num) {
@@ -221,7 +221,7 @@ public class DiskBasicTypeCPM extends DiskBasicType<DirectoryCpm> {
     }
 
     /**
-     * FAT位置が使用されているか
+     * Whether FAT position is used
      */
     @Override
     public boolean isUsedGroupNumber(int num) {
@@ -229,7 +229,7 @@ public class DiskBasicTypeCPM extends DiskBasicType<DirectoryCpm> {
     }
 
     /**
-     * 次のグループ番号を得る
+     * Get next group number
      */
     @Override
     public int getNextGroupNumber(int num, int sectorPos) {
@@ -237,7 +237,7 @@ public class DiskBasicTypeCPM extends DiskBasicType<DirectoryCpm> {
     }
 
     /**
-     * 空き位置を返す
+     * Returns free position
      */
     @Override
     public int getEmptyGroupNumber() {
@@ -252,7 +252,7 @@ public class DiskBasicTypeCPM extends DiskBasicType<DirectoryCpm> {
     }
 
     /**
-     * 次の空き位置を返す 未使用
+     * Returns next free position. Unused.
      */
     @Override
     public int getNextEmptyGroupNumber(int currentGroup) {
@@ -260,7 +260,7 @@ public class DiskBasicTypeCPM extends DiskBasicType<DirectoryCpm> {
     }
 
     /**
-     * データサイズ分のグループを確保する
+     * Allocate groups for data size
      */
     @Override
     public int allocateUnitGroups(int fileUnitNum, DiskBasicDirItem<DirectoryCpm> item, int dataSize, AllocateGroupFlags flags, DiskBasicGroups[] groupItems) throws IOException {
@@ -271,14 +271,14 @@ public class DiskBasicTypeCPM extends DiskBasicType<DirectoryCpm> {
 
         int startGroupPos = 0;
         if (flags == AllocateGroupFlags.ALLOCATE_GROUPS_APPEND) {
-            // 追加の時、空きエントリをさがす
+            // Search for free entry during append
             while (dItem.getGroupNumber(startGroupPos) != 0) {
                 startGroupPos++;
                 if ((startGroupPos % groupEntries) == 0) {
-                    // グループエントリ数に達したら次のディレクトリエントリに移動
+                        // Move to next directory entry if group entry count is reached
                     dItem = dItem.getNextItem();
                     if (dItem == null) {
-                        // 次がない
+                        // No next one
                         break;
                     }
                 }
@@ -300,13 +300,13 @@ public class DiskBasicTypeCPM extends DiskBasicType<DirectoryCpm> {
                 break;
             }
             basic.getNumsFromGroup(groupNum, 0, basic.getSectorSize(), remainSize, groupItems[0]);
-            // 使用中にする
+            // Mark as used
             setGroupNumber(groupNum, 1);
-            // グループエントリ
+            // Group entry
             dItem.setGroupNumber((groupPos % groupEntries), groupNum);
 
             fileSize += (remainSize < groupSize ? remainSize : groupSize);
-            // エクステント番号とレコード番号をセット
+            // Set extent number and record number
             dItem.calcExtentAndRecordNumber(fileSize);
 
             remainSize -= groupSize;
@@ -314,10 +314,10 @@ public class DiskBasicTypeCPM extends DiskBasicType<DirectoryCpm> {
 
             groupPos++;
             if (remainSize > 0 && (groupPos % groupEntries) == 0) {
-                // グループエントリ数に達したら次のディレクトリエントリに移動
+                    // Move to next directory entry if group entry count is reached
                 dItem = dItem.getNextItem();
                 if (dItem == null) {
-                    // 次がない！？
+                    // No next one!?
                     rc = -2;
                     break;
                 }
@@ -328,7 +328,7 @@ public class DiskBasicTypeCPM extends DiskBasicType<DirectoryCpm> {
         }
         if (rc < 0) {
             deleteGroups(groupItems[0]);
-            // グループエントリを削除
+            // Delete group entries
             dItem = (DiskBasicDirItemCPM) item;
             groupPos = 0;
             while (dItem.getGroupNumber(groupPos) != 0) {
@@ -337,7 +337,7 @@ public class DiskBasicTypeCPM extends DiskBasicType<DirectoryCpm> {
                 }
                 groupPos++;
                 if ((groupPos % groupEntries) == 0) {
-                    // グループエントリ数に達したら次のディレクトリエントリに移動
+                        // Move to next directory entry if group entry count is reached
                     dItem = dItem.getNextItem();
                     if (dItem == null) {
                         break;
@@ -349,13 +349,13 @@ public class DiskBasicTypeCPM extends DiskBasicType<DirectoryCpm> {
     }
 
     /**
-     * ファイルの最終セクタのデータサイズを求める
+     * Determine data size of the last sector of file
      */
     @Override
     public int calcDataSizeOnLastSector(DiskBasicDirItem<DirectoryCpm> item, InputStream iStream, OutputStream oStream, byte[] sectorBuffer, int sectorOffset, int sectorSize, int remainSize) throws IOException {
-        // ファイルサイズはセクタサイズ境界なので要計算
+        // File size is sector size boundary, so calculation is required
         if (item.needCheckEofCode()) {
-            // 終端コードの1つ前までを出力
+            // Output up to one byte before the termination code
             byte eofCode = basic.invertUint8(basic.getTextTerminateCode());
             for (int len = 0; len < remainSize; len++) {
                 if (sectorBuffer[len] == eofCode) {
@@ -364,9 +364,9 @@ public class DiskBasicTypeCPM extends DiskBasicType<DirectoryCpm> {
                 }
             }
         } else {
-            // 計算手段がないので残りサイズをそのまま返す
+            // No calculation method, so return remaining size as is
             if (iStream != null) {
-                // 比較時は、比較先のファイルサイズ
+                // When comparing, use target file size
                 int streamLength = iStream.available() % sectorSize;
             }
         }
@@ -374,7 +374,7 @@ public class DiskBasicTypeCPM extends DiskBasicType<DirectoryCpm> {
     }
 
     /**
-     * グループ番号からセクタ番号を得る
+     * Get sector number from group number
      */
     @Override
     public int getStartSectorFromGroup(int groupNum) {
@@ -382,7 +382,7 @@ public class DiskBasicTypeCPM extends DiskBasicType<DirectoryCpm> {
     }
 
     /**
-     * グループ番号から最終セクタ番号を得る
+     * Get final sector number from group number
      */
     @Override
     public int getEndSectorFromGroup(int groupNum, int nextGroup, int sectorStart, int sectorSize, int remainSize) {
@@ -396,7 +396,7 @@ public class DiskBasicTypeCPM extends DiskBasicType<DirectoryCpm> {
     }
 
     /**
-     * データ領域の開始セクタを計算
+     * Calculate start sector of data area
      */
     @Override
     public int calcDataStartSectorPos() {
@@ -404,7 +404,7 @@ public class DiskBasicTypeCPM extends DiskBasicType<DirectoryCpm> {
     }
 
     /**
-     * セクタ位置(トラック0,サイド0,セクタ1を0とした通し番号)からトラック、サイド、セクタの各番号を得る
+     * Get track, side, sector numbers from sector position (serial number where track 0, side 0, sector 1 is 0)
      */
     @Override
     public void getNumFromSectorPos(int sectorPos, int[] trackNum, int[] sideNum, int[] sectorNum, int[] divNum, int[] numOfDivs) {
@@ -424,15 +424,15 @@ public class DiskBasicTypeCPM extends DiskBasicType<DirectoryCpm> {
         }
         sectorNum[0] = sectorPos % sectorsPerTrack;
 
-        // マッピング
+        // Mapping
         sectorNum[0] = sectorSkew.toPhysical(sectorNum[0]);
 
         if (numberingSector == 1) {
-            // トラックごとに連番の場合
+            // Case where it is sequential numbering per track
             sectorNum[0] += sideNum[0] * sectorsPerTrack;
         }
 
-        // サイド番号を逆転するか
+        // Whether to reverse side number?
         sideNum[0] = basic.getReversedSideNumber(sideNum[0]);
 
         trackNum[0] += basic.getTrackNumberBaseOnDisk();
@@ -444,7 +444,7 @@ public class DiskBasicTypeCPM extends DiskBasicType<DirectoryCpm> {
     }
 
     /**
-     * トラック、サイド、セクタの各番号からセクタ位置(トラック0,サイド0,セクタ1を0とした通し番号)を得る
+     * Get sector position (serial number where track 0, side 0, sector 1 is 0) from track, side, sector numbers
      */
     @Override
     public int getSectorPosFromNum(int trackNum, int sideNum, int sectorNum, int divNum, int numOfDivs) {
@@ -458,15 +458,15 @@ public class DiskBasicTypeCPM extends DiskBasicType<DirectoryCpm> {
         sideNum -= basic.getSideNumberBaseOnDisk();
         sectorNum -= basic.getSectorNumberBase();
 
-        // サイド番号を逆転するか
+        // Whether to reverse side number?
         sideNum = basic.getReversedSideNumber(sideNum);
 
-        // 連番の場合
+        // In case of sequential numbering
         if (numberingSector == 1) {
             sectorNum = sectorNum % sectorsPerTrack;
         }
 
-        // マッピング
+        // Mapping
         sectorNum = sectorSkew.toLogical(sectorNum);
 
         if (selectedSide >= 0) {
@@ -482,7 +482,7 @@ public class DiskBasicTypeCPM extends DiskBasicType<DirectoryCpm> {
     }
 
     /**
-     * ルートディレクトリか
+     * Is it root directory?
      */
     @Override
     public boolean isRootDirectory(int groupNum) {
@@ -490,7 +490,7 @@ public class DiskBasicTypeCPM extends DiskBasicType<DirectoryCpm> {
     }
 
     /**
-     * サブディレクトリを作成できるか
+     * Whether a subdirectory can be created
      */
     @Override
     public boolean canMakeDirectory() {
@@ -498,7 +498,7 @@ public class DiskBasicTypeCPM extends DiskBasicType<DirectoryCpm> {
     }
 
     /**
-     * セクタデータを指定コードで埋める
+     * Fill sector data with specified code
      */
     @Override
     public void fillSector(DiskImageTrack track, DiskImageSector sector) {
@@ -506,11 +506,11 @@ public class DiskBasicTypeCPM extends DiskBasicType<DirectoryCpm> {
     }
 
     /**
-     * セクタデータを埋めた後の個別処理
+     * Individual processing after filling sector data
      */
     @Override
     public boolean additionalProcessOnFormatted(DiskBasicIdentifiedData data) {
-        // ディレクトリエリア
+        // Directory area
         for (int sectorPos = basic.getDirStartSector(); sectorPos <= basic.getDirEndSector(); sectorPos++) {
             DiskImageSector sector = basic.getManagedSector(sectorPos - 1);
             if (sector != null) {
@@ -521,14 +521,14 @@ public class DiskBasicTypeCPM extends DiskBasicType<DirectoryCpm> {
     }
 
     /**
-     * ファイルをセーブする前の準備を行う
+     * Prepare before saving file
      */
     @Override
     public boolean prepareToSaveFile(InputStream iStream, int[] fileSize, DiskBasicDirItem<DirectoryCpm> pItem, DiskBasicDirItem<DirectoryCpm> nItem, DiskBasicError errInfo) throws IOException {
         DiskBasicDirItemCPM dItem = (DiskBasicDirItemCPM) nItem;
-        // グループエントリ数
+        // Number of group entries
         int groupEntries = dItem.getGroupEntries();
-        // １ディレクトリで設定できるファイルサイズを求める (32K)
+        // Determine the file size that can be set in one directory (32K)
         int limitSize = basic.getSectorSize() * basic.getSectorsPerGroup() * groupEntries;
 
         dItem.used(true);
@@ -539,7 +539,7 @@ public class DiskBasicTypeCPM extends DiskBasicType<DirectoryCpm> {
         DiskBasicDirItemCPM prevAItem = dItem;
         DiskBasicDirItemCPM aItem = null;
         while (limitSize < remainSize) {
-            // １ディレクトリで入りきらないので追加でディレクトリエントリを確保
+            // Cannot fit in one directory, so allocate additional directory entry
             aItem = (DiskBasicDirItemCPM) dir.getEmptyItemOnCurrent(pItem, null);
             if (aItem == null) {
                 errInfo.setError(DiskBasicError.ERR_DIRECTORY_FULL);
@@ -560,7 +560,7 @@ public class DiskBasicTypeCPM extends DiskBasicType<DirectoryCpm> {
     }
 
     /**
-     * データの書き込み処理
+     * Data write process
      */
     @Override
     public int writeFile(DiskBasicDirItem<DirectoryCpm> item, InputStream iStream, byte[] buffer, int size, int remain, int sectorNum, int groupNum, int nextGroup, int sectorEnd, int seqNum) throws IOException {
@@ -568,18 +568,18 @@ public class DiskBasicTypeCPM extends DiskBasicType<DirectoryCpm> {
 
         int len = 0;
         if (remain <= size) {
-            // 残り少ない
+            // Few left
             int term = 0;
             if (remain < 0) remain = 0;
             if (remain > 0) iStream.readNBytes(buffer, 0, remain);
             if (needEofCode && ((remain % SECTOR_UNIT_CPM) != 0)) {
-                // アスキーは終端コードをサプレス
+                // For ASCII, suppress termination code
                 term = basic.getTextTerminateCode();
             }
-            // 残りを128バイトで丸める
+            // Round remainder to 128 bytes
             int size128 = ((remain + SECTOR_UNIT_CPM - 1) / SECTOR_UNIT_CPM) * SECTOR_UNIT_CPM;
             if (remain < size128) {
-                // バッファの余りはサプレス(128バイト境界まで)
+                // Suppress buffer remainder (up to 128-byte boundary)
                 // Use byte array fill with the byte value of term
                 byte termByte = (byte) term;
                 for (int i = remain; i < size128 && i < buffer.length; i++) {
@@ -589,23 +589,23 @@ public class DiskBasicTypeCPM extends DiskBasicType<DirectoryCpm> {
             }
             len = remain;
         } else {
-            // 継続
+            // Continuous
             iStream.readNBytes(buffer, 0, size);
             len = size;
         }
 
-        // 反転
+        // Invert
         basic.invertMemory(buffer, size);
 
         return len;
     }
 
     /**
-     * FAT領域を削除する
+     * Delete FAT area
      */
     @Override
     public void deleteGroupNumber(int groupNum) {
-        // 未使用にする
+        // Mark as unused
         setGroupNumber(groupNum, 0);
     }
 }

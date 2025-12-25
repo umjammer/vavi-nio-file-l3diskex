@@ -46,12 +46,12 @@ import static l3diskex.basicfmt.diritem.DiskBasicDirItemOS9.FILETYPE_MASK_OS9_US
 
 
 /**
- * OS-9の処理
+ * OS-9 processing
  * <p>
  * DiskBasicParam
  *
- * <li>SubDirGroupSize : サブディレクトリの初期グループ(LSN)数</li>
- * <li>GroupWidth      : ビットマップ1ビットのセクタ数(dd_BIT)</li>
+ * <li>SubDirGroupSize : Initial number of groups (LSN) for subdirectories</li>
+ * <li>GroupWidth      : Number of sectors per 1 bitmap bit (dd_BIT)</li>
  */
 public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
 
@@ -127,15 +127,15 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
     /** OS-9 Allocation Map */
     static class OS9AllocMap extends DiskBasicBitMLMap {
 
-        /** ビットマップサイズ(bytes) */
+        /** Bitmap size (bytes) */
         private int mapBytes;
-        /** 開始LSN */
+        /** Start LSN */
         private int mapStartLsn;
-        /** 最終LSN */
+        /** End LSN */
         private int endLsn;
-        /** セクタサイズ */
+        /** Sector size */
         private int sectorSize;
-        /** 1ビット当たりのセクタ数 */
+        /** Sectors per bit */
         private int sectorsPerBit;
 
         public OS9AllocMap() {
@@ -147,12 +147,12 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
         }
 
         /**
-         * Allocation Map を割当てる
+         * Allocate Allocation Map
          *
-         * @param basic       Disk Basic パラメータ
-         * @param mapStartLsn MapのあるLSN
-         * @param mapBytes    Mapで使用するバイト数
-         * @return false: セクタなし
+         * @param basic       Disk Basic parameters
+         * @param mapStartLsn LSN where Map exists
+         * @param mapBytes    Number of bytes used by Map
+         * @return false: No sector
          */
         public boolean allocMap(DiskBasic basic, int mapStartLsn, int mapBytes) {
             this.mapBytes = mapBytes;
@@ -187,9 +187,9 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
         }
 
         /**
-         * Mapを元にして使用状況を作成する
+         * Create usage status based on Map
          *
-         * @param fat [out] 使用状況
+         * @param fat [out] Usage status
          */
         public void makeAvailable(DiskBasicAvailability fat) {
             int bytes = 0;
@@ -217,10 +217,10 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
         }
 
         /**
-         * LSNをMapにセット
+         * Set LSN in Map
          *
          * @param lsn LSN
-         * @param val セット / リセット
+         * @param val Set / Reset
          */
         public void setLSN(int lsn, boolean val) {
             lsn /= sectorsPerBit;
@@ -229,10 +229,10 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
         }
 
         /**
-         * LSNを使用しているか
+         * Whether LSN is used
          *
          * @param lsn LSN
-         * @return true 使用している
+         * @return true if used
          */
         public boolean isUsedLSN(int lsn) {
             lsn /= sectorsPerBit;
@@ -241,7 +241,7 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
         }
 
         /**
-         * 空いているLSNを得る
+         * Get a free LSN
          *
          * @return LSN or INVALID_GROUP_NUMBER
          */
@@ -298,10 +298,10 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
     }
 
     /**
-     * ディスクから各パラメータを取得＆必要なパラメータを計算
+     * Get each parameter from disk and calculate necessary parameters
      *
-     * @param isFormatting フォーマット中か
-     * @return 1.0: 正常, 0.0 ~ 1.0: 警告あり, <0.0: エラーあり
+     * @param isFormatting Whether formatting is in progress
+     * @return 1.0: Normal, 0.0 ~ 1.0: Warning present, <0.0: Error present
      */
     @Override
     public double parseParamOnDisk(boolean isFormatting) throws IOException {
@@ -331,7 +331,7 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
             return -1.0;
         }
         iVal--;
-        // 最終グループ番号
+        // Final group number
         basic.setFatEndGroup(iVal);
 
         // sectors per track
@@ -408,14 +408,14 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
         return validRatio;
     }
 
-    /** Allocation Mapの開始位置を得る（ダイアログ用) */
+    /** Get starting position of Allocation Map (for dialog) */
     @Override
     public void getStartNumOnFat(int[] trackNum, int[] sideNum, int[] sectorNum) {
         int map_lsn = allocMap.getMapStartLSN();
         getNumFromSectorPos(map_lsn, trackNum, sideNum, sectorNum);
     }
 
-    /** Allocation Mapの終了位置を得る（ダイアログ用) */
+    /** Get end position of Allocation Map (for dialog) */
     @Override
     public void getEndNumOnFat(int[] trackNum, int[] sideNum, int[] sectorNum) {
         int mapLsn = allocMap.getMapStartLSN();
@@ -423,17 +423,17 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
         getNumFromSectorPos(mapLsn, trackNum, sideNum, sectorNum);
     }
 
-    /** タイトル名（ダイアログ用） */
+    /** Title name (for dialog) */
     @Override
     public String getTitleForFat() {
         return "Allocation Map";
     }
 
     /**
-     * エリアをチェック
+     * Check area
      *
-     * @param isFormatting フォーマット中か
-     * @return 1.0: 正常, 0.0 - 1.0: 警告あり, <0.0: エラーあり
+     * @param isFormatting Whether formatting is in progress
+     * @return 1.0: Normal, 0.0 - 1.0: Warning present, <0.0: Error present
      */
     @Override
     public double checkFat(boolean isFormatting) {
@@ -441,18 +441,18 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
     }
 
     /**
-     * ルートディレクトリをアサイン
+     * Assign root directory
      *
-     * @param startSector 開始セクタ番号
-     * @param endSector   終了セクタ番号
-     * @param groupItems  [out] セクタリスト
-     * @param dirItem     [in,out] ルートディレクトリアイテム
+     * @param startSector Start sector number
+     * @param endSector   End sector number
+     * @param groupItems  [out] Sector list
+     * @param dirItem     [in,out] Root directory item
      */
     @Override
     public boolean assignRootDirectory(int startSector, int endSector, DiskBasicGroups groupItems, DiskBasicDirItem<DirectoryOs9> dirItem) throws IOException {
         boolean sts = super.assignRootDirectory(startSector, endSector, groupItems, dirItem);
 
-        // FDセクタへのポインタをルートアイテムに設定
+        // Set pointer to FD sector in root item
         DiskBasicDirItemOS9 dItem = (DiskBasicDirItemOS9) dirItem;
 
         int dirFdLsn = os9Ident.rootDirLen.getOs9Lsn();
@@ -468,11 +468,11 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
     }
 
     /**
-     * ルートディレクトリのセクタリストを計算
+     * Calculate sector list for root directory
      *
-     * @param startSector ディレクトリ開始セクタ番号
-     * @param endSector   ディレクトリ終了セクタ番号
-     * @param groupItems  [out] セクタリスト
+     * @param startSector Starting sector number of directory
+     * @param endSector   End sector number of directory
+     * @param groupItems  [out] Sector list
      */
     @Override
     public boolean calcGroupsOnRootDirectory(int startSector, int endSector, DiskBasicGroups groupItems) throws IOException {
@@ -519,7 +519,7 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
         return valid;
     }
 
-    /** ディレクトリが空か */
+    /** Whether directory is empty */
     @Override
     public boolean isEmptyDirectory(boolean isRoot, DiskBasicGroups groupItems) throws IOException {
         boolean valid = true;
@@ -553,10 +553,10 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
                 int pos = 0;
                 int size = sector.getSectorSize();
 
-                // ディレクトリにファイルがないかのチェック
+                // Check if there are no files in the directory
                 while (valid && !last && pos < size) {
                     nitem.setData(indexNumber, gItem, sector, pos, buffer, bufferOffset, null);
-                    // FDセクタを調べる
+                    // Examine FD sector
                     int startNsl = nitem.getStartGroup(0);
                     DiskImageSector fdSector = basic.getSectorFromGroup(startNsl);
                     if (fdSector != null) {
@@ -580,41 +580,41 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
     }
 
     /**
-     * ディレクトリエリアのサイズに達したらアサイン終了するか
+     * Whether to end assigning if directory area size is reached
      *
-     * @param pos        [in,out] ディレクトリの位置
-     * @param size       [in,out] ディレクトリのセクタサイズ
-     * @param sizeRemain [in,out] ディレクトリの残りサイズ
-     * @return 0: 終了しない, 1: 強制的に未使用とする アサインは継続
+     * @param pos        [in,out] Position of directory
+     * @param size       [in,out] Sector size of directory
+     * @param sizeRemain [in,out] Remaining size of directory
+     * @return 0: Do not end, 1: Force unused, continue assign
      */
     @Override
     public int finishAssigningDirectory(int[] pos, int[] size, int[] sizeRemain) {
-        // サイズに達したら以降は未使用とする
+        // If size is reached, subsequent ones are unused
         return sizeRemain[0] <= 0 ? 1 : 0;
     }
 
-    /** 使用可能なディスクサイズを得る */
+    /** Get usable disk size */
     @Override
     public void getUsableDiskSize(int[] diskSize, int[] groupSize) {
         groupSize[0] = basic.getFatEndGroup() + 1;
         diskSize[0] = groupSize[0] * basic.getSectorSize();
     }
 
-    /** 残りディスクサイズを計算 */
+    /** Calculate remaining disk size */
     @Override
     public void calcDiskFreeSize(boolean wrote) {
         fatAvailability.empty();
 
-        // Allocation Mapを調べる
+        // Examine Allocation Map
         allocMap.makeAvailable(fatAvailability);
 
-        // ディレクトリエントリのグループ
+        // Groups of directory entries
         List<DiskBasicDirItem<DirectoryOs9>> items = dir.getCurrentItems(null);
         if (items != null) {
             for (DiskBasicDirItem<DirectoryOs9> item : items) {
                 if (item == null || !item.isUsed()) continue;
 
-                // グループ番号のマップを調べる
+                // Examine map of group numbers
                 int groupCount = item.getGroupCount();
                 if (groupCount > 0) {
                     DiskBasicGroupItem groupItem = item.getGroup(groupCount - 1);
@@ -631,53 +631,53 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
     }
 
     /**
-     * 使用状態を設定する
+     * Set usage status
      *
-     * @param num グループ番号(0...)
-     * @param val 1:使用中, 0:空きにする
+     * @param num Group number (0...)
+     * @param val 1: In use, 0: Make free
      */
     @Override
     public void setGroupNumber(int num, int val) {
         allocMap.setLSN(num, val != 0);
     }
 
-    /** グループ番号を得る */
+    /** Get group number */
     @Override
     public int getGroupNumber(int num) {
         return num;
     }
 
     /**
-     * FAT位置が使用されているか
+     * Whether FAT position is used
      *
-     * @param num グループ番号(0...)
+     * @param num Group number (0...)
      */
     @Override
     public boolean isUsedGroupNumber(int num) {
         return allocMap.isUsedLSN(num);
     }
 
-    /** 次のグループ番号を得る */
+    /** Get next group number */
     @Override
     public int getNextGroupNumber(int num, int sectorPos) {
         return INVALID_GROUP_NUMBER;
     }
 
     /**
-     * 空き位置を返す
+     * Returns free position
      *
-     * @return INVALID_GROUP_NUMBER: 空きなし
+     * @return INVALID_GROUP_NUMBER: No free space
      */
     @Override
     public int getEmptyGroupNumber() {
-        // Allocation Mapを調べる
+        // Examine Allocation Map
         return allocMap.findEmpty();
     }
 
     /**
-     * 次の空き位置を返す 未使用
+     * Returns next free position. Unused.
      *
-     * @return INVALID_GROUP_NUMBER: 空きなし
+     * @return INVALID_GROUP_NUMBER: No free space
      */
     @Override
     public int getNextEmptyGroupNumber(int currentGroup) {
@@ -685,17 +685,17 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
     }
 
     /**
-     * ファイルをセーブする前の準備を行う
+     * Prepare before saving file
      *
-     * @param iStream   ストリームバッファ
-     * @param fileSize [in,out] 出力サイズ
-     * @param pItem     [in,out] ファイル名、属性を持っているディレクトリアイテム
-     * @param nItem     [in,out] 確保したディレクトリアイテム
-     * @param errInfo   [in,out] エラー情報
+     * @param iStream  Stream buffer
+     * @param fileSize [in,out] Output size
+     * @param pItem    [in,out] Directory item with file name and attributes
+     * @param nItem    [in,out] Allocated directory item
+     * @param errInfo  [in,out] Error information
      */
     @Override
     public boolean prepareToSaveFile(InputStream iStream, int[] fileSize, DiskBasicDirItem<DirectoryOs9> pItem, DiskBasicDirItem<DirectoryOs9> nItem, DiskBasicError errInfo) throws IOException {
-        // FDセクタを確保する
+        // Allocate FD sector
         int lsn = getEmptyGroupNumber();
         if (lsn == INVALID_GROUP_NUMBER) {
             return false;
@@ -708,27 +708,27 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
         if (buf == null) {
             return false;
         }
-        // FDセクタをセット
+        // Set FD sector
         nItem.setChainSector(sector, lsn, buf, pItem);
 
-        // 開始LSNを設定
+        // Set start LSN
         nItem.setStartGroup(0, lsn);
 
-        // セクタを予約
+        // Reserve sector
         setGroupNumber(lsn, 1);
 
         return true;
     }
 
     /**
-     * データサイズ分のグループを確保する
+     * Allocate groups for data size
      *
-     * @param fileUnitNum ファイル番号
-     * @param item        [in,out] ディレクトリアイテム
-     * @param dataSize    確保するデータサイズ（バイト）
-     * @param flags       新規か追加か
-     * @param groupItems  [out] 確保したセクタリスト
-     * @return >0: 正常 -1: 空きなし (開始グループ設定前) -2: 空きなし (開始グループ設定後)
+     * @param fileUnitNum File number
+     * @param item        [in,out] Directory item
+     * @param dataSize    Data size to allocate (bytes)
+     * @param flags       New or append
+     * @param groupItems  [out] Sector list
+     * @return >0: Normal, -1: No free space (before setting start group), -2: No free space (after setting start group)
      */
     @Override
     public int allocateUnitGroups(int fileUnitNum, DiskBasicDirItem<DirectoryOs9> item, int dataSize, AllocateGroupFlags flags, DiskBasicGroups[] groupItems) {
@@ -737,7 +737,7 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
 
         int segmentIndex = -1;
         if (flags == ALLOCATE_GROUPS_APPEND) {
-            // 追加の場合、既にあるセグメントを計算
+            // In case of addition, calculate existing segments
             segmentIndex = 48;
             for (int index = 0; index < 48; index++) {
                 if (fd.getLsn(index) == 0 && fd.getSize(index) == 0) {
@@ -746,7 +746,7 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
                 }
             }
             if (segmentIndex >= 48) {
-                // セグメントに空きなし
+                // No free space in segments
                 return -1;
             }
         }
@@ -755,10 +755,10 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
         int fileSize = fd.getSize();
         dataSize += fileSize;
 
-        // 新規作成で dd_BIT が 2 以上のとき
+        // When creating new and dd_BIT is 2 or more
         boolean isFirstLsn = (flags == ALLOCATE_GROUPS_NEW && basic.getGroupWidth() > 1);
 
-        // データ用のセクタを確保する
+        // Allocate sectors for data
         int rc = 0;
         int lsn = 0;
         int prevLsn = 0;
@@ -767,7 +767,7 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
         while (fileSize < dataSize && limit >= 0 && rc == 0) {
             int start = 0;
             if (isFirstLsn) {
-                // 新規作成で dd_BIT が 2 以上のときはFDセクタの空きからデータを書き込んでいく
+                // When creating new and dd_BIT is 2 or more, write data from the free space of FD sector
                 lsn = fd.getMyLSN() + 1;
                 start++;
                 isFirstLsn = false;
@@ -775,15 +775,15 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
                 lsn = getEmptyGroupNumber();
             }
             if (lsn == INVALID_GROUP_NUMBER) {
-                // 空きなし？
+                // No free space?
                 rc = -2;
                 break;
             }
             if (prevLsn == 0 || (prevLsn + 1) != lsn) {
-                // LSN が連続していない
+                // LSN is not continuous
                 segmentIndex++;
                 if (segmentIndex >= 48) {
-                    // セグメント限界
+                    // Segment limit
                     rc = -2;
                     break;
                 }
@@ -791,18 +791,18 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
                 segmentCount = (basic.getGroupWidth() - start);
                 fd.setSize(segmentIndex, segmentCount);
             } else {
-                // LSN が連続しているなら、同じセグメントでセクタ数を増やす
+                // If LSN is continuous, increase the number of sectors in the same segment
                 segmentCount += basic.getGroupWidth();
                 fd.setSize(segmentIndex, segmentCount);
             }
-            // セクタを予約
+            // Reserve sector
             setGroupNumber(lsn, 1);
-            // グループ追加
+            // Add groups
             for (int i = start; i < basic.getGroupWidth(); i++) {
                 basic.getNumsFromGroup(lsn, 0, basic.getSectorSize(), 0, groupItems[0]);
                 lsn++;
             }
-            // LSNを保持
+            // Hold LSN
             prevLsn = lsn - 1;
 
             if (fileSize + basic.getSectorSize() * (basic.getGroupWidth() - start) > dataSize) {
@@ -810,7 +810,7 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
             } else {
                 fileSize += basic.getSectorSize() * (basic.getGroupWidth() - start);
             }
-            // ファイルサイズ
+            // File size
             fd.setSize(fileSize);
 
             limit--;
@@ -819,7 +819,7 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
             rc = -2;
         }
 
-        // エラーの場合、確保したエリアを開放
+        // In case of error, release allocated area
         if (rc < 0) {
             for (int index = startSegmentIndex; index < 48; index++) {
                 int segmentLsn = fd.getLsn(index);
@@ -828,7 +828,7 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
                     break;
                 }
                 for (int size = 0; size < segmentSize; size++) {
-                    // セクタを未使用にする
+                    // Make sector unused
                     if ((segmentLsn / basic.getGroupWidth()) != (fd.getMyLSN() / basic.getGroupWidth()))
                         setGroupNumber(segmentLsn, 0);
                     segmentLsn++;
@@ -841,56 +841,56 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
         return rc;
     }
 
-    /** グループ番号からセクタ番号を得る */
+    /** Get sector number from group number */
     @Override
     public int getStartSectorFromGroup(int groupNum) {
         return groupNum;
     }
 
-    /** グループ番号から最終セクタ番号を得る */
+    /** Get final sector number from group number */
     @Override
     public int getEndSectorFromGroup(int groupNum, int nextGroup, int sectorStart, int sectorSize, int remainSize) {
         return groupNum;
     }
 
-    /** データ領域の開始セクタを計算 */
+    /** Calculate start sector of data area */
     @Override
     public int calcDataStartSectorPos() {
         return basic.getManagedTrackNumber() * basic.getSectorsPerTrackOnBasic() * basic.getSidesPerDiskOnBasic();
     }
 
-    /** ルートディレクトリか */
+    /** Whether it is the root directory */
     @Override
     public boolean isRootDirectory(int groupNum) {
         return ((groupNum + 1) <= basic.getDirStartSector());
     }
 
-    /** サブディレクトリを作成できるか */
+    /** Whether a subdirectory can be created */
     @Override
     public boolean canMakeDirectory() {
         return true;
     }
 
-    /** ルートディレクトリのサイズを拡張できるか */
+    /** Whether root directory size can be expanded */
     @Override
     public boolean canExpandRootDirectory() {
         return true;
     }
 
-    /** サブディレクトリのサイズを拡張できるか */
+    /** Whether subdirectory size can be expanded */
     @Override
     public boolean canExpandDirectory() {
         return true;
     }
 
     /**
-     * サブディレクトリを作成する前の準備を行う
+     * Prepare before creating a subdirectory
      *
-     * @param item 確保したディレクトリアイテム
+     * @param item Allocated directory item
      */
     @Override
     public boolean prepareToMakeDirectory(DiskBasicDirItem<DirectoryOs9> item) throws IOException {
-        // FDセクタを確保する
+        // Allocate FD sector
         int lsn = getEmptyGroupNumber();
         if (lsn == INVALID_GROUP_NUMBER) {
             return false;
@@ -905,24 +905,24 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
         fd.set(basic, sector, lsn, fdd);
         fd.clear();
 
-        // 開始LSNを設定
+        // Set start LSN
         dItem.setStartGroup(0, lsn, 0);
-        // 日付を設定
+        // Set date
         LocalDateTime tm = LocalDateTime.now();
         dItem.setFileCreateDateTime(tm);
         dItem.setFileModifyDateTime(tm);
-        // セクタを予約
+        // Reserve sector
         setGroupNumber(lsn, 1);
 
         return true;
     }
 
-    /** サブディレクトリを作成した後の個別処理 */
+    /** Individual processing after creating subdirectory */
     @Override
     public void additionalProcessOnMadeDirectory(DiskBasicDirItem<DirectoryOs9> item, DiskBasicGroups groupItems, DiskBasicDirItem<DirectoryOs9> parentItem) throws IOException {
         if (groupItems.size() <= 0) return;
 
-        // ディレクトリ属性
+        // Directory attribute
         item.setFileAttr(basic.getFormatTypeNumber(), 0,
                 FILETYPE_MASK_OS9_DIRECTORY |
                         FILETYPE_MASK_OS9_PUBLIC_EXEC |
@@ -933,10 +933,10 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
                         FILETYPE_MASK_OS9_USER_READ
         );
 
-        // ファイルサイズはエントリ２つ分
+        // File size is for two entries
         item.setFileSize(item.getDataSize() * 2);
 
-        // カレントと親ディレクトリのエントリを作成する
+        // Create entries for current and parent directory
         DiskBasicGroupItem grouItem = groupItems.get(0);
 
         DiskImageSector sector = basic.getTrack(grouItem.track, grouItem.side).getSector(grouItem.sectorStart); // Simplified access
@@ -945,19 +945,19 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
         int bufOffset = 0;
         DiskBasicDirItem<DirectoryOs9> newItem = basic.createDirItem(sector, 0, buf, bufOffset);
 
-        // 親をつくる
+        // Create parent
         newItem.clearData();
         if (parentItem != null) {
-            // 親がサブディレクトリ
+            // Parent is subdirectory
             newItem.setStartGroup(0, parentItem.getStartGroup(0));
         } else {
-            // 親がルート
+            // Parent is root
             newItem.setStartGroup(0, os9Ident.rootDirLen.getOs9Lsn());
         }
         newItem.setFileNamePlain("..");
 //        newItem.setFileAttr(FILE_TYPE_DIRECTORY_MASK);
 
-        // カレント
+        // Current
         bufOffset += newItem.getDataSize();
         newItem.setData(0, null, sector, 0, buf, bufOffset, null);
 
@@ -966,7 +966,7 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
         newItem.setFileNamePlain(".");
 //        newItem.setFileAttr(FILE_TYPE_DIRECTORY_MASK);
 
-        // ディレクトリサイズを更新
+        // Update directory size
         int dirSize = dir.calcSize();
         DiskBasicDirItem<DirectoryOs9> dirItem = item.getParent();
         if (dirItem != null) {
@@ -974,13 +974,13 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
         }
     }
 
-    /** セクタデータを指定コードで埋める */
+    /** Fill sector data with specified code */
     @Override
     public void fillSector(DiskImageTrack track, DiskImageSector sector) {
         sector.fill(basic.getFillCodeOnFormat());
     }
 
-    /** セクタデータを埋めた後の個別処理 */
+    /** Individual processing after filling sector data */
     @Override
     public boolean additionalProcessOnFormatted(DiskBasicIdentifiedData data) throws IOException {
         // Ident
@@ -993,7 +993,7 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
 
         //int totalLsn = basic.getFatEndGroup() + 1;
         int totalLsn = (basic.getTracksPerSide() - basic.getManagedTrackNumber()) * basic.getSidesPerDiskOnBasic() * basic.getSectorsPerTrackOnBasic();
-        // 最終グループ番号
+        // Final group number
         basic.setFatEndGroup(totalLsn - 1);
 
         int mapLsn = 1;
@@ -1002,7 +1002,7 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
         int iVal;
 
         //
-        // OS9 Identifier をセット
+        // Set OS9 Identifier
         //
 
         sector.fill((byte) 0);
@@ -1054,11 +1054,11 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
         // volume label
         setIdentifiedData(data);
 
-        // 固有パラメータ設定
+        // Specific parameter setting
         basic.assignParameter();
 
         //
-        // Allocation Mapを作成
+        // Create Allocation Map
         //
 
         for (int lsn = mapLsn; lsn < rootStartLsn; lsn++) {
@@ -1071,7 +1071,7 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
         }
 
         //
-        // ルートディレクトリを作成
+        // Create root directory
         //
 
         sector = basic.getManagedSector(rootStartLsn);
@@ -1085,15 +1085,15 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
         rootFd.clear();
 
         rootItem.setStartGroup(0, rootStartLsn, 0);
-        // 日付を設定
+        // Set date
         rootItem.setFileCreateDateTime(tm);
         rootItem.setFileModifyDateTime(tm);
-        // セグメント設定
+        // Segment setting
         rootFd.setLsn(0, rootStartLsn + 1);
         rootFd.setSize(0, rootEndLsn - rootStartLsn);
-        // リンクの数
+        // Number of links
         rootFd.setLinkCount((short) 2);
-        // セクタを予約
+        // Reserve sector
         setGroupNumber(rootStartLsn, 1);
 
         for (int lsn = rootStartLsn + 1; lsn <= rootEndLsn; lsn++) {
@@ -1110,10 +1110,10 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
         return true;
     }
 
-    /** データの書き込み終了後の処理 */
+    /** Processing after data writing completion */
     @Override
     public void additionalProcessOnSavedFile(DiskBasicDirItem<DirectoryOs9> item) {
-        // ディレクトリサイズを更新
+        // Update directory size
         int dirSize = dir.calcSize();
         //DiskBasicDirItem dirItem = dir.findName(".", null, null);
         DiskBasicDirItem<DirectoryOs9> dirItem = item.getParent();
@@ -1124,20 +1124,20 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
         dirItem.setFileSize(dirSize);
     }
 
-    /** FAT領域を削除する */
+    /** Delete FAT area */
     @Override
     public void deleteGroupNumber(int groupNum) {
-        // 未使用にする
+        // Make it unused
         setGroupNumber(groupNum, 0);
     }
 
-    /** ファイル削除後の処理 */
+    /** Processing after file deletion */
     @Override
     public boolean additionalProcessOnDeletedFile(DiskBasicDirItem<DirectoryOs9> item) {
-        // FDセクタを未使用にする
+        // Make FD sector unused
         setGroupNumber(item.getStartGroup(0), 0);
 
-        // ディレクトリサイズを更新
+        // Update directory size
         int dirSize = dir.calcSize();
         //DiskBasicDirItem dirItem = dir.findName(".", null, null);
         DiskBasicDirItem<DirectoryOs9> dirItem = item.getParent();
@@ -1150,7 +1150,7 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
         return true;
     }
 
-    /** IPLや管理エリアの属性を得る */
+    /** Get attributes of IPL and managed area */
     @Override
     public void getIdentifiedData(DiskBasicIdentifiedData data) {
         // volume label
@@ -1161,7 +1161,7 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
         data.setVolumeNameMaxLength(os9Ident.name.length);
     }
 
-    /** IPLや管理エリアの属性をセット */
+    /** Set attributes of IPL and managed area */
     @Override
     public void setIdentifiedData(DiskBasicIdentifiedData data) {
         DiskBasicFormat format = basic.getFormatType();

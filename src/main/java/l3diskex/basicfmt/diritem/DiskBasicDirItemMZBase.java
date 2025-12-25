@@ -17,7 +17,7 @@ import l3diskex.diskimg.DiskParam.SectorParam;
 
 
 /**
- * ディレクトリ１アイテム MZ Base
+ * Directory 1 item MZ Base
  */
 public abstract class DiskBasicDirItemMZBase<T extends Directory> extends DiskBasicDirItem<T> {
 
@@ -49,38 +49,38 @@ public abstract class DiskBasicDirItemMZBase<T extends Directory> extends DiskBa
         super.init(basic, num, groupItem, sector, sectorPos, data, dataP, next, unuse);
     }
 
-    /** データ内にファイルサイズをセット */
+    /** Set file size in data */
     protected void setFileSizeBase(int val) {
     }
 
-    /** データ内のファイルサイズを返す */
+    /** Returns file size in data */
     protected int getFileSizeBase() {
         return 0;
     }
 
-    /** グループ取得計算前処理 */
+    /** Pre-processing for group acquisition calculation */
     protected void preCalcFileSize() {
     }
 
-    // グループ取得計算前処理
+    /** Pre-processing for group acquisition calculation */
     protected void preCalcAllGroups(int[] calcFlags, int[] groupNum, int[] remain, int[] secSize, Object[] userData) {
     }
 
-    /** グループ取得計算中処理 */
+    /** Mid-processing for group acquisition calculation */
     protected void calcAllGroups(int calcFlags, int[] groupNum, int[] remain, int[] secSize, int[] endSec, Object userData) {
         groupNum[0]++;
     }
 
-    /** グループ取得計算後処理 */
+    /** Post-processing for group acquisition calculation */
     protected void postCalcAllGroups(Object userData) {
     }
 
     @Override
     public boolean delete() throws IOException {
-        // エントリの先頭にコードを入れる
+        // Put code at start of entry
         setFileType1(basic.getDeleteCode());
         used(false);
-        // 開始グループを未使用にする
+        // Set start group to unused
         type.setGroupNumber(getStartGroup(0), 0);
         return true;
     }
@@ -105,7 +105,7 @@ public abstract class DiskBasicDirItemMZBase<T extends Directory> extends DiskBa
 
     @Override
     public void getUnitGroups(int fileUnitNum, DiskBasicGroups groupItems) {
-        // ファイルサイズ
+        // File size
         int calcFileSize = getFileSizeBase();
         preCalcFileSize();
 
@@ -120,7 +120,7 @@ public abstract class DiskBasicDirItemMZBase<T extends Directory> extends DiskBa
 
         int limit = basic.getFatEndGroup() + 1;
         while (remain[0] > 0 && limit >= 0) {
-            // 使用しているか
+            // Whether it is used
             boolean usedGroup = type.isUsedGroupNumber(groupNum[0]);
             if (usedGroup) {
                 int[] endSector = {-1};

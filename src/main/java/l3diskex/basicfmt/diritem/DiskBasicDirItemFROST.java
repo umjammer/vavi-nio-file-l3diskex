@@ -32,13 +32,13 @@ import static l3diskex.basicfmt.BasicCommon.FileTypeMask.FILE_TYPE_MACHINE_MASK;
 import static l3diskex.basicfmt.type.DiskBasicTypeFROST.FORMAT_TYPE_FROST;
 
 
-/** ディレクトリ１アイテム Frost-DOS */
+/** Directory 1 item Frost-DOS */
 public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
 
     private static final ResourceBundle rb = ResourceBundle.getBundle("messages");
 
     /**
-     * ディレクトリエントリ Frost-DOS (16bytes)
+     * Directory entry Frost-DOS (16bytes)
      */
     @Serdes(bigEndian = false)
     public static class DirectoryFrost implements Directory {
@@ -74,7 +74,7 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
     public static final int FILETYPE_FROST_BIN = 0x01;
     public static final int FILETYPE_FROST_RGB = 0x02;
 
-    /// Frost-DOS 属性名
+    /// Frost-DOS attribute names
     public static final Map<String, Object> typeNameFROST1 = new LinkedHashMap<>() {{
         put("BAS", FILETYPE_FROST_BAS);
         put("BIN", FILETYPE_FROST_BIN);
@@ -85,7 +85,7 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
     //
     //
 
-    /** ディレクトリデータ */
+    /** Directory data */
     private final DiskBasicDirData<DirectoryFrost> data = new DiskBasicDirData<>();
 
     @Override
@@ -117,12 +117,12 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
         used(checkUsed(unuse[0]));
         unuse[0] = (unuse[0] || (this.data.data().name[0] == (byte) 0xff));
 
-        // ファイルサイズとグループ数を計算
+        // Calculate file size and number of groups
         calcFileSize();
     }
 
     /**
-     * アイテムへのポインタを設定
+     * Set pointer to item
      */
     @Override
     public void setData(int num, DiskBasicGroupItem groupItem, DiskImageSector sector, int sectorPos,
@@ -133,7 +133,7 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
     }
 
     /**
-     * ファイル名を格納する位置を返す
+     * Returns position where file name is stored
      */
     @Override
     protected byte[] getFileNamePos(int num, int[] size, int[] len) {
@@ -147,7 +147,7 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
     }
 
     /**
-     * 拡張子を格納する位置を返す
+     * Returns position where extension is stored
      */
     @Override
     protected byte[] getFileExtPos(int[] len) {
@@ -156,7 +156,7 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
     }
 
     /**
-     * 属性１を返す
+     * Returns attribute 1
      */
     @Override
     public int getFileType1() {
@@ -164,7 +164,7 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
     }
 
     /**
-     * 属性１のセット
+     * Set attribute 1
      */
     @Override
     protected void setFileType1(int val) {
@@ -172,14 +172,14 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
     }
 
     /**
-     * 属性１の文字列
+     * Attribute 1 string
      */
     String convFileType1Str(int t1) {
         return rb.getString(Utils.keyAt(typeNameFROST1, convFileType1Pos(t1)));
     }
 
     /**
-     * 使用しているアイテムか
+     * Whether it is a used item
      */
     @Override
     public boolean checkUsed(boolean unuse) {
@@ -187,7 +187,7 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
     }
 
     /**
-     * ディレクトリアイテムのチェック
+     * Check directory item
      */
     @Override
     public boolean check(boolean[] last) {
@@ -198,7 +198,7 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
             last[0] = true;
             return valid;
         }
-        // 属性に不正な値がある
+        // There is an invalid value in the attributes
         if ((getFileType1() & 0x0c) != 0) {
             valid = false;
         }
@@ -206,18 +206,18 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
     }
 
     /**
-     * 削除
+     * Delete
      */
     @Override
     public boolean delete() {
-        // 削除はエントリの先頭にコードを入れるだけ
+        // Deletion is simply putting a code at the beginning of the entry
         data.fill(basic.invertUint8(basic.getDeleteCode()), 1);
         used(false);
         return true;
     }
 
     /**
-     * ENDマークがあるか(一度も使用していないか)
+     * Whether there is an END mark (whether it has never been used)
      */
     @Override
     public boolean hasEndMark() {
@@ -225,7 +225,7 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
     }
 
     /**
-     * 次のアイテムにENDマークを入れる
+     * Put END mark in the next item
      */
     @Override
     public void setEndMark(DiskBasicDirItem<?> nextItem) {
@@ -235,7 +235,7 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
     }
 
     /**
-     * 属性を設定
+     * Set attribute
      */
     @Override
     public void setFileAttr(DiskBasicFileType fileType) {
@@ -244,10 +244,10 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
 
         int t1 = 0;
         if (fileType.getFormat() == basic.getFormatTypeNumber()) {
-            // 同じOS
+            // Same OS
             t1 = fileType.getOrigin();
         } else {
-            // 違うOS
+            // Different OS
             if ((fType & FILE_TYPE_MACHINE_MASK.getValue()) != 0) {
                 t1 = FILETYPE_FROST_BIN;
             } else if ((fType & FILE_TYPE_DATA_MASK.getValue()) != 0) {
@@ -258,14 +258,14 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
         }
         setFileType1(t1);
 
-        // BASのときは開始アドレスを1にする
+        // When BAS, set start address to 1
         if (getFileType1() == FILETYPE_FROST_BAS) {
             setStartAddress(1);
         }
     }
 
     /**
-     * 属性を返す
+     * Returns attribute
      */
     @Override
     public DiskBasicFileType getFileAttr() {
@@ -294,7 +294,7 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
     }
 
     /**
-     * 属性の文字列を返す(ファイル一覧画面表示用)
+     * Returns attribute string (for file list display)
      */
     @Override
     public String getFileAttrStr() {
@@ -302,7 +302,7 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
     }
 
     /**
-     * ファイルサイズをセット
+     * Set file size
      */
     @Override
     public void setFileSize(int val) {
@@ -311,7 +311,7 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
     }
 
     /**
-     * ファイルサイズを返す
+     * Returns file size
      */
     @Override
     public int getFileSize() {
@@ -321,7 +321,7 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
     }
 
     /**
-     * ファイルサイズとグループ数を計算する
+     * Calculate file size and number of groups
      */
     @Override
     public void calcFileUnitSize(int fileUnitNum) throws IOException {
@@ -331,7 +331,7 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
     }
 
     /**
-     * 指定ディレクトリのすべてのグループを取得
+     * Get all groups of specified directory
      */
     @Override
     public void getUnitGroups(int fileUnitNum, DiskBasicGroups groupItems) throws IOException {
@@ -346,19 +346,19 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
         while (working) {
             int nextGroup = type.getGroupNumber(groupNum);
             if (nextGroup == groupNum) {
-                // 同じポジションならエラー
+                // Error if same position
                 rc = false;
             } else if (nextGroup >= basic.getGroupSystemCode()) {
-                // システム領域はエラー(0xfefe)
+                // System area is error (0xfefe)
                 rc = false;
             } else if (nextGroup == basic.getGroupFinalCode()) {
-                // 最終グループ(0xfdfd)
+                // Final group (0xfdfd)
                 addGroups(groupNum, nextGroup, groupItems);
                 calcFileSize += (basic.getSectorSize() / basic.getGroupsPerSector());
                 calcGroups++;
                 working = false;
             } else if (nextGroup > basic.getFatEndGroup()) {
-                // グループ番号がおかしい
+                // Invalid group number
                 rc = false;
             } else {
                 addGroups(groupNum, nextGroup, groupItems);
@@ -385,7 +385,7 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
     }
 
     /**
-     * グループを追加する
+     * Add groups
      */
     private void addGroups(int groupNum, int nextGroup, DiskBasicGroups groupItems) {
         int[] track = {-1}, side = {-1}, sector = {-1}, div = {0}, divs = {0};
@@ -394,7 +394,7 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
     }
 
     /**
-     * 最初のグループ番号をセット
+     * Set the first group number
      */
     @Override
     public void setStartGroup(int fileUnitNum, int val, int size) {
@@ -403,7 +403,7 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
     }
 
     /**
-     * 最初のグループ番号を返す
+     * Returns the first group number
      */
     @Override
     public int getStartGroup(int fileUnitNum) {
@@ -411,7 +411,7 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
     }
 
     /**
-     * アイテムがアドレスを持っているか
+     * Whether the item has address
      */
     @Override
     public boolean hasAddress() {
@@ -419,7 +419,7 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
     }
 
     /**
-     * アイテムが実行アドレスを持っているか
+     * Whether the item has execution address
      */
     @Override
     public boolean hasExecuteAddress() {
@@ -427,7 +427,7 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
     }
 
     /**
-     * 開始アドレスを返す
+     * Returns start address
      */
     @Override
     public int getStartAddress() {
@@ -435,7 +435,7 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
     }
 
     /**
-     * 開始アドレスをセット
+     * Set start address
      */
     @Override
     public void setStartAddress(int val) {
@@ -443,16 +443,16 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
     }
 
     /**
-     * ファイルの終端コードをチェックする必要があるか
+     * Whether EOF code needs to be checked
      */
     @Override
     public boolean needCheckEofCode() {
-        // Asc形式のときはEOFコードが必要
+        // EOF code is needed when Asc format
         return false; //(((getFileType1() & (FILETYPE_FROST_MACHINE | FILETYPE_FROST_BINARY)) == 0) && (externalAttr == 0));
     }
 
     /**
-     * ディレクトリアイテムのサイズ
+     * Size of directory item
      */
     @Override
     public int getDataSize() {
@@ -460,7 +460,7 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
     }
 
     /**
-     * アイテムを返す (Returns the internal data object)
+     * Returns item (internal data object)
      */
     @Override
     public DirectoryFrost getData() {
@@ -468,7 +468,7 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
     }
 
     /**
-     * アイテムをコピー
+     * Copy item
      */
     @Override
     public boolean copyData(byte[] val) {
@@ -476,7 +476,7 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
     }
 
     /**
-     * ディレクトリをクリア ファイル新規作成時
+     * Clear directory: during creation of a new file
      */
     @Override
     public void clearData() {
@@ -484,13 +484,13 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
     }
 
     /**
-     * データをエクスポートする前に必要な処理
+     * Processing required before exporting data
      */
     @Override
     public boolean preExportDataFile(String[] filename) {
         if (!config.isAddExtensionExport()) return true;
 
-        // 拡張子を付加する
+        // Attach extension
         if (!isDirectory()) {
             String ext = convFileType1Str(getFileType1());
             filename[0] += ".";
@@ -505,7 +505,7 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
     }
 
     /**
-     * インポート時のダイアログを出す前にファイルパスから内部ファイル名を生成する
+     * Generate internal file name from file path before displaying import dialog
      */
     @Override
     public boolean preImportDataFile(String[] filename) {
@@ -517,12 +517,12 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
     }
 
     /**
-     * ファイル名から属性を決定する
+     * Determine attribute from file name
      */
     @Override
     public int convOriginalTypeFromFileName(String filename) {
         int[] t1 = {0};
-        // 拡張子で属性を設定する
+        // Set attribute by extension
         if (!isContainAttrByExtension(filename, typeNameFROST1, TYPE_NAME_FROST_BAS, TYPE_NAME_FROST_RGB, null, t1, null)) {
             t1[0] = FILETYPE_FROST_BIN;
         }
@@ -530,11 +530,11 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
     }
 
     //
-    // ダイアログ用
+    // For dialog
     //
 
     /**
-     * 属性からリストの位置を返す(プロパティダイアログ用)
+     * Returns position in list from attribute (for property dialog)
      */
     int convFileType1Pos(int t1) {
         if (t1 < 0 || t1 > TYPE_NAME_FROST_UNKNOWN) {
@@ -544,7 +544,7 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
     }
 
     /**
-     * プロパティで表示する内部データを設定
+     * Set internal data displayed in properties
      */
     @Override
     public void setInternalDataInAttrDialog(KeyValArray vals) {

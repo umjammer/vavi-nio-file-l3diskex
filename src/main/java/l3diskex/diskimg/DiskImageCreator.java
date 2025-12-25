@@ -15,19 +15,19 @@ import l3diskex.diskimg.DiskParam.TrackParam;
 
 
 /**
- * ディスクイメージの新規作成
+ * Create a new disk image
  */
 public class DiskImageCreator {
 
-    /** ディスク名 */
+    /** Disk name */
     private final String diskName;
-    /** パラメータ */
+    /** Parameters */
     private final DiskParam param;
-    /** 書込保護フラグ */
+    /** Write protection flag */
     private final boolean writeProtect;
-    /** ディスクイメージファイル */
+    /** Disk image file */
     private final DiskImageFile file;
-    /** 実行結果 */
+    /** Execution result */
     private final DiskResult result;
 
     //
@@ -43,20 +43,20 @@ public class DiskImageCreator {
     }
 
     /**
-     * セクタデータの作成
-     * @param trackNumber     トラック番号
-     * @param sideNumber      サイド番号
-     * @param sectorNumber    セクタ番号
-     * @param sectorSize      セクタサイズ
-     * @param sectorsPerTrack セクタ数
-     * @param track           トラック
-     * @return 作成したセクタのサイズ（ヘッダ含む）
+     * Create sector data
+     * @param trackNumber     Track number
+     * @param sideNumber      Side number
+     * @param sectorNumber    Sector number
+     * @param sectorSize      Sector size
+     * @param sectorsPerTrack Number of sectors per track
+     * @param track           Track
+     * @return Size of created sector (including header)
      */
     private int createSector(int trackNumber, int sideNumber,
                              int sectorNumber, int sectorSize,
                              int sectorsPerTrack, DiskImageTrack track) {
 
-        // 特殊なセクタにするか
+        // Whether to make it a special sector
         int[][] sectorId = new int[1][];
         int[] sectorSize_ = {sectorSize};
         if (param.findParticularSector(trackNumber, sideNumber, sectorNumber, sectorSize_, sectorId)) {
@@ -68,39 +68,39 @@ public class DiskImageCreator {
             }
         }
 
-        // 単密度にするか
+        // Whether to make it single density
         boolean singleDensity = param.findSingleDensity(trackNumber, sideNumber, sectorNumber, sectorSize_[0]);
 
         DiskImageSector sector = track.newImageSector(trackNumber, sideNumber, sectorNumber, sectorSize_[0], sectorsPerTrack, singleDensity, 0);
         track.add(sector);
 
-        // このセクタデータのサイズを返す
+        // Return size of this sector data
         return sector.getSize();
     }
 
     /**
-     * トラックデータの作成
-     * @param trackNumber トラック番号
-     * @param sideNumber  サイド番号
-     * @param offsetPos   オフセット番号
-     * @param offset      トラックのあるオフセット位置
-     * @param disk        ディスク
-     * @return 作成したトラックサイズ
+     * Create track data
+     * @param trackNumber Track number
+     * @param sideNumber  Side number
+     * @param offsetPos   Offset number
+     * @param offset      Offset position where the track is located
+     * @param disk        Disk
+     * @return Created track size
      */
     public int createTrack(int trackNumber, int sideNumber, int offsetPos, int offset, DiskImageDisk disk) {
 
-        // トラック作成
+        // Track creation
         DiskImageTrack track = disk.newImageTrack(trackNumber, sideNumber, offsetPos, param.getInterleave());
 
         int[] sectorMax = {param.getSectorsPerTrack()};
         int[] sectorSize = {param.getSectorSize()};
 
-        // 特殊なトラックにするか
+        // Whether to make it a special track
         param.findParticularTrack(trackNumber, sideNumber, sectorMax, sectorSize);
-        // トラック全体が単密度の場合セクタ数とサイズを得る
+        // Get number of sectors and size if entire track is single density
         param.findSingleDensity(trackNumber, sideNumber, sectorMax, sectorSize);
 
-        // interleave の並び順を計算
+        // Calculate interleave order
         List<Integer> sectorNums = new ArrayList<>();
         if (!DiskImageTrack.calcSectorNumbersForInterleave(param.getInterleave(), sectorMax[0], sectorNums, param.getSectorNumberBaseOnDisk())) {
             result.setError(DiskResult.ERR_INTERLEAVE);
@@ -111,18 +111,18 @@ public class DiskImageCreator {
         for (int sectorPos = 0; sectorPos < sectorMax[0] && result.getValid() >= 0; sectorPos++) {
             int sectorOffset = 0;
             if (param.isReversible()) {
-                // 裏返しできる(AB面あり)場合
+                // Case where it can be reversed (has AB sides)
                 sideNumber = 0;
             }
             if (param.getNumberingSector() == 1) {
-                // 連番にする場合
+                // Case for sequential numbering
                 sectorOffset = sideNumber * sectorMax[0];
             }
             trackSize += createSector(trackNumber, sideNumber, sectorNums.get(sectorPos) + sectorOffset, sectorSize[0], sectorMax[0], track);
         }
 
         if (result.getValid() >= 0) {
-            // トラックを追加
+            // Add track
             track.setSize(trackSize);
             disk.add(track);
         }
@@ -131,10 +131,10 @@ public class DiskImageCreator {
     }
 
     /**
-     * ディスクデータの作成
-     * @param diskNumber ディスク番号
-     * @param modFlags   新規 or 追加？(DiskImageFile#MODIFY_NONE/MODIFY_ADD)
-     * @return 作成したディスクサイズ
+     * Create disk data
+     * @param diskNumber Disk number
+     * @param modFlags   New or Append? (DiskImageFile#MODIFY_NONE/MODIFY_ADD)
+     * @return Created disk size
      */
     private int createDisk(int diskNumber, short modFlags) {
 
@@ -164,14 +164,14 @@ public class DiskImageCreator {
         }
 
         if (result.getValid() >= 0) {
-            // ディスクを追加
+            // Add disk
             if (param.getBasicTypes().isEmpty()) {
-                // パラメータが手動設定のときはそれらしいテンプレートをさがす
+                // When parameters are manually set, search for a plausible template
                 disk.calcMajorNumber();
             } else {
-                // テンプレートから設定
+                // Set from template
                 disk.setDiskParam(param);
-                // DISKBASICの準備
+                // Prepare DISKBASIC
                 disk.allocDiskBasics();
             }
             disk.setSizeWithoutHeader(createSize);
@@ -182,7 +182,7 @@ public class DiskImageCreator {
     }
 
     /**
-     * ディスクイメージの新規作成
+     * Create a new disk image
      */
     public int create() {
         createDisk(0, DiskImageFile.MODIFY_NONE);
@@ -190,7 +190,7 @@ public class DiskImageCreator {
     }
 
     /**
-     * 新規作成して既存のイメージに追加
+     * Create new and add to existing image
      */
     public int add() {
         int diskNumber = 0;

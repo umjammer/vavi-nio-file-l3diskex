@@ -48,10 +48,10 @@ public class UiDirItemAppleDOS extends UiDirItem {
     DiskBasicDirItemAppleDOS dirItem;
 
     /**
-     * 属性からリストの位置を返す(プロパティダイアログ用)
+     * Return position in list from attribute (for property dialog)
      *
-     * @param type1 属性値
-     * @return リストの位置
+     * @param type1 Attribute value
+     * @return Position in list
      */
     public int ConvFileType1Pos(int type1) {
         int p1 = 0;
@@ -68,19 +68,19 @@ public class UiDirItemAppleDOS extends UiDirItem {
     }
 
     /**
-     * インポート時ダイアログ表示前にファイルの属性を設定
+     * Set file attributes before displaying dialog on import
      *
-     * @param show_flags  ダイアログ表示フラグ
-     * @param name        ファイル名
-     * @param file_type_1 CreateControlsForAttrDialog()に渡す
+     * @param show_flags  Dialog display flag
+     * @param name        File name
+     * @param file_type_1 Passed to CreateControlsForAttrDialog()
      */
     public void SetFileTypeForAttrDialog(int show_flags, String name, int[] file_type_1) {
         if ((show_flags & IntNameBox.INTNAME_NEW_FILE) != 0) {
-            // 外部からインポート時
-            // 拡張子で属性を設定する
+            // When importing from external
+            // Set attribute by extension
             Path fn = Path.of(name);
             // Assuming GetAttributesByExtension returns a map-like object with FindUpperCase
-            Object attrs = dirItem.getBasic().diskBasicParam.getAttributesByExtension();
+            Object attrs = dirItem.getBasic().getAttributesByExtension();
             // MyAttribute sa = basic.GetAttributesByExtension().FindUpperCase(fn.GetExt()); // Need correct API
             // Placeholder logic:
             Parambase.MyAttribute sa = null;
@@ -97,11 +97,11 @@ public class UiDirItemAppleDOS extends UiDirItem {
     public static final int IDC_CHECK_READONLY = 52;
 
     /**
-     * ダイアログ内の属性部分のレイアウトを作成
+     * Create layout for attribute part in dialog
      *
-     * @param parent     プロパティダイアログ
-     * @param show_flags ダイアログ表示フラグ
-     * @param file_path  外部からインポート時のファイルパス
+     * @param parent     Property dialog
+     * @param show_flags Dialog display flag
+     * @param file_path  File path when importing from external
      * @param sizer
      * @param flags
      */
@@ -130,18 +130,18 @@ public class UiDirItemAppleDOS extends UiDirItem {
         sizer.Add(staType4, flags);
     }
 
-    /** 属性を変更した際に呼ばれるコールバック */
+    /** Callback called when attribute is changed */
     @Override
     public void changeTypeInAttrDialog(IntNameBox parent) {
     }
 
     /**
-     * 機種依存の属性を設定する
+     * Set machine dependent attributes
      *
-     * @param parent  [in,out] プロパティダイアログ
-     * @param attr    [in,out] プロパティの属性値
-     * @param errinfo [in,out] エラー情報
-     * @return true 成功
+     * @param parent  [in,out] Property dialog
+     * @param attr    [in,out] Attribute value of property
+     * @param errinfo [in,out] Error information
+     * @return true Success
      */
     @Override
     public boolean setAttrInAttrDialog(IntNameBox parent, DiskBasicDirItemAttr attr, DiskBasicError errinfo) {
@@ -180,12 +180,12 @@ public class UiDirItemAppleDOS extends UiDirItem {
     }
 
     /**
-     * ダイアログ入力後のファイル名チェック
+     * Check file name after dialog input
      *
-     * @param parent   親ウィンドウ
-     * @param filename ファイル名
-     * @param errormsg エラーメッセージ
-     * @return true 適正
+     * @param parent   Parent window
+     * @param filename File name
+     * @param errormsg Error message
+     * @return true Valid
      */
     public boolean validateFileName(JWindow parent, String filename, String[] errormsg) {
         //	Path fn(filename);
@@ -197,12 +197,12 @@ public class UiDirItemAppleDOS extends UiDirItem {
     }
 
     /**
-     * ファイルサイズが適正か
+     * Is file size valid?
      *
-     * @param parent ダイアログ
-     * @param size   ファイルサイズ
-     * @param limit  [out] 制限サイズ
-     * @return true 適正
+     * @param parent Dialog
+     * @param size   File size
+     * @param limit  [out] Limit size
+     * @return true Valid
      */
     @Override
     public boolean isFileValidSize(IntNameBox parent, int size, int[] limit) {

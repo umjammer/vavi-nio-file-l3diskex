@@ -49,13 +49,13 @@ import static l3diskex.basicfmt.DiskBasicType.INVALID_GROUP_NUMBER;
 import static l3diskex.basicfmt.type.DiskBasicTypeMZ.FORMAT_TYPE_MZ;
 
 
-/** ディレクトリ１アイテム MZ DISK BASIC */
+/** Directory 1 item MZ DISK BASIC */
 public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
 
     static final ResourceBundle rb = ResourceBundle.getBundle("messages");
 
     /**
-     * ディレクトリエントリ MZ DISK BASIC
+     * Directory entry MZ DISK BASIC
      */
     @Serdes(bigEndian = false)
     public static class DirectoryMz implements Directory {
@@ -82,13 +82,13 @@ public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
         public static final int SIZE = 32;
     }
 
-    // MZ S-BASIC 属性
+    // MZ S-BASIC attributes
 
-    /** マシン語のファイル */
+    /** Machine language file */
     static final int FILETYPE_MZ_OBJ = 1;
     /** BASIC Text File */
     static final int FILETYPE_MZ_BTX = 2;
-    /** BASIC シーケンシャルDATA */
+    /** BASIC Sequential DATA */
     static final int FILETYPE_MZ_BSD = 3;
     /** BASIC Random Access, Data File */
     static final int FILETYPE_MZ_BRD = 4;
@@ -113,7 +113,7 @@ public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
     static final int TYPE_NAME_MZ2_READ_ONLY = 0;
     static final int TYPE_NAME_MZ2_SEAMLESS = 1;
 
-    /// MZ属性名
+    /// MZ attribute names
     public static final Map<String, Object> typeNameMz = new HashMap<>() {{
         put("???", TYPE_NAME_MZ_UNKNOWN);
         put("OBJ", FILETYPE_MZ_OBJ);
@@ -130,7 +130,7 @@ public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
             /*rb.getString(*/"Seamless"/*)*/,
     };
 
-    /** ディレクトリデータ */
+    /** Directory data */
     private final DiskBasicDirData<DirectoryMz> data = new DiskBasicDirData<>();
 
     //
@@ -168,7 +168,7 @@ public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
 
         calcFileSize();
 
-        // カレント or 親ディレクトリはツリーに表示しない
+        // Do not display current or parent directory in tree
         String name = getFileNamePlainStr();
         visibleOnTree(!(isDirectory() && (name.equals(".") || name.equals(".."))));
     }
@@ -361,7 +361,7 @@ public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
         return val;
     }
 
-    /// MZ BRD形式のマップ
+    /** Map for MZ BRD format */
     private static class StBrdParams {
 
         int pos;
@@ -388,7 +388,7 @@ public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
         brd.maps = null;
 
         if (isChain) {
-            // 各セクタの最後2バイト分を減算
+            // Subtract 2 bytes for the end of each sector
             sectorSize[0] -= 2;
         }
         if (isBRD) {
@@ -402,7 +402,7 @@ public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
                 groupNum[0] = basic.invertAndOrderUint16(brd.maps[brd.pos]); // invert
                 groupNum[0] /= basic.getSectorsPerGroup();
 
-                // 残りサイズは16セクタ分で丸める
+                // Round remaining size to 16 sectors
                 int blockSize = (16 * basic.getSectorSize());
                 remain[0] = ((remain[0] + blockSize - 1) / blockSize) * blockSize;
             }

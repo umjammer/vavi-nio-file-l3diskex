@@ -34,7 +34,7 @@ public class Disk2MGParser extends DiskPlainParser {
     /** magic */
     private static final String DISK_2MG_HEADER = "2IMG";
 
-    /** 2MGヘッダ */
+    /** 2MG header */
     @Serdes(bigEndian = false)
     public static class TwoMgHeader {
 
@@ -146,7 +146,7 @@ public class Disk2MGParser extends DiskPlainParser {
             result.setError(DiskResult.ERRV_INVALID_DISK, 0);
             return result.getValid();
         }
-        // フォーマットタイプ
+        // Format type
         int formatType = header.formatType;
         if (formatType == 2) {
             // unsupported format
@@ -160,7 +160,7 @@ public class Disk2MGParser extends DiskPlainParser {
 
         int dataSize = header.dataSize;
 
-        // データサイズからディスクのパラメータを算出
+        // Calculate disk parameters from data size
         int sidesPerDisk = 1;
         int tracksPerSide = 1;
         int sectorsPerTrack = 1;
@@ -183,7 +183,7 @@ public class Disk2MGParser extends DiskPlainParser {
             }
         }
 
-        // ディスクテンプレートから探す
+        // Search from disk templates
         DiskParam param = diskTemplates.findStrict(sidesPerDisk, tracksPerSide, sectorsPerTrack, sectorSize,
                 1, 0, 0, 0, 0,
                 sd, pt);
@@ -191,7 +191,7 @@ public class Disk2MGParser extends DiskPlainParser {
             diskParams.add(param);
         }
 
-        // 候補がないとき手動設定
+        // If no candidate, manual setting
         if (diskParams.isEmpty()) {
             manualParam.setDiskParam(
                     sidesPerDisk,

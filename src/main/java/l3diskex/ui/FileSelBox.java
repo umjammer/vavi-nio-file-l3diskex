@@ -20,49 +20,49 @@ import javax.swing.JPanel;
 
 
 /**
- * ファイル種類選択ボックス
+ * File type selection box
  * <p>
- * ※ wxWidgets の API を Java の Swing に置き換えて
- * ほぼそのまま構造を維持しています。GUI の
- * 実装は簡易的にしています。
+ * * Replaces wxWidgets API with Java Swing.
+ * Keeps structure almost same.
+ * GUI implementation is simplified.
  */
 public class FileSelBox extends JDialog {
 
     /* ------------------------------------------------------------
-     *  1. メンバ変数
+     *  1. Member variables
      * ------------------------------------------------------------ */
-    private final JComboBox<String> comFile;      // ファイル選択用コンボボックス
+    private final JComboBox<String> comFile;      // ComboBox for file selection
 
     /* ------------------------------------------------------------
-     *  2. 定数
+     *  2. Constants
      * ------------------------------------------------------------ */
-    public static final int IDC_COMBO_FILE = 1;   // 使わないが置き換え用
+    public static final int IDC_COMBO_FILE = 1;   // For replacement (unused)
 
     /* ------------------------------------------------------------
-     *  3. グローバル（仮想）ファイルタイプ情報
+     *  3. Global (virtual) file type information
      * ------------------------------------------------------------ */
-    private static final FileTypes gFileTypes = new FileTypes();   // 既存のファイル形式リスト
+    private static final FileTypes gFileTypes = new FileTypes();   // Existing file format list
 
     /* ------------------------------------------------------------
-     *  4. コンストラクタ
+     *  4. Constructor
      * ------------------------------------------------------------ */
 
     /**
-     * @param parent 親ウィンドウ（JFrame 等）
-     * @param id     ウィンドウID（使わないが置き換え用）
+     * @param parent Parent window (JFrame etc.)
+     * @param id     Window ID (For replacement (unused))
      */
     public FileSelBox(Frame parent, int id) {
-        super(parent, "Select File Type", true);   // タイトルとモーダル設定
+        super(parent, "Select File Type", true);   // Title and modal setting
 
-        // --- レイアウト設定 --------------------------------------------------
+        // --- Layout settings --------------------------------------------------
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
-        // --- ファイル選択コンボボックス --------------------------------------
+        // --- File selection combo box --------------------------------------
         comFile = new JComboBox<>();
         panel.add(comFile);
 
-        // --- ファイル形式のリストを取得してコンボに追加 ----------------------
+        // --- Get file format list and add to combo ----------------------
         FileFormats fmts = gFileTypes.getFormats();
         for (int n = 0; n < fmts.count(); n++) {
             FileFormat fmt = fmts.item(n);
@@ -71,7 +71,7 @@ public class FileSelBox extends JDialog {
         }
         comFile.setSelectedIndex(0);
 
-        // --- OK/Cancel ボタン -----------------------------------------------
+        // --- OK/Cancel Buttons -----------------------------------------------
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         JButton okBtn = new JButton("OK");
         JButton cancelBtn = new JButton("Cancel");
@@ -79,33 +79,33 @@ public class FileSelBox extends JDialog {
         btnPanel.add(cancelBtn);
         panel.add(btnPanel);
 
-        // --- ボタンイベント -------------------------------------------------
+        // --- Button events -------------------------------------------------
         okBtn.addActionListener(e -> onOK(e));
 
         cancelBtn.addActionListener(e -> onCancel(e));
 
-        // --- ダイアログにパネルを設定 ---------------------------------------
+        // --- Set panel to dialog ---------------------------------------
         getContentPane().add(panel);
         pack();
         setLocationRelativeTo(parent);
     }
 
     /* ------------------------------------------------------------
-     *  5. イベントハンドラ
+     *  5. Event handler
      * ------------------------------------------------------------ */
 
-    /** OK ボタン押下時の処理 */
+    /** Process when OK button is pressed */
     private void onOK(ActionEvent event) {
-        // モーダルの場合は dispose で閉じる
+        // If modal, close with dispose
         if (isModal()) {
             setModalExclusionType(Dialog.ModalExclusionType.NO_EXCLUDE);
-            dispose();               // モーダルダイアログは dispose で終了
+            dispose();               // Modal dialog ends with dispose
         } else {
             setVisible(false);
         }
     }
 
-    /** Cancel ボタン押下時の処理 */
+    /** Process when Cancel button is pressed */
     private void onCancel(ActionEvent event) {
         dispose();
     }
@@ -114,18 +114,18 @@ public class FileSelBox extends JDialog {
      *  6. public API
      * ------------------------------------------------------------ */
 
-    /** モーダル表示して終了コードを取得 */
+    /** Display modal and get exit code */
     public int showModal() {
-        setVisible(true);          // モーダル表示
-        return 0;                  // ここでは簡易化のため 0 を返す
+        setVisible(true);          // Modal display
+        return 0;                  // Return 0 for simplification here
     }
 
-    /** 選択中のインデックスを取得 */
+    /** Get selected index */
     public int getSelection() {
         return comFile.getSelectedIndex();
     }
 
-    /** 選択中のファイル形式名を取得 */
+    /** Get selected file format name */
     public String getFormatType() {
         String type = "";
         FileFormats fmts = gFileTypes.getFormats();
@@ -140,10 +140,10 @@ public class FileSelBox extends JDialog {
     }
 
     /* ------------------------------------------------------------
-     *  7. 内部クラス（ファイル形式情報）
+     *  7. Inner class (File format information)
      * ------------------------------------------------------------ */
 
-    /** 1 つのファイル形式情報 */
+    /** One file format information */
     private static class FileFormat {
 
         private final String name;
@@ -163,7 +163,7 @@ public class FileSelBox extends JDialog {
         }
     }
 
-    /** ファイル形式のリスト */
+    /** List of file formats */
     private static class FileFormats {
 
         private final List<FileFormat> list = new ArrayList<>();
@@ -177,13 +177,13 @@ public class FileSelBox extends JDialog {
             return list.get(idx);
         }
 
-        /** 形式を追加（内部でのみ使用） */
+        /** Add format (used internally only) */
         private void add(FileFormat fmt) {
             list.add(fmt);
         }
     }
 
-    /** ファイル形式を管理するクラス（グローバルに 1 つ保持） */
+    /** Class to manage file formats (Global singleton) */
     private static class FileTypes {
 
         private final FileFormats formats = new FileFormats();
@@ -192,7 +192,7 @@ public class FileSelBox extends JDialog {
             return formats;
         }
 
-        /** コンストラクタでダミーデータを生成 */
+        /** Generate dummy data in constructor */
         public FileTypes() {
             formats.add(new FileFormat("format_a", "Format A"));
             formats.add(new FileFormat("format_b", "Format B"));

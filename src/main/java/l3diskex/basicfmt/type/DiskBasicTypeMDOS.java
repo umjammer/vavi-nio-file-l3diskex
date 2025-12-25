@@ -14,7 +14,7 @@ import l3diskex.diskimg.DiskImage.DiskImageSector;
 
 
 /**
- * Tsukumo M-DOS の処理
+ * Tsukumo M-DOS processing
  *
  * @see "https://asakita.net/kabekin/2014/07/8570.html"
  */
@@ -34,12 +34,12 @@ public class DiskBasicTypeMDOS extends DiskBasicTypeFAT16<DirectoryMdos> {
 
     @Override
     public double checkFat(boolean isFormatting) throws IOException {
-        // 重複チェック
+        // Duplication check
         double validRatio = checkFatDuplicated(isFormatting, 1, 0x1fff);
 
         if (validRatio < 0.0) return validRatio;
 
-        // FATの最初はシステム
+        // The beginning of FAT is system area
         for (int pos = 0; pos < 2; pos++) {
             int groupNum = getGroupNumber(pos);
             if (groupNum != basic.getGroupSystemCode()) {
@@ -53,7 +53,7 @@ public class DiskBasicTypeMDOS extends DiskBasicTypeFAT16<DirectoryMdos> {
 
     @Override
     public double parseParamOnDisk(boolean isFormatting) {
-        // グループ数
+        // Number of groups
         if (basic.getFatEndGroup() == 0) {
             int endGroup = basic.getTracksPerSideOnBasic() * basic.getSidesPerDiskOnBasic() * basic.getSectorsPerTrackOnBasic();
             basic.setFatEndGroup(endGroup - 1);
@@ -106,7 +106,7 @@ public class DiskBasicTypeMDOS extends DiskBasicTypeFAT16<DirectoryMdos> {
                                         int sectorOffset, int sectorSize,
                                         int remainSize) {
         if (item.needCheckEofCode()) {
-            // 終端コード($00)の1つ前までを出力
+            // Output up to one byte before the termination code ($00)
             byte eofCode = basic.invertUint8(basic.getTextTerminateCode());
             for (int len = 0; len < remainSize; len++) {
                 if (sectorBuffer[len] == eofCode) {
@@ -120,7 +120,7 @@ public class DiskBasicTypeMDOS extends DiskBasicTypeFAT16<DirectoryMdos> {
 
     @Override
     public void deleteGroupNumber(int groupNum) {
-        // 未使用にする
+        // Mark as unused
         setGroupNumber(groupNum, 0);
     }
 }
