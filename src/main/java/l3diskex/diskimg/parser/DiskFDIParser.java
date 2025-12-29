@@ -6,13 +6,17 @@ package l3diskex.diskimg.parser;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.System.Logger;
+import java.lang.System.Logger.Level;
 import java.util.List;
+import java.util.StringJoiner;
 
 import l3diskex.diskimg.DiskImage.DiskImageFile;
 import l3diskex.diskimg.DiskParam;
 import l3diskex.diskimg.DiskResult;
 import l3diskex.diskimg.FileParam.DiskTypeHint;
 import vavi.io.SeekableDataInputStream;
+import vavi.util.StringUtil;
 import vavi.util.serdes.Element;
 import vavi.util.serdes.Serdes;
 
@@ -22,11 +26,13 @@ import static l3diskex.diskimg.DiskParam.diskTemplates;
 /** FDI disk parser */
 public class DiskFDIParser extends DiskPlainParser {
 
+    private static final Logger logger = System.getLogger(DiskFDIParser.class.getName());
+
     /** FDI format header */
-    @Serdes
+    @Serdes(bigEndian = false)
     public static class FdiDskHeader {
 
-        public static final int SIZE = 10 + 4 + 4 + 4 + 4 + 0xfe0 + 1;
+        public static final int SIZE = 16 + 4 + 4 + 4 + 4 + 0xfe0;
 
         @Element(sequence = 1)
         byte[] unknown = new byte[0x10];
@@ -42,6 +48,17 @@ public class DiskFDIParser extends DiskPlainParser {
         byte[] reserved = new byte[0xfe0];
         @Element(sequence = 7)
         byte[] data = new byte[1];
+
+        @Override
+        public String toString() {
+            return new StringJoiner(", ", FdiDskHeader.class.getSimpleName() + "[", "]")
+                    .add("unknown=" + StringUtil.getDump(unknown))
+                    .add("sectorSize=" + sectorSize)
+                    .add("sectorsPerTrack=" + sectorsPerTrack)
+                    .add("sidesPerDisk=" + sidesPerDisk)
+                    .add("tracksPerSide=" + tracksPerSide)
+                    .toString();
+        }
     }
 
     //
@@ -74,6 +91,7 @@ public class DiskFDIParser extends DiskPlainParser {
         }
         FdiDskHeader header = new FdiDskHeader();
         Serdes.Util.deserialize(iStream, header);
+logger.log(Level.INFO, "header: " + header);
         int sectorSize = header.sectorSize;
         if (sectorSize <= 0 || sectorSize > 4096) {
             // invalid
@@ -108,6 +126,7 @@ public class DiskFDIParser extends DiskPlainParser {
             diskParams.add(param);
         }
 
+logger.log(Level.INFO, "diskParams: " + diskParams.size());
         // If no candidates, manual setting
         if (diskParams.isEmpty()) {
             manualParam.setDiskParam(

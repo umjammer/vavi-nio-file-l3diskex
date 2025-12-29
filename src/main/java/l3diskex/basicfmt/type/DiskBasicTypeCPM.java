@@ -44,7 +44,6 @@ public class DiskBasicTypeCPM extends DiskBasicType<DirectoryCpm> {
         return typeNumber == FORMAT_TYPE_CPM;
     }
 
-    /** */
     @Override
     public void init(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryCpm> dir) {
         super.init(basic, fat, dir);

@@ -101,7 +101,7 @@ logger.log(Level.TRACE, "check: %d, %s, %d, %s".formatted(r1, type, params.size(
 
         // Check disk properties
 logger.log(Level.TRACE, "name: \"%s\"".formatted(disk.getName(true)));
-        if (disk.getTracks().isEmpty())
+        if (disk.getTracks() == null || disk.getTracks().isEmpty())
             throw new IllegalArgumentException("Disk has no tracks");
 logger.log(Level.TRACE, "tracks: " + disk.getTracks().size());
 logger.log(Level.TRACE, "typeName: " + disk.getDiskTypeName());

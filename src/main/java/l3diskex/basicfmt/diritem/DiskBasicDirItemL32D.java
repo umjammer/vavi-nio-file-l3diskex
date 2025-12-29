@@ -63,7 +63,6 @@ public class DiskBasicDirItemL32D extends DiskBasicDirItemFAT8<DirectoryL32d> {
         return formatType == FORMAT_TYPE_L3S1_2D;
     }
 
-    /** */
     @Override
     public void init(DiskBasic basic) throws IOException {
         super.init(basic);
@@ -71,7 +70,6 @@ public class DiskBasicDirItemL32D extends DiskBasicDirItemFAT8<DirectoryL32d> {
         data.alloc(DirectoryL32d.class);
     }
 
-    /** */
     @Override
     public void init(DiskBasic basic, DiskImageSector sector,
                      int sectorPos, byte[] data, int dataP) throws IOException {
@@ -80,7 +78,6 @@ public class DiskBasicDirItemL32D extends DiskBasicDirItemFAT8<DirectoryL32d> {
         this.data.attach(DirectoryL32d.class, data, dataP);
     }
 
-    /** */
     @Override
     public void init(DiskBasic basic, int num,
                      DiskBasicGroupItem groupItem, DiskImageSector sector,

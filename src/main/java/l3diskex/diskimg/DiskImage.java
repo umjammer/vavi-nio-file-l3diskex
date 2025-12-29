@@ -59,11 +59,11 @@ public abstract class DiskImage {
         }
 
         public static int maxValue(int src, int value) {
-            return (src > value ? src : value);
+            return src > value ? src : value;
         }
 
         public static int minValue(int src, int value) {
-            return (src < value ? src : value);
+            return src < value ? src : value;
         }
     }
 
@@ -1276,34 +1276,45 @@ public abstract class DiskImage {
             int sectorNumberMinSide0 = 0x7fff_ffff;
             int sectorNumberMinSide1 = 0x7fff_ffff;
 
-            int sectorMaxSize;
-            int interleaveMax;
+            long sectorMaxSize;
+            long interleaveMax;
             List<DiskParticular> singles = new ArrayList<>();
 
             if (tracks != null) {
+                // Aggregate values for each track
                 for (DiskImageTrack t : tracks) {
                     int trackNum = t.getTrackNumber();
                     int sideNum = t.getSideNumber();
 //logger.log(Level.TRACE, "trackNum: " + trackNum + ", sideNum: " + sideNum);
 
+                    // Minimum track number
                     trackNumberMin = IntHashMapUtil.minValue(trackNumberMin, trackNum);
+                    // Maximum track number
                     trackNumberMax = IntHashMapUtil.maxValue(trackNumberMax, trackNum);
 
                     if (trackNum > 0) {
+                        // Minimum side number
                         sideNumberMin = IntHashMapUtil.minValue(sideNumberMin, sideNum);
+                        // Maximum side number
                         sideNumberMax = IntHashMapUtil.maxValue(sideNumberMax, sideNum);
                     }
 
+                    // Sector size is the most used size in the disk
                     IntHashMapUtil.increaseValue(sectorSizeMap, t.getMaxSectorSize());
+                    // Interleave is the most used one in the disk
                     IntHashMapUtil.increaseValue(interleaveMap, t.getInterleave());
 
                     sideNum &= 0x7f;
 
+                    // Number of sectors
                     if (sideNum >= 0 && sideNum < 2) {
                         IntHashMapUtil.increaseValue(sectorNumbersMap[sideNum], t.getSectorsPerTrack());
                     }
 
                     if (trackNum > 0 && sideNum < 2) {
+                        // Exclude track 0
+
+                        // Max and min sector numbers
                         int sectorNumMax = t.getMaxSectorNumber();
                         int sectorNumMin = t.getMinSectorNumber();
                         if (sideNum == 0) {
@@ -1313,7 +1324,7 @@ public abstract class DiskImage {
                             sectorNumberMinSide1 = IntHashMapUtil.minValue(sectorNumberMinSide1, sectorNumMin);
                         }
                     }
-
+                    // Is single density?
                     List<DiskImageSector> sectors = t.getSectors();
                     if (sectors != null) {
                         List<DiskParticular> sis = new ArrayList<>();
@@ -1331,6 +1342,7 @@ public abstract class DiskImage {
             sectorMaxSize = IntHashMapUtil.getMaxKeyOnMaxValue(sectorSizeMap);
             interleaveMax = IntHashMapUtil.getMaxKeyOnMaxValue(interleaveMap);
 
+            // Check side number
             sidesPerDisk = sideNumberMax + 1 - sideNumberMin;
 
             if (Boolean.parseBoolean(System.getProperty("l3diskex.normalize.enabled", "true"))) {
@@ -1342,8 +1354,11 @@ logger.log(Level.TRACE, "NORMALIZE: sidesPerDisk: 2 <- " + sidesPerDisk);
             }
 logger.log(Level.TRACE, "sidesPerDisk: " + sidesPerDisk + ", sideNumberMax: " + sideNumberMax + ", sideNumberMin: " + sideNumberMin);
 
+            // Check track number
             if (tracks != null) {
                 int trackCount = (tracks.size() + sidesPerDisk - 1) / sidesPerDisk;
+                // If the track number is significantly larger than the actual number of tracks
+                // Set max track number to the number of tracks
                 if (trackNumberMax > (trackCount + 4)) {
                     trackNumberMax = trackCount - 1;
                 }
@@ -1352,30 +1367,36 @@ logger.log(Level.TRACE, "sidesPerDisk: " + sidesPerDisk + ", sideNumberMax: " + 
             boolean diskSingleType = false;
             if (tracks != null) {
                 if (sectorMaxSize == 128 && sideNumberMax == 0 && maxTrackNumber > trackNumberMax) {
+                    // Single density and double sided type
                     diskSingleType = true;
                     sideNumberMax++;
                     sidesPerDisk++;
 logger.log(Level.TRACE, "sidesPerDisk: " + sidesPerDisk);
                     for (DiskImageTrack t : tracks) {
                         if ((t.getOffsetPos() & 1) != 0) {
+                            // If odd, set side to 1
                             t.setSideNumber(1);
                         }
                     }
                 }
             }
 
+            // Group same parameters for single density
             DiskParticular.uniqueTracks(trackNumberMax - trackNumberMin + 1, sidesPerDisk, diskSingleType, singles);
 
+            // Check the most used number of sectors in the disk
             tracksPerSide = tracks != null ? (trackNumberMax - trackNumberMin + 1) : 0;
-            sectorSize = sectorMaxSize;
-            interleave = interleaveMax;
+            sectorSize = (int) sectorMaxSize;
+            interleave = (int) interleaveMax;
 
             if (sidesPerDisk > 1 && sectorNumberMinSide1 != 0x7fff_ffff && sectorNumberMaxSide0 < sectorNumberMinSide1) {
+                // Sector numbers are sequential across sides
                 numberingSector = 1;
                 int secNumMaj = 0;
                 secNumMaj = IntHashMapUtil.getMaxKeyOnMaxValue(sectorNumbersMap[0]);
                 sectorsPerTrack = secNumMaj;
             } else {
+                // Sector numbers are per side
                 numberingSector = 0;
                 int[] secNumMaj = new int[2];
                 for (int i = 0; i < 2; i++) {
@@ -1384,6 +1405,7 @@ logger.log(Level.TRACE, "sidesPerDisk: " + sidesPerDisk);
                 sectorsPerTrack = (secNumMaj[0] > secNumMaj[1] ? secNumMaj[0] : secNumMaj[1]);
             }
 
+            // Check tracks with different number of sectors
             List<DiskParticular> pTracks = new ArrayList<>();
             if (tracks != null) {
                 for (DiskImageTrack t : tracks) {
@@ -1394,9 +1416,11 @@ logger.log(Level.TRACE, "sidesPerDisk: " + sidesPerDisk);
                         pTracks.add(new DiskParticular(t.getTrackNumber(), t.getSideNumber(), -1, 1, ss.size(), t.getMaxSectorSize()));
                     }
                 }
+                // Group same parameters
                 DiskParticular.uniqueTracks(tracksPerSide, sidesPerDisk, false, pTracks);
             }
 
+            // Media type
             DiskParam diskParam = diskTemplates.find(sidesPerDisk, tracksPerSide, sectorsPerTrack, sectorSize, interleave, trackNumberMin, sideNumberMin, sectorNumberMinSide0, numberingSector, singles, pTracks);
             if (diskParam != null) {
                 setDiskTypeName(diskParam.getDiskTypeName());
@@ -1413,7 +1437,10 @@ logger.log(Level.TRACE, "sidesPerDisk: " + sidesPerDisk);
                 setDescription(diskParam.getDescription());
             }
 
+            // Allocate area for DISK BASIC
             allocDiskBasics();
+
+            // Keep parameters
             setOriginalParam(this);
 
 logger.log(Level.TRACE, "diskParam: " + diskParam);

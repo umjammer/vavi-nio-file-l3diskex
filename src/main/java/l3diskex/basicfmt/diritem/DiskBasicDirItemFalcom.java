@@ -68,7 +68,6 @@ public class DiskBasicDirItemFalcom extends DiskBasicDirItem<DirectoryFalcom> {
         return formatType == FORMAT_TYPE_FALCOM;
     }
 
-    /** */
     @Override
     public void init(DiskBasic basic) throws IOException {
         super.init(basic);
@@ -76,7 +75,6 @@ public class DiskBasicDirItemFalcom extends DiskBasicDirItem<DirectoryFalcom> {
         data.alloc(DirectoryFalcom.class);
     }
 
-    /** */
     @Override
     public void init(DiskBasic basic,
                      DiskImageSector sector,
@@ -87,7 +85,6 @@ public class DiskBasicDirItemFalcom extends DiskBasicDirItem<DirectoryFalcom> {
         this.data.attach(DirectoryFalcom.class, data, dataP);
     }
 
-    /** */
     @Override
     public void init(DiskBasic basic,
                      int num,

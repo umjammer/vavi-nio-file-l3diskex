@@ -300,7 +300,7 @@ public class DiskBasicTypeXDOS<T extends DirectoryXDos> extends DiskBasicType<T>
     @Override
     public int allocateUnitGroups(int fileUnitNum, DiskBasicDirItem<T> item,
                                   int dataSize, AllocateGroupFlags flags,
-                                  DiskBasicGroups[] groupItems) {
+                                  DiskBasicGroups[] groupItems) throws IOException {
         //int fileSize = 0;
         //int groups = 0;
 

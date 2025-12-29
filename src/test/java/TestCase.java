@@ -116,7 +116,7 @@ Debug.printf("open: %d", r2);
 
         // Check disk properties
 Debug.printf("name: \"%s\"", disk.getName(true));
-        assertFalse(disk.getTracks().isEmpty(), "Disk has no tracks");
+        assertFalse(disk.getTracks() == null || disk.getTracks().isEmpty(), "Disk has no tracks");
 Debug.println("tracks: " + disk.getTracks().size());
 Debug.println("typeName: " + disk.getDiskTypeName());
         disk.setDiskParam(disk.calcMajorNumber());
@@ -150,7 +150,7 @@ Debug.printf("files at dir: %d, %s, %08x", root.getChildren().size(), root.isDir
 
     @AfterAll
     static void tearDown() throws Exception {
-//        if (Boolean.parseBoolean(System.getProperty("vavi.util.serdes.cache.statistics", "false")))
-//            Serdes.Cacher.printCacheStatistics();
+        if (Boolean.parseBoolean(System.getProperty("vavi.util.serdes.cache.statistics", "false")))
+            Serdes.Cacher.printCacheStatistics();
     }
 }
