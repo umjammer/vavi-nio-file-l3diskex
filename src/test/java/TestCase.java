@@ -98,13 +98,13 @@ Debug.print("type: \"" + type + "\", file: " + d88 + ", " + Files.exists(Path.of
         String[] type_ = {type};
         int r1 = diskImage.check(d88, type_, params, manualParam);
         type = type_[0];
-Debug.printf("check: %d, %s, %d, %s", r1, type, params.size(), manualParam);
+Debug.printf("check: %d, type: %s, params: %d, manual param: %s", r1, type, params.size(), manualParam);
 
         // Verify open was successful
         assertEquals(0, r1, "Failed to check disk image: " + diskImage.getErrorMessage(-1));
 
         // Try to open the disk image
-        int r2 = diskImage.open(d88, type, manualParam);
+        int r2 = diskImage.open(d88, type, !params.isEmpty() ? params.getFirst() : manualParam);
 Debug.printf("open: %d", r2);
 
         // Verify disk was loaded
