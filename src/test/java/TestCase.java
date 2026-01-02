@@ -141,9 +141,19 @@ Debug.println("ASSIGN: done");
 Debug.println("TYPE: " + root.getClass().getSimpleName());
 Debug.printf("files at dir: %d, %s, %08x", root.getChildren().size(), root.isDirectory(), root.getFileAttr().getType());
         // List files and directories
-        for (DiskBasicDirItem<?> dir : root.getChildren()) {
-            if (dir.isUsed()) {
-                System.out.println(dir.getFileNameStr());
+        walk(diskBasic, "", root);
+    }
+
+    void walk(DiskBasic diskBasic, String path, DiskBasicDirItem<?> dir) throws IOException {
+        for (DiskBasicDirItem<?> file : dir.getChildren()) {
+            if (file.isUsed() && !file.getFileNameStr().equals(".") && !file.getFileNameStr().equals("..")) {
+                if (file.isDirectory()) {
+                    System.out.println(path + "/" + file.getFileNameStr() + "/");
+                    diskBasic.reassignDirectory(file);
+                    walk(diskBasic, path + "/" + file.getFileNameStr(), file);
+                } else {
+                    System.out.println(path + "/" + file.getFileNameStr());
+                }
             }
         }
     }

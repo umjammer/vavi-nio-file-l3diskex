@@ -97,7 +97,7 @@ public final class L3FileSystemDriver extends ExtendedFileSystemDriver<DiskBasic
                 Path name = path.getName(i);
                 if (i == path.getNameCount() - 1) {
                     var file = findNameOfDir.apply(name, currentDir);
-                    if (file.isDirectory()) break;
+                    if (file.isDirectory()) disk.reassignDirectory(file);
                     return file;
                 } else {
                     currentDir = findNameOfDir.apply(name, currentDir);
@@ -134,7 +134,10 @@ logger.log(Level.TRACE, "not found: " + path);
     @Override
     @SuppressWarnings({"unchecked", "rawtypes"})
     protected List<DiskBasicDirItem<? extends Directory>> getDirectoryEntries(DiskBasicDirItem<? extends Directory> dirEntry, Path dir) throws IOException {
-        List<DiskBasicDirItem<? extends Directory>> list = (List) dirEntry.getChildren().stream().filter(DiskBasicDirItem::isUsed).toList();
+        List<DiskBasicDirItem<? extends Directory>> list = (List) dirEntry.getChildren().stream()
+                .filter(DiskBasicDirItem::isUsed)
+                .filter(i -> !i.getFileNameStr().equals(".") && !i.getFileNameStr().equals(".."))
+                .toList();
         return list;
     }
 
