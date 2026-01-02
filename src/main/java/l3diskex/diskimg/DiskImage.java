@@ -278,13 +278,13 @@ public abstract class DiskImage {
 
         /** Compare sector numbers */
         public static int compareIDR(DiskImageSector item1, DiskImageSector item2) {
-            return item1.getIDR() - item2.getIDR();
+            return (item1.getIDR() & 0xff) - (item2.getIDR() & 0xff);
         }
 
         /** Calculate sector size from ID N */
         public static int convIDNToSecSize(byte n) {
             int sec = 0;
-            if (n <= 3) sec = gSectorSizes[n];
+            if ((n & 0xff) <= 3) sec = gSectorSizes[n & 0xff];
             return sec;
         }
 
@@ -680,7 +680,7 @@ public abstract class DiskImage {
             Map<Integer, Integer> map = new HashMap<>();
             if (sectors != null) {
                 for (DiskImageSector s : sectors) {
-                    IntHashMapUtil.increaseValue(map, s.getIDC());
+                    IntHashMapUtil.increaseValue(map, s.getIDC() & 0xff);
                 }
                 id = (byte) IntHashMapUtil.getMaxKeyOnMaxValue(map);
             }
@@ -693,7 +693,7 @@ public abstract class DiskImage {
             Map<Integer, Integer> map = new HashMap<>();
             if (sectors != null) {
                 for (DiskImageSector s : sectors) {
-                    IntHashMapUtil.increaseValue(map, s.getIDH());
+                    IntHashMapUtil.increaseValue(map, s.getIDH() & 0xff);
                 }
                 id = (byte) IntHashMapUtil.getMaxKeyOnMaxValue(map);
             }
@@ -1059,7 +1059,7 @@ public abstract class DiskImage {
             int trackSize = 0;
             for (int pos = 0; pos < sectors.size(); pos++) {
                 DiskImageSector sector = sectors.get(pos);
-                int sectorNum = sector.getIDR();
+                int sectorNum = sector.getIDR() & 0xff;
                 int sectorSize = sector.getSectorSize();
                 boolean sdensity = sector.isSingleDensity();
                 DiskImageSector newSector = newTrack.newImageSector(trackNum, sideNum, sectorNum, sectorSize, sectors.size(), sdensity, 0);
