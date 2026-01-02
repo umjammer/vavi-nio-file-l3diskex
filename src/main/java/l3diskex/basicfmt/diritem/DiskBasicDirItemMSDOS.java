@@ -391,10 +391,11 @@ public class DiskBasicDirItemMSDOS extends DiskBasicDirItem<DirectoryMs> {
     protected static LocalDate convDateToTm(short date) {
         int yy = ((date & 0xfe00) >> 9) + 80;
         int mm = ((date & 0x01e0) >> 5);
+        int dd = (date & 0x001f) + 1;
         return LocalDate.of(
                 yy,
                 mm < 1 || mm > 12 ? 1 : mm, // 1-12 for DateTime month
-                (date & 0x001f) + 1);
+                dd > 31 ? 1 : dd);
     }
 
     /** Convert time */
