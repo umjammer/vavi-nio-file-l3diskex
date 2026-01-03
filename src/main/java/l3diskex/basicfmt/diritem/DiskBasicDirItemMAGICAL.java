@@ -15,12 +15,12 @@ import java.util.Map;
 import java.util.ResourceBundle;
 
 import l3diskex.Utils;
+import l3diskex.basicfmt.BasicCommon.Directory;
 import l3diskex.basicfmt.BasicCommon.DiskBasicFileType;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.diritem.DiskBasicDirItemMAGICAL.DirectoryMagical;
-import l3diskex.basicfmt.diritem.DiskBasicDirItemXDOS.DirectoryXDos;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
 import vavi.util.serdes.Element;
@@ -62,7 +62,7 @@ public class DiskBasicDirItemMAGICAL extends DiskBasicDirItemXDOSBase<DirectoryM
      * Directory entry Magical DOS
      */
     @Serdes
-    public static class DirectoryMagical extends DirectoryXDos {
+    public static class DirectoryMagical implements Directory {
 
         @Element(sequence = 1)
         public byte type; // 1
@@ -481,6 +481,10 @@ public class DiskBasicDirItemMAGICAL extends DiskBasicDirItemXDOSBase<DirectoryM
         }
         if ((t2 & DataTypeMagical.DATATYPE_MAGICAL_MASK_SUPER.ordinal()) != 0) {
             val |= FILE_TYPE_SYSTEM_MASK.getValue();
+        }
+
+        if (isValidDirectory()) { // TODO ad-hoc if this is a root directory set directory type bit
+            val |= FILE_TYPE_DIRECTORY_MASK.getValue();
         }
 
         return new DiskBasicFileType(basic.getFormatTypeNumber(), val, (t2 << 8) | t1);

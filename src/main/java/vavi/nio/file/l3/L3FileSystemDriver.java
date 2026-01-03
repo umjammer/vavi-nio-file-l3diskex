@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.function.BiFunction;
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -136,8 +137,9 @@ logger.log(Level.TRACE, "not found: " + path);
     protected List<DiskBasicDirItem<? extends Directory>> getDirectoryEntries(DiskBasicDirItem<? extends Directory> dirEntry, Path dir) throws IOException {
         List<DiskBasicDirItem<? extends Directory>> list = (List) dirEntry.getChildren().stream()
                 .filter(DiskBasicDirItem::isUsed)
-                .filter(i -> !i.getFileNameStr().equals(".") && !i.getFileNameStr().equals(".."))
+                .filter(i -> !i.getFileNameStr().equals(".") && !i.getFileNameStr().equals("..") && !i.getFileNameStr().isEmpty())
                 .toList();
+logger.log(Level.TRACE, dir + ": " + String.join(", ", list.stream().map(DiskBasicDirItem::getFileNameStr).toList()));
         return list;
     }
 

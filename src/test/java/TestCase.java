@@ -146,7 +146,7 @@ Debug.printf("files at dir: %d, %s, %08x", root.getChildren().size(), root.isDir
 
     void walk(DiskBasic diskBasic, String path, DiskBasicDirItem<?> dir) throws IOException {
         for (DiskBasicDirItem<?> file : dir.getChildren()) {
-            if (file.isUsed() && !file.getFileNameStr().equals(".") && !file.getFileNameStr().equals("..")) {
+            if (file.isUsed() && !file.getFileNameStr().equals(".") && !file.getFileNameStr().equals("..") && !file.getFileNameStr().isEmpty()) {
                 if (file.isDirectory()) {
                     System.out.println(path + "/" + file.getFileNameStr() + "/");
                     diskBasic.reassignDirectory(file);

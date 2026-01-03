@@ -4,6 +4,7 @@
 
 package l3diskex.basicfmt.diritem;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -72,21 +73,21 @@ public class DiskBasicDirItemXDOS extends DiskBasicDirItemXDOSBase<DirectoryXDos
 
         @Element(sequence = 1)
         public short fType; // big endien
-        @Element(sequence = 1)
+        @Element(sequence = 2)
         public byte[] name = new byte[16];
-        @Element(sequence = 1)
+        @Element(sequence = 3)
         public short loadAddr;
-        @Element(sequence = 1)
+        @Element(sequence = 4)
         public short fileSize;
-        @Element(sequence = 1)
+        @Element(sequence = 5)
         public short execAddr;
-        @Element(sequence = 1)
+        @Element(sequence = 6)
         public short date;
-        @Element(sequence = 1)
+        @Element(sequence = 7)
         public short time;
-        @Element(sequence = 1)
+        @Element(sequence = 8)
         public byte attr; // attribute
-        @Element(sequence = 1)
+        @Element(sequence = 9)
         public XDosSeg start = new XDosSeg();
 
         public static final int SIZE = 32;
@@ -145,8 +146,10 @@ public class DiskBasicDirItemXDOS extends DiskBasicDirItemXDOSBase<DirectoryXDos
     };
 
     /** X-DOS chain information (FAM) */
+    @Serdes(bigEndian = false)
     static class XDosChain {
 
+        @Element(sequence = 1)
         XDosSeg[] seg = new XDosSeg[170];
 
         public XDosChain() {
@@ -855,7 +858,7 @@ abstract class DiskBasicDirItemXDOSBase<T extends Directory> extends DiskBasicDi
             DiskImageSector sector = basic.getSectorFromGroup(groupNum);
             if (sector != null) {
                 XDosChain x = new XDosChain();
-                Serdes.Util.deserialize(sector.getSectorBuffer(), x);
+                Serdes.Util.deserialize(new ByteArrayInputStream(sector.getSectorBuffer()), x);
                 chain.set(basic, sector, x);
             }
         }
