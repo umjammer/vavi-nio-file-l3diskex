@@ -7,6 +7,7 @@ import java.lang.System.Logger.Level;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.StringJoiner;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -15,6 +16,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import l3diskex.Common;
 import l3diskex.Parambase.TemplatesBase;
 import l3diskex.Utils;
 import org.xml.sax.SAXException;
@@ -208,6 +210,16 @@ public class DiskParam {
                     .add("sectorsPerTrack=" + sectorsPerTrack)
                     .add("id=" + Arrays.toString(id))
                     .toString();
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            return (this.numOfTracks == ((TrackParam) o).numOfTracks) &&
+                    (this.sectorsPerTrack == ((TrackParam) o).sectorsPerTrack) &&
+                    Arrays.equals(id, ((TrackParam) o).id);
         }
     }
 
@@ -765,6 +777,19 @@ if (sectorSize == 0) {
     public boolean match(int sidesPerDisk, int tracksPerSide, int sectorsPerTrack, int sectorSize,
                          int interleave, int trackNumberBase, int sideNumberBase, int sectorNumberBase,
                          int numberingSector, List<DiskParticular> singles, List<DiskParticular> pTracks) {
+//logger.log(Level.TRACE, "MATCH: %-16s".formatted(diskTypeName) +
+//                ", sidesPerDisk: " + (this.sidesPerDisk == sidesPerDisk) +
+//                ", tracksPerSide: " + (this.tracksPerSide == tracksPerSide) +
+//                ", sectorsPerTrack: " + (this.sectorsPerTrack == sectorsPerTrack) +
+//                ", sectorSize: " + (this.sectorSize == sectorSize) +
+//                ", interleave: " + (this.interleave == interleave) +
+//                ", trackNumberBase: " + (this.trackNumberBase == trackNumberBase) +
+//                ", sideNumberBase: " + (this.sideNumberBase == sideNumberBase) +
+//                ", sectorNumberBase: " + (this.sectorNumberBase == sectorNumberBase) +
+//                ", numberingSector: " + (this.numberingSector = numberingSector) +
+//                ", singles: " + (this.singles.equals(singles)) +
+//                ", pTracks: " + (this.pTracks.equals(pTracks)) +
+//                ", PT: " + this.pTracks + ", " + pTracks);
         boolean match = (this.sidesPerDisk == sidesPerDisk)
                 && (this.tracksPerSide == tracksPerSide)
                 && (this.sectorsPerTrack == sectorsPerTrack)
@@ -1735,10 +1760,10 @@ logger.log(Level.INFO, "params: " + params.size());
                                     int interleave, int trackNumberBase, int sideNumberBase, int sectorNumberBase,
                                     int numberingSector, List<DiskParticular> singles, List<DiskParticular> pTracks) {
             DiskParam matchItem = null;
-            boolean m = false;
             for (DiskParam item : params) {
-                m = item.match(sidesPerDisk, tracksPerSide, sectorsPerTrack, sectorSize, interleave,
+                boolean m = item.match(sidesPerDisk, tracksPerSide, sectorsPerTrack, sectorSize, interleave,
                         trackNumberBase, sideNumberBase, sectorNumberBase, numberingSector, singles, pTracks);
+//logger.log(Level.TRACE, "TOTAL MATCH: " + item.diskTypeName + ", " + m);
                 if (m) {
                     matchItem = item;
                     break;
@@ -1766,7 +1791,7 @@ logger.log(Level.INFO, "params: " + params.size());
         public DiskParam find(int sidesPerDisk, int tracksPerSide, int sectorsPerTrack, int sectorSize,
                               int interleave, int trackNumberBase, int sideNumberBase, int sectorNumberBase,
                               int numberingSector, List<DiskParticular> singles, List<DiskParticular> pTracks) {
-logger.log(Level.TRACE, new StringJoiner(", ", "", "")
+logger.log(Level.TRACE, new StringJoiner(", ", "PARAM: ", "")
 //                .add(diskTypeName)
 //                .add(reversible + "")
                 .add(sidesPerDisk + "")

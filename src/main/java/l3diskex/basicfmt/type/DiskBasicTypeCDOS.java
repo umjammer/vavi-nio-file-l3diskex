@@ -82,7 +82,6 @@ public class DiskBasicTypeCDOS extends DiskBasicTypeMZBase<DirectoryCDos> {
         return typeNumber == FORMAT_TYPE_CDOS;
     }
 
-    /** */
     @Override
     public void init(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryCDos> dir) {
         super.init(basic, fat, dir);

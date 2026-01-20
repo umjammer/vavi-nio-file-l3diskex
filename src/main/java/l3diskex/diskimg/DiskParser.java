@@ -215,7 +215,7 @@ logger.log(Level.TRACE, "selectChecker: %d, %s".formatted(rc, format.getType()))
 
         ServiceLoader<DiskImageParser> serviceLoader = ServiceLoader.load(DiskImageParser.class);
         for (DiskImageParser parser : serviceLoader) {
-logger.log(Level.TRACE, type + " is supported: " + parser.isSupported(type));
+logger.log(Level.TRACE, type + " is supported: " + parser.isSupported(type) + ", " + parser.getClass().getSimpleName());
             if (parser.isSupported(type)) {
                 parser.init(file, modFlags, result);
                 int rc = parser.check(stream, diskHints, diskParam, diskParams, manualParam);

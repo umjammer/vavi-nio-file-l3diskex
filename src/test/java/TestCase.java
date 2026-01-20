@@ -98,13 +98,13 @@ Debug.print("type: \"" + type + "\", file: " + d88 + ", " + Files.exists(Path.of
         String[] type_ = {type};
         int r1 = diskImage.check(d88, type_, params, manualParam);
         type = type_[0];
-Debug.printf("check: %d, %s, %d, %s", r1, type, params.size(), manualParam);
+Debug.printf("check: %d, type: %s, params: %d, manual param: %s", r1, type, params.size(), manualParam);
 
         // Verify open was successful
         assertEquals(0, r1, "Failed to check disk image: " + diskImage.getErrorMessage(-1));
 
         // Try to open the disk image
-        int r2 = diskImage.open(d88, type, manualParam);
+        int r2 = diskImage.open(d88, type, !params.isEmpty() ? params.getFirst() : manualParam);
 Debug.printf("open: %d", r2);
 
         // Verify disk was loaded
@@ -116,7 +116,7 @@ Debug.printf("open: %d", r2);
 
         // Check disk properties
 Debug.printf("name: \"%s\"", disk.getName(true));
-        assertFalse(disk.getTracks().isEmpty(), "Disk has no tracks");
+        assertFalse(disk.getTracks() == null || disk.getTracks().isEmpty(), "Disk has no tracks");
 Debug.println("tracks: " + disk.getTracks().size());
 Debug.println("typeName: " + disk.getDiskTypeName());
         disk.setDiskParam(disk.calcMajorNumber());
@@ -141,16 +141,26 @@ Debug.println("ASSIGN: done");
 Debug.println("TYPE: " + root.getClass().getSimpleName());
 Debug.printf("files at dir: %d, %s, %08x", root.getChildren().size(), root.isDirectory(), root.getFileAttr().getType());
         // List files and directories
-        for (DiskBasicDirItem<?> dir : root.getChildren()) {
-            if (dir.isUsed()) {
-                System.out.println(dir.getFileNameStr());
+        walk(diskBasic, "", root);
+    }
+
+    void walk(DiskBasic diskBasic, String path, DiskBasicDirItem<?> dir) throws IOException {
+        for (DiskBasicDirItem<?> file : dir.getChildren()) {
+            if (file.isUsed() && !file.getFileNameStr().equals(".") && !file.getFileNameStr().equals("..") && !file.getFileNameStr().isEmpty()) {
+                if (file.isDirectory()) {
+                    System.out.println(path + "/" + file.getFileNameStr() + "/");
+                    diskBasic.reassignDirectory(file);
+                    walk(diskBasic, path + "/" + file.getFileNameStr(), file);
+                } else {
+                    System.out.println(path + "/" + file.getFileNameStr());
+                }
             }
         }
     }
 
     @AfterAll
     static void tearDown() throws Exception {
-//        if (Boolean.parseBoolean(System.getProperty("vavi.util.serdes.cache.statistics", "false")))
-//            Serdes.Cacher.printCacheStatistics();
+        if (Boolean.parseBoolean(System.getProperty("vavi.util.serdes.cache.statistics", "false")))
+            Serdes.Cacher.printCacheStatistics();
     }
 }

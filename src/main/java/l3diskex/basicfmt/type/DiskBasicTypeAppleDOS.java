@@ -86,25 +86,24 @@ public class DiskBasicTypeAppleDOS extends DiskBasicType<DirectoryAppleDos> {
         return typeNumber == FORMAT_TYPE_APLEDOS;
     }
 
-    /** */
     @Override
     public void init(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryAppleDos> dir) {
         super.init(basic, fat, dir);
 
-        if (basic.getSectorsPerGroup() <= 0) {
+        if (basic.getGroupsPerTrack() <= 0) {
             basic.setGroupsPerTrack(basic.getGroupsPerSector() * basic.getSectorsPerTrackOnBasic());
         }
     }
 
     /** Set track map mask */
-    private void setTrackMapMask(int val) {
+    private void setTrackMapMask(int val) throws IOException {
         appleDosVToc.trackBitMask[0] = (short) (val & 0xffff);
         val >>= 16;
         appleDosVToc.trackBitMask[1] = (short) (val & 0xffff);
     }
 
     /** Modify a bit in the track map */
-    private void modifyTrackMap(int trackNum, int sectorNum, boolean use) {
+    private void modifyTrackMap(int trackNum, int sectorNum, boolean use) throws IOException {
         int map = getTrackMap(trackNum);
         if (use) {
             map &= ~(1 << sectorNum);
@@ -121,7 +120,7 @@ public class DiskBasicTypeAppleDOS extends DiskBasicType<DirectoryAppleDos> {
     }
 
     /** Set track map */
-    private void setTrackMap(int trackNum, int val) {
+    private void setTrackMap(int trackNum, int val) throws IOException {
         val <<= (16 - basic.getSectorsPerTrackOnBasic());
         appleDosVToc.trackMap[trackNum][0] = (short) (val & 0xffff);
         val >>= 16;
@@ -170,7 +169,7 @@ public class DiskBasicTypeAppleDOS extends DiskBasicType<DirectoryAppleDos> {
 
     /** Set FAT position */
     @Override
-    public void setGroupNumber(int num, int val) {
+    public void setGroupNumber(int num, int val) throws IOException {
         int[] trackNum = {0};
         int[] sectorNum = {0};
         getNumFromSectorPosS(num, trackNum, sectorNum);
@@ -302,11 +301,11 @@ public class DiskBasicTypeAppleDOS extends DiskBasicType<DirectoryAppleDos> {
 
         this.appleDosVToc = vToc;
 
-        if (vToc.tracksPerDisk == 0 || vToc.sectorsPerTrack == 0) {
+        if ((vToc.tracksPerDisk & 0xff) == 0 || (vToc.sectorsPerTrack & 0xff) == 0) {
             return -1.0;
         }
 
-        if (vToc.dirStartTrack < 3) {
+        if ((vToc.dirStartTrack & 0xff) < 3) {
             return -1.0;
         }
 
@@ -314,7 +313,7 @@ public class DiskBasicTypeAppleDOS extends DiskBasicType<DirectoryAppleDos> {
         basic.setSectorsPerGroup(1);
         basic.setTracksPerSideOnBasic(vToc.tracksPerDisk);
         basic.setSectorsPerTrackOnBasic(vToc.sectorsPerTrack);
-        basic.setFatEndGroup(vToc.tracksPerDisk * vToc.sectorsPerTrack - 1);
+        basic.setFatEndGroup((vToc.tracksPerDisk & 0xff) * (vToc.sectorsPerTrack & 0xff) - 1);
 
         basic.setManagedTrackNumber(vToc.dirStartTrack);
         basic.setDirStartSector(vToc.dirStartSector);
@@ -362,7 +361,7 @@ public class DiskBasicTypeAppleDOS extends DiskBasicType<DirectoryAppleDos> {
             // Each parameter
             basic.setTracksPerSideOnBasic(vToc.tracksPerDisk);
             basic.setSectorsPerTrackOnBasic(vToc.sectorsPerTrack);
-            basic.setFatEndGroup((vToc.tracksPerDisk + 1) * vToc.sectorsPerTrack - 1);
+            basic.setFatEndGroup(((vToc.tracksPerDisk & 0xff) + 1) * (vToc.sectorsPerTrack & 0xff) - 1);
 
             basic.setManagedTrackNumber(vToc.dirStartTrack);
             basic.setDirStartSector(vToc.dirStartSector);
@@ -779,7 +778,7 @@ public class DiskBasicTypeAppleDOS extends DiskBasicType<DirectoryAppleDos> {
 
     /** Delete FAT area for the specified group number */
     @Override
-    public void deleteGroupNumber(int groupNum) {
+    public void deleteGroupNumber(int groupNum) throws IOException {
         // Mark as unused
         setGroupNumber(groupNum, 0);
     }

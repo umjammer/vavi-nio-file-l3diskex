@@ -10,6 +10,7 @@ import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.List;
 
+import l3diskex.basicfmt.BasicCommon.Directory;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroupItem;
 import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.DiskBasic;
@@ -38,7 +39,7 @@ import static l3diskex.basicfmt.DiskBasicFat.DiskBasicAvailability.FatAvailabili
  <li>DirStartPosition       : Starting position of entry in subdirectory start sector</li>
  <li>SubDirGroupSize        : Initial number of groups for subdirectory</li>
  */
-public class DiskBasicTypeXDOS<T extends DirectoryXDos> extends DiskBasicType<T> {
+public class DiskBasicTypeXDOS<T extends Directory> extends DiskBasicType<T> {
 
     /** FAT information structure used by X-DOS */
     public static class XDosFat {
@@ -300,7 +301,7 @@ public class DiskBasicTypeXDOS<T extends DirectoryXDos> extends DiskBasicType<T>
     @Override
     public int allocateUnitGroups(int fileUnitNum, DiskBasicDirItem<T> item,
                                   int dataSize, AllocateGroupFlags flags,
-                                  DiskBasicGroups[] groupItems) {
+                                  DiskBasicGroups[] groupItems) throws IOException {
         //int fileSize = 0;
         //int groups = 0;
 

@@ -85,12 +85,12 @@ logger.log(Level.DEBUG, "path: " + file);
         String[] types = {type};
         int r1 = diskImage.check(file.getPath(), types, params, manualParam);
         type = types[0];
-logger.log(Level.TRACE, "check: %d, %s, %d, %s".formatted(r1, type, params.size(), manualParam));
+logger.log(Level.TRACE, "check: %d, type: %s, params: %d, manual param: %s".formatted(r1, type, params.size(), manualParam));
         if (r1 != 0)
             throw new IllegalArgumentException("Failed to check disk image: " + diskImage.getErrorMessage(-1));
 
         // Try to open the disk image
-        int r2 = diskImage.open(file.getPath(), type, manualParam);
+        int r2 = diskImage.open(file.getPath(), type, !params.isEmpty() ? params.getFirst() : manualParam);
         if (r2 > 0 && diskImage.countDisks() < 1)
             throw new IllegalArgumentException("No disks found in image");
 
@@ -101,7 +101,7 @@ logger.log(Level.TRACE, "check: %d, %s, %d, %s".formatted(r1, type, params.size(
 
         // Check disk properties
 logger.log(Level.TRACE, "name: \"%s\"".formatted(disk.getName(true)));
-        if (disk.getTracks().isEmpty())
+        if (disk.getTracks() == null || disk.getTracks().isEmpty())
             throw new IllegalArgumentException("Disk has no tracks");
 logger.log(Level.TRACE, "tracks: " + disk.getTracks().size());
 logger.log(Level.TRACE, "typeName: " + disk.getDiskTypeName());

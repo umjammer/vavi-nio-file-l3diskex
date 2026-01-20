@@ -1724,7 +1724,7 @@ public abstract class DiskBasicDirItem<T extends Directory> {
     public void setChainSector(int num, int pos, byte[] data, DiskBasicDirItem<T> pitem /* = null */) {
     }
 
-    public void addChainGroupNumber(int idx, int val) {
+    public void addChainGroupNumber(int idx, int val) throws IOException {
     }
 
     public boolean hasCreateDateTime() {

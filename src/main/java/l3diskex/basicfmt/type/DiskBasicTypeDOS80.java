@@ -40,7 +40,6 @@ public class DiskBasicTypeDOS80 extends DiskBasicTypeFAT8<DirectoryDos80> {
         return typeNumber == FORMAT_TYPE_DOS80;
     }
 
-    /** */
     @Override
     public void init(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryDos80> dir) {
         super.init(basic, fat, dir);

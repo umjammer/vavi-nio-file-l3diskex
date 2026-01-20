@@ -6,7 +6,9 @@ package l3diskex;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 import static l3diskex.basicfmt.DiskBasicTemplates.diskBasicTemplates;
 import static l3diskex.diskimg.DiskParam.diskTemplates;

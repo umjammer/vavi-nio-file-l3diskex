@@ -64,6 +64,7 @@ public class DiskBasicTypeFM extends DiskBasicTypeFAT8<DirectoryFp> {
         double validRatio = super.checkFat(isFormatting);
         if (validRatio >= 0.0) {
             // ID check
+            if (basic.getVariousStringParam("IDString").isEmpty()) return -1; // vavi
             byte id = basic.getVariousStringParam("IDString").getBytes()[0];
             DiskImageSector sector = basic.getSectorFromSectorPos(basic.getVariousIntegerParam("IDSectorPosition"));
             if (!(sector != null && id == sector.get(0))) {

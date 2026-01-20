@@ -21,13 +21,11 @@ import l3diskex.diskimg.DiskParam.SectorParam;
  */
 public abstract class DiskBasicDirItemMZBase<T extends Directory> extends DiskBasicDirItem<T> {
 
-    /** */
     @Override
     public void init(DiskBasic basic) throws IOException {
         super.init(basic);
     }
 
-    /** */
     @Override
     public void init(DiskBasic basic,
                      DiskImageSector sector,
@@ -36,7 +34,6 @@ public abstract class DiskBasicDirItemMZBase<T extends Directory> extends DiskBa
         super.init(basic, sector, sectorPos, data, dataP);
     }
 
-    /** */
     @Override
     public void init(DiskBasic basic,
                      int num,

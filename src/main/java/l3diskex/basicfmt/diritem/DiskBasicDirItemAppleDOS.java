@@ -266,7 +266,7 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryAppleDos
         }
 
         /** Set track & sector */
-        public void setTrackAndSector(int idx, int track, int sector) {
+        public void setTrackAndSector(int idx, int track, int sector) throws IOException {
             int max_idx = APLEDOS_TRACK_LIST_MAX;
             for (AppleDosChain item : chains) {
                 if (idx < max_idx) {
@@ -288,7 +288,7 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryAppleDos
         }
 
         /** Set sector number where next sector exists */
-        public void setNext(int idx, int val) {
+        public void setNext(int idx, int val) throws IOException {
             AppleDosChain item = chains.get(idx);
             AppleDosPointer next = item.next;
             next.nextTrack = (byte) ((val / basic.getSectorsPerTrackOnBasic()) & 0xFF);
@@ -774,7 +774,7 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryAppleDos
      * @param val Group number
      */
     @Override
-    public void addChainGroupNumber(int idx, int val) {
+    public void addChainGroupNumber(int idx, int val) throws IOException {
         int[] trackNum = {0};
         int[] sectorNum = {0};
         type.getNumFromSectorPosS(val, trackNum, sectorNum);
