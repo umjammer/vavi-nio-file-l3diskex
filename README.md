@@ -5,7 +5,7 @@
 
 # vavi-nio-file-l3diskex
 
-<img alt="logo" src="src/test/resources/logo.svg" width="120" />
+<img alt="logo" src="src/test/resources/duke_disk.png" width="160" />
 
 a Java nio filesystem SPI powered by [l3diskex](https://github.com/bml3mk5/L3DiskEx)
 
@@ -15,13 +15,13 @@ you can also mount all formats using [fuse](https://github.com/umjammer/vavi-nio
 
 |                                                    | ext | physical | parser | logical    | status | spi |                    |
 |----------------------------------------------------|-----|----------|--------|------------|:------:|:---:|--------------------|
-| NEC N88-BASIC / NEC N66-BASIC                      | FDI | fdi      | FDI    |            |        |     | pc-98              |
+| NEC N88-BASIC / NEC N66-BASIC                      | FDI | fdi      | FDI    |            |   ✅️   | ✅️  | pc-98              |
 |                                                    | VFD | v98fdd   | VFD    |            |        |     | pc-98              |
 |                                                    | d88 | d88      | D88    | N88        |   ✅️   | ✅️  |                    |
-| MS-DOS FAT12 (PC-9801/PC-AT)                       |     |          |        | MSDOS      |   ❌️   |     |                    |
+| MS-DOS FAT12 (PC-9801/PC-AT)                       |     |          |        | MSDOS      |   ✅️   | ✅️  | pc-98              |
 | System Soft for PC-8001 PC-DOS                     |     |          |        | Dos80      |        |     |                    |
 | Frost-DOS                                          |     |          | D88    | Frost      |   ✅️   | ✅️  | pc-88              |
-| Magical DOS                                        |     |          | D88    | Magical    |        |     |                    |
+| Magical DOS                                        |     |          | D88    | Magical    |   ✅️   | ✅️  |                    |
 |                                                    |     |          |        | Falcom     |        |     | pc-88              |
 | FUJITSU F-BASIC                                    | d77 | d88      | D88    | FAT8F, FM  |        |     |                    |
 | TOSHIBA PASOPIA T-BASIC                            | d88 |          | D88    | (PA)       |        |     |                    |
@@ -108,6 +108,7 @@ you can also mount all formats using [fuse](https://github.com/umjammer/vavi-nio
 * ⚠️ root directory doesn't have directory attribute bit. see DiskBasicDirItem#getFileAttr
 * \[msdos] encoding, timestamp
 * \[serdes] not use `InputStream` directly but after reading data into buffer use `ByteArrayInputStream` for performance
+* ~~\[magical] dir loops (only spi)~~ ... empty name in dir list
 
 ---
 
@@ -172,4 +173,5 @@ MailTo: Sasaji (sasaji@s-sasaji.ddo.jp)
 * X(Twitter): https://x.com/bml3mk5
 
 ---
-<sub>disk image by <a href="https://freesvg.org/floppy-disk-icon">freesvg.org</a></sub>
+
+<sub>image designed by @umjammer, drawn by nano banana, disk image by <a href="https://freesvg.org/floppy-disk-icon">freesvg.org</a></sub>
