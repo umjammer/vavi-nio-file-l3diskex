@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
-import java.util.StringJoiner;
 import java.util.function.BiFunction;
 import javax.annotation.ParametersAreNonnullByDefault;
 
@@ -80,7 +79,7 @@ public final class L3FileSystemDriver extends ExtendedFileSystemDriver<DiskBasic
 
     /** finds a dir item of the given {@code name} in the {@code dir} list */
     private final BiFunction<Path, DiskBasicDirItem<? extends Directory>, DiskBasicDirItem> findNameOfDir = (name, dir) ->
-            dir.getChildren().stream().filter(e -> e.getFileNameStr().equals(name.toString())).findFirst().orElseThrow();
+            dir.getChildren().stream().filter(e -> getFilenameString(e).equals(name.toString())).findFirst().orElseThrow();
 
     @Override
     protected DiskBasicDirItem<? extends Directory> getEntry(Path path) throws IOException {
@@ -137,9 +136,9 @@ logger.log(Level.TRACE, "not found: " + path);
     protected List<DiskBasicDirItem<? extends Directory>> getDirectoryEntries(DiskBasicDirItem<? extends Directory> dirEntry, Path dir) throws IOException {
         List<DiskBasicDirItem<? extends Directory>> list = (List) dirEntry.getChildren().stream()
                 .filter(DiskBasicDirItem::isUsed)
-                .filter(i -> !i.getFileNameStr().equals(".") && !i.getFileNameStr().equals("..") && !i.getFileNameStr().isEmpty())
+                .filter(i -> !getFilenameString(i).equals(".") && !getFilenameString(i).equals("..") && !getFilenameString(i).isEmpty())
                 .toList();
-logger.log(Level.TRACE, dir + ": " + String.join(", ", list.stream().map(DiskBasicDirItem::getFileNameStr).toList()));
+logger.log(Level.TRACE, dir + ": " + String.join(", ", list.stream().map(this::getFilenameString).toList()));
         return list;
     }
 

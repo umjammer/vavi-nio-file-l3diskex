@@ -22,6 +22,7 @@ import java.util.Map;
 import vavi.util.Debug;
 import vavi.util.properties.annotation.Property;
 import vavi.util.properties.annotation.PropsEntity;
+import vavi.util.serdes.CachingDIContainer;
 import vavi.util.serdes.Serdes;
 
 import org.junit.jupiter.api.AfterAll;
@@ -107,6 +108,6 @@ Debug.print("disk: " + disk);
     @AfterAll
     static void tearDown() throws Exception {
         if (Boolean.parseBoolean(System.getProperty("vavi.util.serdes.cache.statistics", "false")))
-            Serdes.Cacher.printCacheStatistics();
+            CachingDIContainer.printCacheStatistics();
     }
 }
