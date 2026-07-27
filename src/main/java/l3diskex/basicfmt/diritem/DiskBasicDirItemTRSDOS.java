@@ -780,6 +780,16 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
          * Copy item
          */
         @Override
+        public byte[] getRawData() {
+            return data.getRawData();
+        }
+
+        @Override
+        protected void flushData() throws IOException {
+            data.flush();
+        }
+
+        @Override
         public boolean copyData(byte[] val) {
             return data.copy(val);
         }
@@ -1144,6 +1154,16 @@ public abstract class DiskBasicDirItemTRSDOS<T extends Directory> extends DiskBa
         /**
          * Copy item
          */
+        @Override
+        public byte[] getRawData() {
+            return data.getRawData();
+        }
+
+        @Override
+        protected void flushData() throws IOException {
+            data.flush();
+        }
+
         @Override
         public boolean copyData(byte[] val) {
             return data.copy(val);

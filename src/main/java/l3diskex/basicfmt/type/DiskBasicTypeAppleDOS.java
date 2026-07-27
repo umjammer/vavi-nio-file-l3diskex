@@ -5,6 +5,7 @@
 package l3diskex.basicfmt.type;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -78,6 +79,7 @@ public class DiskBasicTypeAppleDOS extends DiskBasicType<DirectoryAppleDos> {
 
     /** */
     private AppleDosVToc appleDosVToc;
+    private DiskImageSector vtocSector;
 
     public static final int FORMAT_TYPE_APLEDOS = 15;
 
@@ -100,6 +102,7 @@ public class DiskBasicTypeAppleDOS extends DiskBasicType<DirectoryAppleDos> {
         appleDosVToc.trackBitMask[0] = (short) (val & 0xffff);
         val >>= 16;
         appleDosVToc.trackBitMask[1] = (short) (val & 0xffff);
+        writeVtoc();
     }
 
     /** Modify a bit in the track map */
@@ -125,6 +128,7 @@ public class DiskBasicTypeAppleDOS extends DiskBasicType<DirectoryAppleDos> {
         appleDosVToc.trackMap[trackNum][0] = (short) (val & 0xffff);
         val >>= 16;
         appleDosVToc.trackMap[trackNum][1] = (short) (val & 0xffff);
+        writeVtoc();
     }
 
     /** Get track map */
@@ -134,6 +138,14 @@ public class DiskBasicTypeAppleDOS extends DiskBasicType<DirectoryAppleDos> {
         val |= appleDosVToc.trackMap[trackNum][0] & 0xffff;
         val >>>= (16 - basic.getSectorsPerTrackOnBasic());
         return val;
+    }
+
+    private void writeVtoc() throws IOException {
+        if (vtocSector != null && appleDosVToc != null) {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            Serdes.Util.serialize(appleDosVToc, baos);
+            vtocSector.copy(baos.toByteArray(), baos.size(), 0);
+        }
     }
 
     /** Allocate a chain sector */
@@ -300,6 +312,7 @@ public class DiskBasicTypeAppleDOS extends DiskBasicType<DirectoryAppleDos> {
         Serdes.Util.deserialize(new ByteArrayInputStream(b), vToc);
 
         this.appleDosVToc = vToc;
+        this.vtocSector = sector;
 
         if ((vToc.tracksPerDisk & 0xff) == 0 || (vToc.sectorsPerTrack & 0xff) == 0) {
             return -1.0;
@@ -357,6 +370,7 @@ public class DiskBasicTypeAppleDOS extends DiskBasicType<DirectoryAppleDos> {
             AppleDosVToc vToc = new AppleDosVToc();
             Serdes.Util.deserialize(new ByteArrayInputStream(b), vToc);
             this.appleDosVToc = vToc;
+            this.vtocSector = sector;
 
             // Each parameter
             basic.setTracksPerSideOnBasic(vToc.tracksPerDisk);
@@ -685,6 +699,7 @@ public class DiskBasicTypeAppleDOS extends DiskBasicType<DirectoryAppleDos> {
         Serdes.Util.deserialize(new ByteArrayInputStream(b), vToc);
 
         this.appleDosVToc = vToc;
+        this.vtocSector = sector;
 
         sector.fill((byte) 0);
 
@@ -713,6 +728,9 @@ public class DiskBasicTypeAppleDOS extends DiskBasicType<DirectoryAppleDos> {
         // volume number
         setIdentifiedData(data);
 
+        // Write back VTOC
+        writeVtoc();
+
         // DIR area (DIR area)
         int dirStartLSector = basic.getDirStartSector();
         int dirEndLSector = 2;
@@ -726,7 +744,7 @@ public class DiskBasicTypeAppleDOS extends DiskBasicType<DirectoryAppleDos> {
             Serdes.Util.deserialize(new ByteArrayInputStream(sector.getSectorBuffer()), p);
             p.nextTrack = appleDosVToc.dirStartTrack;
             p.nextSector = (byte) (lSectorPos - 1);
-            sector.copy(p.serialize(), 0, AppleDosPointer.SIZE);
+            sector.copy(p.serialize(), AppleDosPointer.SIZE, 0);
         }
 
         return true;

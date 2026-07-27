@@ -495,6 +495,16 @@ public class DiskBasicDirItemC1541 extends DiskBasicDirItem<DirectoryC1541> {
 
     /** Copy item */
     @Override
+    public byte[] getRawData() {
+        return data.getRawData();
+    }
+
+    @Override
+    protected void flushData() throws IOException {
+        data.flush();
+    }
+
+    @Override
     public boolean copyData(byte[] val) {
         // First 2 bytes of entry are forbidden to write
         return data.copy(val, getDataSize(), basic.isDataInverted(), data.data().doNotWrite.length);

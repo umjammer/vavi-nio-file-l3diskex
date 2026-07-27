@@ -7,6 +7,7 @@ package l3diskex.basicfmt.diritem;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.time.LocalDate;
@@ -257,14 +258,27 @@ public class DiskBasicDirItemXDOS extends DiskBasicDirItemXDOSBase<DirectoryXDos
         }
 
         public void clear() {
-            if (sector != null) {
-                sector.fill((byte) 0);
-            } else if (chain != null) {
+            if (chain != null) {
                 for (int i = 0; i < 170; i++) {
                     chain.seg[i].track = 0;
                     chain.seg[i].sector = 0;
                     chain.seg[i].size = 0;
                 }
+            }
+            if (sector != null) {
+                sector.fill((byte) 0);
+            }
+        }
+
+        /** Write the in memory chain back onto the sector it came from */
+        private void writeBack() {
+            if (sector == null || chain == null) return;
+            try {
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                Serdes.Util.serialize(chain, baos);
+                sector.copy(baos.toByteArray(), baos.size());
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
             }
         }
 
@@ -302,11 +316,13 @@ public class DiskBasicDirItemXDOS extends DiskBasicDirItemXDOSBase<DirectoryXDos
                 chain.seg[index].sector = (byte) (val % basic.getSectorsPerTrackOnBasic());
             }
             chain.seg[index].size++;
+            writeBack();
         }
 
         public void setSectors(int index, int val) {
             if (chain == null || index >= 170) return;
             chain.seg[index].size = (byte) val;
+            writeBack();
         }
 
         public boolean getSegment(int index, int[] groupNum, int[] size) {
@@ -722,6 +738,16 @@ public class DiskBasicDirItemXDOS extends DiskBasicDirItemXDOSBase<DirectoryXDos
     @Override
     public DirectoryXDos getData() {
         return data.data();
+    }
+
+    @Override
+    public byte[] getRawData() {
+        return data.getRawData();
+    }
+
+    @Override
+    protected void flushData() throws IOException {
+        data.flush();
     }
 
     @Override

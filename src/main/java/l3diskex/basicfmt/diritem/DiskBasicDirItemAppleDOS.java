@@ -5,6 +5,7 @@
 package l3diskex.basicfmt.diritem;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -21,6 +22,7 @@ import l3diskex.basicfmt.BasicCommon.DiskBasicGroups;
 import l3diskex.basicfmt.BasicCommon.KeyValArray;
 import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasicDirItem;
+import l3diskex.basicfmt.diritem.DiskBasicDirItemAppleDOS.AppleDosChain.TrackList;
 import l3diskex.basicfmt.diritem.DiskBasicDirItemAppleDOS.DirectoryAppleDos;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
@@ -202,8 +204,11 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryAppleDos
         short number;
         @Element(sequence = 4)
         byte[] reserved2 = new byte[5];
-        static class TrackList {
+        @Serdes
+        public static class TrackList {
+            @Element(sequence = 1)
             byte track;
+            @Element(sequence = 2)
             byte sector;
         }
         @Element(sequence = 5)
@@ -217,11 +222,11 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryAppleDos
 
         private DiskBasic basic;
         private final List<AppleDosChain> chains;
-        private AppleDosChain chain;
-        private DiskImageSector sector;
+        private final List<DiskImageSector> sectors;
 
         public DiskBasicDirItemAppleDosChain() {
             chains = new ArrayList<>();
+            sectors = new ArrayList<>();
             basic = null;
         }
 
@@ -231,13 +236,15 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryAppleDos
         }
 
         /** Set pointer */
-        public void add(AppleDosChain n_chain) {
+        public void add(AppleDosChain n_chain, DiskImageSector n_sector) {
             chains.add(n_chain);
+            sectors.add(n_sector);
         }
 
         /** Clear */
         public void clear() {
             chains.clear();
+            sectors.clear();
         }
 
         /** Returns number of sectors */
@@ -255,8 +262,13 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryAppleDos
             int max_idx = APLEDOS_TRACK_LIST_MAX;
             for (AppleDosChain item : chains) {
                 if (idx < max_idx) {
-                    track[0] = item.list[idx].track & 0xff;
-                    sector[0] = item.list[idx].sector & 0xFF;
+                    if (item.list[idx] != null) {
+                        track[0] = item.list[idx].track & 0xff;
+                        sector[0] = item.list[idx].sector & 0xFF;
+                    } else {
+                        track[0] = 0;
+                        sector[0] = 0;
+                    }
                     track[0] += basic.getTrackNumberBaseOnDisk();
                     sector[0] += basic.getSectorNumberBase();
                     break;
@@ -268,12 +280,15 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryAppleDos
         /** Set track & sector */
         public void setTrackAndSector(int idx, int track, int sector) throws IOException {
             int max_idx = APLEDOS_TRACK_LIST_MAX;
-            for (AppleDosChain item : chains) {
+            for (int i = 0; i < chains.size(); i++) {
+                AppleDosChain item = chains.get(i);
                 if (idx < max_idx) {
                     track -= basic.getTrackNumberBaseOnDisk();
                     sector -= basic.getSectorNumberBase();
+                    if (item.list[idx] == null) item.list[idx] = new TrackList();
                     item.list[idx].track = (byte) (track & 0xff);
                     item.list[idx].sector = (byte) (sector & 0xff);
+                    writeBack(i);
                     break;
                 }
                 idx -= max_idx;
@@ -294,6 +309,19 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryAppleDos
             next.nextTrack = (byte) ((val / basic.getSectorsPerTrackOnBasic()) & 0xFF);
             next.nextSector = (byte) ((val % basic.getSectorsPerTrackOnBasic()) & 0xFF);
             item.next = next;
+            writeBack(idx);
+        }
+
+        private void writeBack(int idx) throws IOException {
+            if (idx >= 0 && idx < sectors.size()) {
+                DiskImageSector s = sectors.get(idx);
+                AppleDosChain item = chains.get(idx);
+                if (s != null && item != null) {
+                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                    Serdes.Util.serialize(item, baos);
+                    s.copy(baos.toByteArray(), baos.size(), 0);
+                }
+            }
         }
     }
 
@@ -360,7 +388,7 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryAppleDos
                 byte[] buf = sectorNum.getSectorBuffer();
                 AppleDosChain c = new AppleDosChain();
                 Serdes.Util.deserialize(new ByteArrayInputStream(buf), c);
-                chain.add(c);
+                chain.add(c, sectorNum);
                 AppleDosPointer p = new AppleDosPointer();
                 Serdes.Util.deserialize(new ByteArrayInputStream(buf), p);
                 gourp = type.getSectorPosFromNumS((p.nextTrack & 0xff) + basic.getTrackNumberBaseOnDisk(), (p.nextSector & 0xff) + basic.getSectorNumberBase());
@@ -760,7 +788,11 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryAppleDos
     public void setChainSector(DiskImageSector sector, int groupNum, byte[] data, DiskBasicDirItem<DirectoryAppleDos> pItem) throws IOException {
         AppleDosChain c = new AppleDosChain();
         Serdes.Util.deserialize(new ByteArrayInputStream(data), c);
-        chain.add(c);
+        // Ensure list elements are not null
+        for (int i = 0; i < c.list.length; i++) {
+            if (c.list[i] == null) c.list[i] = new TrackList();
+        }
+        chain.add(c, sector);
         if (chain.count() > 1) {
             int i = chain.count() - 2;
             chain.setNext(i, groupNum);
@@ -834,6 +866,16 @@ public class DiskBasicDirItemAppleDOS extends DiskBasicDirItem<DirectoryAppleDos
     }
 
     /** Copy item */
+    @Override
+    public byte[] getRawData() {
+        return data.getRawData();
+    }
+
+    @Override
+    protected void flushData() throws IOException {
+        data.flush();
+    }
+
     @Override
     public boolean copyData(byte[] val) {
         return data.copy(val, getDataSize());

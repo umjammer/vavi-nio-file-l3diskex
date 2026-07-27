@@ -5,6 +5,7 @@
 package l3diskex.basicfmt.type;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -403,6 +404,9 @@ public class DiskBasicTypeTFDOS extends DiskBasicTypeMZBase<DirectoryTfDos> {
                     ipl.autoStart[0xf0 + i] = basic.invertUint8((byte) 0x0d);
                 }
             }
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            Serdes.Util.serialize(ipl, baos);
+            sector.copy(baos.toByteArray(), baos.size());
         }
 
         // FAT area
@@ -438,8 +442,10 @@ public class DiskBasicTypeTFDOS extends DiskBasicTypeMZBase<DirectoryTfDos> {
         } else {
             volumeName = basic.getVariousStringParam("VolumeString").getBytes();
         }
-        System.arraycopy(volumeName, 0, f.volumeName, 0, f.volumeName.length);
+        System.arraycopy(volumeName, 0, f.volumeName, 0, Math.min(volumeName.length, f.volumeName.length));
         basic.invertMemory(f.volumeName, f.volumeName.length);
+
+        writeFat(fatBuf, f);
 
         // DIR area
         int[] trackNum = new int[1], sideNum = new int[1], sectorNum = new int[1];
@@ -541,7 +547,7 @@ public class DiskBasicTypeTFDOS extends DiskBasicTypeMZBase<DirectoryTfDos> {
             byte[] dst = new byte[f.volumeName.length + 1];
             int l = basic.getCharCodes().convToChars(data.getVolumeName(), dst, dst.length);
             if (l > 0) {
-                System.arraycopy(dst, 0, f.volumeName, 0, f.volumeName.length);
+                System.arraycopy(dst, 0, f.volumeName, 0, Math.min(dst.length, f.volumeName.length));
                 basic.invertMemory(f.volumeName, f.volumeName.length);
             }
         }
@@ -549,5 +555,14 @@ public class DiskBasicTypeTFDOS extends DiskBasicTypeMZBase<DirectoryTfDos> {
         if (format.hasVolumeNumber()) {
             f.volumeNum = basic.invertUint8((byte) data.getVolumeNumber());
         }
+
+        writeFat(fatBuf, f);
+    }
+
+    /** Write the in memory FAT header back onto the FAT buffer (which points into the sector) */
+    private static void writeFat(DiskBasicFatBuffer fatBuf, TfDosFat f) throws IOException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        Serdes.Util.serialize(f, baos);
+        fatBuf.copy(baos.toByteArray(), baos.size());
     }
 }

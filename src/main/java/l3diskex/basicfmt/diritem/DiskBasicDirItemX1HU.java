@@ -608,6 +608,16 @@ public class DiskBasicDirItemX1HU extends DiskBasicDirItem<DirectoryX1Hu> {
 
     /** Copy data */
     @Override
+    public byte[] getRawData() {
+        return data.getRawData();
+    }
+
+    @Override
+    protected void flushData() throws IOException {
+        data.flush();
+    }
+
+    @Override
     public boolean copyData(byte[] val) {
         return data.copy(val, getDataSize());
     }

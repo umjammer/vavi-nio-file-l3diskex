@@ -96,6 +96,8 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
 
     /** SIR area */
     private FlexSir flexSir;
+    /** the sector {@link #flexSir} was read from, used to write it back */
+    private DiskImageSector flexSirSector;
 
     public static final int FORMAT_TYPE_FLEX = 8;
 
@@ -109,6 +111,7 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
         super.init(basic, fat, dir);
 
         flexSir = null;
+        flexSirSector = null;
 
         if (basic.getGroupsPerTrack() <= 0) {
             basic.setGroupsPerTrack(basic.getGroupsPerSector() * basic.getSectorsPerTrackOnBasic());
@@ -124,6 +127,21 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
     /** Logical sector size */
     private int logSecSiz(int sectorSize) {
         return sectorSize / basic.getGroupsPerSector();
+    }
+
+    /** Write the in memory SIR back onto the sector it was read from */
+    private void writeSir() throws IOException {
+        if (flexSirSector == null || flexSir == null) return;
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        Serdes.Util.serialize(flexSir, baos);
+        flexSirSector.copy(baos.toByteArray(), baos.size(), sectorBufferOffset(2 + 1));
+    }
+
+    /** Write the given sector top pointer back onto the logical sector {@code divNum} of {@code sector} */
+    private void writePointer(DiskImageSector sector, int divNum, FlexPointer p) throws IOException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        Serdes.Util.serialize(p, baos);
+        sector.copy(baos.toByteArray(), baos.size(), sectorBufferOffset(divNum + 1));
     }
 
     /** Set FAT position (set seq_num) */
@@ -142,7 +160,7 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
         }
         FlexPointer p = FlexPointer.serialize(b);
         p.seqNum = (short) val;
-        sector.copy(p.deserialize(), sectorBufferOffset(divNum[0] + 1), FlexPointer.SIZE);
+        sector.copy(p.deserialize(), FlexPointer.SIZE, sectorBufferOffset(divNum[0] + 1));
     }
 
     /** Returns FAT offset (in FLEX, group number = sector position) */
@@ -205,9 +223,11 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
             flexSir.freeLastSector = 0;
         }
         flexSir.numOfFreeSectors = (short) size;
+        writeSir();
         // Mark as reserved
         p.nextTrack = 0;
         p.nextSector = 0;
+        writePointer(sector, divNum[0], p);
 
         return groupNum;
     }
@@ -261,6 +281,7 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
         basic.setFatEndGroup(((flex.maxTrack & 0xff) + 1) * (flex.maxSector & 0xff) - 1);
 
         flexSir = flex;
+        flexSirSector = sector;
 
         double validRatio = 1.0;
 
@@ -317,6 +338,7 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
             byte[] bb = sector.getSectorBuffer(sectorBufferOffset(2 + 1));
             Serdes.Util.deserialize(new ByteArrayInputStream(bb), flex);
             flexSir = flex;
+            flexSirSector = sector;
         }
 
         logger.log(Level.TRACE, "FLEX: sir.maxTrack: %d".formatted(flexSir.maxTrack & 0xff));
@@ -599,7 +621,9 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
                         fsm.track = (byte) trackNum[0];
                         fsm.sector = (byte) sectorNum[0];
                         fsm.count = (byte) rItem.next;
-                        // TODO write back
+                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                        Serdes.Util.serialize(fsm, baos);
+                        iSector.copy(baos.toByteArray(), baos.size(), sectorBufferOffset(divNum[0] + 1) + pos);
                         idx++;
                         if (idx >= randomGroups.size()) {
                             finished = true;
@@ -627,9 +651,11 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
                         Serdes.Util.deserialize(new ByteArrayInputStream(b), p);
                         flexSir.freeLastTrack = p.nextTrack;
                         flexSir.freeLastSector = p.nextSector;
+                        writeSir();
                         p.nextTrack = 0;
                         p.nextSector = 0;
                         p.seqNum = 0;
+                        writePointer(sector, divNum[0], p);
 
                         remakeChainOnFreeArea();
 
@@ -665,9 +691,7 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
         getNumFromSectorPosS(appendGroupNum, nextTrackNum, nextSectorNum);
         p.nextTrack = (byte) nextTrackNum[0];
         p.nextSector = (byte) nextSectorNum[0];
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        Serdes.Util.serialize(p, baos);
-        sector.copy(baos.toByteArray(), baos.size(), sectorBufferOffset(divNum[0] + 1)); // TODO is write back?
+        writePointer(sector, divNum[0], p);
 
         return 0;
     }
@@ -833,9 +857,7 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
                     }
                     p.seqNum = 0;
 
-                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                    Serdes.Util.serialize(p, baos);
-                    sector.copy(baos.toByteArray(), baos.size(), sectorBufferOffset(divNum + 1)); // TODO check is write back
+                    writePointer(sector, divNum, p);
                 }
             }
         }
@@ -853,6 +875,7 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
         Serdes.Util.deserialize(new ByteArrayInputStream(b), flex);
 
         flexSir = flex;
+        flexSirSector = sector;
 
         sector.fill((byte) 0, logSecSiz(basic.getSectorSize()), sectorBufferOffset(2 + 1));
 
@@ -878,9 +901,7 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
         // volume name and number
         setIdentifiedData(data);
 
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        Serdes.Util.serialize(flexSir, baos);
-        sector.copy(baos.toByteArray(), sectorBufferOffset(2 + 1), baos.size()); // TODO check is write back
+        writeSir();
 
         // DIR area
 
@@ -903,9 +924,7 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
                     p.nextSector = (byte) nextSector;
                     p.seqNum = 0;
 
-                    baos = new ByteArrayOutputStream();
-                    Serdes.Util.deserialize(p, baos);
-                    prevSector.copy(baos.toByteArray(), baos.size(), sectorBufferOffset(prevLSectorPos + 1)); // TODO check is write back
+                    writePointer(prevSector, prevLSectorPos, p);
                 }
             }
             if (currentSector == null) {
@@ -926,9 +945,7 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
                 p.nextSector = 0;
                 p.seqNum = 0;
 
-                baos = new ByteArrayOutputStream();
-                Serdes.Util.deserialize(p, baos);
-                prevSector.copy(baos.toByteArray(), baos.size(), sectorBufferOffset(prevLSectorPos + 1));
+                writePointer(prevSector, prevLSectorPos, p);
             }
         }
 
@@ -1027,6 +1044,7 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
             flexSir.freeStartSector = (byte) startSectorNum;
             flexSir.freeLastTrack = (byte) lastTrackNum;
             flexSir.freeLastSector = (byte) lastSectorNum;
+            writeSir();
         } else {
             // Chain it
             sector = basic.getSectorFromSectorPos(getSectorPosFromNumS(flexSir.freeLastTrack & 0xff, flexSir.freeLastSector & 0xff), divNum);
@@ -1041,10 +1059,9 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
             p.nextSector = (byte) startSectorNum;
             flexSir.freeLastTrack = (byte) lastTrackNum;
             flexSir.freeLastSector = (byte) lastSectorNum;
+            writeSir();
 
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            Serdes.Util.serialize(p, baos);
-            sector.copy(baos.toByteArray(), baos.size(), sectorBufferOffset(divNum[0] + 1)); // TODO check is this write back?
+            writePointer(sector, divNum[0], p);
         }
 
         // Recreate the free area chain
@@ -1114,11 +1131,10 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
                 flexSir.freeLastSector = (byte) gItem.sectorStart;
             }
 
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            Serdes.Util.serialize(p, baos);
-            sector.copy(baos.toByteArray(), baos.size(), sectorBufferOffset(divNum[0] + 1)); // TODO check is write back
+            writePointer(sector, divNum[0], p);
         }
         flexSir.numOfFreeSectors = (short) groupItemsCount;
+        writeSir();
     }
 
     /** Get attributes of IPL and managed area */
@@ -1140,17 +1156,19 @@ public class DiskBasicTypeFLEX extends DiskBasicType<DirectoryFlex> {
 
     /** Set attributes of IPL and managed area */
     @Override
-    public void setIdentifiedData(DiskBasicIdentifiedData data) {
+    public void setIdentifiedData(DiskBasicIdentifiedData data) throws IOException {
         DiskBasicFormat fmt = basic.getFormatType();
 
         // volume label
         if (fmt.hasVolumeName()) {
             byte[] vol = data.getVolumeName().getBytes();
-            System.arraycopy(vol, vol.length, flexSir.volumeLabel, 0, flexSir.volumeLabel.length);
+            Arrays.fill(flexSir.volumeLabel, (byte) 0);
+            System.arraycopy(vol, 0, flexSir.volumeLabel, 0, Math.min(vol.length, flexSir.volumeLabel.length));
         }
         // volume number
         if (fmt.hasVolumeNumber()) {
             flexSir.volumeNumber = (short) data.getVolumeNumber();
         }
+        writeSir();
     }
 }

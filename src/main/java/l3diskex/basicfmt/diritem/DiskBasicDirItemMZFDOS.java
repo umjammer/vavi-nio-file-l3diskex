@@ -5,7 +5,9 @@
 package l3diskex.basicfmt.diritem;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -123,10 +125,21 @@ public class DiskBasicDirItemMZFDOS extends DiskBasicDirItemMZBase<DirectoryMzFD
     static final int FILETYPE_MZ_FDOS_GRH = 0xc;
 
     // FDOS chain information
-    static class MzFDosChain {
+    @Serdes(bigEndian = false)
+    public static class MzFDosChain {
 
+        @Element(sequence = 1)
         public short sectors;
-        public byte[] map = new byte[1];    // resizable
+        /** resizable, occupies the rest of the sector, {@link #resize(int)} before (de)serializing */
+        @Element(sequence = 2)
+        public byte[] map = new byte[1];
+
+        /** @param sectorSize whole sector size the chain occupies */
+        public MzFDosChain resize(int sectorSize) {
+            int len = sectorSize - 2;
+            if (len > 0 && map.length != len) map = new byte[len];
+            return this;
+        }
     }
 
     // MZ FDOS attribute names
@@ -173,16 +186,28 @@ public class DiskBasicDirItemMZFDOS extends DiskBasicDirItemMZBase<DirectoryMzFD
         }
 
         /** Memory allocation */
-        public void alloc() {
-            chain = new MzFDosChain();
+        public void alloc(int sectorSize) {
+            chain = new MzFDosChain().resize(sectorSize);
         }
 
         /** Clear */
         public void clear() {
-            if (sector != null) sector.fill((byte) 0);
-            else if (chain != null) {
+            if (chain != null) {
                 chain.sectors = 0;
                 Arrays.fill(chain.map, (byte) 0);
+            }
+            if (sector != null) sector.fill((byte) 0);
+        }
+
+        /** Write the in memory chain back onto the sector it came from */
+        private void writeBack() {
+            if (sector == null || chain == null) return;
+            try {
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                Serdes.Util.serialize(chain, baos);
+                sector.copy(baos.toByteArray(), baos.size());
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
             }
         }
 
@@ -217,12 +242,14 @@ public class DiskBasicDirItemMZFDOS extends DiskBasicDirItemMZBase<DirectoryMzFD
             int bits = basic.invertUint8(chain.map[idx]) & 0xff;
             bits = (val ? bits | mask : bits & ~mask);
             chain.map[idx] = basic.invertUint8((byte) bits);
+            writeBack();
         }
 
         /** Set number of sectors */
         public void setSectors(short val) {
             if (chain != null) {
                 chain.sectors = basic != null ? basic.invertAndOrderUint16(val) : val;
+                writeBack();
             }
         }
 
@@ -257,7 +284,7 @@ public class DiskBasicDirItemMZFDOS extends DiskBasicDirItemMZBase<DirectoryMzFD
         data.alloc(DirectoryMzFDos.class);
         chain.setSectorsPerTrack(basic.getSectorsPerTrackOnBasic());
         chain.setMapSize(basic.getFatEndGroup());
-        chain.alloc();
+        chain.alloc(basic.getSectorSize());
     }
 
     @Override
@@ -286,7 +313,7 @@ public class DiskBasicDirItemMZFDOS extends DiskBasicDirItemMZBase<DirectoryMzFD
             if (group != 0) {
                 DiskImageSector targetSector = basic.getSectorFromGroup(group);
                 if (targetSector != null) {
-                    MzFDosChain chainData = new MzFDosChain();
+                    MzFDosChain chainData = new MzFDosChain().resize(targetSector.getSectorBufferSize());
                     Serdes.Util.deserialize(new ByteArrayInputStream(targetSector.getSectorBuffer()), chainData);
                     chain.set(basic, targetSector, chainData);
                 }
@@ -589,6 +616,16 @@ public class DiskBasicDirItemMZFDOS extends DiskBasicDirItemMZBase<DirectoryMzFD
 
     /** Copy item */
     @Override
+    public byte[] getRawData() {
+        return data.getRawData();
+    }
+
+    @Override
+    protected void flushData() throws IOException {
+        data.flush();
+    }
+
+    @Override
     public boolean copyData(byte[] val) {
         return data.copy(val, getDataSize());
     }
@@ -725,7 +762,7 @@ public class DiskBasicDirItemMZFDOS extends DiskBasicDirItemMZBase<DirectoryMzFD
     /** Set sector in chain information */
     @Override
     public void setChainSector(DiskImageSector sector, byte[] data, DiskBasicDirItem<DirectoryMzFDos> pItem) throws IOException {
-        MzFDosChain chain_data = new MzFDosChain();
+        MzFDosChain chain_data = new MzFDosChain().resize(sector != null ? sector.getSectorBufferSize() : data.length);
         Serdes.Util.deserialize(new ByteArrayInputStream(data), chain_data);
         chain.set(basic, sector, chain_data);
     }

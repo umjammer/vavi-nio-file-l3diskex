@@ -1,6 +1,7 @@
 package l3diskex.basicfmt;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -65,6 +66,10 @@ public abstract class DiskBasicDirItem<T extends Directory> {
         private TYPE data;
         private byte[] raw;
         private int size;
+        /** the sector buffer {@link #raw} was attached to, used to write it back */
+        private byte[] target;
+        /** position of {@link #raw} within {@link #target} */
+        private int targetOffset;
 
         public DiskBasicDirData() {
             data = null;
@@ -92,7 +97,27 @@ public abstract class DiskBasicDirItem<T extends Directory> {
         public void attach(Class<TYPE> clazz, byte[] data, int offset) {
             if (this.raw == null) alloc(clazz);
             if (data != null) {
+                this.target = data;
+                this.targetOffset = offset;
+                this.data = null;
                 System.arraycopy(data, offset, raw, 0, Math.min(this.size, data.length - offset));
+            }
+        }
+
+        /**
+         * Writes the in memory entry back onto the sector buffer it was attached to.
+         * The C++ original holds a pointer into the sector, here the entry is a detached
+         * copy, so it has to be pushed back explicitly.
+         */
+        public void flush() throws IOException {
+            if (raw == null) return;
+            if (data != null) {
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                Serdes.Util.serialize(data, baos);
+                System.arraycopy(baos.toByteArray(), 0, raw, 0, Math.min(size, baos.size()));
+            }
+            if (target != null) {
+                System.arraycopy(raw, 0, target, targetOffset, Math.min(size, target.length - targetOffset));
             }
         }
 
@@ -113,9 +138,12 @@ public abstract class DiskBasicDirItem<T extends Directory> {
          * @param start   Copy starting position
          */
         public boolean copy(byte[] srcData, int len, boolean invert, int start) {
-            if (data == null) return false;
+            if (raw == null || srcData == null) return false;
+            len = Math.min(len, Math.min(raw.length, srcData.length - start));
+            if (len <= 0) return false;
             System.arraycopy(srcData, start, raw, 0, len);
             if (invert) invert(len, start);
+            data = null; // raw is the truth now, re-read it on demand
             return true;
         }
 
@@ -141,6 +169,7 @@ public abstract class DiskBasicDirItem<T extends Directory> {
             if (len > dst.length) len = dst.length;
             Arrays.fill(dst, start, len, (byte) ch);
             if (invert) invert(len, start);
+            data = null; // raw is the truth now, re-read it on demand
             return true;
         }
 
@@ -2511,8 +2540,19 @@ public abstract class DiskBasicDirItem<T extends Directory> {
         sector = val;
     }
 
-    /** Mark the sector the item belongs to as modified (not implemented) */
-    public void setModify() {
+    /**
+     * Write the in memory directory entry back onto its sector and mark the sector as modified.
+     * <p>
+     * The C++ original keeps a pointer into the sector so every setter writes to the disk image
+     * directly, here the entry is a detached copy, so it has to be pushed back explicitly.
+     */
+    public void setModify() throws IOException {
+        flushData();
+        if (sector != null) sector.setModify();
+    }
+
+    /** Write the in memory directory entry back onto the sector buffer it was attached to */
+    protected void flushData() throws IOException {
     }
 
     public DiskBasic getBasic() {

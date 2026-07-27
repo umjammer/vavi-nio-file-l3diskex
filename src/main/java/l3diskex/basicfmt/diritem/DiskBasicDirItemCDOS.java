@@ -480,6 +480,16 @@ public class DiskBasicDirItemCDOS extends DiskBasicDirItemMZBase<DirectoryCDos> 
     }
 
     @Override
+    public byte[] getRawData() {
+        return data.getRawData();
+    }
+
+    @Override
+    protected void flushData() throws IOException {
+        data.flush();
+    }
+
+    @Override
     public boolean copyData(byte[] val) {
         data.copy(val);
         return true;

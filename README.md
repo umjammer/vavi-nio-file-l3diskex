@@ -109,6 +109,15 @@ you can also mount all formats using [fuse](https://github.com/umjammer/vavi-nio
 * \[msdos] encoding, timestamp
 * \[serdes] not use `InputStream` directly but after reading data into buffer use `ByteArrayInputStream` for performance
 * ~~\[magical] dir loops (only spi)~~ ... empty name in dir list
+* add `DiskBasicDirItem#getFileNameStr` for `java.nio.file` version
+* ~~\[serdes] write back deserialized structures (dir entry, FAT/VTOC/BAM/GAT, chain sectors) onto the disk image~~
+  ... the C++ original keeps pointers into the sector buffer, this port deserializes into detached
+  objects, so every mutation needs an explicit write back. `DiskBasicDirItem#setModify` is the choke
+  point for the directory entry itself, the per format structures write back on each setter.
+* ⚠️ \[amiga] still not readable: `AmigaBlockPost` is a C union over the same 200 bytes and the
+  `AmigaBlockPre` hash table is a flexible array member. The write back is in place
+  (`DiskBasicDirItemAmiga#writeBlock` / `updateCheckSum`, `AmigaOneBitmap#writeBack`) but is unverified,
+  no Amiga image at hand.
 
 ---
 

@@ -95,6 +95,13 @@ public class DiskBasicTypeMZ extends DiskBasicTypeMZBase<DirectoryMz> {
         super.init(basic, fat, dir);
     }
 
+    /** Write back the FAT header onto the FAT buffer (which points into the sector) */
+    private static void writeFat(DiskBasicFatBuffer fatBuf, MzFat b) throws IOException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        Serdes.Util.serialize(b, baos);
+        fatBuf.copy(baos.toByteArray(), baos.size());
+    }
+
     /** Set FAT position */
     @Override
     public void setGroupNumber(int num, int val) throws IOException {
@@ -128,9 +135,9 @@ public class DiskBasicTypeMZ extends DiskBasicTypeMZBase<DirectoryMz> {
             // Decrease the number of final clusters when cleared
             used_group--;
         }
-        basic.invertAndOrderUint16((short) used_group); // invert
+        b.used = basic.invertAndOrderUint16((short) used_group); // invert
 
-        // TODO Write back
+        writeFat(fatBuf, b);
 //looger.log(Level.TRACE, "DiskBasicTypeMZ::SetGroupNumber: g:%d v:%d pos:%d msk:%d used:%d".formatted(num, val, pos, mask, used_group));
     }
 
@@ -307,12 +314,11 @@ public class DiskBasicTypeMZ extends DiskBasicTypeMZBase<DirectoryMz> {
         // Update the number of used clusters
         if (wrote && usedGroups != used) {
             b.used = basic.invertAndOrderUint16((short) used);    // invert
+            writeFat(fatBuf, b);
         }
 
         fatAvailability.setFreeSize(fSize);
         fatAvailability.setFreeGroups(groups);
-
-        // TODO write back
     }
 
     // Assumed to be defined in DiskBasicTypeMZBase
@@ -365,7 +371,7 @@ public class DiskBasicTypeMZ extends DiskBasicTypeMZBase<DirectoryMz> {
             }
             sector.fill(basic.invertUint8((byte) 0));    // invert
 
-            ByteBuffer bb = ByteBuffer.wrap(sector.getSectorBuffer()).order(ByteOrder.BIG_ENDIAN);
+            ByteBuffer bb = ByteBuffer.wrap(sector.getSectorBuffer()).order(ByteOrder.LITTLE_ENDIAN);
             ShortBuffer brdMaps = bb.asShortBuffer();
 
             setGroupNumber(groupStart[0], 1);
@@ -385,7 +391,7 @@ public class DiskBasicTypeMZ extends DiskBasicTypeMZBase<DirectoryMz> {
                 // Start sector
                 int sectorPos = groupStart[0] * basic.getSectorsPerGroup();
                 sectorPos = basic.invertAndOrderUint16((short) sectorPos);    // invert
-                brdMaps.put(brdPos * 2, (short) sectorPos); // TODO chaek write back
+                brdMaps.put(brdPos, (short) sectorPos); // writes through, bb wraps the live sector buffer
 
                 // Allocate area
                 int blockRemain = 16 * basic.getSectorSize();
@@ -567,10 +573,10 @@ public class DiskBasicTypeMZ extends DiskBasicTypeMZBase<DirectoryMz> {
             // Number of sectors per group
             fDat.magnitude = (byte) (basic.getSectorsPerGroup() - 1);
 
+            writeFat(fatBuf, fDat);
+
             // invert
             basic.invertMemory(buf, size);
-
-            // TODO write back fDat
         }
 
         // DIR area
@@ -595,10 +601,10 @@ public class DiskBasicTypeMZ extends DiskBasicTypeMZBase<DirectoryMz> {
                     if (index == 0) {
                         // Set volume number at the beginning
                         Serdes.Util.serialize(ditV, baos);
-                        System.arraycopy(baos.toByteArray(), 0, buf, pos, DirectoryMz.SIZE); // TODO this may not write back, we need setSectorBuffer method
+                        System.arraycopy(baos.toByteArray(), 0, buf, pos, DirectoryMz.SIZE); // writes through, buf is the live sector buffer
                     } else {
                         Serdes.Util.serialize(ditM, baos);
-                        System.arraycopy(baos.toByteArray(), 0, buf, pos, DirectoryMz.SIZE); // TODO this may not write back
+                        System.arraycopy(baos.toByteArray(), 0, buf, pos, DirectoryMz.SIZE); // writes through, buf is the live sector buffer
                     }
                     pos += DirectoryMz.SIZE;
                     index++;

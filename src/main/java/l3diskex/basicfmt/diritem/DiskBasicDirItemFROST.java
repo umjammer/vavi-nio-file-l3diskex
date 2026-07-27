@@ -471,6 +471,16 @@ public class DiskBasicDirItemFROST extends DiskBasicDirItem<DirectoryFrost> {
      * Copy item
      */
     @Override
+    public byte[] getRawData() {
+        return data.getRawData();
+    }
+
+    @Override
+    protected void flushData() throws IOException {
+        data.flush();
+    }
+
+    @Override
     public boolean copyData(byte[] val) {
         return data.copy(val);
     }
