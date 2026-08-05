@@ -105,7 +105,7 @@ you can also mount all formats using [fuse](https://github.com/umjammer/vavi-nio
 * ui
 * ~~use service loader for type, dir-item, parser, writer~~
 * ~~spi~~
-* ⚠️ root directory doesn't have directory attribute bit. see DiskBasicDirItem#getFileAttr
+* ⚠️ root directory doesn't have directory attribute bit. see `DiskBasicDirItem#getFileAttr`
 * \[msdos] encoding, timestamp
 * \[serdes] not use `InputStream` directly but after reading data into buffer use `ByteArrayInputStream` for performance
 * ~~\[magical] dir loops (only spi)~~ ... empty name in dir list
