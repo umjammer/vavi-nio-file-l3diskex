@@ -234,10 +234,11 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
 
         /** Clear FD */
         public void clear() {
+            if (fd != null) {
+                fd = new DirectoryOs9Fd();
+            }
             if (sector != null) {
                 sector.fill((byte) 0);
-            } else if (fd != null) {
-                fd = new DirectoryOs9Fd();
             }
         }
 
@@ -368,8 +369,13 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
             }
         }
 
-        /** Set as modified */
-        public void setModify() {
+        /** Write the in memory FD back onto its sector and mark the sector as modified */
+        public void setModify() throws IOException {
+            if (sector == null || fd == null) return;
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            Serdes.Util.serialize(fd, baos);
+            sector.copy(baos.toByteArray(), baos.size());
+            sector.setModify();
         }
     }
 
@@ -1007,6 +1013,16 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
      * Copy item
      */
     @Override
+    public byte[] getRawData() {
+        return data.getRawData();
+    }
+
+    @Override
+    protected void flushData() throws IOException {
+        data.flush();
+    }
+
+    @Override
     public boolean copyData(byte[] val) {
         return data.copy(val, getDataSize());
     }
@@ -1044,7 +1060,7 @@ public class DiskBasicDirItemOS9 extends DiskBasicDirItem<DirectoryOs9> {
      * Set sector to which item belongs as modified
      */
     @Override
-    public void setModify() {
+    public void setModify() throws IOException {
         super.setModify();
         fd.setModify();
     }

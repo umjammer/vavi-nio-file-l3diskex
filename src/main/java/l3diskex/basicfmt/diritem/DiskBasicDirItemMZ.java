@@ -396,7 +396,7 @@ public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
             if (sector != null) {
                 // This is the pointer map to each start sector
                 ShortBuffer buffer = ByteBuffer.wrap(sector.getSectorBuffer()).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer();
-                brd.maps = new short[buffer.capacity() / Short.BYTES];
+                brd.maps = new short[buffer.capacity()]; // capacity() is already in shorts
                 buffer.get(brd.maps);
 
                 groupNum[0] = basic.invertAndOrderUint16(brd.maps[brd.pos]); // invert
@@ -542,6 +542,16 @@ public class DiskBasicDirItemMZ extends DiskBasicDirItemMZBase<DirectoryMz> {
     @Override
     public DirectoryMz getData() {
         return data.data();
+    }
+
+    @Override
+    public byte[] getRawData() {
+        return data.getRawData();
+    }
+
+    @Override
+    protected void flushData() throws IOException {
+        data.flush();
     }
 
     @Override

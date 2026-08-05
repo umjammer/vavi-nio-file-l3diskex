@@ -1,6 +1,7 @@
 package l3diskex.basicfmt.type;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -108,7 +109,33 @@ public class DiskBasicTypeProDOS extends DiskBasicType<DirectoryProDos> {
     private final DiskBasicSectorSkew sectorSkew = new DiskBasicSectorSkew();
     private final ProDosBitmap bitmap = new ProDosBitmap();
     private DirectoryProDos volume;
+    /** the sector {@link #volume} was read from, used to write it back */
+    private DiskImageSector volumeSector;
     private final DiskBasicSectorPosTrans sectorMap = new DiskBasicSectorPosTrans();
+
+    /** Volume / sub directory headers sit right after the block chain pointer */
+    private static final int DIR_HEADER_OFFSET = 4;
+
+    /** Write the in memory volume header back onto the sector it came from */
+    private void writeVolume() throws IOException {
+        writeDirHeader(volumeSector, volume);
+    }
+
+    /** Write a volume / sub directory header back onto {@code sector} */
+    private static void writeDirHeader(DiskImageSector sector, DirectoryProDos vol) throws IOException {
+        if (sector == null || vol == null) return;
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        Serdes.Util.serialize(vol, baos);
+        sector.copy(baos.toByteArray(), baos.size(), DIR_HEADER_OFFSET);
+    }
+
+    /** Write a directory block chain pointer back onto the head of {@code sector} */
+    private static void writeDirPointer(DiskImageSector sector, ProDOSDirPointer p) throws IOException {
+        if (sector == null || p == null) return;
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        Serdes.Util.serialize(p, baos);
+        sector.copy(baos.toByteArray(), baos.size());
+    }
 
     public static final int FORMAT_TYPE_PRODOS = 16;
 
@@ -121,6 +148,7 @@ public class DiskBasicTypeProDOS extends DiskBasicType<DirectoryProDos> {
     public void init(DiskBasic basic, DiskBasicFat fat, DiskBasicDir<DirectoryProDos> dir) {
         super.init(basic, fat, dir);
         this.volume = null;
+        this.volumeSector = null;
 
         // In case of ProDOS 8, create sector -> block map
         if (basic.getTracksPerSideOnBasic() <= 40) {
@@ -197,6 +225,7 @@ public class DiskBasicTypeProDOS extends DiskBasicType<DirectoryProDos> {
         bitmap.setMyGroupNumber(vol.aux.v.bitmapPointer & 0xffff);
 
         this.volume = vol; // Store reference
+        this.volumeSector = sector;
 
         return validRatio;
     }
@@ -659,6 +688,7 @@ public class DiskBasicTypeProDOS extends DiskBasicType<DirectoryProDos> {
         int groupNum = INVALID_GROUP_NUMBER;
         int prevGroupNum = INVALID_GROUP_NUMBER;
         ProDOSDirPointer prev = null;
+        DiskImageSector prevSector = null;
         for (int i = 0; i < groupItems[0].size(); i++) {
             DiskBasicGroupItem gitem = groupItems[0].get(i);
             if (gitem.group != groupNum) {
@@ -669,12 +699,15 @@ public class DiskBasicTypeProDOS extends DiskBasicType<DirectoryProDos> {
                 Serdes.Util.deserialize(new ByteArrayInputStream(b), curr);
 
                 curr.prevBlock = prevGroupNum != INVALID_GROUP_NUMBER ? (short) prevGroupNum : 0;
+                writeDirPointer(sector, curr);
 
                 if (prev != null) {
                     prev.nextBlock = (short) groupNum;
+                    writeDirPointer(prevSector, prev);
                 }
 
                 prev = curr;
+                prevSector = sector;
                 prevGroupNum = groupNum;
             }
         }
@@ -910,6 +943,8 @@ public class DiskBasicTypeProDOS extends DiskBasicType<DirectoryProDos> {
 
         // Parent entry size
         vol.aux.sv.parentEntryLen = DirectoryProDos.SIZE;
+
+        writeDirHeader(sector, vol);
     }
 
 //    /** Fill sector data with specified code during format */
@@ -953,6 +988,7 @@ logger.log(Level.ERROR, e.getMessage(), e);
             int prevBlock = (block != startBlock ? block - 1 : 0);
             p.nextBlock = (short) nextBlock;
             p.prevBlock = (short) prevBlock;
+            writeDirPointer(sector, p);
             //volDir.add(block);
         }
 
@@ -985,6 +1021,8 @@ logger.log(Level.ERROR, e.getMessage(), e);
         vol.aux.v.totalBlocks = (short) totalBlocks;
 
         this.volume = vol;
+        this.volumeSector = sector;
+        writeVolume();
 
         basic.setFatEndGroup(totalBlocks - 1);
 
@@ -1063,6 +1101,7 @@ logger.log(Level.ERROR, e.getMessage(), e);
             return;
         }
         vol.increaseFileCount();
+        vol.setModify();
         // Set first block of directory
         item.setParentGroup(parent.getStartGroup(0));
         // Align version with header
@@ -1103,6 +1142,7 @@ logger.log(Level.ERROR, e.getMessage(), e);
             return true;
         }
         vol.decreaseFileCount();
+        vol.setModify();
 
         return true;
     }
@@ -1125,7 +1165,7 @@ logger.log(Level.ERROR, e.getMessage(), e);
      * Set attributes of IPL and managed area
      */
     @Override
-    public void setIdentifiedData(DiskBasicIdentifiedData data) {
+    public void setIdentifiedData(DiskBasicIdentifiedData data) throws IOException {
         DiskBasicFormat format = basic.getFormatType();
 
         // volume name
@@ -1137,6 +1177,8 @@ logger.log(Level.ERROR, e.getMessage(), e);
             System.arraycopy(volumeName, 0, volume.name, 0, len);
 
             volume.sTypeAndNLen = (byte) ((len & 0xf) | (volume.sTypeAndNLen & 0xf0));
+
+            writeVolume();
         }
     }
 }

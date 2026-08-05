@@ -5,6 +5,7 @@
 package l3diskex.basicfmt.type;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -369,6 +370,10 @@ public class DiskBasicTypeMSDOS extends DiskBasicTypeFAT12<DirectoryMsDos> {
         hed.sectorsPerTrack = basic.getSectorsPerTrackOnBasic();
         hed.numberOfHeads = basic.getSidesPerDiskOnBasic();
 
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        Serdes.Util.serialize(hed, baos);
+        sec.copy(baos.toByteArray(), baos.size());
+
         // set the media ID in the first FAT entry
         setGroupNumber(0, 0xffff_ff00 | basic.getMediaId());
         setGroupNumber(1, 0xffff_ffff);
@@ -416,6 +421,7 @@ public class DiskBasicTypeMSDOS extends DiskBasicTypeFAT12<DirectoryMsDos> {
         }
         item.setFileNameStr(filename);
         item.used(true);
+        item.setModify();
 
         return true;
     }

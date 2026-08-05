@@ -713,6 +713,16 @@ public class DiskBasicDirItemM68FDOS extends DiskBasicDirItemMZBase<DirectoryM68
 
     /** Copy item */
     @Override
+    public byte[] getRawData() {
+        return data.getRawData();
+    }
+
+    @Override
+    protected void flushData() throws IOException {
+        data.flush();
+    }
+
+    @Override
     public boolean copyData(byte[] val) {
         return data.copy(val, getDataSize());
     }

@@ -5,6 +5,7 @@
 package l3diskex.basicfmt.diritem;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -25,6 +26,7 @@ import l3diskex.basicfmt.DiskBasic;
 import l3diskex.basicfmt.DiskBasicDirItem;
 import l3diskex.basicfmt.diritem.DiskBasicDirItemAmiga.AmigaChain.Pointer;
 import l3diskex.basicfmt.diritem.DiskBasicDirItemAmiga.DirectoryAmiga;
+import l3diskex.basicfmt.type.DiskBasicTypeAmiga;
 import l3diskex.diskimg.DiskImage.DiskImageSector;
 import l3diskex.diskimg.DiskParam.SectorParam;
 import vavi.util.ByteUtil;
@@ -77,6 +79,18 @@ public class DiskBasicDirItemAmiga extends DiskBasicDirItem<DirectoryAmiga> {
         @Element(sequence = 7)
         public AmigaBlockPreUnion u = new AmigaBlockPreUnion();
 
+        /**
+         * The union occupies everything between the head and the post table,
+         * size it before (de)serializing.
+         *
+         * @param blockSize whole block (sector) size
+         * @param postSize  size of the post table at the end of the block
+         */
+        public AmigaBlockPre resize(int blockSize, int postSize) {
+            u.resize(blockSize - SIZE - postSize);
+            return this;
+        }
+
         @Serdes
         public static class AmigaBlockPreUnion {
 
@@ -85,6 +99,27 @@ public class DiskBasicDirItemAmiga extends DiskBasicDirItem<DirectoryAmiga> {
             /** symbolic name (Soft link only) */
             @Element(sequence = 1)
             public byte[] symName = new byte[4];
+
+            /** @param size size of the union in bytes */
+            public void resize(int size) {
+                if (size <= 0) return;
+                if (symName.length != size) symName = new byte[size];
+                if (table.length != size / 4) table = new int[size / 4];
+            }
+
+            /** Read {@link #table} out of {@link #symName}, they overlay each other */
+            public void decodeTable() {
+                for (int i = 0; i < table.length; i++) {
+                    table[i] = ByteUtil.readBeInt(symName, i * 4);
+                }
+            }
+
+            /** Write {@link #table} into {@link #symName}, they overlay each other */
+            public void encodeTable() {
+                for (int i = 0; i < table.length; i++) {
+                    ByteUtil.writeBeInt(table[i], symName, i * 4);
+                }
+            }
         }
     }
 
@@ -94,7 +129,7 @@ public class DiskBasicDirItemAmiga extends DiskBasicDirItem<DirectoryAmiga> {
     @Serdes
     public static class AmigaRootBlockPost extends AmigaBlockPost {
 
-        public static final int SIZE = 4 + 4 + 4 + 4 + 4 + 41 + 1 + 4 + 4 + 4 + 4 + 4 + 4 + 4 + 4 + 4 + 4 + 4;
+        public static final int SIZE = 4 + 100 + 4 + 4 + 4 + 4 + 1 + 31 + 8 + 4 + 4 + 4 + 4 + 4 + 4 + 4 + 4 + 4 + 4;
 
         // value is -1 if disk bitmap is valid
         @Element(sequence = 1)
@@ -132,25 +167,25 @@ public class DiskBasicDirItemAmiga extends DiskBasicDirItem<DirectoryAmiga> {
         @Element(sequence = 12)
         public int vTicks;
         // disk creation date
-        @Element(sequence = 12)
+        @Element(sequence = 13)
         public int cDays;
         // disk creation time
-        @Element(sequence = 13)
+        @Element(sequence = 14)
         public int cMins;
         // disk creation seconds
-        @Element(sequence = 14)
+        @Element(sequence = 15)
         public int cTicks;
         // always 0
-        @Element(sequence = 15)
+        @Element(sequence = 16)
         public int nextHash;
         // always 0
-        @Element(sequence = 16)
+        @Element(sequence = 17)
         public int parentDir;
         // always 0
-        @Element(sequence = 17)
+        @Element(sequence = 18)
         public int extension;
         // always 1
-        @Element(sequence = 18)
+        @Element(sequence = 19)
         public int secType;
     }
 
@@ -223,6 +258,7 @@ public class DiskBasicDirItemAmiga extends DiskBasicDirItem<DirectoryAmiga> {
     /**
      * Amiga block structure post table
      */
+    @Serdes
     public static class AmigaBlockPost {
         public static final int SIZE = 200;
         public static class Union {
@@ -230,7 +266,17 @@ public class DiskBasicDirItemAmiga extends DiskBasicDirItem<DirectoryAmiga> {
             public AmigaRootBlockPost r;
             public AmigaHeaderPost h;
         }
-        public Union u;
+        /**
+         * The C original is a union over the same memory. Here the concrete subclass
+         * registers itself as its own view, so {@code post.u.r} / {@code post.u.h}
+         * resolve exactly like the cast in the original code.
+         */
+        public final Union u = new Union();
+
+        protected AmigaBlockPost() {
+            if (this instanceof AmigaRootBlockPost r) u.r = r;
+            if (this instanceof AmigaHeaderPost h) u.h = h;
+        }
     }
 
     /**
@@ -486,14 +532,39 @@ public class DiskBasicDirItemAmiga extends DiskBasicDirItem<DirectoryAmiga> {
         if (sector != null && data != null) {
             int num = type.getSectorPosFromNum(sector.getIDC(), sector.getIDH(), sector.getIDR());
             this.data.data().blockNum = num;
-            this.data.data().pre = new AmigaBlockPre();
-            Serdes.Util.deserialize(new ByteArrayInputStream(data, dataPos, AmigaBlockPre.SIZE), this.data.data().pre);
-            this.data.data().post = new AmigaBlockPost();
-            Serdes.Util.deserialize(new ByteArrayInputStream(data, sector.getSectorSize() - AmigaBlockPost.SIZE, AmigaBlockPost.SIZE), this.data.data().post);
+            AmigaBlockPre pre = new AmigaBlockPre().resize(sector.getSectorSize(), AmigaBlockPost.SIZE);
+            Serdes.Util.deserialize(new ByteArrayInputStream(data, dataPos, sector.getSectorSize() - AmigaBlockPost.SIZE), pre);
+            pre.u.decodeTable();
+            this.data.data().pre = pre;
+            // the union is resolved by the block kind, like the cast in the original code
+            AmigaBlockPost post = type.isRootDirectory(num) ? new AmigaRootBlockPost() : new AmigaHeaderPost();
+            Serdes.Util.deserialize(new ByteArrayInputStream(data, sector.getSectorSize() - AmigaBlockPost.SIZE, AmigaBlockPost.SIZE), post);
+            this.data.data().post = post;
         } else {
             this.data.data().blockNum = 0;
             this.data.data().pre = null;
             this.data.data().post = null;
+        }
+    }
+
+    @Override
+    protected void flushData() throws IOException {
+        writeBlock(sector, data.data());
+    }
+
+    /** Write the in memory block head and post table back onto {@code sector} */
+    public static void writeBlock(DiskImageSector sector, DirectoryAmiga d) throws IOException {
+        if (sector == null || d == null) return;
+        if (d.pre != null) {
+            d.pre.u.encodeTable();
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            Serdes.Util.serialize(d.pre, baos);
+            sector.copy(baos.toByteArray(), baos.size());
+        }
+        if (d.post != null) {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            Serdes.Util.serialize(d.post, baos);
+            sector.copy(baos.toByteArray(), baos.size(), sector.getSectorSize() - AmigaBlockPost.SIZE);
         }
     }
 
@@ -743,9 +814,10 @@ public class DiskBasicDirItemAmiga extends DiskBasicDirItem<DirectoryAmiga> {
     }
 
     @Override
-    public void setModify() {
-        // Update checksum of related sectors
+    public void setModify() throws IOException {
+        // Write the block back and update checksum of related sectors
         updateCheckSum();
+        if (sector != null) sector.setModify();
     }
 
     /// Initialize sector for header
@@ -1351,9 +1423,23 @@ public class DiskBasicDirItemAmiga extends DiskBasicDirItem<DirectoryAmiga> {
         return 0;
     }
 
-    public void updateCheckSumAll() {
+    public void updateCheckSumAll() throws IOException {
+        updateCheckSum();
+        if (children != null) {
+            for (DiskBasicDirItem<DirectoryAmiga> child : children) {
+                ((DiskBasicDirItemAmiga) child).updateCheckSumAll();
+            }
+        }
     }
 
-    public void updateCheckSum() {
+    /** Write the block back and recalculate its checksum over the resulting sector image */
+    public void updateCheckSum() throws IOException {
+        AmigaBlockPre pre = data.data().pre;
+        if (sector == null || pre == null) return;
+
+        pre.checkSum = 0;
+        writeBlock(sector, data.data());
+        pre.checkSum = DiskBasicTypeAmiga.calcCheckSumOnBootBlock(sector.getSectorBuffer(), sector.getSectorSize());
+        writeBlock(sector, data.data());
     }
 }

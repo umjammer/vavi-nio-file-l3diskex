@@ -90,6 +90,12 @@ public class DiskBasicTypeAmiga extends DiskBasicType<DirectoryAmiga> {
         /** block size - 4 */
         @Element(sequence = 2)
         int[] map;
+
+        /** @param blockSize whole block (sector) size */
+        AmigaBitmapBlock resize(int blockSize) {
+            map = new int[(blockSize - 4) / 4];
+            return this;
+        }
     }
 
     /** One AMIGA bitmap */
@@ -98,6 +104,20 @@ public class DiskBasicTypeAmiga extends DiskBasicType<DirectoryAmiga> {
         int blockNum;
         int blockSize;
         AmigaBitmapBlock map;
+        /** the sector {@link #map} was read from, used to write it back */
+        DiskImageSector sector;
+
+        /** Write the in memory bitmap block back onto the sector it came from */
+        void writeBack() {
+            if (sector == null || map == null) return;
+            try {
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                Serdes.Util.serialize(map, baos);
+                sector.copy(baos.toByteArray(), baos.size());
+            } catch (IOException e) {
+logger.log(Level.ERROR, e.getMessage(), e);
+            }
+        }
 
         /**
          * Change bit at specified position
@@ -113,6 +133,7 @@ public class DiskBasicTypeAmiga extends DiskBasicType<DirectoryAmiga> {
             } else {
                 map.map[pos] |= data;
             }
+            writeBack();
         }
 
         /**
@@ -142,6 +163,7 @@ public class DiskBasicTypeAmiga extends DiskBasicType<DirectoryAmiga> {
             }
             int data = ((1 << (bit + 1)) - 1);
             map.map[pos] = data;
+            writeBack();
         }
 
         /** Returns block count */
@@ -152,9 +174,11 @@ public class DiskBasicTypeAmiga extends DiskBasicType<DirectoryAmiga> {
         /** Update checksum */
         public void updateCheckSum() {
             try {
+                map.checkSum = 0;
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
                 Serdes.Util.serialize(map, baos);
                 map.checkSum = DiskBasicTypeAmiga.calcCheckSumOnBootBlock(baos.toByteArray(), blockSize);
+                writeBack();
             } catch (Exception e) {
 logger.log(Level.TRACE, e.getMessage());
             }
@@ -171,17 +195,18 @@ logger.log(Level.TRACE, e.getMessage());
         /**
          * Add bitmap
          *
-         * @param blockNum  Block number
-         * @param mapBuffer Buffer containing map
-         * @param blockSize Buffer size
+         * @param blockNum Block number
+         * @param sector   Sector holding the map
          */
-        public static void addBitmap(List<AmigaOneBitmap> list, int blockNum, byte[] mapBuffer, int blockSize) throws IOException {
-            AmigaBitmapBlock b = new AmigaBitmapBlock();
-            Serdes.Util.deserialize(new ByteArrayInputStream(mapBuffer), mapBuffer);
+        public static void addBitmap(List<AmigaOneBitmap> list, int blockNum, DiskImageSector sector) throws IOException {
+            int blockSize = sector.getSectorSize();
+            AmigaBitmapBlock b = new AmigaBitmapBlock().resize(blockSize);
+            Serdes.Util.deserialize(new ByteArrayInputStream(sector.getSectorBuffer()), b);
             AmigaOneBitmap o = new AmigaOneBitmap();
             o.blockNum = blockNum;
             o.blockSize = blockSize;
             o.map = b;
+            o.sector = sector;
             list.add(o);
         }
 
@@ -270,8 +295,15 @@ logger.log(Level.TRACE, e.getMessage());
     private final DirectoryAmiga root = new DirectoryAmiga();
     /** Bitmap Blocks */
     private final List<AmigaOneBitmap> bitmap = new ArrayList<>();
+    /** the sector {@link #root} was read from, used to write it back */
+    private DiskImageSector rootSector;
 
     public static final int FORMAT_TYPE_AMIGA = 21;
+
+    /** Write the in memory root block back onto the sector it came from */
+    private void writeRoot() throws IOException {
+        DiskBasicDirItemAmiga.writeBlock(rootSector, root);
+    }
 
     @Override
     public boolean isSupported(int typeNumber) {
@@ -285,6 +317,7 @@ logger.log(Level.TRACE, e.getMessage());
         root.blockNum = 0;
         root.pre = null;
         root.post = null;
+        rootSector = null;
     }
 
     @Override
@@ -385,19 +418,21 @@ logger.log(Level.TRACE, e.getMessage());
         if (b == null) {
             return -1.0;
         }
-        root.pre = new AmigaBlockPre();
-        Serdes.Util.deserialize(new ByteArrayInputStream(b, 0, b.length), root.pre);
         // hash_table is variable according to sector size (block size)
         int offset = basic.getSectorSize() - AmigaRootBlockPost.SIZE;
         if (offset < 0) {
             return -1.0;
         }
+        root.pre = new AmigaBlockPre().resize(basic.getSectorSize(), AmigaRootBlockPost.SIZE);
+        Serdes.Util.deserialize(new ByteArrayInputStream(b, 0, offset), root.pre);
+        root.pre.u.decodeTable();
         b = sector.getSectorBuffer(offset);
         if (b == null) {
             return -1.0;
         }
         root.post = new AmigaRootBlockPost();
-        Serdes.Util.deserialize(new ByteArrayInputStream(b, offset, b.length - offset), root.post);
+        Serdes.Util.deserialize(new ByteArrayInputStream(b), root.post);
+        rootSector = sector;
         basic.setManagedTrackNumber(rootTrack[0]);
         basic.setDirStartSector(sector.getSectorNumber());
 
@@ -416,7 +451,7 @@ logger.log(Level.TRACE, e.getMessage());
                     validRatio = 0.2;
                     break;
                 }
-                addBitmap(bitmap, num, sector.getSectorBuffer(), sector.getSectorSize());
+                addBitmap(bitmap, num, sector);
             }
         } else {
             validRatio = 0.2;
@@ -771,7 +806,7 @@ logger.log(Level.TRACE, e.getMessage());
 
     @Override
     public void additionalProcessOnMadeDirectory(
-            DiskBasicDirItem<DirectoryAmiga> item, DiskBasicGroups groupItems, DiskBasicDirItem<DirectoryAmiga> parentItem) {
+            DiskBasicDirItem<DirectoryAmiga> item, DiskBasicGroups groupItems, DiskBasicDirItem<DirectoryAmiga> parentItem) throws IOException {
 
         // Date and time
         AmigaOneBitmap.updateCheckSum(bitmap);
@@ -847,7 +882,7 @@ logger.log(Level.TRACE, e.getMessage());
         do {
             block++;
             sector = basic.getSectorFromGroup(block);
-            addBitmap(bitmap, block, sector.getSectorBuffer(), sector.getSectorSize());
+            addBitmap(bitmap, block, sector);
         } while (AmigaOneBitmap.getNumOfBlocks(bitmap) < basic.getFatEndGroup() + 1);
 
         AmigaOneBitmap.freeAll(bitmap, basic.getFatEndGroup());
@@ -860,16 +895,18 @@ logger.log(Level.TRACE, e.getMessage());
         sector = basic.getSectorFromGroup(rootBlock);
         sector.fill((byte) 0);
         root.blockNum = rootBlock;
+        rootSector = sector;
         byte[] rootBuffer = sector.getSectorBuffer();
-        root.pre = new AmigaBlockPre();
+        root.pre = new AmigaBlockPre().resize(sector.getSectorSize(), AmigaRootBlockPost.SIZE);
         Serdes.Util.deserialize(new ByteArrayInputStream(rootBuffer), root.pre);
+        root.pre.u.decodeTable();
         root.pre.type = FILETYPE_MASK_AMIGA_HEADER;
 
         int val = (sector.getSectorSize() - AmigaBlockPre.SIZE - AmigaRootBlockPost.SIZE + 4) / 4;
         root.pre.tableSize = val;
 
         root.post = new AmigaRootBlockPost();
-        Serdes.Util.deserialize(new ByteArrayInputStream(rootBuffer, AmigaBlockPre.SIZE + val * 4 - 4, rootBuffer.length - (AmigaBlockPre.SIZE + val * 4 - 4)), root.post);
+        Serdes.Util.deserialize(new ByteArrayInputStream(rootBuffer, sector.getSectorSize() - AmigaRootBlockPost.SIZE, AmigaRootBlockPost.SIZE), root.post);
         root.post.u.r.bmFlag = -1;
         for (int i = 0; i < bitmap.size(); i++) {
             val = bitmap.get(i).getBlockNumber();
@@ -898,7 +935,10 @@ logger.log(Level.TRACE, e.getMessage());
 
         // Calculate checksum
         AmigaOneBitmap.updateCheckSum(bitmap);
+        root.pre.checkSum = 0;
+        writeRoot();
         root.pre.checkSum = calcCheckSumOnBootBlock(rootBuffer, basic.getSectorSize());
+        writeRoot();
 
         return true;
     }
@@ -1049,7 +1089,7 @@ logger.log(Level.TRACE, e.getMessage());
     }
 
     @Override
-    public void additionalProcessOnSavedFile(DiskBasicDirItem<DirectoryAmiga> item) {
+    public void additionalProcessOnSavedFile(DiskBasicDirItem<DirectoryAmiga> item) throws IOException {
         // Update checksum of bitmap
         AmigaOneBitmap.updateCheckSum(bitmap);
 
@@ -1119,7 +1159,7 @@ logger.log(Level.TRACE, e.getMessage());
     }
 
     @Override
-    public boolean additionalProcessOnDeletedFile(DiskBasicDirItem<DirectoryAmiga> item) {
+    public boolean additionalProcessOnDeletedFile(DiskBasicDirItem<DirectoryAmiga> item) throws IOException {
         // Update checksum of bitmap
         AmigaOneBitmap.updateCheckSum(bitmap);
 
@@ -1181,21 +1221,22 @@ logger.log(Level.TRACE, e.getMessage());
     }
 
     @Override
-    public void setIdentifiedData(DiskBasicIdentifiedData data) {
+    public void setIdentifiedData(DiskBasicIdentifiedData data) throws IOException {
         if (root.post == null) return;
 
         DiskBasicFormat format = basic.getFormatType();
 
         if (format.hasVolumeName()) {
             byte[] name = new byte[root.post.u.r.diskName.length + 1];
-            basic.getCharCodes().convToChars(data.getVolumeName(), name, name.length);
-            System.arraycopy(name, 0, root.post.u.r.diskName, 0, name.length + 1);
-            root.post.u.r.diskNameLen = (byte) (name.length & 0xff);
+            int len = basic.getCharCodes().convToChars(data.getVolumeName(), name, name.length);
+            System.arraycopy(name, 0, root.post.u.r.diskName, 0, root.post.u.r.diskName.length);
+            root.post.u.r.diskNameLen = (byte) (len & 0xff);
+            writeRoot();
         }
     }
 
     /** Calculate root checksum */
-    public void updateCheckSumOnRoot() {
+    public void updateCheckSumOnRoot() throws IOException {
         DiskBasicDirItem<DirectoryAmiga> aRoot = dir.getRootItem();
         ((DiskBasicDirItemAmiga) aRoot).updateCheckSum();
     }
@@ -1205,7 +1246,7 @@ logger.log(Level.TRACE, e.getMessage());
      *
      * @param tm Date and time
      */
-    public void setModifyDateTime(LocalDateTime tm) {
+    public void setModifyDateTime(LocalDateTime tm) throws IOException {
         int[] days = new int[1];
         int[] mins = new int[1];
         int[] ticks = new int[1];
@@ -1216,6 +1257,7 @@ logger.log(Level.TRACE, e.getMessage());
         r.rDays = days[0];
         r.rMins = mins[0];
         r.rTicks = ticks[0];
+        writeRoot();
     }
 
     /**
@@ -1223,7 +1265,7 @@ logger.log(Level.TRACE, e.getMessage());
      *
      * @param tm Date and time
      */
-    public void setVolumeDateTime(LocalDateTime tm) {
+    public void setVolumeDateTime(LocalDateTime tm) throws IOException {
         int[] days = new int[1];
         int[] mins = new int[1];
         int[] ticks = new int[1];
@@ -1234,6 +1276,7 @@ logger.log(Level.TRACE, e.getMessage());
         r.vDays = days[0];
         r.vMins = mins[0];
         r.vTicks = ticks[0];
+        writeRoot();
     }
 
     /**
@@ -1241,7 +1284,7 @@ logger.log(Level.TRACE, e.getMessage());
      *
      * @param tm Date and time
      */
-    public void setCreateDateTime(LocalDateTime tm) {
+    public void setCreateDateTime(LocalDateTime tm) throws IOException {
         int[] days = new int[1];
         int[] mins = new int[1];
         int[] ticks = new int[1];
@@ -1252,6 +1295,7 @@ logger.log(Level.TRACE, e.getMessage());
         r.cDays = days[0];
         r.cMins = mins[0];
         r.cTicks = ticks[0];
+        writeRoot();
     }
 
     /**

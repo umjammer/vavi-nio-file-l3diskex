@@ -408,6 +408,11 @@ public class DiskBasicDirItemN88 extends DiskBasicDirItemFAT8<DirectoryN88> {
     }
 
     @Override
+    protected void flushData() throws IOException {
+        data.flush();
+    }
+
+    @Override
     public boolean copyData(byte[] val) { // directory_t replaced by Object
         return data.copy(val, getDataSize());
     }

@@ -1,6 +1,7 @@
 package l3diskex.basicfmt.type;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.System.Logger;
@@ -279,6 +280,16 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
 
     /** Identification Sector */
     private Os9Ident os9Ident;
+    /** the sector {@link #os9Ident} was read from, used to write it back */
+    private DiskImageSector os9IdentSector;
+
+    /** Write the in memory identification sector back onto the sector it came from */
+    private void writeIdent() throws IOException {
+        if (os9IdentSector == null || os9Ident == null) return;
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        Serdes.Util.serialize(os9Ident, baos);
+        os9IdentSector.copy(baos.toByteArray(), baos.size());
+    }
 
     /** Allocation Map */
     private final OS9AllocMap allocMap = new OS9AllocMap();
@@ -317,9 +328,7 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
         os9Ident = new Os9Ident();
         byte[] b = sector.getSectorBuffer();
         Serdes.Util.deserialize(new ByteArrayInputStream(b), os9Ident);
-        if (os9Ident == null) {
-            return -1.0;
-        }
+        os9IdentSector = sector;
 
         int iVal;
 
@@ -989,7 +998,7 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
         os9Ident = new Os9Ident();
         byte[] b = sector.getSectorBuffer();
         Serdes.Util.deserialize(new ByteArrayInputStream(b), os9Ident);
-        if (os9Ident == null) return false;
+        os9IdentSector = sector;
 
         //int totalLsn = basic.getFatEndGroup() + 1;
         int totalLsn = (basic.getTracksPerSide() - basic.getManagedTrackNumber()) * basic.getSidesPerDiskOnBasic() * basic.getSectorsPerTrackOnBasic();
@@ -1163,7 +1172,7 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
 
     /** Set attributes of IPL and managed area */
     @Override
-    public void setIdentifiedData(DiskBasicIdentifiedData data) {
+    public void setIdentifiedData(DiskBasicIdentifiedData data) throws IOException {
         DiskBasicFormat format = basic.getFormatType();
 
         // volume label
@@ -1171,5 +1180,6 @@ public class DiskBasicTypeOS9 extends DiskBasicType<DirectoryOs9> {
             String vol = data.getVolumeName();
             DiskBasicDirItemOS9.encodeString(os9Ident.name, os9Ident.name.length, vol, vol.length());
         }
+        writeIdent();
     }
 }

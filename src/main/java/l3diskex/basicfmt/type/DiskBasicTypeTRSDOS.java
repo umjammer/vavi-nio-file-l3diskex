@@ -1,6 +1,7 @@
 package l3diskex.basicfmt.type;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -141,6 +142,27 @@ public abstract class DiskBasicTypeTRSDOS<T extends Directory> extends DiskBasic
     }
 
     /** GAT Granule Allocate Table */
+    /** GAT sector, kept so it can be written back */
+    protected TrsDosGatSector gatSector;
+    /** the sector {@link #gatSector} was read from */
+    protected DiskImageSector gatSectorSector;
+
+    /** Read the GAT sector and remember where it came from */
+    protected TrsDosGatSector readGat(DiskImageSector sector) throws IOException {
+        gatSector = new TrsDosGatSector();
+        Serdes.Util.deserialize(new ByteArrayInputStream(sector.getSectorBuffer()), gatSector);
+        gatSectorSector = sector;
+        return gatSector;
+    }
+
+    /** Write the in memory GAT sector back onto the sector it came from */
+    protected void writeGat() throws IOException {
+        if (gatSectorSector == null || gatSector == null) return;
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        Serdes.Util.serialize(gatSector, baos);
+        gatSectorSector.copy(baos.toByteArray(), baos.size());
+    }
+
     protected TrsDosGat gatTable;
     /** TLT Track Lock-out Table */
     protected TrsDosGat tltTable;
@@ -162,8 +184,9 @@ public abstract class DiskBasicTypeTRSDOS<T extends Directory> extends DiskBasic
     public abstract void getFromHIPosition(int pos, int[] sectorNum, int[] posInSector);
 
     @Override
-    public void setGroupNumber(int num, int val) {
+    public void setGroupNumber(int num, int val) throws IOException {
         gatTable.modify(num, val != INVALID_GROUP_NUMBER);
+        writeGat();
     }
 
     @Override
@@ -212,9 +235,7 @@ public abstract class DiskBasicTypeTRSDOS<T extends Directory> extends DiskBasic
         if (sector == null) {
             return -1.0;
         }
-        TrsDosGatSector gatSector = new TrsDosGatSector();
-        byte[] b = sector.getSectorBuffer();
-        Serdes.Util.deserialize(new ByteArrayInputStream(b), gatSector);
+        readGat(sector);
 
         gatTable = new TrsDosGat(gatSector.gat, gatSector.gat.length, basic.getGroupsPerTrack());
         tltTable = new TrsDosGat(gatSector.tlt, gatSector.tlt.length, basic.getGroupsPerTrack());
@@ -242,9 +263,7 @@ public abstract class DiskBasicTypeTRSDOS<T extends Directory> extends DiskBasic
         if (sector == null) {
             return -1.0;
         }
-        TrsDosGatSector gatSector = new TrsDosGatSector();
-        byte[] b = sector.getSectorBuffer();
-        Serdes.Util.deserialize(new ByteArrayInputStream(b), gatSector);
+        readGat(sector);
         String volumeName = new String(gatSector.name);
         if (!volumeName.chars().allMatch(ch -> ch < 128)) {
             return -1.0;
@@ -334,9 +353,7 @@ public abstract class DiskBasicTypeTRSDOS<T extends Directory> extends DiskBasic
         }
         sector.fill(basic.getFillCodeOnFAT());
 
-        TrsDosGatSector gatSector = new TrsDosGatSector();
-        byte[] b = sector.getSectorBuffer();
-        Serdes.Util.deserialize(new ByteArrayInputStream(b), gatSector);
+        readGat(sector);
 
         // GAT set free area
         int mountStartGroup = basic.getManagedTrackNumber() * basic.getGroupsPerTrack() * basic.getSidesPerDiskOnBasic();
@@ -361,6 +378,8 @@ public abstract class DiskBasicTypeTRSDOS<T extends Directory> extends DiskBasic
         // APT
         Arrays.fill(gatSector.apt, (byte) 0x20);
         gatSector.apt[0] = (byte) 0x0d;
+
+        writeGat();
 
         // HIT, FDE directory
         startPos++;
@@ -398,7 +417,7 @@ public abstract class DiskBasicTypeTRSDOS<T extends Directory> extends DiskBasic
     }
 
     @Override
-    public void deleteGroupNumber(int groupNum) {
+    public void deleteGroupNumber(int groupNum) throws IOException {
         setGroupNumber(groupNum, INVALID_GROUP_NUMBER);
     }
 
@@ -410,9 +429,7 @@ public abstract class DiskBasicTypeTRSDOS<T extends Directory> extends DiskBasic
         if (sector == null) {
             return;
         }
-        TrsDosGatSector gatSector = new TrsDosGatSector();
-        byte[] b = sector.getSectorBuffer();
-        Serdes.Util.deserialize(new ByteArrayInputStream(b), gatSector);
+        readGat(sector);
 
         // volume name
         StringBuilder sb = new StringBuilder();
@@ -438,9 +455,7 @@ public abstract class DiskBasicTypeTRSDOS<T extends Directory> extends DiskBasic
         if (sector == null) {
             return;
         }
-        TrsDosGatSector gatSector = new TrsDosGatSector();
-        byte[] b = sector.getSectorBuffer();
-        Serdes.Util.deserialize(new ByteArrayInputStream(b), gatSector);
+        readGat(sector);
 
         // volume name
         byte[] volname = data.getVolumeName().toUpperCase().getBytes();
@@ -457,6 +472,8 @@ public abstract class DiskBasicTypeTRSDOS<T extends Directory> extends DiskBasic
         gatSector.date[5] = (byte) '/';
         gatSector.date[6] = (byte) (((tm.getYear() / 10) % 10) + 0x30);
         gatSector.date[7] = (byte) ((tm.getYear() % 10) + 0x30);
+
+        writeGat();
     }
 
     //
@@ -690,12 +707,12 @@ public abstract class DiskBasicTypeTRSDOS<T extends Directory> extends DiskBasic
                 tltTable.modify(group, false);
             }
 
-            byte[] b = sector.getSectorBuffer();
-            TrsDosGatSector gatSector = new TrsDosGatSector();
-            Serdes.Util.deserialize(new ByteArrayInputStream(b), gatSector);
+            readGat(sector);
 
             // Volume password
             gatSector.password = (short) 0x4296;
+
+            writeGat();
 
             DiskBasicDirItemTRSDOS<?> tItem;
 
@@ -719,6 +736,7 @@ public abstract class DiskBasicTypeTRSDOS<T extends Directory> extends DiskBasic
             }
             sector.copy("\u0000\u00fe\u0011\u00f3".getBytes(), 4);
             gatTable.modify(0, true);
+            writeGat();
 
             return true;
         }
@@ -868,12 +886,12 @@ public abstract class DiskBasicTypeTRSDOS<T extends Directory> extends DiskBasic
                 return false;
             }
 
-            byte[] b = sector.getSectorBuffer();
-            TrsDosGatSector gatSector = new TrsDosGatSector();
-            Serdes.Util.deserialize(new ByteArrayInputStream(b), gatSector);
+            readGat(sector);
 
             // Volume password
             gatSector.password = (short) 0x5cef;
+
+            writeGat();
 
             // Sector 0
             sector = basic.getSectorFromSectorPos(0);
@@ -883,6 +901,7 @@ public abstract class DiskBasicTypeTRSDOS<T extends Directory> extends DiskBasic
             }
             sector.copy("\u00fe\u0011\u003e\u00d0".getBytes(), 4, 0);
             gatTable.modify(0, true);
+            writeGat();
 
             return true;
         }

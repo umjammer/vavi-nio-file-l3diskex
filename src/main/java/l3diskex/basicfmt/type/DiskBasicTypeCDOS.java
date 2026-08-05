@@ -5,6 +5,7 @@
 package l3diskex.basicfmt.type;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -267,6 +268,8 @@ public class DiskBasicTypeCDOS extends DiskBasicTypeMZBase<DirectoryCDos> {
         f.mm = basic.invertUint8(mm[0]);
         f.dd = basic.invertUint8(dd[0]);
 
+        writeFat(fatbuf, f);
+
         //
         // Auto Start
         //
@@ -488,5 +491,14 @@ public class DiskBasicTypeCDOS extends DiskBasicTypeMZBase<DirectoryCDos> {
                 f.dd = basic.invertUint8(dd[0]);
             }
         }
+
+        writeFat(fatBuf, f);
+    }
+
+    /** Write the in memory FAT header back onto the FAT buffer (which points into the sector) */
+    private static void writeFat(DiskBasicFatBuffer fatBuf, FatCDos f) throws IOException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        Serdes.Util.serialize(f, baos);
+        fatBuf.copy(baos.toByteArray(), baos.size());
     }
 }

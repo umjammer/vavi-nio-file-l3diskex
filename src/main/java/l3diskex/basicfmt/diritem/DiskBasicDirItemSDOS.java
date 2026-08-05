@@ -576,6 +576,16 @@ public class DiskBasicDirItemSDOS extends DiskBasicDirItem<DirectorySDos> {
      * @return true
      */
     @Override
+    public byte[] getRawData() {
+        return data.getRawData();
+    }
+
+    @Override
+    protected void flushData() throws IOException {
+        data.flush();
+    }
+
+    @Override
     public boolean copyData(byte[] val) {
         data.copy(val, getDataSize());
         sectorData.copyFrom(data.getRawData());

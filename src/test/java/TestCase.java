@@ -22,7 +22,7 @@ import l3diskex.diskimg.DiskParam;
 import vavi.util.Debug;
 import vavi.util.properties.annotation.Property;
 import vavi.util.properties.annotation.PropsEntity;
-import vavi.util.serdes.Serdes;
+import vavi.util.serdes.CachingDIContainer;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -161,6 +161,6 @@ Debug.printf("files at dir: %d, %s, %08x", root.getChildren().size(), root.isDir
     @AfterAll
     static void tearDown() throws Exception {
         if (Boolean.parseBoolean(System.getProperty("vavi.util.serdes.cache.statistics", "false")))
-            Serdes.Cacher.printCacheStatistics();
+            CachingDIContainer.printCacheStatistics();
     }
 }

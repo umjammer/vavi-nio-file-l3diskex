@@ -126,14 +126,25 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
         private int myGroupNum;
         /** Block Availability Map */
         private C1541Bam bam;
+        /** the sector {@link #bam} was read from, used to write it back */
+        private DiskImageSector sector;
 
         public C1541Bitmap() {
             myGroupNum = 0;
             bam = null;
         }
 
-        public void setBitmap(C1541Bam bam) {
+        public void setBitmap(DiskImageSector sector, C1541Bam bam) {
+            this.sector = sector;
             this.bam = bam;
+        }
+
+        /** Write the in memory BAM back onto the sector it came from */
+        public void writeBack() throws IOException {
+            if (sector == null || bam == null) return;
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            Util.serialize(bam, baos);
+            sector.copy(baos.toByteArray(), baos.size());
         }
 
         public void setMyGroupNumber(int val) {
@@ -151,7 +162,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
          * @param sectorNum Sector number (0 ..)
          * @param use       Set if true
          */
-        public void modify(int trackNum, int sectorNum, boolean use) {
+        public void modify(int trackNum, int sectorNum, boolean use) throws IOException {
             int pos = sectorNum >> 3;
             int bit = sectorNum & 7;
 
@@ -165,6 +176,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
                 bam.map[trackNum].bits[pos] = (byte) (currentByte | mask);
                 bam.map[trackNum].remain++;
             }
+            writeBack();
         }
 
         /**
@@ -185,13 +197,14 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
          * @param trackNum  Track number (0 ..)
          * @param numOfSector Number of sectors
          */
-        public void freeTrack(int trackNum, int numOfSector) {
+        public void freeTrack(int trackNum, int numOfSector) throws IOException {
             int val = (1 << numOfSector) - 1;
             for (int pos = 0; pos < 3; pos++) {
                 bam.map[trackNum].bits[pos] = (byte) (val & 0xff);
                 val >>= 8;
             }
             bam.map[trackNum].remain = (byte) numOfSector;
+            writeBack();
         }
 
         /**
@@ -206,9 +219,10 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
         /**
          * Set disk name
          */
-        public void setDiskName(byte[] buf, int len) {
+        public void setDiskName(byte[] buf, int len) throws IOException {
             int copyLen = Math.min(len, bam.diskName.length);
             System.arraycopy(buf, 0, bam.diskName, 0, copyLen);
+            writeBack();
         }
 
         /**
@@ -228,8 +242,9 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
         /**
          * Set disk ID
          */
-        public void setDiskId(int val) {
+        public void setDiskId(int val) throws IOException {
             bam.diskId = (short) val;
+            writeBack();
         }
     }
 
@@ -314,7 +329,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
             validRatio = 0.5;
         }
 
-        c1541Bam.setBitmap(bam);
+        c1541Bam.setBitmap(sector, bam);
 
         int trackNum = basic.getManagedTrackNumber();
         int sectorNum = basic.getSectorNumberBase();
@@ -460,7 +475,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
      * Mark group number as used
      */
     @Override
-    public void setGroupNumber(int num, int val) {
+    public void setGroupNumber(int num, int val) throws IOException {
         int[] trackNum = {0};
         int[] sectorNum = {0};
         getNumFromSectorPosS(num, trackNum, sectorNum);
@@ -587,7 +602,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
      * Allocate groups for the data size
      */
     @Override
-    public int allocateUnitGroups(int fileUnitNum, DiskBasicDirItem<DirectoryC1541> item, int dataSize, AllocateGroupFlags flags, DiskBasicGroups[] groupItems) {
+    public int allocateUnitGroups(int fileUnitNum, DiskBasicDirItem<DirectoryC1541> item, int dataSize, AllocateGroupFlags flags, DiskBasicGroups[] groupItems) throws IOException {
         //int fileSize = 0;
         int groups = 0;
 
@@ -882,7 +897,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
         Util.deserialize(new ByteArrayInputStream(b), bam);
         sector.fill((byte) 0);
 
-        c1541Bam.setBitmap(bam);
+        c1541Bam.setBitmap(sector, bam);
         int sectorPos = getSectorPosFromNumS(trackNum, sectorNum);
         c1541Bam.setMyGroupNumber(sectorPos);
 
@@ -896,6 +911,8 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
         bam.dosVersion = '2';
         bam.dosFormat = 'A';
         bam.space1 = (byte) 0xa0;
+
+        c1541Bam.writeBack();
 
         // Bitmap clear
         for (int track = 0; track < basic.getTracksPerSide(); track++) {
@@ -1072,7 +1089,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
      * Delete FAT area
      */
     @Override
-    public void deleteGroupNumber(int group_num) {
+    public void deleteGroupNumber(int group_num) throws IOException {
         // Mark as unused
         setGroupNumber(group_num, 0);
     }
@@ -1118,7 +1135,7 @@ public class DiskBasicTypeC1541 extends DiskBasicType<DirectoryC1541> {
      * Set attributes of IPL and managed area
      */
     @Override
-    public void setIdentifiedData(DiskBasicIdentifiedData data) {
+    public void setIdentifiedData(DiskBasicIdentifiedData data) throws IOException {
         DiskBasicFormat format = basic.getFormatType();
 
         // volume name

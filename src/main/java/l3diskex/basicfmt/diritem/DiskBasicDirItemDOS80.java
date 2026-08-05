@@ -534,6 +534,17 @@ public class DiskBasicDirItemDOS80 extends DiskBasicDirItemFAT8<DirectoryDos80> 
     }
 
     @Override
+    public byte[] getRawData() {
+        return data.getRawData();
+    }
+
+    @Override
+    protected void flushData() throws IOException {
+        data.flush();
+        data2.flush();
+    }
+
+    @Override
     public boolean copyData(byte[] val) {
         return data.copy(val);
     }

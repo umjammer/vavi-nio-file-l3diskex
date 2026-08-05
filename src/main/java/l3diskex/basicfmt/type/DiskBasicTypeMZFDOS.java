@@ -1,6 +1,7 @@
 package l3diskex.basicfmt.type;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -220,11 +221,12 @@ public class DiskBasicTypeMZFDOS extends DiskBasicTypeMZBase<DirectoryMzFDos> {
             byte[] sectorBuffer = sector.getSectorBuffer();
             if (sectorBuffer != null) {
                 MzFDosFat f = new MzFDosFat();
-                Serdes.Util.deserialize(new ByteArrayInputStream(sectorBuffer), f); // TODO write back
+                Serdes.Util.deserialize(new ByteArrayInputStream(sectorBuffer), f);
                 int groupEnd = groupItems[0].last().group + 1;
                 int emptyStart = basic.invertAndOrderUint16(f.emptyStart);
                 if (emptyStart < groupEnd) {
                     f.emptyStart = basic.invertAndOrderUint16((short) groupEnd);
+                    writeFat(sector, f);
                 }
             }
         }
@@ -381,7 +383,7 @@ public class DiskBasicTypeMZFDOS extends DiskBasicTypeMZBase<DirectoryMzFDos> {
             calcUsedGroupPos(groupNum, pos, mask);
             fdat.map[pos[0]] = (byte) (fdat.map[pos[0]] | mask[0]);
         }
-        // TODO serialize
+        writeFat(sector, fdat);
 
         // invert
         basic.invertMemory(buf, size);
@@ -548,8 +550,15 @@ public class DiskBasicTypeMZFDOS extends DiskBasicTypeMZBase<DirectoryMzFDos> {
         if (volumeName.length > 0) {
             int len = volumeName.length;
             if (len >= f.sign.length) len = f.sign.length - 1;
-            System.arraycopy(volumeName, 0, f.sign, 0, f.sign.length);
+            System.arraycopy(volumeName, 0, f.sign, 0, len);
         }
-        // TODO deserialize
+        writeFat(sector, f);
+    }
+
+    /** Write back the usage status sector */
+    private static void writeFat(DiskImageSector sector, MzFDosFat f) throws IOException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        Serdes.Util.serialize(f, baos);
+        sector.copy(baos.toByteArray(), baos.size());
     }
 }
