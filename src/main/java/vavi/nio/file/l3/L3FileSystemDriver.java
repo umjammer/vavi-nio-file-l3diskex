@@ -174,7 +174,7 @@ logger.log(Level.TRACE, dir + ": " + String.join(", ", list.stream().map(this::g
     @Override
     protected DiskBasicDirItem<? extends Directory> moveEntry(DiskBasicDirItem<? extends Directory> sourceEntry, DiskBasicDirItem<? extends Directory> targetParentEntry, Path source, Path target, boolean targetIsParent) throws IOException {
         throw new UnsupportedOperationException("not implemented yet");
-//        FileEntry targetEntry = getEntry(targetIsParent ? target.resolve(toFilenameString(source)) : target, false);
+//        FileEntry targetEntry = getEntry(target, false);
 //        Files.move(sourceEntry.toPath(), targetEntry.toPath());
 //        return targetEntry;
     }
